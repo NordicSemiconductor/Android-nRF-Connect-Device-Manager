@@ -2,11 +2,6 @@ package io.runtime.mcumgr.mgrs;
 
 import android.util.Log;
 
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.Request;
-import org.eclipse.californium.core.network.serialization.DataSerializer;
-import org.eclipse.californium.core.network.serialization.TcpDataSerializer;
-
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +14,6 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.McuMgrHeader;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.util.CBOR;
-import io.runtime.rtmgw.coap.CBClient;
 
 /**
  * Image command group manager.
@@ -270,18 +264,33 @@ public class ImageManager extends McuManager {
     //******************************************************************
 
     // Image Upload Constants
-    private final static int MTU = 256;
+    private final static int DEFAULT_MTU = 256;
 
     // Upload states
-    private final static int STATE_NONE = 0;
-    private final static int STATE_UPLOADING = 1;
-    private final static int STATE_PAUSED = 2;
+    public final static int STATE_NONE = 0;
+    public final static int STATE_UPLOADING = 1;
+    public final static int STATE_PAUSED = 2;
 
     // Upload variables
     private int mUploadState = STATE_NONE;
     private int mUploadOffset = 0;
     private byte[] mImageUploadData;
     private ImageUploadCallback mUploadCallback;
+    private int mMtu = DEFAULT_MTU;
+
+    public synchronized void setUploadMtu(int mtu) {
+        if (mUploadState == STATE_UPLOADING) {
+            Log.e(TAG, "Upload must not be in progress!");
+        } else if (mtu < calculatePacketOverhead() + 1) {
+            Log.e(TAG, "Mtu is too small!");
+        } else {
+            mMtu = mtu;
+        }
+    }
+
+    public synchronized int getUploadState() {
+        return mUploadState;
+    }
 
     public synchronized void cancelUpload() {
         if (mUploadState == STATE_NONE) {
@@ -332,13 +341,8 @@ public class ImageManager extends McuManager {
         }
 
         Log.v(TAG, "Send upload data at offset: " + offset);
-        int overhead = 100;
-        try {
-            overhead = calculatePacketOverhead(mImageUploadData, offset) + 5;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        int dataLength = Math.min(MTU - overhead, mImageUploadData.length - offset);
+        int dataLength = Math.min(mMtu - calculatePacketOverhead(),
+                mImageUploadData.length - offset);
         Log.v(TAG, "Image data length: " + dataLength);
         byte[] sendBuffer = new byte[dataLength];
         for (int i = 0; i < dataLength; i++) {
@@ -396,27 +400,13 @@ public class ImageManager extends McuManager {
         }
     };
 
-    private int calculatePacketOverhead(byte[] data, int offset) {
-        HashMap<String, Object> overheadTestMap = new HashMap<>();
-        byte[] nmgrHeader = {0, 0, 0, 0, 0, 0, 0, 0};
-        overheadTestMap.put("_h", nmgrHeader);
-        overheadTestMap.put("data", new byte[0]);
-        overheadTestMap.put("off", offset);
-        if (offset == 0) {
-            overheadTestMap.put("len", data.length);
+    // TODO more precise overhead calculations
+    private int calculatePacketOverhead() {
+        if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
+            return 64;
+        } else {
+            return 40;
         }
-        try {
-            // TODO offload overhead calculations to transporter
-            Request request =
-                    CBClient.buildRequest(CoAP.Code.PUT, CBOR.toBytes(overheadTestMap), COAP_URI);
-            if (request != null) {
-                DataSerializer serializer = new TcpDataSerializer();
-                return serializer.getByteArray(request).length;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return -1;
     }
 
     //******************************************************************
