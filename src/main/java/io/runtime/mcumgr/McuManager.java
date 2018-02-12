@@ -211,46 +211,6 @@ public abstract class McuManager {
     }
 
     //******************************************************************
-    // Factory Methods
-    //******************************************************************
-
-    public static <T extends McuManager> T newManager(McuMgrTransport transporter, Class<T> type) {
-        if (type.equals(DefaultManager.class)) {
-            return type.cast(new DefaultManager(transporter));
-        } else if (type.equals(ImageManager.class)) {
-            return type.cast(new ImageManager(transporter));
-        } else if (type.equals(StatsManager.class)) {
-            return type.cast(new StatsManager(transporter));
-        } else if (type.equals(ConfigManager.class)) {
-            return type.cast(new ConfigManager(transporter));
-        } else if (type.equals(LogManager.class)) {
-            return type.cast(new LogManager(transporter));
-        } else {
-            return null;
-        }
-    }
-
-    public static DefaultManager newDefaultManager(McuMgrTransport transporter) {
-        return newManager(transporter, DefaultManager.class);
-    }
-
-    public static ImageManager newImageManager(McuMgrTransport transporter) {
-        return newManager(transporter, ImageManager.class);
-    }
-
-    public static StatsManager newStatsManager(McuMgrTransport transporter) {
-        return newManager(transporter, StatsManager.class);
-    }
-
-    public static ConfigManager newConfigManager(McuMgrTransport transporter) {
-        return newManager(transporter, ConfigManager.class);
-    }
-
-    public static LogManager newLogManager(McuMgrTransport transporter) {
-        return newManager(transporter, LogManager.class);
-    }
-
-    //******************************************************************
     // Utilities
     //******************************************************************
 

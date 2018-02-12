@@ -41,8 +41,8 @@ public class FirmwareUpgradeManager extends McuManager
         mImageData = imageData;
         mCallback = callback;
         mState = State.NONE;
-        mImageManager = McuManager.newImageManager(getTransporter());
-        mDefaultManager = McuManager.newDefaultManager(getTransporter());
+        mImageManager = new ImageManager(getTransporter());
+        mDefaultManager = new DefaultManager(getTransporter());
         mHash = ImageManager.getHashFromImage(imageData);
     }
 
@@ -194,6 +194,7 @@ public class FirmwareUpgradeManager extends McuManager
 
         @Override
         public void onError(McuMgrException e) {
+
             fail(e);
         }
     };

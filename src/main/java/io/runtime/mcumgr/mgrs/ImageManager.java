@@ -281,7 +281,7 @@ public class ImageManager extends McuManager {
     public synchronized void setUploadMtu(int mtu) {
         if (mUploadState == STATE_UPLOADING) {
             Log.e(TAG, "Upload must not be in progress!");
-        } else if (mtu < calculatePacketOverhead() + 1) {
+        } else if (mtu < calculatePacketOverhead(mImageUploadData, mUploadOffset) + 1) {
             Log.e(TAG, "Mtu is too small!");
         } else {
             mMtu = mtu;
@@ -341,7 +341,7 @@ public class ImageManager extends McuManager {
         }
 
         Log.v(TAG, "Send upload data at offset: " + offset);
-        int dataLength = Math.min(mMtu - calculatePacketOverhead(),
+        int dataLength = Math.min(mMtu - calculatePacketOverhead(mImageUploadData, offset),
                 mImageUploadData.length - offset);
         Log.v(TAG, "Image data length: " + dataLength);
         byte[] sendBuffer = new byte[dataLength];
@@ -401,12 +401,29 @@ public class ImageManager extends McuManager {
     };
 
     // TODO more precise overhead calculations
-    private int calculatePacketOverhead() {
-        if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
-            return 64;
-        } else {
-            return 40;
+    private int calculatePacketOverhead(byte[] data, int offset) {
+        HashMap<String, Object> overheadTestMap = new HashMap<>();
+        byte[] nmgrHeader = {0, 0, 0, 0, 0, 0, 0, 0};
+        overheadTestMap.put("data", new byte[0]);
+        overheadTestMap.put("off", offset);
+        if (offset == 0) {
+            overheadTestMap.put("len", data.length);
         }
+        try {
+            if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
+                overheadTestMap.put("_h", nmgrHeader);
+                byte[] cborData = CBOR.toBytes(overheadTestMap);
+                // 20 byte estimate of CoAP Header; 2 bytes for good measure
+                return cborData.length + 20 + 2;
+            } else {
+                byte[] cborData = CBOR.toBytes(overheadTestMap);
+                // 8 bytes for McuMgr header; 2 bytes for good measure
+                return cborData.length + 8 + 2;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     //******************************************************************
