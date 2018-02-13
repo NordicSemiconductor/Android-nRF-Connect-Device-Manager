@@ -13,7 +13,7 @@ public interface McuMgrCallback {
     void onResponse(McuMgrResponse response);
 
     /**
-     * Newt Manager has encountered an error while sending the command.
+     * Newt Manager has encountered a transport error while sending the command.
      * @param error the error
      */
     void onError(McuMgrException error);

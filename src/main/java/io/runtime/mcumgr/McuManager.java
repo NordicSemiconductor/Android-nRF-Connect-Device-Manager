@@ -247,7 +247,11 @@ public abstract class McuManager {
         BLE,
         COAP_BLE,
         UDP,
-        COAP_UDP
+        COAP_UDP;
+
+        public boolean isCoap() {
+            return (this == COAP_BLE || this == COAP_UDP);
+        }
     }
 
     //******************************************************************
