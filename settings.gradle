@@ -1,0 +1,1 @@
+include ':sample', ':mcumgr-android-lib'
