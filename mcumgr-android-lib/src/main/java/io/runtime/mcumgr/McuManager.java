@@ -245,7 +245,7 @@ public abstract class McuManager {
         COAP_UDP;
 
         public boolean isCoap() {
-            return (this == COAP_BLE || this == COAP_UDP);
+            return this == COAP_BLE || this == COAP_UDP;
         }
     }
 
