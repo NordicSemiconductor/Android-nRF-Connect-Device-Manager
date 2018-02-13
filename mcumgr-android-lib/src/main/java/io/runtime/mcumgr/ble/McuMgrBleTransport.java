@@ -52,6 +52,13 @@ public class McuMgrBleTransport extends McuMgrTransport {
 	private final Context mContext;
 
 	/**
+	 * true if the constructor had a {@link BluetoothGatt} as a paramater. In that case,
+	 * we don't automatically close the connection with the server, as the rest of the
+	 * application may need it
+	 */
+	private boolean mWasAlreadyConnected = false;
+
+	/**
 	 * The BLE device to connect to
 	 */
 	private BluetoothDevice mTarget;
@@ -117,12 +124,13 @@ public class McuMgrBleTransport extends McuMgrTransport {
 	 * set in the manifest and the hardware capability.
 	 *
 	 * @param context A valid context
-	 * @param gatt  The remote gatt server
+	 * @param gatt    The remote gatt server
 	 */
 	public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothGatt gatt) {
 		super(McuManager.Scheme.BLE);
 		this.mContext = context;
 		this.mBluetoothGatt = gatt;
+		this.mWasAlreadyConnected = true;
 		this.bleGattCallback = new BleGattCallback();
 
 		setUpBle();
@@ -271,7 +279,7 @@ public class McuMgrBleTransport extends McuMgrTransport {
 		this.mBluetoothGatt.setCharacteristicNotification(this.mSmpCharacteristic, true);
 		this.mBleSyncStep.waitForResult(BluetoothGattCharacteristic.class);
 		/*
-		 * The {@link BluetoothGattCallback#onCharacteristicChanged} doesn't return a status.
+		 * The {@link BluetoothGattCallback#onCharacteristicChanged} doesn't return a status,
 		 * so no error check here.
 		 */
 
@@ -349,7 +357,7 @@ public class McuMgrBleTransport extends McuMgrTransport {
 
 		private Object mRawResult;
 
-		public BleSyncStep() {
+		BleSyncStep() {
 			this.mCond = new ConditionVariable();
 		}
 
@@ -361,6 +369,7 @@ public class McuMgrBleTransport extends McuMgrTransport {
 			return waitForResult(clz, BLE_OP_TIMEOUT);
 		}
 
+		@SuppressWarnings("unchecked")
 		synchronized <T> Result<T> waitForResult(Class<T> clz, int timeout) throws TimeoutException {
 			if (mCond.block(timeout)) {
 				throw new TimeoutException();
@@ -406,16 +415,49 @@ public class McuMgrBleTransport extends McuMgrTransport {
 		} catch (Exception e) {
 			throw new McuMgrException(e);
 		} finally {
-			mBluetoothGatt.disconnect();
-			mBluetoothGatt.close();
+			if (!this.mWasAlreadyConnected) {
+				mBluetoothGatt.disconnect();
+				mBluetoothGatt.close();
+			}
 		}
 
 		/* TODO: what is a McuMgrResponse? */
 		return null;
 	}
 
+	/* TODO: make it truly async */
 	@Override
 	public void send(byte[] payload, McuMgrCallback callback) {
+		this.mAsync = true;
 
+		try {
+			checkBleIsEnabled();
+
+			/* 1- Connect to GATT server */
+			connectToGatt();
+
+			/* 2- Check if the SMP service exists */
+			loadServicesAndCheck();
+
+			/* 3- Observe the notifications */
+			observeSmpNotifications();
+
+			/* 4- All set up. Sending data now */
+			sendData(payload);
+
+			/* 5- Wait for the notification */
+			readSmpResponse();
+
+			callback.onResponse(null /* TODO ???? */);
+		} catch (McuMgrException e) {
+			callback.onError(e);
+		} catch (Exception e) {
+			callback.onError(new McuMgrException(e));
+		} finally {
+			if (!this.mWasAlreadyConnected) {
+				mBluetoothGatt.disconnect();
+				mBluetoothGatt.close();
+			}
+		}
 	}
 }
