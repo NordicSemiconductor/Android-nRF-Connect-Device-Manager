@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="McumgrSampleTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimaryDark">@android:color/holo_blue_dark</item>
+        <item name="colorPrimary">@android:color/holo_blue_light</item>
+    </style>
+</resources>

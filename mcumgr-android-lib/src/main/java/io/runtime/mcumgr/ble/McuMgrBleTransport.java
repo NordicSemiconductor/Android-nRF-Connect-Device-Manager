@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.os.ConditionVariable;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
@@ -45,6 +46,9 @@ import io.runtime.mcumgr.exception.McuMgrException;
 @SuppressLint("MissingPermission") /* To get rid of android studio warnings */
 public class McuMgrBleTransport extends McuMgrTransport {
 
+	private static final UUID SMP_SERVICE_UUID = UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
+	private static final UUID SMP_CHARAC_UUID = UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
+	private static final String TAG = McuMgrBleTransport.class.getSimpleName();
 	/**
 	 * The current context of the Application. This context must be valid during all the
 	 * FOTA operations.
@@ -88,9 +92,6 @@ public class McuMgrBleTransport extends McuMgrTransport {
 	 */
 	private BleSyncStep mBleSyncStep;
 
-	private static final UUID SMP_SERVICE_UUID = UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
-	private static final UUID SMP_CHARAC_UUID = UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
-
 	/**
 	 * The remote SMP service
 	 */
@@ -100,6 +101,16 @@ public class McuMgrBleTransport extends McuMgrTransport {
 	 * The remote SMP characteristic
 	 */
 	private BluetoothGattCharacteristic mSmpCharacteristic;
+
+	/**
+	 * The callback used in asynchronous {@link #send(byte[], McuMgrCallback)}
+	 */
+	private McuMgrCallback mCallback;
+
+	/**
+	 * The data to be sent asynchronously
+	 */
+	private byte[] mData;
 
 	/**
 	 * The constructor of this transport may throw RuntimeException depending of the permissions
@@ -196,15 +207,40 @@ public class McuMgrBleTransport extends McuMgrTransport {
 
 		@Override
 		public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+			Log.d(TAG, "GATT connection state changed: status " + status + ", state " + newState);
+
 			if (!mAsync) {
 				mBleSyncStep.setResult(status, newState);
+			} else {
+				if (status == BluetoothGatt.GATT_SUCCESS) {
+					Log.d(TAG, "Discovering services");
+					mBluetoothGatt.discoverServices();
+				} else {
+					mCallback.onError(new McuMgrException("Could not connect to the remote GATT server"));
+				}
 			}
 		}
 
 		@Override
 		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+			Log.d(TAG, "Services discovered, status " + status);
+
 			if (!mAsync) {
 				mBleSyncStep.setResult(status, null);
+			} else {
+				if (status == BluetoothGatt.GATT_SUCCESS) {
+					try {
+						initSmpServiceAndCharac();
+						Log.d(TAG, "Enabling notifications");
+						mBluetoothGatt.setCharacteristicNotification(mSmpCharacteristic, true);
+						UUID uuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+						BluetoothGattDescriptor descriptor = mSmpCharacteristic.getDescriptor(uuid);
+						descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+						mBluetoothGatt.writeDescriptor(descriptor);
+					} catch (McuMgrException e) {
+						mCallback.onError(e);
+					}
+				}
 			}
 		}
 
@@ -212,13 +248,34 @@ public class McuMgrBleTransport extends McuMgrTransport {
 		public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 			if (!mAsync) {
 				mBleSyncStep.setResult(0, characteristic);
+			} else {
+				/* TODO Read response, but need the format ! */
+				mCallback.onResponse(null);
 			}
+		}
+
+		/* TODO: Remove this stub. the "stop" should come from onCharacteristicChanged */
+		@Deprecated
+		@Override
+		public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+			mCallback.onResponse(null);
 		}
 
 		@Override
 		public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+			Log.d(TAG, "Descriptor written: status " + status);
+
 			if (!mAsync) {
 				mBleSyncStep.setResult(status, descriptor);
+			} else {
+				if (status == BluetoothGatt.GATT_SUCCESS) {
+					Log.d(TAG, "Sending data");
+					mSmpCharacteristic.setValue(mData);
+					mSmpCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+					mBluetoothGatt.writeCharacteristic(mSmpCharacteristic);
+				} else {
+					mCallback.onError(new McuMgrException("Could not subscribe to SMP notifications"));
+				}
 			}
 		}
 	}
@@ -235,6 +292,8 @@ public class McuMgrBleTransport extends McuMgrTransport {
 	 * @throws IllegalStateException The BLE is not enabled
 	 */
 	private void checkBleIsEnabled() {
+		Log.d(TAG, "Checking if BLE is ON");
+
 		if (!mBluetoothAdapter.isEnabled()) {
 			throw new IllegalStateException("The BLE is not enabled");
 		}
@@ -245,29 +304,42 @@ public class McuMgrBleTransport extends McuMgrTransport {
 			return;
 		}
 
+		Log.d(TAG, "Connecting to GATT server");
 		mBluetoothGatt = mTarget.connectGatt(mContext, true, bleGattCallback);
 
-		BleSyncStep.Result<Integer> r = this.mBleSyncStep.waitForResult(Integer.class);
-		if (r.getStatus() != BluetoothGatt.GATT_SUCCESS ||
-				r.getResult() != BluetoothGatt.STATE_CONNECTED) {
-			throw new McuMgrException("Couldn't connect to the remote GATT server");
+		if (!this.mAsync) {
+			BleSyncStep.Result<Integer> r = this.mBleSyncStep.waitForResult(Integer.class);
+			if (r.getStatus() != BluetoothGatt.GATT_SUCCESS ||
+					r.getResult() != BluetoothGatt.STATE_CONNECTED) {
+				throw new McuMgrException("Couldn't connect to the remote GATT server");
+			}
 		}
 	}
 
 	private void loadServicesAndCheck() throws TimeoutException, McuMgrException {
 		mBluetoothGatt.discoverServices();
 
+		if (this.mAsync) {
+			return;
+		}
+
 		BleSyncStep.Result<Void> r = this.mBleSyncStep.waitForResult(Void.class);
 		if (r.getStatus() != BluetoothGatt.GATT_SUCCESS) {
 			throw new McuMgrException("Could not discover the GATT server's services");
 		}
 
+		initSmpServiceAndCharac();
+	}
+
+	private void initSmpServiceAndCharac() throws McuMgrException {
+		Log.d(TAG, "Checking if the SMP service is served by the server");
 		this.mSmpService = mBluetoothGatt.getService(SMP_SERVICE_UUID);
 		if (this.mSmpService == null) {
 			throw new McuMgrException("The service " + SMP_SERVICE_UUID.toString() + " does not exists in the " +
 					"remote gatt server");
 		}
 
+		Log.d(TAG, "Checking if the SMP characteristic is served by the server");
 		this.mSmpCharacteristic = mSmpService.getCharacteristic(SMP_CHARAC_UUID);
 		if (this.mSmpCharacteristic == null) {
 			throw new McuMgrException("The characteristic " + SMP_CHARAC_UUID.toString() + " does not exists in the " +
@@ -277,6 +349,10 @@ public class McuMgrBleTransport extends McuMgrTransport {
 
 	private void observeSmpNotifications() throws TimeoutException, McuMgrException {
 		this.mBluetoothGatt.setCharacteristicNotification(this.mSmpCharacteristic, true);
+		if (this.mAsync) {
+			return;
+		}
+
 		this.mBleSyncStep.waitForResult(BluetoothGattCharacteristic.class);
 		/*
 		 * The {@link BluetoothGattCallback#onCharacteristicChanged} doesn't return a status,
@@ -302,6 +378,10 @@ public class McuMgrBleTransport extends McuMgrTransport {
 
 	/* TODO: what is the format of the responses */
 	private void readSmpResponse() throws TimeoutException {
+		if (this.mAsync) {
+			return;
+		}
+
 		this.mBleSyncStep.waitForResult(Void.class, 20 * 1000);
 	}
 
@@ -425,35 +505,27 @@ public class McuMgrBleTransport extends McuMgrTransport {
 		return null;
 	}
 
-	/* TODO: make it truly async */
 	@Override
 	public void send(byte[] payload, McuMgrCallback callback) {
 		this.mAsync = true;
+		this.mCallback = callback;
+		this.mData = payload;
 
+		Log.d(TAG, "Calling an asynchronous send");
 		try {
 			checkBleIsEnabled();
 
-			/* 1- Connect to GATT server */
+			/* 1- Connect to GATT server, and leave here. Everything will be called asynchronously */
 			connectToGatt();
 
-			/* 2- Check if the SMP service exists */
-			loadServicesAndCheck();
-
-			/* 3- Observe the notifications */
-			observeSmpNotifications();
-
-			/* 4- All set up. Sending data now */
-			sendData(payload);
-
-			/* 5- Wait for the notification */
-			readSmpResponse();
-
-			callback.onResponse(null /* TODO ???? */);
 		} catch (McuMgrException e) {
 			callback.onError(e);
+			if (!this.mWasAlreadyConnected) {
+				mBluetoothGatt.disconnect();
+				mBluetoothGatt.close();
+			}
 		} catch (Exception e) {
 			callback.onError(new McuMgrException(e));
-		} finally {
 			if (!this.mWasAlreadyConnected) {
 				mBluetoothGatt.disconnect();
 				mBluetoothGatt.close();
