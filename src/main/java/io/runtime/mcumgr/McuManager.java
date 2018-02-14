@@ -9,11 +9,6 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.mgrs.ConfigManager;
-import io.runtime.mcumgr.mgrs.DefaultManager;
-import io.runtime.mcumgr.mgrs.ImageManager;
-import io.runtime.mcumgr.mgrs.LogManager;
-import io.runtime.mcumgr.mgrs.StatsManager;
 import io.runtime.mcumgr.util.CBOR;
 
 /**
@@ -86,7 +81,8 @@ public abstract class McuManager {
      *
      * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
      * @param flags       additional flags
-     * @param len         length
+     * @param len         packet length. If this argument is zero, the length will be calculated
+     *                    and set automatically.
      * @param groupId     group ID of the command
      * @param sequenceNum sequence number
      * @param commandId   ID of the command in the group
@@ -96,6 +92,11 @@ public abstract class McuManager {
     public void send(int op, int flags, int len, int groupId, int sequenceNum, int commandId,
                      Map<String, Object> payloadMap, McuMgrCallback callback) {
         try {
+            // If the length is zero and we're not using a CoAP scheme, set the payload length.
+            // CoAP headers contain enough info to determine packet and payload length without len
+            if (len == 0 && !getScheme().isCoap()) {
+                len = CBOR.toBytes(payloadMap).length;
+            }
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
             mTransporter.send(payload, callback);
@@ -129,7 +130,8 @@ public abstract class McuManager {
      *
      * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
      * @param flags       additional flags
-     * @param len         length
+     * @param len         payload length (not including header). If this argument is zero, the
+     *                    length will be calculated and set automatically.
      * @param groupId     Group ID of the command
      * @param sequenceNum sequence number
      * @param commandId   ID of the command in the group
@@ -141,6 +143,11 @@ public abstract class McuManager {
                                int commandId, Map<String, Object> payloadMap)
             throws McuMgrException {
         try {
+            // If the length is zero and we're not using a CoAP scheme, set the payload length.
+            // CoAP headers contain enough info to determine packet and payload length without len
+            if (len == 0 && !getScheme().isCoap()) {
+                len = CBOR.toBytes(payloadMap).length;
+            }
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
             return mTransporter.send(payload);
@@ -177,7 +184,6 @@ public abstract class McuManager {
             payload = new byte[header.length + cborPayload.length];
             System.arraycopy(header, 0, payload, 0, header.length);
             System.arraycopy(cborPayload, 0, payload, header.length, cborPayload.length);
-
         }
         return payload;
     }
@@ -265,7 +271,10 @@ public abstract class McuManager {
         IN_VALUE(3),
         TIMEOUT(4),
         NO_ENTRY(5),
-        BAD_STATE(6);
+        BAD_STATE(6),
+        MSG_SIZE(7),
+        NOT_SUPPORTED(8),
+        PER_USER(256);
 
         private int mCode;
 
@@ -275,11 +284,6 @@ public abstract class McuManager {
 
         public int value() {
             return mCode;
-        }
-
-        @Override
-        public String toString() {
-            return "NewtMgrError: " + super.toString() + "(" + mCode + ")";
         }
 
         public static Code valueOf(int error) {
@@ -298,6 +302,12 @@ public abstract class McuManager {
                     return NO_ENTRY;
                 case 6:
                     return BAD_STATE;
+                case 7:
+                    return MSG_SIZE;
+                case 8:
+                    return NOT_SUPPORTED;
+                case 256:
+                    return PER_USER;
                 default:
                     return null;
             }

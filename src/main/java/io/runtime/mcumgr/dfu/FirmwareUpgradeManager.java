@@ -285,12 +285,13 @@ public class FirmwareUpgradeManager extends McuManager
         public void run() {
             int attempts = 0;
             try {
-                // Wait for the device to reset before polling. The BLE disconnect callback will
-                // take 20 seconds to trigger. TODO need to figure out a better way for UDP
-                synchronized (this) {
-                    wait(21000);
-                }
+
                 while (true) {
+                    // Wait for the device to reset before polling. The BLE disconnect callback will
+                    // take 20 seconds to trigger. TODO need to figure out a better way for UDP
+                    synchronized (this) {
+                        wait(23000);
+                    }
                     Log.d(TAG, "Calling image list...");
                     mImageManager.list(new McuMgrCallback() {
                         @Override
@@ -313,9 +314,6 @@ public class FirmwareUpgradeManager extends McuManager
                         return;
                     }
                     attempts++;
-                    synchronized (this) {
-                        wait(5000);
-                    }
                 }
             } catch (InterruptedException e) {
                 // Do nothing...

@@ -348,19 +348,13 @@ public class ImageManager extends McuManager {
         for (int i = 0; i < dataLength; i++) {
             sendBuffer[i] = mImageUploadData[offset + i];
         }
-        try {
-            HashMap<String, Object> payloadMap = new HashMap<>();
-            payloadMap.put(HEADER_KEY,
-                    McuMgrHeader.build(OP_WRITE, 0, 0, getGroupId(), 0, ID_UPLOAD));
-            payloadMap.put("data", sendBuffer);
-            payloadMap.put("off", offset);
-            if (offset == 0) {
-                payloadMap.put("len", mImageUploadData.length);
-            }
-            send(CBOR.toBytes(payloadMap), mCallback);
-        } catch (IOException e) {
-            cancelUpload(new McuMgrException("Error parsing response payload.", e));
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("data", sendBuffer);
+        payloadMap.put("off", offset);
+        if (offset == 0) {
+            payloadMap.put("len", mImageUploadData.length);
         }
+        send(OP_WRITE, ID_UPLOAD, payloadMap, mCallback);
     }
 
     private McuMgrCallback mCallback = new McuMgrCallback() {
@@ -413,12 +407,12 @@ public class ImageManager extends McuManager {
             if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
                 overheadTestMap.put("_h", nmgrHeader);
                 byte[] cborData = CBOR.toBytes(overheadTestMap);
-                // 20 byte estimate of CoAP Header; 4 bytes for good measure
-                return cborData.length + 20 + 4;
+                // 20 byte estimate of CoAP Header; 5 bytes for good measure
+                return cborData.length + 20 + 5;
             } else {
                 byte[] cborData = CBOR.toBytes(overheadTestMap);
-                // 8 bytes for McuMgr header; 4 bytes for good measure
-                return cborData.length + 8 + 4;
+                // 8 bytes for McuMgr header; 5 bytes for good measure
+                return cborData.length + 8 + 5;
             }
         } catch (IOException e) {
             e.printStackTrace();
