@@ -1,5 +1,6 @@
 package io.runtime.mcumgr.dfu;
 
+import android.app.Activity;
 import android.util.Log;
 
 import java.io.IOException;
@@ -7,6 +8,9 @@ import java.util.Date;
 
 import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrInitCallback;
+import io.runtime.mcumgr.McuMgrMtuCallback;
+import io.runtime.mcumgr.McuMgrMtuProvider;
 import io.runtime.mcumgr.McuMgrResponse;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
@@ -18,328 +22,400 @@ import io.runtime.mcumgr.util.CBOR;
 // TODO Add retries for each step
 
 public class FirmwareUpgradeManager extends McuManager
-        implements ImageManager.ImageUploadCallback {
+		implements ImageManager.ImageUploadCallback, McuMgrInitCallback, McuMgrMtuCallback {
 
-    private final static String TAG = "FirmwareUpgradeManager";
+	private final static String TAG = "FirmwareUpgradeManager";
 
-    private ImageManager mImageManager;
-    private DefaultManager mDefaultManager;
-    private FirmwareUpgradeCallback mCallback;
-    private byte[] mImageData;
-    private byte[] mHash;
+	private ImageManager mImageManager;
+	private DefaultManager mDefaultManager;
+	private FirmwareUpgradeCallback mCallback;
+	private byte[] mImageData;
+	private byte[] mHash;
 
-    private State mState;
-    private boolean mPaused = false;
+	private State mState;
+	private boolean mPaused = false;
 
-    public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
+	/**
+	 * If set, we must call all the callbacks in the main thread
+	 */
+	private Activity mActivity;
+	private McuMgrInitCallback mInitCb;
+
+	public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
 								  FirmwareUpgradeCallback callback) {
-        super(GROUP_PERUSER, transport);
-        initFields(imageData, callback);
-    }
+		super(GROUP_PERUSER, transport);
+		initFields(imageData, callback);
+	}
 
-    private void initFields(byte[] imageData, FirmwareUpgradeCallback callback) {
-        mImageData = imageData;
-        mCallback = callback;
-        mState = State.NONE;
-        mImageManager = new ImageManager(getTransporter());
-        mDefaultManager = new DefaultManager(getTransporter());
-        mHash = ImageManager.getHashFromImage(imageData);
-    }
+	/**
+	 * Asks all the callback function to be called in the UI thread
+	 *
+	 * @param activity The activity running the UI thread
+	 */
+	public void setCallbackOnUiThread(Activity activity) {
+		this.mActivity = activity;
+	}
 
-    public synchronized void start() {
-        if (mState != State.NONE) {
-            Log.i(TAG, "Firmware upgrade is already in progress");
-            return;
-        }
-        // Begin the upload
-        mState = State.UPLOAD;
-        mImageManager.upload(mImageData, this);
-    }
+	private void initFields(byte[] imageData, FirmwareUpgradeCallback callback) {
+		mImageData = imageData;
+		mCallback = callback;
+		mState = State.NONE;
+		mImageManager = new ImageManager(getTransporter(), imageData);
+		mDefaultManager = new DefaultManager(getTransporter());
+		mHash = ImageManager.getHashFromImage(imageData);
+	}
 
-    public synchronized void cancel() {
-        cancelPrivate();
-        mCallback.onCancel(mState);
-    }
+	public synchronized void init(McuMgrInitCallback cb) {
+		mInitCb = cb;
+		getTransporter().init(this);
+	}
 
-    private synchronized void cancelPrivate() {
-        mState = State.NONE;
-        mPaused = false;
-        if (mResetPollThread != null) {
-            mResetPollThread.interrupt();
-        }
-    }
+	@Override
+	public void onInitSuccess() {
+		/* We have to check if the transporter is an {@link McuMgrMtuProvider}. If so, ask for the Mtu, as
+		 * it is part of the transporter initialization */
+		if (getTransporter() instanceof McuMgrMtuProvider) {
+			((McuMgrMtuProvider) getTransporter()).getMtu(this);
+		} else {
+			mInitCb.onInitSuccess();
+		}
+	}
 
-    private synchronized void fail(McuMgrException error) {
-        mCallback.onFail(mState, error);
-        cancelPrivate();
-    }
+	@Override
+	public void onInitError() {
+		mInitCb.onInitError();
+	}
 
-    public synchronized void pause() {
-        if (mState.isInProgress()) {
-            Log.d(TAG, "Pausing upgrade.");
-            mPaused = true;
-            if (mState == State.UPLOAD) {
-                mImageManager.pauseUpload();
-            }
-        }
-    }
+	@Override
+	public void onMtuFetched(int mtu) {
+		this.mImageManager.setUploadMtu(mtu);
+		mInitCb.onInitSuccess();
+	}
 
-    public synchronized void resume() {
-        if (mPaused) {
-            mPaused = false;
-            currentState();
-        }
-    }
+	@Override
+	public void onMtuError() {
+		mInitCb.onInitError();
+	}
 
-    public boolean isPaused() {
-        return mPaused;
-    }
+	public synchronized void start() {
+		if (mState != State.NONE) {
+			Log.i(TAG, "Firmware upgrade is already in progress");
+			return;
+		}
+		// Begin the upload
+		mState = State.UPLOAD;
+		mImageManager.upload(mImageData, this);
+	}
 
-    public State getState() {
-        return mState;
-    }
+	public synchronized void cancel() {
+		cancelPrivate();
+		if (mActivity != null) {
+			mActivity.runOnUiThread(() -> mCallback.onCancel(mState));
+		} else {
+			mCallback.onCancel(mState);
+		}
+	}
 
-    public boolean isInProgress() {
-        return mState.isInProgress();
-    }
+	private synchronized void cancelPrivate() {
+		mState = State.NONE;
+		mPaused = false;
+		if (mResetPollThread != null) {
+			mResetPollThread.interrupt();
+		}
+	}
 
-    private synchronized void currentState() {
-        if (mPaused) {
-            return;
-        }
-        switch (mState) {
-            case NONE:
-                return;
-            case UPLOAD:
-                mImageManager.continueUpload();
-                break;
-            case TEST:
-                mImageManager.test(mHash, mTestCallback);
-                break;
-            case RESET:
-                nextState();
-                break;
-            case CONFIRM:
-                mImageManager.confirm(mHash, mConfirmCallback);
-                break;
-        }
-    }
+	private synchronized void fail(McuMgrException error) {
+		if (mActivity != null) {
+			mActivity.runOnUiThread(() -> mCallback.onFail(mState, error));
+		} else {
+			mCallback.onFail(mState, error);
+		}
+		cancelPrivate();
+	}
 
-    private synchronized void nextState() {
-        if (mPaused) {
-            return;
-        }
-        State prevState = mState;
-        switch (mState) {
-            case NONE:
-                return;
-            case UPLOAD:
-                mState = State.TEST;
-                mImageManager.test(mHash, mTestCallback);
-                break;
-            case TEST:
-                mState = State.RESET;
-                mDefaultManager.reset(mResetCallback);
-                break;
-            case RESET:
-                mState = State.CONFIRM;
-                mImageManager.confirm(mHash, mConfirmCallback);
-                break;
-            case CONFIRM:
-                mState = State.SUCCESS;
-                break;
-        }
-        mCallback.onStateChanged(prevState, mState);
-        if (mState == State.SUCCESS) {
-            mCallback.onSuccess();
-        }
-    }
+	public synchronized void pause() {
+		if (mState.isInProgress()) {
+			Log.d(TAG, "Pausing upgrade.");
+			mPaused = true;
+			if (mState == State.UPLOAD) {
+				mImageManager.pauseUpload();
+			}
+		}
+	}
 
-    //******************************************************************
-    // CoAP Handlers
-    //******************************************************************
+	public synchronized void resume() {
+		if (mPaused) {
+			mPaused = false;
+			currentState();
+		}
+	}
 
-    private McuMgrCallback mTestCallback = new McuMgrCallback() {
-        @Override
-        public void onResponse(McuMgrResponse response) {
-            if (!response.isSuccess()) {
-                fail(new McuMgrException("Test command failed!"));
-                return;
-            }
-            if (response.getRc() != Code.OK) {
-                Log.e(TAG, "Test failed due to Newt Manager error: " + response.getRc());
-                fail(new McuMgrErrorException(response.getRc()));
-                return;
-            }
-            try {
-                ImageManager.StateResponse testResponse = CBOR.toObject(response.getPayload(),
-                        ImageManager.StateResponse.class);
-                Log.v(TAG, "Test response: " + CBOR.toString(testResponse));
-                if (testResponse.images.length != 2) {
-                    fail(new McuMgrException("Test response does not contain enough info"));
-                    return;
-                }
-                if (!testResponse.images[1].pending) {
-                    Log.e(TAG, "Tested image is not in a pending state.");
-                    fail(new McuMgrException("Tested image is not in a pending state."));
-                    return;
-                }
-                // Test image success, begin device reset
-                nextState();
-            } catch (IOException e) {
-                e.printStackTrace();
-                fail(new McuMgrException("Error parsing test response", e));
-            }
-        }
+	public boolean isPaused() {
+		return mPaused;
+	}
 
-        @Override
-        public void onError(McuMgrException e) {
+	public State getState() {
+		return mState;
+	}
 
-            fail(e);
-        }
-    };
+	public boolean isInProgress() {
+		return mState.isInProgress();
+	}
 
-    private McuMgrCallback mResetCallback = new McuMgrCallback() {
-        @Override
-        public void onResponse(McuMgrResponse response) {
-            if (!response.isSuccess()) {
-                fail(new McuMgrException("Confirm command failed!"));
-                return;
-            }
-            if (response.getRc() != Code.OK) {
-                Log.e(TAG, "Reset failed due to Newt Manager error: " + response.getRc());
-                fail(new McuMgrErrorException(response.getRc()));
-                return;
-            }
-            // Begin polling the device to determine the reset
-            mResetPollThread.start();
-        }
+	private synchronized void currentState() {
+		if (mPaused) {
+			return;
+		}
+		switch (mState) {
+			case NONE:
+				return;
+			case UPLOAD:
+				mImageManager.continueUpload();
+				break;
+			case TEST:
+				mImageManager.test(mHash, mTestCallback);
+				break;
+			case RESET:
+				nextState();
+				break;
+			case CONFIRM:
+				mImageManager.confirm(mHash, mConfirmCallback);
+				break;
+		}
+	}
 
-        @Override
-        public void onError(McuMgrException e) {
-            fail(e);
-        }
-    };
+	private synchronized void nextState() {
+		if (mPaused) {
+			return;
+		}
+		State prevState = mState;
+		switch (mState) {
+			case NONE:
+				return;
+			case UPLOAD:
+				mState = State.TEST;
+				mImageManager.test(mHash, mTestCallback);
+				break;
+			case TEST:
+				mState = State.RESET;
+				mDefaultManager.reset(mResetCallback);
+				break;
+			case RESET:
+				mState = State.CONFIRM;
+				mImageManager.confirm(mHash, mConfirmCallback);
+				break;
+			case CONFIRM:
+				mState = State.SUCCESS;
+				break;
+		}
+		if (mActivity != null) {
+			mActivity.runOnUiThread(() -> mCallback.onStateChanged(prevState, mState));
+		} else {
+			mCallback.onStateChanged(prevState, mState);
+		}
 
-    private McuMgrCallback mConfirmCallback = new McuMgrCallback() {
-        @Override
-        public void onResponse(McuMgrResponse response) {
-            if (!response.isSuccess()) {
-                fail(new McuMgrException("Confirm failed!"));
-                return;
-            }
-            if (response.getRc() != Code.OK) {
-                Log.e(TAG, "Confirm failed due to Newt Manager error: " + response.getRc());
-                fail(new McuMgrErrorException(response.getRc()));
-                return;
-            }
-            try {
-                ImageManager.StateResponse confirmResponse = CBOR.toObject(response.getPayload(),
-                        ImageManager.StateResponse.class);
-                Log.v(TAG, "Confirm response: " + CBOR.toString(confirmResponse));
+		if (mState == State.SUCCESS) {
+			if (mActivity != null) {
+				mActivity.runOnUiThread(() -> mCallback.onSuccess());
+			} else {
+				mCallback.onSuccess();
+			}
+		}
+	}
 
-                if (confirmResponse.images.length == 0) {
-                    fail(new McuMgrException("Test response does not contain enough info"));
-                    return;
-                }
-                if (!confirmResponse.images[0].confirmed) {
-                    Log.e(TAG, "Image is not in a confirmed state.");
-                    fail(new McuMgrException("Image is not in a confirmed state."));
-                    return;
-                }
-                // Confirm image success
-                nextState();
-            } catch (IOException e) {
-                fail(new McuMgrException("Error parsing confirm response", e));
-            }
-        }
+	//******************************************************************
+	// CoAP Handlers
+	//******************************************************************
 
-        @Override
-        public void onError(McuMgrException e) {
-            fail(e);
-        }
-    };
+	private McuMgrCallback mTestCallback = new McuMgrCallback() {
+		@Override
+		public void onResponse(McuMgrResponse response) {
+			if (!response.isSuccess()) {
+				fail(new McuMgrException("Test command failed!"));
+				return;
+			}
+			if (response.getRc() != Code.OK) {
+				Log.e(TAG, "Test failed due to Newt Manager error: " + response.getRc());
+				fail(new McuMgrErrorException(response.getRc()));
+				return;
+			}
+			try {
+				ImageManager.StateResponse testResponse = CBOR.toObject(response.getPayload(),
+						ImageManager.StateResponse.class);
+				Log.v(TAG, "Test response: " + CBOR.toString(testResponse));
+				if (testResponse.images.length != 2) {
+					fail(new McuMgrException("Test response does not contain enough info"));
+					return;
+				}
+				if (!testResponse.images[1].pending) {
+					Log.e(TAG, "Tested image is not in a pending state.");
+					fail(new McuMgrException("Tested image is not in a pending state."));
+					return;
+				}
+				// Test image success, begin device reset
+				nextState();
+			} catch (IOException e) {
+				e.printStackTrace();
+				fail(new McuMgrException("Error parsing test response", e));
+			}
+		}
 
-    //******************************************************************
-    // Firmware Upgrade State
-    //******************************************************************
+		@Override
+		public void onError(McuMgrException e) {
 
-    public enum State {
-        NONE, UPLOAD, TEST, RESET, CONFIRM, SUCCESS;
+			fail(e);
+		}
+	};
 
-        public boolean isInProgress() {
-            if (this == UPLOAD || this == TEST || this == RESET || this == CONFIRM) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
+	private McuMgrCallback mResetCallback = new McuMgrCallback() {
+		@Override
+		public void onResponse(McuMgrResponse response) {
+			if (!response.isSuccess()) {
+				fail(new McuMgrException("Confirm command failed!"));
+				return;
+			}
+			if (response.getRc() != Code.OK) {
+				Log.e(TAG, "Reset failed due to Newt Manager error: " + response.getRc());
+				fail(new McuMgrErrorException(response.getRc()));
+				return;
+			}
+			// Begin polling the device to determine the reset
+			mResetPollThread.start();
+		}
 
-    //******************************************************************
-    // Poll Reset Runnable
-    //******************************************************************
+		@Override
+		public void onError(McuMgrException e) {
+			fail(e);
+		}
+	};
 
-    private Thread mResetPollThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            int attempts = 0;
-            try {
-                // Wait for the device to reset before polling. The BLE disconnect callback will
-                // take 20 seconds to trigger. TODO need to figure out a better way for UDP
-                synchronized (this) {
-                    wait(21000);
-                }
-                while (true) {
-                    Log.d(TAG, "Calling image list...");
-                    mImageManager.list(new McuMgrCallback() {
-                        @Override
-                        public synchronized void onResponse(McuMgrResponse response) {
-                            if (mState == State.RESET) {
-                                // Device has reset, begin confirm
-                                nextState();
-                                // Interrupt the thread
-                                mResetPollThread.interrupt();
-                            }
-                        }
+	private McuMgrCallback mConfirmCallback = new McuMgrCallback() {
+		@Override
+		public void onResponse(McuMgrResponse response) {
+			if (!response.isSuccess()) {
+				fail(new McuMgrException("Confirm failed!"));
+				return;
+			}
+			if (response.getRc() != Code.OK) {
+				Log.e(TAG, "Confirm failed due to Newt Manager error: " + response.getRc());
+				fail(new McuMgrErrorException(response.getRc()));
+				return;
+			}
+			try {
+				ImageManager.StateResponse confirmResponse = CBOR.toObject(response.getPayload(),
+						ImageManager.StateResponse.class);
+				Log.v(TAG, "Confirm response: " + CBOR.toString(confirmResponse));
 
-                        @Override
-                        public void onError(McuMgrException e) {
-                            // Do nothing...
-                        }
-                    });
-                    if (attempts == 4) {
-                        fail(new McuMgrException("Reset poller has reached attempt limit."));
-                        return;
-                    }
-                    attempts++;
-                    synchronized (this) {
-                        wait(5000);
-                    }
-                }
-            } catch (InterruptedException e) {
-                // Do nothing...
-            }
-        }
-    });
+				if (confirmResponse.images.length == 0) {
+					fail(new McuMgrException("Test response does not contain enough info"));
+					return;
+				}
+				if (!confirmResponse.images[0].confirmed) {
+					Log.e(TAG, "Image is not in a confirmed state.");
+					fail(new McuMgrException("Image is not in a confirmed state."));
+					return;
+				}
+				// Confirm image success
+				nextState();
+			} catch (IOException e) {
+				fail(new McuMgrException("Error parsing confirm response", e));
+			}
+		}
 
-    //******************************************************************
-    // Image Upload Callbacks
-    //******************************************************************
+		@Override
+		public void onError(McuMgrException e) {
+			fail(e);
+		}
+	};
 
-    @Override
-    public void onProgressChange(int bytesSent, int imageSize, Date ts) {
-        mCallback.onUploadProgressChanged(bytesSent, imageSize, ts);
-    }
+	//******************************************************************
+	// Firmware Upgrade State
+	//******************************************************************
 
-    @Override
-    public void onUploadFail(McuMgrException error) {
-        mCallback.onFail(mState, error);
-    }
+	public enum State {
+		NONE, UPLOAD, TEST, RESET, CONFIRM, SUCCESS;
 
-    @Override
-    public void onUploadFinish() {
-        // Upload finished, move to next state
-        nextState();
-    }
+		public boolean isInProgress() {
+			if (this == UPLOAD || this == TEST || this == RESET || this == CONFIRM) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
+	//******************************************************************
+	// Poll Reset Runnable
+	//******************************************************************
+
+	private Thread mResetPollThread = new Thread(new Runnable() {
+		@Override
+		public void run() {
+			int attempts = 0;
+			try {
+				// Wait for the device to reset before polling. The BLE disconnect callback will
+				// take 20 seconds to trigger. TODO need to figure out a better way for UDP
+				synchronized (this) {
+					wait(21000);
+				}
+				while (true) {
+					Log.d(TAG, "Calling image list...");
+					mImageManager.list(new McuMgrCallback() {
+						@Override
+						public synchronized void onResponse(McuMgrResponse response) {
+							if (mState == State.RESET) {
+								// Device has reset, begin confirm
+								nextState();
+								// Interrupt the thread
+								mResetPollThread.interrupt();
+							}
+						}
+
+						@Override
+						public void onError(McuMgrException e) {
+							// Do nothing...
+						}
+					});
+					if (attempts == 4) {
+						fail(new McuMgrException("Reset poller has reached attempt limit."));
+						return;
+					}
+					attempts++;
+					synchronized (this) {
+						wait(5000);
+					}
+				}
+			} catch (InterruptedException e) {
+				// Do nothing...
+			}
+		}
+	});
+
+	//******************************************************************
+	// Image Upload Callbacks
+	//******************************************************************
+
+	@Override
+	public void onProgressChange(int bytesSent, int imageSize, Date ts) {
+		if (mActivity != null) {
+			mActivity.runOnUiThread(() -> mCallback.onUploadProgressChanged(bytesSent, imageSize, ts));
+		} else {
+			mCallback.onUploadProgressChanged(bytesSent, imageSize, ts);
+		}
+	}
+
+	@Override
+	public void onUploadFail(McuMgrException error) {
+		if (mActivity != null) {
+			mActivity.runOnUiThread(() -> mCallback.onFail(mState, error));
+		} else {
+			mCallback.onFail(mState, error);
+		}
+	}
+
+	@Override
+	public void onUploadFinish() {
+		// Upload finished, move to next state
+		nextState();
+	}
 }

@@ -6,47 +6,50 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.OpenableColumns;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Locale;
 
+import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrInitCallback;
+import io.runtime.mcumgr.McuMgrResponse;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.mgrs.DefaultManager;
 
 public class McumgrSampleActivity extends AppCompatActivity
-		implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback {
+		implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback, McuMgrInitCallback {
 
-	private LinearLayout mLoading;
 	private BluetoothAdapter mBluetoothAdapter;
 	private Handler mHandler;
 	private String mDeviceName;
 	private BluetoothDevice mDevice;
 	private Uri mPath;
-	private AlertDialog mProgressDialog;
-	private ProgressBar mProgressBar;
 	private FloatingActionButton mFab;
+	private TextView mBle, mResult, mProgress, mState, mFail, mSize, mFile;
+	private FirmwareUpgradeManager mManager;
+	private McuMgrBleTransport mBleTransport;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +62,16 @@ public class McumgrSampleActivity extends AppCompatActivity
 		mFab = findViewById(R.id.start_fota);
 		mFab.setOnClickListener(v -> chooseFile());
 
-		mLoading = findViewById(R.id.loading);
+		mBle = findViewById(R.id.ble);
+		mResult = findViewById(R.id.result);
+		mProgress = findViewById(R.id.progress);
+		mState = findViewById(R.id.state);
+		mFail = findViewById(R.id.fail);
+		mSize = findViewById(R.id.size);
+		mFile = findViewById(R.id.file);
 
 		ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
-						Manifest.permission.ACCESS_FINE_LOCATION}, 2);
+				Manifest.permission.ACCESS_FINE_LOCATION}, 2);
 	}
 
 	private void showStartFota() {
@@ -84,6 +93,8 @@ public class McumgrSampleActivity extends AppCompatActivity
 				.setPositiveButton("Start", (dialog, which) -> {
 					dialog.dismiss();
 					mDeviceName = name.getText().toString();
+					mFab.hide();
+					mBle.setText("Searching");
 					findDevice();
 				})
 				.setNegativeButton("Cancel", null)
@@ -122,12 +133,38 @@ public class McumgrSampleActivity extends AppCompatActivity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 1 && resultCode == RESULT_OK) {
 			mPath = data.getData();
+			showFileName();
 			showStartFota();
 		}
 
 		if (requestCode == 2 && resultCode != RESULT_OK) {
 			finish();
 		}
+	}
+
+	private void showFileName() {
+		String result = null;
+		if (mPath.getScheme().equals("content")) {
+			Cursor cursor = getContentResolver().query(mPath, null, null, null, null);
+			try {
+				if (cursor != null && cursor.moveToFirst()) {
+					result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+				}
+			} finally {
+				if (cursor != null) {
+					cursor.close();
+				}
+			}
+		}
+		if (result == null) {
+			result = mPath.getPath();
+			int cut = result.lastIndexOf('/');
+			if (cut != -1) {
+				result = result.substring(cut + 1);
+			}
+		}
+
+		mFile.setText(result);
 	}
 
 	private Runnable mScanRunnable = () -> {
@@ -138,18 +175,15 @@ public class McumgrSampleActivity extends AppCompatActivity
 						"bluetooth enable")
 				.setPositiveButton("OK", null)
 				.show();
+		mFab.show();
 	};
 
 	private void scanLeDevice(final boolean enable) {
 		if (enable) {
-			mLoading.setVisibility(View.VISIBLE);
-			mFab.setEnabled(false);
 			mHandler.postDelayed(mScanRunnable, 10 * 1000);
 			mBluetoothAdapter.startLeScan(this);
 		} else {
 			mHandler.removeCallbacks(mScanRunnable);
-			mLoading.setVisibility(View.INVISIBLE);
-			mFab.setEnabled(true);
 			mBluetoothAdapter.stopLeScan(this);
 		}
 	}
@@ -165,6 +199,7 @@ public class McumgrSampleActivity extends AppCompatActivity
 			mDevice = device;
 			scanLeDevice(false);
 			prepareFota();
+			mBle.setText("Found");
 		}
 	}
 
@@ -188,20 +223,58 @@ public class McumgrSampleActivity extends AppCompatActivity
 	private void prepareFota() {
 		byte[] data;
 		try {
-			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-				Path path = Paths.get(mPath.getPath());
-				data = Files.readAllBytes(path);
-			} else {
-				data = getBytesFromFile();
-			}
+			data = getBytesFromFile();
+			mSize.setText(data.length / 1000 + " kB");
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
-		McuMgrBleTransport mBleTransport = new McuMgrBleTransport(this, mDevice);
-		FirmwareUpgradeManager mManager = new FirmwareUpgradeManager(mBleTransport, data, this);
+		mBleTransport = new McuMgrBleTransport(this, mDevice);
+		mManager = new FirmwareUpgradeManager(mBleTransport, data, this);
+		mManager.setCallbackOnUiThread(this);
+		mManager.init(this);
+	}
 
+	@Override
+	public void onInitSuccess() {
 		mManager.start();
+		/*DefaultManager dftManager = new DefaultManager(mBleTransport);
+		dftManager.echo("Hi!",
+				new McuMgrCallback() {
+					@Override
+					public void onResponse(McuMgrResponse response) {
+						String s = toHex(response.getPayload());
+						Log.d("a", s);
+						runOnUiThread(() -> mFail.setText(s));
+					}
+
+					@Override
+					public void onError(McuMgrException error) {
+						error.printStackTrace();
+					}
+				});*/
+	}
+
+	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+	private String toHex(byte[] bytes) {
+		char[] hexChars = new char[bytes.length * 2];
+		for (int j = 0; j < bytes.length; j++) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return new String(hexChars);
+	}
+
+	@Override
+	public void onInitError() {
+		mResult.setText("FOTA init failed");
+		new AlertDialog.Builder(this)
+				.setTitle("FOTA error")
+				.setPositiveButton("OK", null)
+				.show();
+		mFab.show();
 	}
 
 	@Override
@@ -211,50 +284,42 @@ public class McumgrSampleActivity extends AppCompatActivity
 
 	@Override
 	public void onStateChanged(FirmwareUpgradeManager.State prevState, FirmwareUpgradeManager.State newState) {
-
+		mState.setText(newState.name());
 	}
 
 	@Override
 	public void onSuccess() {
+		mResult.setText("Success");
 		new AlertDialog.Builder(this)
 				.setTitle("FOTA completed")
 				.setMessage("Success !")
 				.setPositiveButton("OK", null)
 				.show();
+		mFab.show();
 	}
 
 	@Override
 	public void onFail(FirmwareUpgradeManager.State state, McuMgrException error) {
-		if (mProgressDialog != null) {
-			mProgressDialog.dismiss();
-		}
+		mResult.setText("Fail");
+		mFail.setText(error.getMessage());
 
 		new AlertDialog.Builder(this)
 				.setTitle("FOTA error")
-				.setMessage(error.getMessage())
 				.setPositiveButton("OK", null)
 				.show();
 
+		mFab.show();
 		error.printStackTrace();
 	}
 
 	@Override
 	public void onCancel(FirmwareUpgradeManager.State state) {
-		if (mProgressDialog != null) {
-			mProgressDialog.dismiss();
-		}
+		mResult.setText("Cancel");
+		mFab.show();
 	}
 
 	@Override
 	public void onUploadProgressChanged(int bytesSent, int imageSize, Date ts) {
-		if (mProgressDialog == null) {
-			mProgressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-			mProgressDialog = new AlertDialog.Builder(this)
-					.setMessage("FOTA progress")
-					.setView(mProgressBar)
-					.create();
-		}
-		mProgressDialog.show();
-		mProgressBar.setProgress(bytesSent * 100 / imageSize);
+		mProgress.setText(String.format(Locale.getDefault(), "%d%%", bytesSent * 100 / imageSize));
 	}
 }

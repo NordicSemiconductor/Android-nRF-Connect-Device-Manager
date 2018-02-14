@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -39,484 +40,489 @@ import java.util.concurrent.TimeoutException;
 
 import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrInitCallback;
+import io.runtime.mcumgr.McuMgrMtuCallback;
+import io.runtime.mcumgr.McuMgrMtuProvider;
 import io.runtime.mcumgr.McuMgrResponse;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 
 /* TODO */
 @SuppressLint("MissingPermission") /* To get rid of android studio warnings */
-public class McuMgrBleTransport extends McuMgrTransport {
+public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProvider {
 
-    private static final UUID SMP_SERVICE_UUID = UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
-    private static final UUID SMP_CHARAC_UUID = UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
-    private static final String TAG = McuMgrBleTransport.class.getSimpleName();
-    /**
-     * The current context of the Application. This context must be valid during all the
-     * FOTA operations.
-     */
-    private final Context mContext;
+	private static final UUID SMP_SERVICE_UUID = UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
+	private static final UUID SMP_CHARAC_UUID = UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
+	private static final String TAG = McuMgrBleTransport.class.getSimpleName();
+	/**
+	 * The current context of the Application. This context must be valid during all the
+	 * FOTA operations.
+	 */
+	private final Context mContext;
 
-    /**
-     * true if the constructor had a {@link BluetoothGatt} as a paramater. In that case,
-     * we don't automatically close the connection with the server, as the rest of the
-     * application may need it
-     */
-    private boolean mWasAlreadyConnected = false;
+	/**
+	 * true if the constructor had a {@link BluetoothGatt} as a paramater. In that case,
+	 * we don't automatically close the connection with the server, as the rest of the
+	 * application may need it
+	 */
+	private boolean mWasAlreadyConnected = false;
 
-    /**
-     * The BLE device to connect to
-     */
-    private BluetoothDevice mTarget;
+	/**
+	 * The BLE device to connect to
+	 */
+	private BluetoothDevice mTarget;
 
-    /**
-     * The BLE adapter
-     */
-    private BluetoothAdapter mBluetoothAdapter;
+	/**
+	 * The BLE adapter
+	 */
+	private BluetoothAdapter mBluetoothAdapter;
 
-    /**
-     * The BLE gatt server of the remote device
-     */
-    private BluetoothGatt mBluetoothGatt;
+	/**
+	 * The BLE gatt server of the remote device
+	 */
+	private BluetoothGatt mBluetoothGatt;
 
-    /**
-     * Flag describing of the send operation is synchronous of asynchronous
-     */
-    private boolean mAsync;
+	/**
+	 * Flag describing of the send operation is synchronous of asynchronous
+	 */
+	private boolean mAsync;
 
-    /**
-     * This object will receive all the BLE related callbacks
-     */
-    private final BleGattCallback bleGattCallback;
+	/**
+	 * This object will receive all the BLE related callbacks
+	 */
+	private final BleGattCallback bleGattCallback;
 
-    /**
-     * Defines a blocking state of a BLe operation
-     */
-    private BleSyncStep mBleSyncStep;
+	/**
+	 * Defines a blocking state of a BLe operation
+	 */
+	private BleSyncStep mBleSyncStep;
 
-    /**
-     * The remote SMP service
-     */
-    private BluetoothGattService mSmpService;
+	/**
+	 * The remote SMP service
+	 */
+	private BluetoothGattService mSmpService;
 
-    /**
-     * The remote SMP characteristic
-     */
-    private BluetoothGattCharacteristic mSmpCharacteristic;
+	/**
+	 * The remote SMP characteristic
+	 */
+	private BluetoothGattCharacteristic mSmpCharacteristic;
 
-    /**
-     * The callback used in asynchronous {@link #send(byte[], McuMgrCallback)}
-     */
-    private McuMgrCallback mCallback;
+	/**
+	 * The callback used in asynchronous {@link #send(byte[], McuMgrCallback)}
+	 */
+	private McuMgrCallback mCallback;
 
-    /**
-     * The data to be sent asynchronously
-     */
-    private byte[] mData;
+	/**
+	 * The data to be sent asynchronously
+	 */
+	private byte[] mData;
 
-    /**
-     * The constructor of this transport may throw RuntimeException depending of the permissions
-     * set in the manifest and the hardware capability.
-     *
-     * @param context A valid context
-     * @param target  The BLE device to connect to
-     */
-    public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice target) {
-        super(McuManager.Scheme.BLE);
-        this.mContext = context;
-        this.mTarget = target;
-        this.bleGattCallback = new BleGattCallback();
+	/**
+	 * The bluetooth manager
+	 */
+	private BluetoothManager mBluetoothManager;
 
-        setUpBle();
-        checkPermissions();
-        checkBleCapability();
-    }
+	/**
+	 * Initialization callback
+	 */
+	private McuMgrInitCallback mInitCb;
 
-    /**
-     * The constructor of this transport may throw RuntimeException depending of the permissions
-     * set in the manifest and the hardware capability.
-     *
-     * @param context A valid context
-     * @param gatt    The remote gatt server
-     */
-    public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothGatt gatt) {
-        super(McuManager.Scheme.BLE);
-        this.mContext = context;
-        this.mBluetoothGatt = gatt;
-        this.mWasAlreadyConnected = true;
-        this.bleGattCallback = new BleGattCallback();
+	/**
+	 * Mtu fetching callback
+	 */
+	private McuMgrMtuCallback mMtuCb;
 
-        setUpBle();
-        checkPermissions();
-        checkBleCapability();
-    }
+	/**
+	 * The constructor of this transport may throw RuntimeException depending of the permissions
+	 * set in the manifest and the hardware capability.
+	 *
+	 * @param context A valid context
+	 * @param target  The BLE device to connect to
+	 */
+	public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice target) {
+		super(McuManager.Scheme.BLE);
+		this.mContext = context;
+		this.mTarget = target;
+		this.bleGattCallback = new BleGattCallback();
 
-    /**
-     * Sets up the BLE by getting the {@link BluetoothManager} and the {@link BluetoothAdapter}.
-     *
-     * @throws IllegalStateException Either the manager or the adapter is null. This should not
-     *                               happen
-     */
-    private void setUpBle() {
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+		setUpBle();
+		checkPermissions();
+		checkBleCapability();
+	}
 
-        if (bluetoothManager == null) {
-            throw new IllegalStateException("The BluetoothManager is null");
-        }
+	/**
+	 * The constructor of this transport may throw RuntimeException depending of the permissions
+	 * set in the manifest and the hardware capability.
+	 *
+	 * @param context A valid context
+	 * @param gatt    The remote gatt server
+	 */
+	public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothGatt gatt) {
+		super(McuManager.Scheme.BLE);
+		this.mContext = context;
+		this.mBluetoothGatt = gatt;
+		this.mWasAlreadyConnected = true;
+		this.bleGattCallback = new BleGattCallback();
 
-        this.mBluetoothAdapter = bluetoothManager.getAdapter();
-        if (this.mBluetoothAdapter == null) {
-            throw new IllegalStateException("The BluetoothAdapter is null");
-        }
-    }
+		setUpBle();
+		checkPermissions();
+		checkBleCapability();
+	}
 
-    /**
-     * Check that the hardware supports BLE. If not, this DFU transport is not usable
-     *
-     * @throws IllegalStateException The hardware does not support BLE
-     */
-    private void checkBleCapability() {
-        if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            throw new IllegalStateException("The device has no BLE capability");
-        }
-    }
+	/**
+	 * Sets up the BLE by getting the {@link BluetoothManager} and the {@link BluetoothAdapter}.
+	 *
+	 * @throws IllegalStateException Either the manager or the adapter is null. This should not
+	 *                               happen
+	 */
+	private void setUpBle() {
+		mBluetoothManager =
+				(BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
 
-    /**
-     * Check that the application has all the permissions to use the BLE capabilities
-     * of the the phone.
-     *
-     * @throws SecurityException A permission is missing
-     */
-    private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH) !=
-                PackageManager.PERMISSION_GRANTED) {
-            throw new SecurityException("The application doesn't have the BLUETOOTH permission");
-        }
+		if (this.mBluetoothManager == null) {
+			throw new IllegalStateException("The BluetoothManager is null");
+		}
 
-        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_ADMIN) !=
-                PackageManager.PERMISSION_GRANTED) {
-            throw new SecurityException("The application doesn't have the BLUETOOTH_ADMIN permission");
-        }
-    }
+		this.mBluetoothAdapter = mBluetoothManager.getAdapter();
+		if (this.mBluetoothAdapter == null) {
+			throw new IllegalStateException("The BluetoothAdapter is null");
+		}
+	}
 
-    /**
-     * This class will receives all the BLE related callbacks. The {@link McuMgrBleTransport} can't directly extends
-     * {@link BluetoothGattCallback} as it is an abstract class and not an interface, and we already extends
-     * {@link McuMgrTransport}.
-     */
-    private class BleGattCallback extends BluetoothGattCallback {
+	/**
+	 * Check that the hardware supports BLE. If not, this DFU transport is not usable
+	 *
+	 * @throws IllegalStateException The hardware does not support BLE
+	 */
+	private void checkBleCapability() {
+		if (!mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+			throw new IllegalStateException("The device has no BLE capability");
+		}
+	}
 
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            Log.d(TAG, "GATT connection state changed: status " + status + ", state " + newState);
+	/**
+	 * Check that the application has all the permissions to use the BLE capabilities
+	 * of the the phone.
+	 *
+	 * @throws SecurityException A permission is missing
+	 */
+	private void checkPermissions() {
+		if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH) !=
+				PackageManager.PERMISSION_GRANTED) {
+			throw new SecurityException("The application doesn't have the BLUETOOTH permission");
+		}
 
-            if (!mAsync) {
-                mBleSyncStep.setResult(status, newState);
-            } else {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    Log.d(TAG, "Discovering services");
-                    mBluetoothGatt.discoverServices();
-                } else {
-                    mCallback.onError(new McuMgrException("Could not connect to the remote GATT server"));
-                }
-            }
-        }
+		if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.BLUETOOTH_ADMIN) !=
+				PackageManager.PERMISSION_GRANTED) {
+			throw new SecurityException("The application doesn't have the BLUETOOTH_ADMIN permission");
+		}
+	}
 
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            Log.d(TAG, "Services discovered, status " + status);
+	/**
+	 * This class will receives all the BLE related callbacks. The {@link McuMgrBleTransport} can't directly extends
+	 * {@link BluetoothGattCallback} as it is an abstract class and not an interface, and we already extends
+	 * {@link McuMgrTransport}.
+	 */
+	private class BleGattCallback extends BluetoothGattCallback {
 
-            if (!mAsync) {
-                mBleSyncStep.setResult(status, null);
-            } else {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    try {
-                        initSmpServiceAndCharac();
-                        Log.d(TAG, "Enabling notifications");
-                        mBluetoothGatt.setCharacteristicNotification(mSmpCharacteristic, true);
-                        UUID uuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-                        BluetoothGattDescriptor descriptor = mSmpCharacteristic.getDescriptor(uuid);
-                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                        mBluetoothGatt.writeDescriptor(descriptor);
-                    } catch (McuMgrException e) {
-                        mCallback.onError(e);
-                    }
-                }
-            }
-        }
+		@Override
+		public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+			Log.d(TAG, "GATT connection state changed: status " + status + ", state " + newState);
 
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            if (!mAsync) {
-                mBleSyncStep.setResult(0, characteristic);
-            } else {
-                try {
-                    McuMgrBleResponse resp = new McuMgrBleResponse(characteristic.getValue());
-                    mCallback.onResponse(resp);
-                } catch (IOException e) {
-                    mCallback.onError(new McuMgrException(e));
-                }
-            }
-        }
+			if (newState == BluetoothGatt.STATE_DISCONNECTED ||
+					newState == BluetoothGatt.STATE_DISCONNECTING) {
+				return;
+			}
 
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            Log.d(TAG, "Descriptor written: status " + status);
+			if (status == BluetoothGatt.GATT_SUCCESS) {
+				Log.d(TAG, "Discovering services");
+				mBluetoothGatt.discoverServices();
+			} else {
+				mInitCb.onInitError();
+				if (!mWasAlreadyConnected) {
+					mBluetoothGatt.disconnect();
+					mBluetoothGatt.close();
+				}
+			}
+		}
 
-            if (!mAsync) {
-                mBleSyncStep.setResult(status, descriptor);
-            } else {
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    Log.d(TAG, "Sending data");
-                    mSmpCharacteristic.setValue(mData);
-                    mSmpCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-                    mBluetoothGatt.writeCharacteristic(mSmpCharacteristic);
-                } else {
-                    mCallback.onError(new McuMgrException("Could not subscribe to SMP notifications"));
-                }
-            }
-        }
-    }
+		@Override
+		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+			Log.d(TAG, "Services discovered, status " + status);
 
-    /**
-     * Check if the BLE is enabled. We can't enable the BLE directly in this function,
-     * as we need the result of {@link android.app.Activity#startActivityForResult(Intent, int)}.
-     * Only the application's activity can overrides the
-     * {@link android.app.Activity#onActivityResult(int, int, Intent)} function.
-     * <p>
-     * So, we just throw an error, ask the main activity to do the job, and call us again when
-     * the BLE is enabled.
-     *
-     * @throws IllegalStateException The BLE is not enabled
-     */
-    private void checkBleIsEnabled() {
-        Log.d(TAG, "Checking if BLE is ON");
+			if (status == BluetoothGatt.GATT_SUCCESS) {
+				try {
+					initSmpServiceAndCharac();
+					Log.d(TAG, "Enabling notifications");
+					mBluetoothGatt.setCharacteristicNotification(mSmpCharacteristic, true);
+					UUID uuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+					BluetoothGattDescriptor descriptor = mSmpCharacteristic.getDescriptor(uuid);
+					descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+					mBluetoothGatt.writeDescriptor(descriptor);
+				} catch (McuMgrException e) {
+					mInitCb.onInitError();
+					if (!mWasAlreadyConnected) {
+						mBluetoothGatt.disconnect();
+						mBluetoothGatt.close();
+					}
+				}
+			} else {
+				mInitCb.onInitError();
+				if (!mWasAlreadyConnected) {
+					mBluetoothGatt.disconnect();
+					mBluetoothGatt.close();
+				}
+			}
+		}
 
-        if (!mBluetoothAdapter.isEnabled()) {
-            throw new IllegalStateException("The BLE is not enabled");
-        }
-    }
+		@Override
+		public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+			Log.d(TAG, "Response received from remote GATT service");
 
-    private void connectToGatt() throws TimeoutException, McuMgrException {
-        if (mBluetoothGatt != null) {
-            return;
-        }
+			if (!mAsync) {
+				mBleSyncStep.setResult(0, characteristic);
+			} else {
+				try {
+					McuMgrBleResponse resp = new McuMgrBleResponse(characteristic.getValue());
+					mCallback.onResponse(resp);
+				} catch (IOException e) {
+					mCallback.onError(new McuMgrException(e));
+					if (!mWasAlreadyConnected) {
+						mBluetoothGatt.disconnect();
+						mBluetoothGatt.close();
+					}
+				}
+			}
+		}
 
-        Log.d(TAG, "Connecting to GATT server");
-        mBluetoothGatt = mTarget.connectGatt(mContext, true, bleGattCallback);
+		@Override
+		public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+			Log.d(TAG, "Descriptor written: status " + status);
 
-        if (!this.mAsync) {
-            BleSyncStep.Result<Integer> r = this.mBleSyncStep.waitForResult(Integer.class);
-            if (r.getStatus() != BluetoothGatt.GATT_SUCCESS ||
-                    r.getResult() != BluetoothGatt.STATE_CONNECTED) {
-                throw new McuMgrException("Couldn't connect to the remote GATT server");
-            }
-        }
-    }
+			if (status == BluetoothGatt.GATT_SUCCESS) {
+				mInitCb.onInitSuccess();
+			} else {
+				mInitCb.onInitError();
+			}
+		}
 
-    private void loadServicesAndCheck() throws TimeoutException, McuMgrException {
-        mBluetoothGatt.discoverServices();
+		@Override
+		public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+			if (mMtuCb != null) {
+				Log.d(TAG, "MTU fetched: " + mtu);
+				mMtuCb.onMtuFetched(mtu);
+			}
+		}
+	}
 
-        if (this.mAsync) {
-            return;
-        }
+	/**
+	 * Check if the BLE is enabled. We can't enable the BLE directly in this function,
+	 * as we need the result of {@link android.app.Activity#startActivityForResult(Intent, int)}.
+	 * Only the application's activity can overrides the
+	 * {@link android.app.Activity#onActivityResult(int, int, Intent)} function.
+	 * <p>
+	 * So, we just throw an error, ask the main activity to do the job, and call us again when
+	 * the BLE is enabled.
+	 *
+	 * @throws IllegalStateException The BLE is not enabled
+	 */
+	private void checkBleIsEnabled() {
+		Log.d(TAG, "Checking if BLE is ON");
 
-        BleSyncStep.Result<Void> r = this.mBleSyncStep.waitForResult(Void.class);
-        if (r.getStatus() != BluetoothGatt.GATT_SUCCESS) {
-            throw new McuMgrException("Could not discover the GATT server's services");
-        }
+		if (!mBluetoothAdapter.isEnabled()) {
+			throw new IllegalStateException("The BLE is not enabled");
+		}
+	}
 
-        initSmpServiceAndCharac();
-    }
+	private void connectToGatt() {
+		if (mBluetoothGatt != null) {
+			return;
+		}
 
-    private void initSmpServiceAndCharac() throws McuMgrException {
-        Log.d(TAG, "Checking if the SMP service is served by the server");
-        this.mSmpService = mBluetoothGatt.getService(SMP_SERVICE_UUID);
-        if (this.mSmpService == null) {
-            throw new McuMgrException("The service " + SMP_SERVICE_UUID.toString() + " does not exists in the " +
-                    "remote gatt server");
-        }
+		Log.d(TAG, "Connecting to GATT server");
+		mBluetoothGatt = mTarget.connectGatt(mContext, true, bleGattCallback);
+	}
 
-        Log.d(TAG, "Checking if the SMP characteristic is served by the server");
-        this.mSmpCharacteristic = mSmpService.getCharacteristic(SMP_CHARAC_UUID);
-        if (this.mSmpCharacteristic == null) {
-            throw new McuMgrException("The characteristic " + SMP_CHARAC_UUID.toString() + " does not exists in the " +
-                    "remote gatt server");
-        }
-    }
+	private void initSmpServiceAndCharac() throws McuMgrException {
+		Log.d(TAG, "Checking if the SMP service is served by the server");
+		this.mSmpService = mBluetoothGatt.getService(SMP_SERVICE_UUID);
+		if (this.mSmpService == null) {
+			throw new McuMgrException("The service " + SMP_SERVICE_UUID.toString() + " does not exists in the " +
+					"remote gatt server");
+		}
 
-    private void observeSmpNotifications() throws TimeoutException, McuMgrException {
-        this.mBluetoothGatt.setCharacteristicNotification(this.mSmpCharacteristic, true);
-        if (this.mAsync) {
-            return;
-        }
+		Log.d(TAG, "Checking if the SMP characteristic is served by the server");
+		this.mSmpCharacteristic = mSmpService.getCharacteristic(SMP_CHARAC_UUID);
+		if (this.mSmpCharacteristic == null) {
+			throw new McuMgrException("The characteristic " + SMP_CHARAC_UUID.toString() + " does not exists in the " +
+					"remote gatt server");
+		}
+	}
 
-        this.mBleSyncStep.waitForResult(BluetoothGattCharacteristic.class);
-        /*
-         * The {@link BluetoothGattCallback#onCharacteristicChanged} doesn't return a status,
-		 * so no error check here.
+	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+	private String toHex(byte[] bytes) {
+		char[] hexChars = new char[bytes.length * 2];
+		for (int j = 0; j < bytes.length; j++) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return new String(hexChars);
+	}
+
+	private void sendData(byte[] data) {
+		Log.d(TAG, "Sending " + data.length + " bytes");
+		Log.d(TAG, toHex(data));
+		this.mSmpCharacteristic.setValue(data);
+		this.mSmpCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+		this.mBluetoothGatt.writeCharacteristic(this.mSmpCharacteristic);
+	}
+
+	private McuMgrBleResponse readSmpResponse() throws TimeoutException, McuMgrException, IOException {
+		if (this.mAsync) {
+			return null;
+		}
+
+		BleSyncStep.Result<BluetoothGattCharacteristic> r =
+				this.mBleSyncStep.waitForResult(BluetoothGattCharacteristic.class, 20 * 1000);
+		if (r.getStatus() != BluetoothGatt.GATT_SUCCESS) {
+			throw new McuMgrException("Could not get the mcumgr response");
+		}
+
+		return new McuMgrBleResponse(r.getResult().getValue());
+	}
+
+	/**
+	 * Represents a blocking BLE operation
+	 */
+	private class BleSyncStep {
+		private class Result<T> {
+			/**
+			 * The status returned by the step. Default to no error, as some BLE callbacks
+			 * don't return a status.
+			 */
+			private int mStatus = BluetoothGatt.GATT_SUCCESS;
+
+			/**
+			 * The result returned by the step
+			 */
+			private T mResult;
+
+			Result(int mStatus, T mResult) {
+				this.mStatus = mStatus;
+				this.mResult = mResult;
+			}
+
+			int getStatus() {
+				return mStatus;
+			}
+
+			T getResult() {
+				return mResult;
+			}
+		}
+
+		/**
+		 * This condition variable is used to check is the step is done
 		 */
+		private final ConditionVariable mCond;
 
-        UUID uuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-        BluetoothGattDescriptor descriptor = this.mSmpCharacteristic.getDescriptor(uuid);
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        this.mBluetoothGatt.writeDescriptor(descriptor);
-        BleSyncStep.Result<BluetoothGattDescriptor> r =
-                this.mBleSyncStep.waitForResult(BluetoothGattDescriptor.class);
-        if (r.getStatus() != BluetoothGatt.GATT_SUCCESS) {
-            throw new McuMgrException("Could not discover the GATT server's services");
-        }
-    }
+		/**
+		 * The default value of the {@link ConditionVariable#block(long)} timeout.
+		 */
+		private final static int BLE_OP_TIMEOUT = 10000;
 
-    private void sendData(byte[] data) {
-        this.mSmpCharacteristic.setValue(data);
-        this.mSmpCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-        this.mBluetoothGatt.writeCharacteristic(this.mSmpCharacteristic);
-    }
+		private int mRawStatus;
 
-    private McuMgrBleResponse readSmpResponse() throws TimeoutException, McuMgrException, IOException {
-        if (this.mAsync) {
-            return null;
-        }
+		private Object mRawResult;
 
-        BleSyncStep.Result<BluetoothGattCharacteristic> r =
-                this.mBleSyncStep.waitForResult(BluetoothGattCharacteristic.class, 20 * 1000);
-        if (r.getStatus() != BluetoothGatt.GATT_SUCCESS) {
-            throw new McuMgrException("Could not get the mcumgr response");
-        }
+		BleSyncStep() {
+			this.mCond = new ConditionVariable();
+		}
 
-        return new McuMgrBleResponse(r.getResult().getValue());
-    }
+		synchronized <T> Result<T> waitForResult(Class<T> clz) throws TimeoutException {
+			return waitForResult(clz, BLE_OP_TIMEOUT);
+		}
 
-    /**
-     * Represents a blocking BLE operation
-     */
-    private class BleSyncStep {
-        private class Result<T> {
-            /**
-             * The status returned by the step. Default to no error, as some BLE callbacks
-             * don't return a status.
-             */
-            private int mStatus = BluetoothGatt.GATT_SUCCESS;
+		@SuppressWarnings("unchecked")
+		synchronized <T> Result<T> waitForResult(Class<T> clz, int timeout) throws TimeoutException {
+			if (mCond.block(timeout)) {
+				throw new TimeoutException();
+			}
+			if (!clz.isAssignableFrom(mRawResult.getClass())) {
+				throw new ClassCastException(mRawResult.getClass() + " can't be casted to " + clz.getName());
+			}
 
-            /**
-             * The result returned by the step
-             */
-            private T mResult;
+			return new Result<>(mRawStatus, (T) mRawResult);
+		}
 
-            Result(int mStatus, T mResult) {
-                this.mStatus = mStatus;
-                this.mResult = mResult;
-            }
+		synchronized void setResult(int status, Object result) {
+			this.mRawStatus = status;
+			this.mRawResult = result;
+			this.mCond.open();
+		}
+	}
 
-            int getStatus() {
-                return mStatus;
-            }
+	private boolean isAlreadySetUp() {
+		boolean b = this.mBluetoothGatt != null &&
+				this.mBluetoothManager.getConnectionState(this.mTarget, BluetoothProfile.GATT) ==
+						BluetoothProfile.STATE_CONNECTED;
 
-            T getResult() {
-                return mResult;
-            }
-        }
+		Log.d(TAG, "The transporter is already set up? " + b);
 
-        /**
-         * This condition variable is used to check is the step is done
-         */
-        private final ConditionVariable mCond;
+		return b;
+	}
 
-        /**
-         * The default value of the {@link ConditionVariable#block(long)} timeout.
-         */
-        private final static int BLE_OP_TIMEOUT = 10000;
+	@Override
+	public void init(McuMgrInitCallback cb) {
+		this.mInitCb = cb;
 
-        private int mRawStatus;
+		if (isAlreadySetUp()) {
+			this.mInitCb.onInitSuccess();
+		} else {
+			checkBleIsEnabled();
+			connectToGatt();
+		}
+	}
 
-        private Object mRawResult;
+	@Override
+	public McuMgrResponse send(byte[] payload) throws McuMgrException {
+		this.mAsync = false;
+		this.mBleSyncStep = new BleSyncStep();
 
-        BleSyncStep() {
-            this.mCond = new ConditionVariable();
-        }
+		try {
+			sendData(payload);
 
-        synchronized <T> Result<T> waitForResult(Class<T> clz) throws TimeoutException {
-            return waitForResult(clz, BLE_OP_TIMEOUT);
-        }
+			return readSmpResponse();
+		} catch (McuMgrException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new McuMgrException(e);
+		} finally {
+			if (!this.mWasAlreadyConnected) {
+				mBluetoothGatt.disconnect();
+				mBluetoothGatt.close();
+			}
+		}
+	}
 
-        @SuppressWarnings("unchecked")
-        synchronized <T> Result<T> waitForResult(Class<T> clz, int timeout) throws TimeoutException {
-            if (mCond.block(timeout)) {
-                throw new TimeoutException();
-            }
-            if (!clz.isAssignableFrom(mRawResult.getClass())) {
-                throw new ClassCastException(mRawResult.getClass() + " can't be casted to " + clz.getName());
-            }
+	@Override
+	public void send(byte[] payload, McuMgrCallback callback) {
+		this.mAsync = true;
+		this.mCallback = callback;
+		this.mData = payload;
 
-            return new Result<>(mRawStatus, (T) mRawResult);
-        }
+		sendData(payload);
+	}
 
-        synchronized void setResult(int status, Object result) {
-            this.mRawStatus = status;
-            this.mRawResult = result;
-            this.mCond.open();
-        }
-    }
+	@Override
+	public void getMtu(McuMgrMtuCallback cb) {
+		this.mMtuCb = cb;
 
-    @Override
-    public McuMgrResponse send(byte[] payload) throws McuMgrException {
-        this.mAsync = false;
-        this.mBleSyncStep = new BleSyncStep();
-
-        try {
-            checkBleIsEnabled();
-
-			/* 1- Connect to GATT server */
-            connectToGatt();
-
-			/* 2- Check if the SMP service exists */
-            loadServicesAndCheck();
-
-			/* 3- Observe the notifications */
-            observeSmpNotifications();
-
-			/* 4- All set up. Sending data now */
-            sendData(payload);
-
-			/* 5- Wait for the notification */
-            return readSmpResponse();
-        } catch (McuMgrException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new McuMgrException(e);
-        } finally {
-            if (!this.mWasAlreadyConnected) {
-                mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-            }
-        }
-    }
-
-    @Override
-    public void send(byte[] payload, McuMgrCallback callback) {
-        this.mAsync = true;
-        this.mCallback = callback;
-        this.mData = payload;
-
-        Log.d(TAG, "Calling an asynchronous send");
-        try {
-            checkBleIsEnabled();
-
-			/* 1- Connect to GATT server, and leave here. Everything will be called asynchronously */
-            connectToGatt();
-        } catch (McuMgrException e) {
-            callback.onError(e);
-            if (!this.mWasAlreadyConnected) {
-                mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-            }
-        } catch (Exception e) {
-            callback.onError(new McuMgrException(e));
-            if (!this.mWasAlreadyConnected) {
-                mBluetoothGatt.disconnect();
-                mBluetoothGatt.close();
-            }
-        }
-    }
+		if (!isAlreadySetUp()) {
+			cb.onMtuError();
+		} else {
+			this.mBluetoothGatt.requestMtu(512);
+		}
+	}
 }

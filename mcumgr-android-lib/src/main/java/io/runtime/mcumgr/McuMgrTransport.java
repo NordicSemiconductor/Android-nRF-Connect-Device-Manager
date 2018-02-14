@@ -16,4 +16,6 @@ public abstract class McuMgrTransport {
 	public abstract McuMgrResponse send(byte[] payload) throws McuMgrException;
 
 	public abstract void send(byte[] payload, McuMgrCallback callback);
+
+	public abstract void init(McuMgrInitCallback cb);
 }

@@ -1,6 +1,7 @@
 package io.runtime.mcumgr;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -170,6 +171,7 @@ public abstract class McuManager {
             // Standard scheme appends the CBOR payload to the header.
             byte[] cborPayload = CBOR.toBytes(payloadMap);
             payload = new byte[header.length + cborPayload.length];
+            ByteBuffer.wrap(header).putShort(2, (short)cborPayload.length).array();
             System.arraycopy(header, 0, payload, 0, header.length);
             System.arraycopy(cborPayload, 0, payload, header.length, cborPayload.length);
 
@@ -260,7 +262,10 @@ public abstract class McuManager {
         IN_VALUE(3),
         TIMEOUT(4),
         NO_ENTRY(5),
-        BAD_STATE(6);
+        BAD_STATE(6),
+        TOO_LARGE(7),
+        NOT_SUP(8),
+        PERM_ERROR(256);
 
         private int mCode;
 
@@ -293,6 +298,12 @@ public abstract class McuManager {
                     return NO_ENTRY;
                 case 6:
                     return BAD_STATE;
+                case 7:
+                    return TOO_LARGE;
+                case 8:
+                    return NOT_SUP;
+                case 256:
+                    return PERM_ERROR;
                 default:
                     return null;
             }
