@@ -418,12 +418,12 @@ public class ImageManager extends McuManager {
 			if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
 				overheadTestMap.put("_h", nmgrHeader);
 				byte[] cborData = CBOR.toBytes(overheadTestMap);
-				// 20 byte estimate of CoAP Header; 2 bytes for good measure
-				return cborData.length + 20 + 2;
+				// 20 byte estimate of CoAP Header; 5 bytes for good measure
+				return cborData.length + 20 + 5;
 			} else {
 				byte[] cborData = CBOR.toBytes(overheadTestMap);
-				// 8 bytes for McuMgr header; 2 bytes for good measure
-				return cborData.length + 8 + 2;
+				// 8 bytes for McuMgrHeader; 5 bytes for good measure
+				return cborData.length + 8 + 5;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

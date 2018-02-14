@@ -1,5 +1,7 @@
 package io.runtime.mcumgr;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -10,6 +12,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.CBOR;
 
 /**
@@ -92,6 +95,9 @@ public abstract class McuManager {
     public void send(int op, int flags, int len, int groupId, int sequenceNum, int commandId,
 					 Map<String, Object> payloadMap, McuMgrCallback callback) {
         try {
+            if (len == 0 && !getScheme().isCoap()) {
+                len = CBOR.toBytes(payloadMap).length;
+            }
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
             mTransporter.send(payload, callback);
@@ -137,6 +143,9 @@ public abstract class McuManager {
 							   int commandId, Map<String, Object> payloadMap)
             throws McuMgrException {
         try {
+            if (len == 0 && !getScheme().isCoap()) {
+                len = CBOR.toBytes(payloadMap).length;
+            }
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
             return mTransporter.send(payload);
@@ -170,6 +179,7 @@ public abstract class McuManager {
         } else {
             // Standard scheme appends the CBOR payload to the header.
             byte[] cborPayload = CBOR.toBytes(payloadMap);
+            Log.d("McuManager", ByteUtil.byteArrayToHex(cborPayload));
             payload = new byte[header.length + cborPayload.length];
             ByteBuffer.wrap(header).putShort(2, (short)cborPayload.length).array();
             System.arraycopy(header, 0, payload, 0, header.length);
