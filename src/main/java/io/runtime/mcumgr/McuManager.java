@@ -40,6 +40,33 @@ public abstract class McuManager {
     }
 
     /**
+     * Get the group ID for this manager.
+     *
+     * @return the group ID for this manager.
+     */
+    public int getGroupId() {
+        return mGroupId;
+    }
+
+    /**
+     * Get the transporter's scheme
+     *
+     * @return the transporter's scheme
+     */
+    public Scheme getScheme() {
+        return mTransporter.getScheme();
+    }
+
+    /**
+     * Get the transporter
+     *
+     * @return transporter for this new manager instance
+     */
+    public McuMgrTransport getTransporter() {
+        return mTransporter;
+    }
+
+    /**
      * Send an asynchronous Newt Manager command.
      * <p>
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
@@ -196,34 +223,6 @@ public abstract class McuManager {
             throw new McuMgrException("An error occurred serializing CBOR payload", e);
         }
         return packet;
-    }
-
-    /**
-     * Get the group ID for this manager.
-     *
-     * @return the group ID for this manager.
-     */
-
-    public int getGroupId() {
-        return mGroupId;
-    }
-
-    /**
-     * Get the transporter's scheme
-     *
-     * @return the transporter's scheme
-     */
-    public Scheme getScheme() {
-        return mTransporter.getScheme();
-    }
-
-    /**
-     * Get the transporter
-     *
-     * @return transporter for this new manager instance
-     */
-    public McuMgrTransport getTransporter() {
-        return mTransporter;
     }
 
     //******************************************************************
