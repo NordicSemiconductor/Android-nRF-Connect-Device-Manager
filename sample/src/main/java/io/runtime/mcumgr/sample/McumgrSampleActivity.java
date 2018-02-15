@@ -1,3 +1,18 @@
+/***************************************************************************
+ * Copyright (c) Intellinium SAS, 2014-present
+ * All Rights Reserved.
+ *
+ * NOTICE:  All information contained herein is, and remains
+ * the property of Intellinium SAS and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Intellinium SAS
+ * and its suppliers and may be covered by French and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Intellinium SAS.
+ ***************************************************************************/
+
 package io.runtime.mcumgr.sample;
 
 import android.Manifest;
@@ -17,7 +32,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -29,14 +43,11 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Locale;
 
-import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrInitCallback;
-import io.runtime.mcumgr.McuMgrResponse;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.mgrs.DefaultManager;
 
 public class McumgrSampleActivity extends AppCompatActivity
 		implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback, McuMgrInitCallback {
@@ -133,6 +144,7 @@ public class McumgrSampleActivity extends AppCompatActivity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 1 && resultCode == RESULT_OK) {
 			mPath = data.getData();
+			clearTextFields();
 			showFileName();
 			showStartFota();
 		}
@@ -140,6 +152,16 @@ public class McumgrSampleActivity extends AppCompatActivity
 		if (requestCode == 2 && resultCode != RESULT_OK) {
 			finish();
 		}
+	}
+
+	private void clearTextFields() {
+		mBle.setText("");
+		mResult.setText("");
+		mProgress.setText("");
+		mState.setText("");
+		mFail.setText("");
+		mSize.setText("");
+		mFile.setText("");
 	}
 
 	private void showFileName() {
