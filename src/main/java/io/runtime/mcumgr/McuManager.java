@@ -1,5 +1,7 @@
 package io.runtime.mcumgr;
 
+import android.support.annotation.Nullable;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,26 +40,6 @@ public abstract class McuManager {
     }
 
     /**
-     * Send data asynchronously using the transporter.
-     *
-     * @param data     the data to send
-     * @param callback the response callback
-     */
-    public void send(byte[] data, McuMgrCallback callback) {
-        mTransporter.send(data, callback);
-    }
-
-    /**
-     * Send data synchronously using the transporter.
-     *
-     * @param data the data to send
-     * @throws McuMgrException when an error occurs while sending the data.
-     */
-    public void send(byte[] data) throws McuMgrException {
-        mTransporter.send(data);
-    }
-
-    /**
      * Send an asynchronous Newt Manager command.
      * <p>
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
@@ -71,42 +53,6 @@ public abstract class McuManager {
      */
     public void send(int op, int commandId, Map<String, Object> payloadMap, McuMgrCallback callback) {
         send(op, 0, 0, mGroupId, 0, commandId, payloadMap, callback);
-    }
-
-    /**
-     * Send an asynchronous Newt Manager command.
-     * <p>
-     * Additionally builds the Newt Manager header and formats the packet based on scheme before
-     * sending it to the transporter.
-     *
-     * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
-     * @param flags       additional flags
-     * @param len         packet length. If this argument is zero, the length will be calculated
-     *                    and set automatically.
-     * @param groupId     group ID of the command
-     * @param sequenceNum sequence number
-     * @param commandId   ID of the command in the group
-     * @param payloadMap  map of command's key-value pairs to construct a CBOR payload
-     * @param callback    asynchronous callback
-     */
-    public void send(int op, int flags, int len, int groupId, int sequenceNum, int commandId,
-                     Map<String, Object> payloadMap, McuMgrCallback callback) {
-        try {
-            // If the length is zero set the payload length.
-            if (len == 0) {
-                // Copy the payload map
-                HashMap<String, Object> payloadMapCopy = new HashMap<>(payloadMap);
-                // Remove the header if present
-                payloadMapCopy.remove(HEADER_KEY);
-                len = CBOR.toBytes(payloadMapCopy).length;
-            }
-            // Build header and payload
-            byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
-            byte[] payload = buildPayload(header, payloadMap);
-            mTransporter.send(payload, callback);
-        } catch (IOException e) {
-            callback.onError(new McuMgrException("An error occurred serializing CBOR payload"));
-        }
     }
 
     /**
@@ -127,73 +73,129 @@ public abstract class McuManager {
     }
 
     /**
+     * Send an asynchronous Newt Manager command.
+     * <p>
+     * Additionally builds the Newt Manager header and formats the packet based on scheme before
+     * sending it to the transporter.
+     *
+     * @param op          The operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
+     * @param flags       Additional flags
+     * @param len         Packet length. If this argument is zero, the length will be calculated
+     *                    and set automatically.
+     * @param groupId     Group ID of the command
+     * @param sequenceNum Sequence number
+     * @param commandId   ID of the command in the group
+     * @param payloadMap  Map of payload key-value pairs
+     * @param callback    Asynchronous callback
+     */
+    public void send(int op, int flags, int len, int groupId, int sequenceNum, int commandId,
+                     Map<String, Object> payloadMap, McuMgrCallback callback) {
+        try {
+            byte[] packet = buildPacket(op, flags, len, groupId, sequenceNum, commandId, payloadMap);
+            send(packet, callback);
+        } catch (McuMgrException e) {
+            callback.onError(e);
+        }
+    }
+
+    /**
      * Send synchronous Newt Manager command.
      * <p>
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
      * sending it to the transporter.
      *
-     * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
-     * @param flags       additional flags
-     * @param len         payload length (not including header). If this argument is zero, the
-     *                    length will be calculated and set automatically.
+     * @param op          The operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
+     * @param flags       Additional flags
+     * @param len         Packet length. If this argument is zero, the length will be calculated
+     *                    and set automatically.
      * @param groupId     Group ID of the command
-     * @param sequenceNum sequence number
+     * @param sequenceNum Sequence number
      * @param commandId   ID of the command in the group
-     * @param payloadMap  Map of
+     * @param payloadMap  Map of payload key-value pairs
      * @return the newt manager response
      * @throws McuMgrException on transport error. See exception cause for more info.
      */
     public McuMgrResponse send(int op, int flags, int len, int groupId, int sequenceNum,
                                int commandId, Map<String, Object> payloadMap)
             throws McuMgrException {
+        byte[] packet = buildPacket(op, flags, len, groupId, sequenceNum, commandId, payloadMap);
+        return send(packet);
+    }
+
+    /**
+     * Send data asynchronously using the transporter.
+     *
+     * @param data     the data to send
+     * @param callback the response callback
+     */
+    public void send(byte[] data, McuMgrCallback callback) {
+        mTransporter.send(data, callback);
+    }
+
+    /**
+     * Send data synchronously using the transporter.
+     *
+     * @param data the data to send
+     * @throws McuMgrException when an error occurs while sending the data.
+     */
+    public McuMgrResponse send(byte[] data) throws McuMgrException {
+        return mTransporter.send(data);
+    }
+
+    /**
+     * Build a Mcu Manager packet based on the transport scheme.
+     *
+     * @param op          The operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
+     * @param flags       Additional flags
+     * @param len         Packet length. If this argument is zero, the length will be calculated
+     *                    and set automatically.
+     * @param groupId     Group ID of the command
+     * @param sequenceNum Sequence number
+     * @param commandId   ID of the command in the group
+     * @param payloadMap  Map of payload key-value pairs
+     * @return the packet data
+     */
+    public byte[] buildPacket(int op, int flags, int len, int groupId, int sequenceNum,
+                              int commandId, @Nullable Map<String, Object> payloadMap)
+            throws McuMgrException {
+        byte[] packet;
         try {
-            // If the length is zero set the payload length.
-            if (len == 0) {
+            // If the input length is zero set the McuMgrHeader length field.
+            if (len == 0 && payloadMap != null) {
                 // Copy the payload map
                 HashMap<String, Object> payloadMapCopy = new HashMap<>(payloadMap);
                 // Remove the header if present
                 payloadMapCopy.remove(HEADER_KEY);
                 len = CBOR.toBytes(payloadMapCopy).length;
             }
-            // Build header and payload
+
+            // Build header
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
-            byte[] payload = buildPayload(header, payloadMap);
-            return mTransporter.send(payload);
+
+            // Build the packet based on scheme
+            if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
+                if (payloadMap == null) {
+                    payloadMap = new HashMap<>();
+                }
+                // CoAP Scheme puts the header as a key-value pair in the payload
+                if (payloadMap.get(HEADER_KEY) == null) {
+                    payloadMap.put(HEADER_KEY, header);
+                }
+                packet = CBOR.toBytes(payloadMap);
+            } else if (payloadMap == null) {
+                // Standard scheme with no payload map means our payload is just the header
+                packet = header;
+            } else {
+                // Standard scheme appends the CBOR payload to the header.
+                byte[] cborPayload = CBOR.toBytes(payloadMap);
+                packet = new byte[header.length + cborPayload.length];
+                System.arraycopy(header, 0, packet, 0, header.length);
+                System.arraycopy(cborPayload, 0, packet, header.length, cborPayload.length);
+            }
         } catch (IOException e) {
             throw new McuMgrException("An error occurred serializing CBOR payload", e);
         }
-    }
-
-    /**
-     * Builds a payload for a command based on this manager's transport scheme.
-     *
-     * @param header     the header of this command
-     * @param payloadMap the map of key-value pairs to CBOR encode
-     * @return the payload to send over the transporter
-     * @throws IOException Error CBOR encoding payload map
-     */
-    public byte[] buildPayload(byte[] header, Map<String, Object> payloadMap) throws IOException {
-        byte[] payload;
-        if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
-            if (payloadMap == null) {
-                payloadMap = new HashMap<>();
-            }
-            // CoAP Scheme puts the header as a key-value pair in the payload
-            if (payloadMap.get(HEADER_KEY) == null) {
-                payloadMap.put(HEADER_KEY, header);
-            }
-            payload = CBOR.toBytes(payloadMap);
-        } else if (payloadMap == null) {
-            // Standard scheme with no payload map means our payload is just the header
-            payload = header;
-        } else {
-            // Standard scheme appends the CBOR payload to the header.
-            byte[] cborPayload = CBOR.toBytes(payloadMap);
-            payload = new byte[header.length + cborPayload.length];
-            System.arraycopy(header, 0, payload, 0, header.length);
-            System.arraycopy(cborPayload, 0, payload, header.length, cborPayload.length);
-        }
-        return payload;
+        return packet;
     }
 
     /**
