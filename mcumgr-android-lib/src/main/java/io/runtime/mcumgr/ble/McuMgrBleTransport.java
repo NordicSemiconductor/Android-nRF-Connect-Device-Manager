@@ -40,7 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import io.runtime.mcumgr.McuMgrCallback;
-import io.runtime.mcumgr.McuMgrInitCallback;
+import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrMtuCallback;
 import io.runtime.mcumgr.McuMgrMtuProvider;
 import io.runtime.mcumgr.McuMgrScheme;
@@ -123,7 +123,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
     /**
      * Initialization callback
      */
-    private McuMgrInitCallback mInitCb;
+    private McuMgrOpenCallback mInitCb;
 
     /**
      * Mtu fetching callback
@@ -349,6 +349,17 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
                 mMtuCb.onMtuFetched(mtu);
             }
         }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            if(!mAsync) {
+                return;
+            }
+
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                mCallback.onError(new McuMgrException("Couldn't write in characteristic, status " + status));
+            }
+        }
     }
 
     /**
@@ -398,6 +409,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
     private void sendData(byte[] data) {
         this.mSmpCharacteristic.setValue(data);
         this.mSmpCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+        Log.d(TAG, "Sending " + ByteUtil.byteArrayToHex(data, "0x%02X "));
         this.mBluetoothGatt.writeCharacteristic(this.mSmpCharacteristic);
     }
 
@@ -498,18 +510,6 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
     }
 
     @Override
-    public void init(McuMgrInitCallback cb) {
-        this.mInitCb = cb;
-
-        if (isAlreadySetUp()) {
-            this.mInitCb.onInitSuccess();
-        } else {
-            checkBleIsEnabled();
-            connectToGatt();
-        }
-    }
-
-    @Override
     public <T extends McuMgrResponse> T send(byte[] payload, Class<T> responseType) throws McuMgrException {
         this.mAsync = false;
         this.mBleSyncStep = new BleSyncStep();
@@ -548,5 +548,29 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
         } else {
             this.mBluetoothGatt.requestMtu(512);
         }
+    }
+
+    @Override
+    public boolean initAfterReset() {
+        return true;
+    }
+
+    @Override
+    public void open(McuMgrOpenCallback cb) {
+        this.mInitCb = cb;
+
+        if (isAlreadySetUp()) {
+            this.mInitCb.onInitSuccess();
+        } else {
+            checkBleIsEnabled();
+            connectToGatt();
+        }
+    }
+
+    @Override
+    public void close() {
+        mBluetoothGatt.disconnect();
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
     }
 }

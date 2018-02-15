@@ -43,14 +43,14 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Locale;
 
-import io.runtime.mcumgr.McuMgrInitCallback;
+import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
 
 public class McumgrSampleActivity extends AppCompatActivity
-        implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback, McuMgrInitCallback {
+        implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback, McuMgrOpenCallback {
 
     private static final String DEFAULT_DEVICE_NAME = "Zephyr";
 
@@ -299,7 +299,7 @@ public class McumgrSampleActivity extends AppCompatActivity
 
     @Override
     public void onInitError() {
-        mResult.setText("FOTA init failed");
+        mResult.setText("FOTA open failed");
         new AlertDialog.Builder(this)
                 .setTitle("FOTA error")
                 .setPositiveButton("OK", null)

@@ -16,9 +16,12 @@
 
 package io.runtime.mcumgr;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -27,6 +30,7 @@ import java.util.TimeZone;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.CBOR;
 
 import static io.runtime.mcumgr.McuMgrConstants.HEADER_KEY;
@@ -35,6 +39,8 @@ import static io.runtime.mcumgr.McuMgrConstants.HEADER_KEY;
  * TODO
  */
 public abstract class McuManager {
+
+    private static final String TAG = McuManager.class.getSimpleName();
 
     /**
      * This manager's group ID
@@ -91,7 +97,7 @@ public abstract class McuManager {
      */
     public <T extends McuMgrResponse> void send(int op, int commandId, Map<String, Object> payloadMap,
                                                 Class<T> respType, McuMgrCallback<T> callback) {
-        send(op, 0, 0, mGroupId, 0, commandId, payloadMap, respType, callback);
+        send(op, 0, mGroupId, 0, commandId, payloadMap, respType, callback);
     }
 
     /**
@@ -102,20 +108,22 @@ public abstract class McuManager {
      *
      * @param op          the operation ({@link McuMgrConstants#OP_READ}, {@link McuMgrConstants#OP_WRITE})
      * @param flags       additional flags
-     * @param len         length
      * @param groupId     group ID of the command
      * @param sequenceNum sequence number
      * @param commandId   ID of the command in the group
      * @param payloadMap  map of command's key-value pairs to construct a CBOR payload
      * @param callback    asynchronous callback
      */
-    public <T extends McuMgrResponse> void send(int op, int flags, int len, int groupId, int sequenceNum, int
-            commandId,
-                                                Map<String, Object> payloadMap, Class<T> respType, McuMgrCallback<T>
-                                                        callback) {
+    public <T extends McuMgrResponse> void send(int op, int flags, int groupId, int sequenceNum, int
+            commandId, Map<String, Object> payloadMap, Class<T> respType, McuMgrCallback<T> callback) {
         try {
-            if (len == 0 && !getScheme().isCoap()) {
+            int len;
+
+             if (!getScheme().isCoap()) {
                 len = CBOR.toBytes(payloadMap).length;
+            } else {
+                /* TODO for COAP */
+                len = 0;
             }
 
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
@@ -169,6 +177,7 @@ public abstract class McuManager {
             }
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
+            Log.d(TAG, "Sending " + ByteUtil.byteArrayToHex(payload, "0x%02X "));
             return mTransporter.send(payload, respType);
         } catch (IOException e) {
             throw new McuMgrException("An error occurred serializing CBOR payload", e);
@@ -195,8 +204,11 @@ public abstract class McuManager {
             }
             payload = CBOR.toBytes(payloadMap);
         } else if (payloadMap == null) {
-            // Standard scheme with no payload map means our payload is just the header
-            payload = header;
+            // Standard scheme with no payload map means our payload is just the header + 0x0a byte !!!
+            /* TODO: remove the 0x0a once it has been fixed in the embedded part */
+            payload = new byte[header.length + 1];
+            System.arraycopy(header, 0, payload, 0, header.length);
+            payload[header.length] = 0x0A;
         } else {
             // Standard scheme appends the CBOR payload to the header.
             byte[] cborPayload = CBOR.toBytes(payloadMap);

@@ -30,10 +30,21 @@ public abstract class McuMgrTransport {
         return mScheme;
     }
 
-    public abstract void init(McuMgrInitCallback cb);
+    public abstract void open(McuMgrOpenCallback cb);
 
     public abstract <T extends McuMgrResponse> T send(byte[] payload, Class<T> responseType) throws McuMgrException;
 
     public abstract <T extends McuMgrResponse> void send(byte[] payload, Class<T> responseType,
                                                          McuMgrCallback<T> callback);
+    /**
+     * Some transporter may need to initialize again the communication with the GATT server before
+     * continuing.
+     *
+     * @return true to reinitialize, false otherwise
+     */
+    public boolean initAfterReset() {
+        return false;
+    }
+
+    public abstract void close();
 }

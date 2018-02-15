@@ -29,6 +29,7 @@ import io.runtime.mcumgr.resp.McuMgrMpStatResponse;
 import io.runtime.mcumgr.resp.McuMgrReadDateTimeResponse;
 import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
 import io.runtime.mcumgr.resp.McuMgrTaskStatResponse;
+import io.runtime.mcumgr.resp.McuMgrVoidResponse;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_DEFAULT;
 import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
@@ -206,8 +207,8 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback
      */
-    public void reset(McuMgrCallback<McuMgrSimpleResponse> callback) {
-        send(OP_WRITE, ID_RESET, null, McuMgrSimpleResponse.class, callback);
+    public void reset(McuMgrCallback<McuMgrVoidResponse> callback) {
+        send(OP_WRITE, ID_RESET, null, McuMgrVoidResponse.class, callback);
     }
 
     /**
@@ -216,7 +217,7 @@ public class DefaultManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrSimpleResponse reset() throws McuMgrException {
-        return send(OP_WRITE, ID_RESET, null, McuMgrSimpleResponse.class);
+    public McuMgrVoidResponse reset() throws McuMgrException {
+        return send(OP_WRITE, ID_RESET, null, McuMgrVoidResponse.class);
     }
 }

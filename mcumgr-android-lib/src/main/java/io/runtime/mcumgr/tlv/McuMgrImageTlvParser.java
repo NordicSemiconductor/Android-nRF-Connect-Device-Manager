@@ -44,7 +44,7 @@ public class McuMgrImageTlvParser {
         McuMgrImageHeader header = McuMgrImageHeader.fromBytes(mData);
 
 		/* Read the image's TLVs.  All images are required to have a hash TLV.  If
-          * the hash is missing, the image is considered invalid.
+         * the hash is missing, the image is considered invalid.
      	 */
         int offset = header.getHdrSize() + header.getImgSize();
         int end;

@@ -81,7 +81,11 @@ public class McuMgrResponseBuilder {
         }
     }
 
-    public <T> T build(Class<T> clz) throws IOException {
+    public <T extends McuMgrResponse> T build(Class<T> clz) throws IOException {
+        if (clz.isInstance(McuMgrVoidResponse.class)) {
+            return null;
+        }
+
         Log.v(TAG, "Converting: " + ByteUtil.byteArrayToHex(mPayload, "0x%02X "));
         Log.v(TAG, "Converting response payload of size " + mPayload.length + " to a " + clz.getSimpleName());
         return CBOR.toObject(mPayload, clz);

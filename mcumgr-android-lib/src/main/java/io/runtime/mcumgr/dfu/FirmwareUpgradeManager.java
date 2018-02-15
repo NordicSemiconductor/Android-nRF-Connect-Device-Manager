@@ -23,7 +23,7 @@ import java.util.Date;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
-import io.runtime.mcumgr.McuMgrInitCallback;
+import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrMtuCallback;
 import io.runtime.mcumgr.McuMgrMtuProvider;
 import io.runtime.mcumgr.McuMgrTransport;
@@ -32,12 +32,12 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.mgrs.DefaultManager;
 import io.runtime.mcumgr.mgrs.ImageManager;
 import io.runtime.mcumgr.resp.McuMgrImageStateResponse;
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrVoidResponse;
 
 // TODO Add retries for each step
 
 public class FirmwareUpgradeManager
-        implements ImageManager.ImageUploadCallback, McuMgrInitCallback, McuMgrMtuCallback {
+        implements ImageManager.ImageUploadCallback, McuMgrOpenCallback, McuMgrMtuCallback {
 
     private final static String TAG = "FirmwareUpgradeManager";
     private final McuMgrTransport mTransporter;
@@ -55,7 +55,7 @@ public class FirmwareUpgradeManager
      * If set, we must call all the callbacks in the main thread
      */
     private Activity mActivity;
-    private McuMgrInitCallback mInitCb;
+    private McuMgrOpenCallback mInitCb;
 
     public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
                                   FirmwareUpgradeCallback callback) throws McuMgrException {
@@ -77,9 +77,9 @@ public class FirmwareUpgradeManager
         this.mActivity = activity;
     }
 
-    public synchronized void init(McuMgrInitCallback cb) {
+    public synchronized void init(McuMgrOpenCallback cb) {
         mInitCb = cb;
-        mTransporter.init(this);
+        mTransporter.open(this);
     }
 
     @Override
@@ -271,19 +271,10 @@ public class FirmwareUpgradeManager
         }
     };
 
-    private McuMgrCallback<McuMgrSimpleResponse> mResetCallback = new McuMgrCallback<McuMgrSimpleResponse>() {
+    private McuMgrCallback<McuMgrVoidResponse> mResetCallback = new McuMgrCallback<McuMgrVoidResponse>() {
         @Override
-        public void onResponse(McuMgrSimpleResponse response) {
-            if (!response.isSuccess()) {
-                fail(new McuMgrException("Confirm command failed!"));
-                return;
-            }
-            if (response.getRcCode() != McuMgrErrorCode.OK) {
-                Log.e(TAG, "Reset failed due to Newt Manager error: " + response.getRcCode());
-                fail(new McuMgrErrorException(response.getRcCode()));
-                return;
-            }
-            // Begin polling the device to determine the reset
+        public void onResponse(McuMgrVoidResponse response) {
+            Log.d(TAG, "Reset successful");
             mResetPollThread.start();
         }
 
@@ -346,29 +337,42 @@ public class FirmwareUpgradeManager
         public void run() {
             int attempts = 0;
             try {
-                // Wait for the device to reset before polling. The BLE disconnect callback will
-                // take 20 seconds to trigger. TODO need to figure out a better way for UDP
+                //TODO need to figure out a better way for UDP
                 synchronized (this) {
-                    wait(21000);
+                    wait(20*1000);
                 }
                 while (true) {
-                    Log.d(TAG, "Calling image list...");
-                    mImageManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
-                        @Override
-                        public synchronized void onResponse(McuMgrImageStateResponse response) {
-                            if (mState == State.RESET) {
-                                // Device has reset, begin confirm
-                                nextState();
-                                // Interrupt the thread
-                                mResetPollThread.interrupt();
-                            }
-                        }
+                    Log.d(TAG, "Checking if the transporter needs to be reinitialized");
+                    if(mTransporter.initAfterReset()) {
+                        mTransporter.close();
+                        mTransporter.open(new McuMgrOpenCallback() {
+                            @Override
+                            public void onInitSuccess() {
+                                if (mTransporter instanceof McuMgrMtuProvider) {
+                                    ((McuMgrMtuProvider) mTransporter).getMtu(new McuMgrMtuCallback() {
+                                        @Override
+                                        public void onMtuFetched(int mtu) {
+                                            checkResetComplete();
+                                        }
 
-                        @Override
-                        public void onError(McuMgrException e) {
-                            // Do nothing...
-                        }
-                    });
+                                        @Override
+                                        public void onMtuError() {
+
+                                        }
+                                    });
+                                } else {
+                                    checkResetComplete();
+                                }
+                            }
+
+                            @Override
+                            public void onInitError() {
+
+                            }
+                        });
+                    } else {
+                        checkResetComplete();
+                    }
                     if (attempts == 4) {
                         fail(new McuMgrException("Reset poller has reached attempt limit."));
                         return;
@@ -381,6 +385,26 @@ public class FirmwareUpgradeManager
             } catch (InterruptedException e) {
                 // Do nothing...
             }
+        }
+
+        private void checkResetComplete() {
+            Log.d(TAG, "Calling image list...");
+            mImageManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
+                @Override
+                public synchronized void onResponse(McuMgrImageStateResponse response) {
+                    if (mState == State.RESET) {
+                        // Device has reset, begin confirm
+                        nextState();
+                        // Interrupt the thread
+                        mResetPollThread.interrupt();
+                    }
+                }
+
+                @Override
+                public void onError(McuMgrException e) {
+                    // Do nothing...
+                }
+            });
         }
     });
 
