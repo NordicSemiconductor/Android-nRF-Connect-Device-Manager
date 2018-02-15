@@ -12,21 +12,21 @@
  *  is strictly forbidden unless prior written permission is obtained
  *  from Intellinium SAS.
  */
-/* TODO: add runtime copyright */
 
-package io.runtime.mcumgr.exception;
+package io.runtime.mcumgr.resp;
 
-import io.runtime.mcumgr.McuMgrErrorCode;
+public class McuMgrImageStateResponse extends McuMgrSimpleResponse {
+	public ImageSlot[] images;
+	public int splitStatus;
 
-public class McuMgrErrorException extends McuMgrException {
-	private McuMgrErrorCode mCode;
-
-	public McuMgrErrorException(McuMgrErrorCode code) {
-		mCode = code;
-	}
-
-	@Override
-	public String toString() {
-		return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
+	public static class ImageSlot {
+		public int slot;
+		public String version;
+		public byte[] hash;
+		public boolean bootable;
+		public boolean pending;
+		public boolean confirmed;
+		public boolean active;
+		public boolean permanent;
 	}
 }

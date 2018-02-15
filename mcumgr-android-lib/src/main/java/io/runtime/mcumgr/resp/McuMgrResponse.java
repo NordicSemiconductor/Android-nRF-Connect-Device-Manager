@@ -12,21 +12,16 @@
  *  is strictly forbidden unless prior written permission is obtained
  *  from Intellinium SAS.
  */
-/* TODO: add runtime copyright */
 
-package io.runtime.mcumgr.exception;
+package io.runtime.mcumgr.resp;
 
-import io.runtime.mcumgr.McuMgrErrorCode;
+public interface McuMgrResponse {
 
-public class McuMgrErrorException extends McuMgrException {
-	private McuMgrErrorCode mCode;
-
-	public McuMgrErrorException(McuMgrErrorCode code) {
-		mCode = code;
-	}
-
-	@Override
-	public String toString() {
-		return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
-	}
+	/**
+	 * Used primarily for a CoAP schemes to indicate a CoAP response error.
+	 *
+	 * @return true if a Mcu Manager response was received successfully (i.e. no CoAP error), false
+	 * otherwise.
+	 */
+	boolean isSuccess();
 }

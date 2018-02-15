@@ -12,21 +12,23 @@
  *  is strictly forbidden unless prior written permission is obtained
  *  from Intellinium SAS.
  */
-/* TODO: add runtime copyright */
 
-package io.runtime.mcumgr.exception;
+package io.runtime.mcumgr.resp;
 
-import io.runtime.mcumgr.McuMgrErrorCode;
+import java.util.Map;
 
-public class McuMgrErrorException extends McuMgrException {
-	private McuMgrErrorCode mCode;
+public class McuMgrTaskStatResponse extends McuMgrSimpleResponse {
+	public Map<String, TaskStat> tasks;
 
-	public McuMgrErrorException(McuMgrErrorCode code) {
-		mCode = code;
-	}
-
-	@Override
-	public String toString() {
-		return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
+	public static class TaskStat {
+		public int prio;
+		public int tid;
+		public int state;
+		public int stkuse;
+		public int stksiz;
+		public int cswcnt;
+		public int runtime;
+		public int last_checkin;
+		public int next_checkin;
 	}
 }

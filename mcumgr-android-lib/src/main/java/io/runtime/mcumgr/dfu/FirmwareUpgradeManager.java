@@ -19,28 +19,28 @@ package io.runtime.mcumgr.dfu;
 import android.app.Activity;
 import android.util.Log;
 
-import java.io.IOException;
 import java.util.Date;
 
-import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrInitCallback;
 import io.runtime.mcumgr.McuMgrMtuCallback;
 import io.runtime.mcumgr.McuMgrMtuProvider;
-import io.runtime.mcumgr.McuMgrResponse;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.mgrs.DefaultManager;
 import io.runtime.mcumgr.mgrs.ImageManager;
-import io.runtime.mcumgr.util.CBOR;
+import io.runtime.mcumgr.resp.McuMgrImageStateResponse;
+import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
 
 // TODO Add retries for each step
 
-public class FirmwareUpgradeManager extends McuManager
+public class FirmwareUpgradeManager
 		implements ImageManager.ImageUploadCallback, McuMgrInitCallback, McuMgrMtuCallback {
 
 	private final static String TAG = "FirmwareUpgradeManager";
+	private final McuMgrTransport mTransporter;
 
 	private ImageManager mImageManager;
 	private DefaultManager mDefaultManager;
@@ -58,9 +58,14 @@ public class FirmwareUpgradeManager extends McuManager
 	private McuMgrInitCallback mInitCb;
 
 	public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
-								  FirmwareUpgradeCallback callback) {
-		super(GROUP_PERUSER, transport);
-		initFields(imageData, callback);
+								  FirmwareUpgradeCallback callback) throws McuMgrException {
+		mImageData = imageData;
+		mCallback = callback;
+		mState = State.NONE;
+		mTransporter = transport;
+		mImageManager = new ImageManager(mTransporter, imageData);
+		mDefaultManager = new DefaultManager(mTransporter);
+		mHash = ImageManager.getHashFromImage(imageData);
 	}
 
 	/**
@@ -72,26 +77,17 @@ public class FirmwareUpgradeManager extends McuManager
 		this.mActivity = activity;
 	}
 
-	private void initFields(byte[] imageData, FirmwareUpgradeCallback callback) {
-		mImageData = imageData;
-		mCallback = callback;
-		mState = State.NONE;
-		mImageManager = new ImageManager(getTransporter(), imageData);
-		mDefaultManager = new DefaultManager(getTransporter());
-		mHash = ImageManager.getHashFromImage(imageData);
-	}
-
 	public synchronized void init(McuMgrInitCallback cb) {
 		mInitCb = cb;
-		getTransporter().init(this);
+		mTransporter.init(this);
 	}
 
 	@Override
 	public void onInitSuccess() {
 		/* We have to check if the transporter is an {@link McuMgrMtuProvider}. If so, ask for the Mtu, as
 		 * it is part of the transporter initialization */
-		if (getTransporter() instanceof McuMgrMtuProvider) {
-			((McuMgrMtuProvider) getTransporter()).getMtu(this);
+		if (mTransporter instanceof McuMgrMtuProvider) {
+			((McuMgrMtuProvider) mTransporter).getMtu(this);
 		} else {
 			mInitCb.onInitSuccess();
 		}
@@ -204,6 +200,7 @@ public class FirmwareUpgradeManager extends McuManager
 		if (mPaused) {
 			return;
 		}
+
 		State prevState = mState;
 		switch (mState) {
 			case NONE:
@@ -224,6 +221,8 @@ public class FirmwareUpgradeManager extends McuManager
 				mState = State.SUCCESS;
 				break;
 		}
+		Log.d(TAG, "Moving from state " + prevState.name() + " to state " + mState.name());
+
 		if (mActivity != null) {
 			mActivity.runOnUiThread(() -> mCallback.onStateChanged(prevState, mState));
 		} else {
@@ -243,37 +242,26 @@ public class FirmwareUpgradeManager extends McuManager
 	// CoAP Handlers
 	//******************************************************************
 
-	private McuMgrCallback mTestCallback = new McuMgrCallback() {
+	private McuMgrCallback<McuMgrImageStateResponse> mTestCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
 		@Override
-		public void onResponse(McuMgrResponse response) {
+		public void onResponse(McuMgrImageStateResponse response) {
 			if (!response.isSuccess()) {
 				fail(new McuMgrException("Test command failed!"));
 				return;
 			}
-			if (response.getRc() != Code.OK) {
-				Log.e(TAG, "Test failed due to Newt Manager error: " + response.getRc());
-				fail(new McuMgrErrorException(response.getRc()));
+
+			Log.v(TAG, "Test response: " + response.toString());
+			if (response.images.length != 2) {
+				fail(new McuMgrException("Test response does not contain enough info"));
 				return;
 			}
-			try {
-				ImageManager.StateResponse testResponse = CBOR.toObject(response.getPayload(),
-						ImageManager.StateResponse.class);
-				Log.v(TAG, "Test response: " + CBOR.toString(testResponse));
-				if (testResponse.images.length != 2) {
-					fail(new McuMgrException("Test response does not contain enough info"));
-					return;
-				}
-				if (!testResponse.images[1].pending) {
-					Log.e(TAG, "Tested image is not in a pending state.");
-					fail(new McuMgrException("Tested image is not in a pending state."));
-					return;
-				}
-				// Test image success, begin device reset
-				nextState();
-			} catch (IOException e) {
-				e.printStackTrace();
-				fail(new McuMgrException("Error parsing test response", e));
+			if (!response.images[1].pending) {
+				Log.e(TAG, "Tested image is not in a pending state.");
+				fail(new McuMgrException("Tested image is not in a pending state."));
+				return;
 			}
+			// Test image success, begin device reset
+			nextState();
 		}
 
 		@Override
@@ -283,16 +271,16 @@ public class FirmwareUpgradeManager extends McuManager
 		}
 	};
 
-	private McuMgrCallback mResetCallback = new McuMgrCallback() {
+	private McuMgrCallback<McuMgrSimpleResponse> mResetCallback = new McuMgrCallback<McuMgrSimpleResponse>() {
 		@Override
-		public void onResponse(McuMgrResponse response) {
+		public void onResponse(McuMgrSimpleResponse response) {
 			if (!response.isSuccess()) {
 				fail(new McuMgrException("Confirm command failed!"));
 				return;
 			}
-			if (response.getRc() != Code.OK) {
-				Log.e(TAG, "Reset failed due to Newt Manager error: " + response.getRc());
-				fail(new McuMgrErrorException(response.getRc()));
+			if (response.getRcCode() != McuMgrErrorCode.OK) {
+				Log.e(TAG, "Reset failed due to Newt Manager error: " + response.getRcCode());
+				fail(new McuMgrErrorException(response.getRcCode()));
 				return;
 			}
 			// Begin polling the device to determine the reset
@@ -305,37 +293,30 @@ public class FirmwareUpgradeManager extends McuManager
 		}
 	};
 
-	private McuMgrCallback mConfirmCallback = new McuMgrCallback() {
+	private McuMgrCallback<McuMgrImageStateResponse> mConfirmCallback =
+			new McuMgrCallback<McuMgrImageStateResponse>() {
 		@Override
-		public void onResponse(McuMgrResponse response) {
+		public void onResponse(McuMgrImageStateResponse response) {
 			if (!response.isSuccess()) {
 				fail(new McuMgrException("Confirm failed!"));
 				return;
 			}
-			if (response.getRc() != Code.OK) {
-				Log.e(TAG, "Confirm failed due to Newt Manager error: " + response.getRc());
-				fail(new McuMgrErrorException(response.getRc()));
+			if (response.getRcCode() != McuMgrErrorCode.OK) {
+				Log.e(TAG, "Confirm failed due to Newt Manager error: " + response.getRcCode());
+				fail(new McuMgrErrorException(response.getRcCode()));
 				return;
 			}
-			try {
-				ImageManager.StateResponse confirmResponse = CBOR.toObject(response.getPayload(),
-						ImageManager.StateResponse.class);
-				Log.v(TAG, "Confirm response: " + CBOR.toString(confirmResponse));
-
-				if (confirmResponse.images.length == 0) {
-					fail(new McuMgrException("Test response does not contain enough info"));
-					return;
-				}
-				if (!confirmResponse.images[0].confirmed) {
-					Log.e(TAG, "Image is not in a confirmed state.");
-					fail(new McuMgrException("Image is not in a confirmed state."));
-					return;
-				}
-				// Confirm image success
-				nextState();
-			} catch (IOException e) {
-				fail(new McuMgrException("Error parsing confirm response", e));
+			if (response.images.length == 0) {
+				fail(new McuMgrException("Test response does not contain enough info"));
+				return;
 			}
+			if (!response.images[0].confirmed) {
+				Log.e(TAG, "Image is not in a confirmed state.");
+				fail(new McuMgrException("Image is not in a confirmed state."));
+				return;
+			}
+			// Confirm image success
+			nextState();
 		}
 
 		@Override
@@ -352,11 +333,7 @@ public class FirmwareUpgradeManager extends McuManager
 		NONE, UPLOAD, TEST, RESET, CONFIRM, SUCCESS;
 
 		public boolean isInProgress() {
-			if (this == UPLOAD || this == TEST || this == RESET || this == CONFIRM) {
-				return true;
-			} else {
-				return false;
-			}
+			return this == UPLOAD || this == TEST || this == RESET || this == CONFIRM;
 		}
 	}
 
@@ -376,9 +353,9 @@ public class FirmwareUpgradeManager extends McuManager
 				}
 				while (true) {
 					Log.d(TAG, "Calling image list...");
-					mImageManager.list(new McuMgrCallback() {
+					mImageManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
 						@Override
-						public synchronized void onResponse(McuMgrResponse response) {
+						public synchronized void onResponse(McuMgrImageStateResponse response) {
 							if (mState == State.RESET) {
 								// Device has reset, begin confirm
 								nextState();

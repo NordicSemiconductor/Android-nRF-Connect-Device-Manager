@@ -12,21 +12,16 @@
  *  is strictly forbidden unless prior written permission is obtained
  *  from Intellinium SAS.
  */
-/* TODO: add runtime copyright */
 
-package io.runtime.mcumgr.exception;
+package io.runtime.mcumgr;
 
-import io.runtime.mcumgr.McuMgrErrorCode;
+public enum McuMgrScheme {
+	BLE,
+	COAP_BLE,
+	UDP,
+	COAP_UDP;
 
-public class McuMgrErrorException extends McuMgrException {
-	private McuMgrErrorCode mCode;
-
-	public McuMgrErrorException(McuMgrErrorCode code) {
-		mCode = code;
-	}
-
-	@Override
-	public String toString() {
-		return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
+	public boolean isCoap() {
+		return this == COAP_BLE || this == COAP_UDP;
 	}
 }

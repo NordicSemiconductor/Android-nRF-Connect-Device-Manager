@@ -24,12 +24,20 @@ import java.util.HashMap;
 
 import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
-import io.runtime.mcumgr.McuMgrHeader;
-import io.runtime.mcumgr.McuMgrResponse;
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.resp.McuMgrImageStateResponse;
+import io.runtime.mcumgr.resp.McuMgrImageUploadResponse;
+import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.tlv.McuMgrImageTlvParser;
 import io.runtime.mcumgr.util.CBOR;
+
+import static io.runtime.mcumgr.McuMgrConstants.GROUP_IMAGE;
+import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
+import static io.runtime.mcumgr.McuMgrConstants.OP_WRITE;
 
 /**
  * Image command group manager.
@@ -71,24 +79,24 @@ public class ImageManager extends McuManager {
 	/**
 	 * List the images on a device (asynchronous).
 	 * <p>
-	 * The response payload can be mapped to a {@link StateResponse}.
+	 * The response payload can be mapped to a {@link io.runtime.mcumgr.resp.McuMgrImageStateResponse}.
 	 *
 	 * @param callback the asynchronous callback
 	 */
-	public void list(McuMgrCallback callback) {
-		send(OP_READ, ID_STATE, null, callback);
+	public void list(McuMgrCallback<McuMgrImageStateResponse> callback) {
+		send(OP_READ, ID_STATE, null, McuMgrImageStateResponse.class, callback);
 	}
 
 	/**
 	 * List the images on a device (synchronous).
 	 * <p>
-	 * The response payload can be mapped to a {@link StateResponse}.
+	 * The response payload can be mapped to a {@link io.runtime.mcumgr.resp.McuMgrImageStateResponse}.
 	 *
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse list() throws McuMgrException {
-		return send(OP_READ, ID_STATE, null);
+	public McuMgrImageStateResponse list() throws McuMgrException {
+		return send(OP_READ, ID_STATE, null, McuMgrImageStateResponse.class);
 	}
 
 	/**
@@ -100,11 +108,11 @@ public class ImageManager extends McuManager {
 	 * @param hash     the hash of the image to test
 	 * @param callback the asynchronous callback
 	 */
-	public void test(byte[] hash, McuMgrCallback callback) {
+	public void test(byte[] hash, McuMgrCallback<McuMgrImageStateResponse> callback) {
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put("hash", hash);
 		payloadMap.put("confirm", false);
-		send(OP_WRITE, ID_STATE, payloadMap, callback);
+		send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class, callback);
 	}
 
 	/**
@@ -117,11 +125,11 @@ public class ImageManager extends McuManager {
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse test(byte[] hash) throws McuMgrException {
+	public McuMgrImageStateResponse test(byte[] hash) throws McuMgrException {
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put("hash", hash);
 		payloadMap.put("confirm", false);
-		return send(OP_WRITE, ID_STATE, payloadMap);
+		return send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class);
 	}
 
 	/**
@@ -132,11 +140,11 @@ public class ImageManager extends McuManager {
 	 * @param hash     the hash of the image to confirm
 	 * @param callback the asynchronous callback
 	 */
-	public void confirm(byte[] hash, McuMgrCallback callback) {
+	public void confirm(byte[] hash, McuMgrCallback<McuMgrImageStateResponse> callback) {
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put("hash", hash);
 		payloadMap.put("confirm", true);
-		send(OP_WRITE, ID_STATE, payloadMap, callback);
+		send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class, callback);
 	}
 
 	/**
@@ -148,11 +156,11 @@ public class ImageManager extends McuManager {
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse confirm(byte[] hash) throws McuMgrException {
+	public McuMgrImageStateResponse confirm(byte[] hash) throws McuMgrException {
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put("hash", hash);
 		payloadMap.put("confirm", true);
-		return send(OP_WRITE, ID_STATE, payloadMap);
+		return send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class);
 	}
 
 	/**
@@ -182,8 +190,9 @@ public class ImageManager extends McuManager {
 	 *
 	 * @param callback the asynchronous callback
 	 */
-	public void erase(McuMgrCallback callback) {
-		send(OP_WRITE, ID_STATE, null, callback);
+	public void erase(McuMgrCallback<McuMgrSimpleResponse> callback) {
+		send(OP_WRITE, ID_STATE, null, McuMgrSimpleResponse.class,
+				callback);
 	}
 
 	/**
@@ -192,8 +201,8 @@ public class ImageManager extends McuManager {
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse erase() throws McuMgrException {
-		return send(OP_WRITE, ID_STATE, null);
+	public McuMgrSimpleResponse erase() throws McuMgrException {
+		return send(OP_WRITE, ID_STATE, null, McuMgrSimpleResponse.class);
 	}
 
 	/**
@@ -201,8 +210,9 @@ public class ImageManager extends McuManager {
 	 *
 	 * @param callback the asynchronous callback
 	 */
-	public void coreList(McuMgrCallback callback) {
-		send(OP_READ, ID_CORELIST, null, callback);
+		/* TODO : create the correct response class */
+	public void coreList(McuMgrCallback<McuMgrSimpleResponse> callback) {
+		send(OP_READ, ID_CORELIST, null, McuMgrSimpleResponse.class, callback);
 	}
 
 	/**
@@ -211,8 +221,9 @@ public class ImageManager extends McuManager {
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse coreList() throws McuMgrException {
-		return send(OP_READ, ID_CORELIST, null);
+		/* TODO : create the correct response class */
+	public McuMgrSimpleResponse coreList() throws McuMgrException {
+		return send(OP_READ, ID_CORELIST, null, McuMgrSimpleResponse.class);
 	}
 
 	/**
@@ -221,10 +232,11 @@ public class ImageManager extends McuManager {
 	 * @param offset   offset
 	 * @param callback the asynchronous callback
 	 */
-	public void coreLoad(int offset, McuMgrCallback callback) {
+	/* TODO : create the correct response class */
+	public void coreLoad(int offset, McuMgrCallback<McuMgrSimpleResponse> callback) {
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put("off", offset);
-		send(OP_READ, ID_CORELOAD, payloadMap, callback);
+		send(OP_READ, ID_CORELOAD, payloadMap, McuMgrSimpleResponse.class, callback);
 	}
 
 	/**
@@ -234,10 +246,11 @@ public class ImageManager extends McuManager {
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse coreLoad(int offset) throws McuMgrException {
+	/* TODO : create the correct response class */
+	public McuMgrSimpleResponse coreLoad(int offset) throws McuMgrException {
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		payloadMap.put("off", offset);
-		return send(OP_READ, ID_CORELOAD, payloadMap);
+		return send(OP_READ, ID_CORELOAD, payloadMap, McuMgrSimpleResponse.class);
 	}
 
 	/**
@@ -245,8 +258,9 @@ public class ImageManager extends McuManager {
 	 *
 	 * @param callback the asynchronous callback
 	 */
-	public void coreErase(McuMgrCallback callback) {
-		send(OP_WRITE, ID_CORELOAD, null, callback);
+		/* TODO : create the correct response class */
+	public void coreErase(McuMgrCallback<McuMgrSimpleResponse> callback) {
+		send(OP_WRITE, ID_CORELOAD, null, McuMgrSimpleResponse.class, callback);
 	}
 
 	/**
@@ -255,36 +269,11 @@ public class ImageManager extends McuManager {
 	 * @return the response
 	 * @throws McuMgrException Transport error. See cause.
 	 */
-	public McuMgrResponse coreErase() throws McuMgrException {
-		return send(OP_WRITE, ID_CORELOAD, null);
+		/* TODO : create the correct response class */
+	public McuMgrSimpleResponse coreErase() throws McuMgrException {
+		return send(OP_WRITE, ID_CORELOAD, null, McuMgrSimpleResponse.class);
 	}
 
-	//******************************************************************
-	// Image Manager Response POJOs
-	//******************************************************************
-
-	/**
-	 * Response object for {@link ImageManager#list()}, {@link ImageManager#test(byte[])}, and
-	 * {@link ImageManager#confirm(byte[])}.
-	 */
-	public static class StateResponse extends McuMgrResponse.BaseResponse {
-		public ImageSlot[] images;
-		public int splitStatus;
-	}
-
-	/**
-	 * POJO representation of an image slot.
-	 */
-	public static class ImageSlot {
-		public int slot;
-		public String version;
-		public byte[] hash;
-		public boolean bootable;
-		public boolean pending;
-		public boolean confirmed;
-		public boolean active;
-		public boolean permanent;
-	}
 
 	//******************************************************************
 	// Image Upload
@@ -381,38 +370,31 @@ public class ImageManager extends McuManager {
 			payloadMap.put("len", mImageUploadData.length);
 		}
 		payloadMap.put("off", offset);
-		send(OP_WRITE, ID_UPLOAD, payloadMap, mCallback);
+		send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class, mCallback);
 	}
 
-	private McuMgrCallback mCallback = new McuMgrCallback() {
+	private McuMgrCallback mCallback = new McuMgrCallback<McuMgrImageUploadResponse>() {
 		@Override
-		public void onResponse(McuMgrResponse response) {
+		public void onResponse(McuMgrImageUploadResponse response) {
 			if (!response.isSuccess()) {
 				cancelUpload(new McuMgrException("Command failed!"));
 				return;
 			}
-			if (response.getRcValue() != 0) {
+			if (response.rc != 0) {
 				// TODO when the image in slot 1 is confirmed, this will return ENOMEM (2).
-				Log.e(TAG, "Upload failed due to Newt Manager error: " + response.getRcValue());
-				cancelUpload(new McuMgrErrorException(Code.valueOf(response.getRcValue())));
+				Log.e(TAG, "Upload failed due to Newt Manager error: " + response.rc);
+				cancelUpload(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
 				return;
 			}
-			try {
-				ImageUploadResponse uploadResponse = CBOR.toObject(response.getPayload(),
-						ImageUploadResponse.class);
-				mUploadOffset = uploadResponse.off;
-				mUploadCallback.onProgressChange(mUploadOffset, mImageUploadData.length,
-						new Date());
-				if (mUploadOffset == mImageUploadData.length) {
-					Log.d(TAG, "Upload finished!");
-					mUploadCallback.onUploadFinish();
-					return;
-				}
-				sendUploadData(mUploadOffset);
-			} catch (IOException e) {
-				e.printStackTrace();
-				cancelUpload(new McuMgrException("Error parsing response payload.", e));
+			mUploadOffset = response.off;
+			mUploadCallback.onProgressChange(mUploadOffset, mImageUploadData.length,
+					new Date());
+			if (mUploadOffset == mImageUploadData.length) {
+				Log.d(TAG, "Upload finished!");
+				mUploadCallback.onUploadFinish();
+				return;
 			}
+			sendUploadData(mUploadOffset);
 		}
 
 		@Override
@@ -431,7 +413,7 @@ public class ImageManager extends McuManager {
 			overheadTestMap.put("len", data.length);
 		}
 		try {
-			if (getScheme() == Scheme.COAP_BLE || getScheme() == Scheme.COAP_UDP) {
+			if (getScheme() == McuMgrScheme.COAP_BLE || getScheme() == McuMgrScheme.COAP_UDP) {
 				overheadTestMap.put("_h", nmgrHeader);
 				byte[] cborData = CBOR.toBytes(overheadTestMap);
 				// 20 byte estimate of CoAP Header; 5 bytes for good measure
@@ -447,17 +429,9 @@ public class ImageManager extends McuManager {
 		return -1;
 	}
 
-	//******************************************************************
-	// Image Upload Response
-	//******************************************************************
-
-	private static class ImageUploadResponse extends McuMgrResponse.BaseResponse {
-		public int off;
-	}
-
-	//******************************************************************
-	// Image Upload Callback
-	//******************************************************************
+//******************************************************************
+// Image Upload Callback
+//******************************************************************
 
 	/**
 	 * Callback for upload command.
@@ -484,27 +458,28 @@ public class ImageManager extends McuManager {
 		 * Called when the upload has finished successfully.
 		 */
 		void onUploadFinish();
+
 	}
 
 	//******************************************************************
 	// Utilities
 	//******************************************************************
 
-	/**
-	 * Get the hash from a Mynewt image.
-	 *
-	 * @param imageData the raw image data
-	 * @return the hash of the image
-	 */
+	/* NIET!!!
 	public static byte[] getHashFromImage(byte[] imageData) {
 		if (imageData.length < IMG_HASH_LEN) {
 			throw new IllegalArgumentException("Image data is too short to contain a hash.");
 		}
 		int offset = imageData.length - IMG_HASH_LEN;
 		byte[] hash = new byte[IMG_HASH_LEN];
-		for (int i = 0; i < IMG_HASH_LEN; i++) {
-			hash[i] = imageData[offset + i];
-		}
+		System.arraycopy(imageData, offset, hash, 0, IMG_HASH_LEN);
+
 		return hash;
+	}*/
+
+	public static byte[] getHashFromImage(byte[] data) throws McuMgrException {
+		McuMgrImageTlvParser parser = new McuMgrImageTlvParser(data);
+
+		return parser.hash();
 	}
 }

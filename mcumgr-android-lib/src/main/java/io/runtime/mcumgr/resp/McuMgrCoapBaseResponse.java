@@ -12,21 +12,19 @@
  *  is strictly forbidden unless prior written permission is obtained
  *  from Intellinium SAS.
  */
-/* TODO: add runtime copyright */
 
-package io.runtime.mcumgr.exception;
+package io.runtime.mcumgr.resp;
 
-import io.runtime.mcumgr.McuMgrErrorCode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public class McuMgrErrorException extends McuMgrException {
-	private McuMgrErrorCode mCode;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class McuMgrCoapBaseResponse implements McuMgrResponse{
+	public byte[] _h;
+	public int rc;
 
-	public McuMgrErrorException(McuMgrErrorCode code) {
-		mCode = code;
-	}
-
+	/* TODO */
 	@Override
-	public String toString() {
-		return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
+	public boolean isSuccess() {
+		return false;
 	}
 }

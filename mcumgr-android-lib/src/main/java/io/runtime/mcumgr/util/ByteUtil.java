@@ -1,5 +1,7 @@
 package io.runtime.mcumgr.util;
 
+import android.util.Log;
+
 public class ByteUtil {
 
     /**
@@ -24,7 +26,7 @@ public class ByteUtil {
     public static int unsignedByteArrayToInt(byte[] data, int offset, int length) {
         int result = 0;
         for (int i = 0; i < length; i++) {
-            result += unsignedByteToInt(data[i + offset]) << ((length - 1 - i) * 8);
+            result += unsignedByteToInt(data[i + offset]) << (i * 8);
         }
         return result;
     }

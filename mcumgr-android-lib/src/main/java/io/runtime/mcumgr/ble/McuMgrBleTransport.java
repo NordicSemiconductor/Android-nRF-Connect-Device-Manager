@@ -38,14 +38,16 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
-import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrInitCallback;
 import io.runtime.mcumgr.McuMgrMtuCallback;
 import io.runtime.mcumgr.McuMgrMtuProvider;
-import io.runtime.mcumgr.McuMgrResponse;
+import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.resp.McuMgrResponseBuilder;
+import io.runtime.mcumgr.util.ByteUtil;
 
 /* TODO */
 @SuppressLint("MissingPermission") /* To get rid of android studio warnings */
@@ -108,14 +110,9 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 	private BluetoothGattCharacteristic mSmpCharacteristic;
 
 	/**
-	 * The callback used in asynchronous {@link #send(byte[], McuMgrCallback)}
+	 * The callback used in asynchronous {@link #send(byte[], Class, McuMgrCallback)}
 	 */
 	private McuMgrCallback mCallback;
-
-	/**
-	 * The data to be sent asynchronously
-	 */
-	private byte[] mData;
 
 	/**
 	 * The bluetooth manager
@@ -133,6 +130,11 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 	private McuMgrMtuCallback mMtuCb;
 
 	/**
+	 * The {@link #send(byte[], Class)} response type
+	 */
+	private Class<? extends McuMgrResponse> mResponseType;
+
+	/**
 	 * The constructor of this transport may throw RuntimeException depending of the permissions
 	 * set in the manifest and the hardware capability.
 	 *
@@ -140,7 +142,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 	 * @param target  The BLE device to connect to
 	 */
 	public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice target) {
-		super(McuManager.Scheme.BLE);
+		super(McuMgrScheme.BLE);
 		this.mContext = context;
 		this.mTarget = target;
 		this.bleGattCallback = new BleGattCallback();
@@ -158,7 +160,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 	 * @param gatt    The remote gatt server
 	 */
 	public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothGatt gatt) {
-		super(McuManager.Scheme.BLE);
+		super(McuMgrScheme.BLE);
 		this.mContext = context;
 		this.mBluetoothGatt = gatt;
 		this.mWasAlreadyConnected = true;
@@ -260,6 +262,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 					descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
 					mBluetoothGatt.writeDescriptor(descriptor);
 				} catch (McuMgrException e) {
+					e.printStackTrace();
 					mInitCb.onInitError();
 					if (!mWasAlreadyConnected) {
 						mBluetoothGatt.disconnect();
@@ -275,6 +278,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 			Log.d(TAG, "Response received from remote GATT service");
@@ -283,8 +287,9 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 				mBleSyncStep.setResult(0, characteristic);
 			} else {
 				try {
-					McuMgrBleResponse resp = new McuMgrBleResponse(characteristic.getValue());
-					mCallback.onResponse(resp);
+					McuMgrResponseBuilder builder =
+							new McuMgrResponseBuilder(McuMgrScheme.BLE, characteristic.getValue());
+					mCallback.onResponse(builder.build(mResponseType));
 				} catch (IOException e) {
 					mCallback.onError(new McuMgrException(e));
 					if (!mWasAlreadyConnected) {
@@ -359,26 +364,14 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 		}
 	}
 
-	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
-	private String toHex(byte[] bytes) {
-		char[] hexChars = new char[bytes.length * 2];
-		for (int j = 0; j < bytes.length; j++) {
-			int v = bytes[j] & 0xFF;
-			hexChars[j * 2] = hexArray[v >>> 4];
-			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-		}
-		return new String(hexChars);
-	}
-
 	private void sendData(byte[] data) {
-		Log.d(TAG, "Sending " + data.length + " bytes");
-		Log.d(TAG, toHex(data));
 		this.mSmpCharacteristic.setValue(data);
 		this.mSmpCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 		this.mBluetoothGatt.writeCharacteristic(this.mSmpCharacteristic);
 	}
 
-	private McuMgrBleResponse readSmpResponse() throws TimeoutException, McuMgrException, IOException {
+	private <T extends McuMgrResponse> T readSmpResponse(Class<T> respType)
+			throws TimeoutException, McuMgrException, IOException {
 		if (this.mAsync) {
 			return null;
 		}
@@ -389,7 +382,8 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 			throw new McuMgrException("Could not get the mcumgr response");
 		}
 
-		return new McuMgrBleResponse(r.getResult().getValue());
+		McuMgrResponseBuilder builder = new McuMgrResponseBuilder(McuMgrScheme.BLE, r.getResult().getValue());
+		return builder.build(respType);
 	}
 
 	/**
@@ -486,14 +480,14 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 	}
 
 	@Override
-	public McuMgrResponse send(byte[] payload) throws McuMgrException {
+	public <T extends McuMgrResponse> T send(byte[] payload, Class<T> responseType) throws McuMgrException {
 		this.mAsync = false;
 		this.mBleSyncStep = new BleSyncStep();
 
 		try {
 			sendData(payload);
 
-			return readSmpResponse();
+			return readSmpResponse(responseType);
 		} catch (McuMgrException e) {
 			throw e;
 		} catch (Exception e) {
@@ -507,10 +501,10 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 	}
 
 	@Override
-	public void send(byte[] payload, McuMgrCallback callback) {
+	public <T extends McuMgrResponse> void send(byte[] payload, Class<T> responseType, McuMgrCallback<T> callback) {
 		this.mAsync = true;
 		this.mCallback = callback;
-		this.mData = payload;
+		this.mResponseType = responseType;
 
 		sendData(payload);
 	}

@@ -17,21 +17,23 @@
 package io.runtime.mcumgr;
 
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
 public abstract class McuMgrTransport {
-	private McuManager.Scheme mScheme;
+	private McuMgrScheme mScheme;
 
-	protected McuMgrTransport(McuManager.Scheme scheme) {
+	protected McuMgrTransport(McuMgrScheme scheme) {
 		mScheme = scheme;
 	}
 
-	public McuManager.Scheme getScheme() {
+	McuMgrScheme getScheme() {
 		return mScheme;
 	}
 
-	public abstract McuMgrResponse send(byte[] payload) throws McuMgrException;
-
-	public abstract void send(byte[] payload, McuMgrCallback callback);
-
 	public abstract void init(McuMgrInitCallback cb);
+
+	public abstract <T extends McuMgrResponse> T send(byte[] payload, Class<T> responseType) throws McuMgrException;
+
+	public abstract <T extends McuMgrResponse> void send(byte[] payload, Class<T> responseType,
+														 McuMgrCallback<T> callback);
 }

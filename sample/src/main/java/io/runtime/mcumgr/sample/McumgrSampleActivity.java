@@ -52,6 +52,8 @@ import io.runtime.mcumgr.exception.McuMgrException;
 public class McumgrSampleActivity extends AppCompatActivity
 		implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback, McuMgrInitCallback {
 
+	private static final String DEFAULT_DEVICE_NAME = "Zephyr";
+
 	private BluetoothAdapter mBluetoothAdapter;
 	private Handler mHandler;
 	private String mDeviceName;
@@ -87,7 +89,7 @@ public class McumgrSampleActivity extends AppCompatActivity
 
 	private void showStartFota() {
 		final EditText name = new EditText(this);
-
+		name.setText(DEFAULT_DEVICE_NAME);
 		TypedValue typedValue = new TypedValue();
 		getTheme().resolveAttribute(R.attr.dialogPreferredPadding, typedValue, true);
 
@@ -127,6 +129,8 @@ public class McumgrSampleActivity extends AppCompatActivity
 					.setMessage("Please turn on the bluetooth")
 					.setPositiveButton("OK", null)
 					.show();
+			mFab.show();
+			clearTextFields();
 			return;
 		}
 
@@ -220,8 +224,12 @@ public class McumgrSampleActivity extends AppCompatActivity
 		if (name.equals(mDeviceName)) {
 			mDevice = device;
 			scanLeDevice(false);
-			prepareFota();
-			mBle.setText("Found");
+			try {
+				prepareFota();
+				mBle.setText("Found");
+			} catch (McuMgrException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -242,7 +250,7 @@ public class McumgrSampleActivity extends AppCompatActivity
 		return byteBuffer.toByteArray();
 	}
 
-	private void prepareFota() {
+	private void prepareFota() throws McuMgrException {
 		byte[] data;
 		try {
 			data = getBytesFromFile();
