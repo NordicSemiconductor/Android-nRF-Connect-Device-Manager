@@ -16,5 +16,5 @@
 package io.runtime.mcumgr;
 
 public interface McuMgrMtuProvider {
-	void getMtu(McuMgrMtuCallback cb);
+    void getMtu(McuMgrMtuCallback cb);
 }

@@ -16,5 +16,5 @@
 package io.runtime.mcumgr.resp;
 
 public class McuMgrEchoResponse extends McuMgrSimpleResponse {
-	public String r;
+    public String r;
 }

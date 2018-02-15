@@ -19,14 +19,14 @@ package io.runtime.mcumgr.exception;
 import io.runtime.mcumgr.McuMgrErrorCode;
 
 public class McuMgrErrorException extends McuMgrException {
-	private McuMgrErrorCode mCode;
+    private McuMgrErrorCode mCode;
 
-	public McuMgrErrorException(McuMgrErrorCode code) {
-		mCode = code;
-	}
+    public McuMgrErrorException(McuMgrErrorCode code) {
+        mCode = code;
+    }
 
-	@Override
-	public String toString() {
-		return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
-	}
+    @Override
+    public String toString() {
+        return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
+    }
 }

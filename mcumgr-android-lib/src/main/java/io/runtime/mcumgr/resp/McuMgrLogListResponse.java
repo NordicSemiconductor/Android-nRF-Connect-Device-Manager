@@ -16,5 +16,5 @@
 package io.runtime.mcumgr.resp;
 
 public class McuMgrLogListResponse extends McuMgrSimpleResponse {
-	public String[] log_list;
+    public String[] log_list;
 }

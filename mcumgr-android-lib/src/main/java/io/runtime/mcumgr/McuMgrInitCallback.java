@@ -17,7 +17,7 @@ package io.runtime.mcumgr;
 
 public interface McuMgrInitCallback {
 
-	void onInitSuccess();
+    void onInitSuccess();
 
-	void onInitError();
+    void onInitError();
 }

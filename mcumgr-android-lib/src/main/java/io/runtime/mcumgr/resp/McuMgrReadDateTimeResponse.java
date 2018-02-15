@@ -16,5 +16,5 @@
 package io.runtime.mcumgr.resp;
 
 public class McuMgrReadDateTimeResponse extends McuMgrSimpleResponse {
-	public String datetime;
+    public String datetime;
 }

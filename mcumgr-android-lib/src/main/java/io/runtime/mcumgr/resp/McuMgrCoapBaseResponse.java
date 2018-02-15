@@ -18,13 +18,13 @@ package io.runtime.mcumgr.resp;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class McuMgrCoapBaseResponse implements McuMgrResponse{
-	public byte[] _h;
-	public int rc;
+public class McuMgrCoapBaseResponse implements McuMgrResponse {
+    public byte[] _h;
+    public int rc;
 
-	/* TODO */
-	@Override
-	public boolean isSuccess() {
-		return false;
-	}
+    /* TODO */
+    @Override
+    public boolean isSuccess() {
+        return false;
+    }
 }

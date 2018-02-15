@@ -16,11 +16,11 @@
 package io.runtime.mcumgr.resp;
 
 public class McuMgrStatListResponse implements McuMgrResponse {
-	private String[] stat_list;
+    private String[] stat_list;
 
-	/* TODO */
-	@Override
-	public boolean isSuccess() {
-		return true;
-	}
+    /* TODO */
+    @Override
+    public boolean isSuccess() {
+        return true;
+    }
 }

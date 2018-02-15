@@ -18,6 +18,6 @@ package io.runtime.mcumgr.resp;
 import java.util.Map;
 
 public class McuMgrStatResponse extends McuMgrSimpleResponse {
-	public String name;
-	public Map<String, Integer> fields;
+    public String name;
+    public Map<String, Integer> fields;
 }

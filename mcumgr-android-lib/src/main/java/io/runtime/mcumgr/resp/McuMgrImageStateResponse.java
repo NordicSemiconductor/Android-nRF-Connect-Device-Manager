@@ -16,17 +16,17 @@
 package io.runtime.mcumgr.resp;
 
 public class McuMgrImageStateResponse extends McuMgrSimpleResponse {
-	public ImageSlot[] images;
-	public int splitStatus;
+    public ImageSlot[] images;
+    public int splitStatus;
 
-	public static class ImageSlot {
-		public int slot;
-		public String version;
-		public byte[] hash;
-		public boolean bootable;
-		public boolean pending;
-		public boolean confirmed;
-		public boolean active;
-		public boolean permanent;
-	}
+    public static class ImageSlot {
+        public int slot;
+        public String version;
+        public byte[] hash;
+        public boolean bootable;
+        public boolean pending;
+        public boolean confirmed;
+        public boolean active;
+        public boolean permanent;
+    }
 }

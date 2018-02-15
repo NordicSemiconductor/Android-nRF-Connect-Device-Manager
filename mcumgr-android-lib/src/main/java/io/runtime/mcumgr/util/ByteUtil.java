@@ -1,11 +1,10 @@
 package io.runtime.mcumgr.util;
 
-import android.util.Log;
-
 public class ByteUtil {
 
     /**
      * Converts a unsigned byte to an int.
+     *
      * @param b the unsigned byte
      * @return the unsigned int
      */
@@ -15,10 +14,11 @@ public class ByteUtil {
 
     /**
      * Converts a unsigned byte array to an unsigned integer.
-     *
+     * <p>
      * Used to retrieve a number from a byte array of variable length. This method will not work
      * when length provided is greater than 4.
-     * @param data the unsigned byte array
+     *
+     * @param data   the unsigned byte array
      * @param offset the offset to start parsing the int
      * @param length the length of the int to parse in bytes
      * @return the int
@@ -37,7 +37,7 @@ public class ByteUtil {
 
     public static String byteArrayToHex(byte[] a, String format) {
         StringBuilder sb = new StringBuilder(a.length * 2);
-        for(byte b: a)
+        for (byte b : a)
             sb.append(String.format(format, b));
         return sb.toString();
     }

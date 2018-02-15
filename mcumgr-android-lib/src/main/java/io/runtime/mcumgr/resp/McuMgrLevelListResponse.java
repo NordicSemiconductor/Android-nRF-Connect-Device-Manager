@@ -16,5 +16,5 @@
 package io.runtime.mcumgr.resp;
 
 public class McuMgrLevelListResponse extends McuMgrSimpleResponse {
-	public String[] level_map;
+    public String[] level_map;
 }

@@ -16,12 +16,12 @@
 package io.runtime.mcumgr;
 
 public enum McuMgrScheme {
-	BLE,
-	COAP_BLE,
-	UDP,
-	COAP_UDP;
+    BLE,
+    COAP_BLE,
+    UDP,
+    COAP_UDP;
 
-	public boolean isCoap() {
-		return this == COAP_BLE || this == COAP_UDP;
-	}
+    public boolean isCoap() {
+        return this == COAP_BLE || this == COAP_UDP;
+    }
 }

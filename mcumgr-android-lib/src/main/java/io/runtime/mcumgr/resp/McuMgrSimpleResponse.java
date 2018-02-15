@@ -21,14 +21,14 @@ import io.runtime.mcumgr.McuMgrErrorCode;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class McuMgrSimpleResponse implements McuMgrResponse {
-	public int rc;
+    public int rc;
 
-	@Override
-	public boolean isSuccess() {
-		return true;
-	}
+    @Override
+    public boolean isSuccess() {
+        return true;
+    }
 
-	public McuMgrErrorCode getRcCode() {
-		return McuMgrErrorCode.valueOf(rc);
-	}
+    public McuMgrErrorCode getRcCode() {
+        return McuMgrErrorCode.valueOf(rc);
+    }
 }

@@ -18,5 +18,5 @@ package io.runtime.mcumgr.resp;
 import java.util.Map;
 
 public class McuMgrModuleListResponse extends McuMgrSimpleResponse {
-	public Map<String, Integer> module_map;
+    public Map<String, Integer> module_map;
 }

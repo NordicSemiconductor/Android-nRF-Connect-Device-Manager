@@ -16,56 +16,56 @@
 package io.runtime.mcumgr;
 
 public enum McuMgrErrorCode {
-	OK(0),
-	UNKNOWN(1),
-	NO_MEMORY(2),
-	IN_VALUE(3),
-	TIMEOUT(4),
-	NO_ENTRY(5),
-	BAD_STATE(6),
-	TOO_LARGE(7),
-	NOT_SUP(8),
-	PERM_ERROR(256);
+    OK(0),
+    UNKNOWN(1),
+    NO_MEMORY(2),
+    IN_VALUE(3),
+    TIMEOUT(4),
+    NO_ENTRY(5),
+    BAD_STATE(6),
+    TOO_LARGE(7),
+    NOT_SUP(8),
+    PERM_ERROR(256);
 
-	private int mCode;
+    private int mCode;
 
-	McuMgrErrorCode(int code) {
-		mCode = code;
-	}
+    McuMgrErrorCode(int code) {
+        mCode = code;
+    }
 
-	public int value() {
-		return mCode;
-	}
+    public int value() {
+        return mCode;
+    }
 
-	@Override
-	public String toString() {
-		return "NewtMgrError: " + super.toString() + "(" + mCode + ")";
-	}
+    @Override
+    public String toString() {
+        return "NewtMgrError: " + super.toString() + "(" + mCode + ")";
+    }
 
-	public static McuMgrErrorCode valueOf(int error) {
-		switch (error) {
-			case 0:
-				return OK;
-			case 1:
-				return UNKNOWN;
-			case 2:
-				return NO_MEMORY;
-			case 3:
-				return IN_VALUE;
-			case 4:
-				return TIMEOUT;
-			case 5:
-				return NO_ENTRY;
-			case 6:
-				return BAD_STATE;
-			case 7:
-				return TOO_LARGE;
-			case 8:
-				return NOT_SUP;
-			case 256:
-				return PERM_ERROR;
-			default:
-				return null;
-		}
-	}
+    public static McuMgrErrorCode valueOf(int error) {
+        switch (error) {
+            case 0:
+                return OK;
+            case 1:
+                return UNKNOWN;
+            case 2:
+                return NO_MEMORY;
+            case 3:
+                return IN_VALUE;
+            case 4:
+                return TIMEOUT;
+            case 5:
+                return NO_ENTRY;
+            case 6:
+                return BAD_STATE;
+            case 7:
+                return TOO_LARGE;
+            case 8:
+                return NOT_SUP;
+            case 256:
+                return PERM_ERROR;
+            default:
+                return null;
+        }
+    }
 }

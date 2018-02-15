@@ -19,44 +19,44 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 
 public class McuMgrImageTlvInfo {
-	public static final int MAGIC = 0x6907;
+    public static final int MAGIC = 0x6907;
 
-	private short mMagic;
-	private short mTotal;
+    private short mMagic;
+    private short mTotal;
 
-	private McuMgrImageTlvInfo() {
+    private McuMgrImageTlvInfo() {
 
-	}
+    }
 
-	public static McuMgrImageTlvInfo fromBytes(byte[] b) throws McuMgrException {
-		return fromBytes(b, 0);
-	}
+    public static McuMgrImageTlvInfo fromBytes(byte[] b) throws McuMgrException {
+        return fromBytes(b, 0);
+    }
 
-	public static McuMgrImageTlvInfo fromBytes(byte[] b, int offset) throws McuMgrException {
-		if (b.length - offset < sizeof())
-			throw new McuMgrException("The byte array is too short to be a McuMgrImageTlvInfo: " +
-					"length= " + b.length + ", offset= " + offset + ", min size= " + sizeof());
+    public static McuMgrImageTlvInfo fromBytes(byte[] b, int offset) throws McuMgrException {
+        if (b.length - offset < sizeof())
+            throw new McuMgrException("The byte array is too short to be a McuMgrImageTlvInfo: " +
+                    "length= " + b.length + ", offset= " + offset + ", min size= " + sizeof());
 
-		McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
-		info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
-		info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2);
+        McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
+        info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
+        info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2);
 
-		if (info.mMagic != MAGIC) {
-			throw new McuMgrException("Wrong magic number");
-		}
+        if (info.mMagic != MAGIC) {
+            throw new McuMgrException("Wrong magic number");
+        }
 
-		return info;
-	}
+        return info;
+    }
 
-	public static int sizeof() {
-		return 4;
-	}
+    public static int sizeof() {
+        return 4;
+    }
 
-	public short getMagic() {
-		return mMagic;
-	}
+    public short getMagic() {
+        return mMagic;
+    }
 
-	public short getTotal() {
-		return mTotal;
-	}
+    public short getTotal() {
+        return mTotal;
+    }
 }

@@ -20,20 +20,20 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.resp.McuMgrResponse;
 
 public abstract class McuMgrTransport {
-	private McuMgrScheme mScheme;
+    private McuMgrScheme mScheme;
 
-	protected McuMgrTransport(McuMgrScheme scheme) {
-		mScheme = scheme;
-	}
+    protected McuMgrTransport(McuMgrScheme scheme) {
+        mScheme = scheme;
+    }
 
-	McuMgrScheme getScheme() {
-		return mScheme;
-	}
+    McuMgrScheme getScheme() {
+        return mScheme;
+    }
 
-	public abstract void init(McuMgrInitCallback cb);
+    public abstract void init(McuMgrInitCallback cb);
 
-	public abstract <T extends McuMgrResponse> T send(byte[] payload, Class<T> responseType) throws McuMgrException;
+    public abstract <T extends McuMgrResponse> T send(byte[] payload, Class<T> responseType) throws McuMgrException;
 
-	public abstract <T extends McuMgrResponse> void send(byte[] payload, Class<T> responseType,
-														 McuMgrCallback<T> callback);
+    public abstract <T extends McuMgrResponse> void send(byte[] payload, Class<T> responseType,
+                                                         McuMgrCallback<T> callback);
 }
