@@ -278,11 +278,18 @@ public class ImageManager extends McuManager {
     private ImageUploadCallback mUploadCallback;
     private int mMtu = DEFAULT_MTU;
 
+    /**
+     * Sets the upload MTU.
+     *
+     * @param mtu the MTU to use for image upload
+     */
     public synchronized void setUploadMtu(int mtu) {
         if (mUploadState == STATE_UPLOADING) {
             Log.e(TAG, "Upload must not be in progress!");
-        } else if (mtu < calculatePacketOverhead(mImageUploadData, mUploadOffset) + 1) {
-            Log.e(TAG, "Mtu is too small!");
+        } else if (mtu < 23) {
+            Log.e(TAG, "MTU is too small!");
+        } else if (mtu > 1024) {
+            Log.e(TAG, "MTU is too large!");
         } else {
             mMtu = mtu;
         }

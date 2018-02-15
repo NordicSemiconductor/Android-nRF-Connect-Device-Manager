@@ -92,11 +92,15 @@ public abstract class McuManager {
     public void send(int op, int flags, int len, int groupId, int sequenceNum, int commandId,
                      Map<String, Object> payloadMap, McuMgrCallback callback) {
         try {
-            // If the length is zero and we're not using a CoAP scheme, set the payload length.
-            // CoAP headers contain enough info to determine packet and payload length without len
-            if (len == 0 && !getScheme().isCoap()) {
-                len = CBOR.toBytes(payloadMap).length;
+            // If the length is zero set the payload length.
+            if (len == 0) {
+                // Copy the payload map
+                HashMap<String, Object> payloadMapCopy = new HashMap<>(payloadMap);
+                // Remove the header if present
+                payloadMapCopy.remove(HEADER_KEY);
+                len = CBOR.toBytes(payloadMapCopy).length;
             }
+            // Build header and payload
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
             mTransporter.send(payload, callback);
@@ -143,11 +147,15 @@ public abstract class McuManager {
                                int commandId, Map<String, Object> payloadMap)
             throws McuMgrException {
         try {
-            // If the length is zero and we're not using a CoAP scheme, set the payload length.
-            // CoAP headers contain enough info to determine packet and payload length without len
-            if (len == 0 && !getScheme().isCoap()) {
-                len = CBOR.toBytes(payloadMap).length;
+            // If the length is zero set the payload length.
+            if (len == 0) {
+                // Copy the payload map
+                HashMap<String, Object> payloadMapCopy = new HashMap<>(payloadMap);
+                // Remove the header if present
+                payloadMapCopy.remove(HEADER_KEY);
+                len = CBOR.toBytes(payloadMapCopy).length;
             }
+            // Build header and payload
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
             byte[] payload = buildPayload(header, payloadMap);
             return mTransporter.send(payload);

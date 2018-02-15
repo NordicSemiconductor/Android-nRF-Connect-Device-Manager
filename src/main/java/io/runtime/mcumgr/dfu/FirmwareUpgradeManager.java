@@ -34,16 +34,20 @@ public class FirmwareUpgradeManager extends McuManager
     public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
                                   FirmwareUpgradeCallback callback) {
         super(GROUP_PERUSER, transport);
-        initFields(imageData, callback);
-    }
-
-    private void initFields(byte[] imageData, FirmwareUpgradeCallback callback) {
         mImageData = imageData;
         mCallback = callback;
         mState = State.NONE;
         mImageManager = new ImageManager(getTransporter());
         mDefaultManager = new DefaultManager(getTransporter());
         mHash = ImageManager.getHashFromImage(imageData);
+    }
+
+    public synchronized void setUploadMtu(int mtu) {
+        if (mState != State.NONE) {
+            Log.e(TAG, "Upgrade must not be in progress!");
+        } else {
+            mImageManager.setUploadMtu(mtu);
+        }
     }
 
     public synchronized void start() {
