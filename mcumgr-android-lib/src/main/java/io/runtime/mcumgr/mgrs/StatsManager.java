@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017-2018 Runtime Inc.
+ * Copyright (c) Intellinium SAS, 2014-present
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package io.runtime.mcumgr.mgrs;
 
 import java.util.HashMap;

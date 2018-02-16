@@ -1,16 +1,7 @@
 /*
- *  Copyright (c) Intellinium SAS, 2014-present
- *  All Rights Reserved.
+ * Copyright (c) Intellinium SAS, 2014-present
  *
- *  NOTICE:  All information contained herein is, and remains
- *  the property of Intellinium SAS and its suppliers,
- *  if any.  The intellectual and technical concepts contained
- *  herein are proprietary to Intellinium SAS
- *  and its suppliers and may be covered by French and Foreign Patents,
- *  patents in process, and are protected by trade secret or copyright law.
- *  Dissemination of this information or reproduction of this material
- *  is strictly forbidden unless prior written permission is obtained
- *  from Intellinium SAS.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 package io.runtime.mcumgr.tlv;
@@ -56,7 +47,7 @@ public class McuMgrImageTlvParser {
         while (offset + McuMgrImageTlvTrailer.sizeof() <= end) {
             McuMgrImageTlvTrailer tlv = McuMgrImageTlvTrailer.fromBytes(mData, offset);
 
-            if (tlv.getType() == 0xff && tlv.getLen() == 0xFFFF) {
+            if (tlv.getType() == 0xFF && tlv.getLen() == 0xFFFF) {
                 throw new McuMgrException(/* TODO*/ "Error here!");
             }
 

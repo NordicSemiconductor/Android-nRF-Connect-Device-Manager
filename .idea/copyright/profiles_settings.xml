@@ -1,7 +1,7 @@
 <component name="CopyrightManager">
-  <settings>
+  <settings default="Apache 2">
     <module2copyright>
-      <element module="All" copyright="itl" />
+      <element module="All" copyright="Apache 2" />
     </module2copyright>
   </settings>
 </component>

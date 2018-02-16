@@ -1,17 +1,8 @@
-/***************************************************************************
+/*
  * Copyright (c) Intellinium SAS, 2014-present
- * All Rights Reserved.
  *
- * NOTICE:  All information contained herein is, and remains
- * the property of Intellinium SAS and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Intellinium SAS
- * and its suppliers and may be covered by French and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Intellinium SAS.
- ***************************************************************************/
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 package io.runtime.mcumgr.ble;
 
@@ -40,9 +31,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 import io.runtime.mcumgr.McuMgrCallback;
-import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrMtuCallback;
 import io.runtime.mcumgr.McuMgrMtuProvider;
+import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -64,7 +55,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
     private final Context mContext;
 
     /**
-     * true if the constructor had a {@link BluetoothGatt} as a paramater. In that case,
+     * true if the constructor had a {@link BluetoothGatt} as a parameter. In that case,
      * we don't automatically close the connection with the server, as the rest of the
      * application may need it
      */
@@ -252,7 +243,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
                 Log.d(TAG, "Discovering services");
                 mBluetoothGatt.discoverServices();
             } else {
-                mInitCb.onInitError();
+                mInitCb.onOpenError();
                 if (!mWasAlreadyConnected) {
                     mBluetoothGatt.disconnect();
                     mBluetoothGatt.close();
@@ -275,14 +266,14 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
                     mBluetoothGatt.writeDescriptor(descriptor);
                 } catch (McuMgrException e) {
                     e.printStackTrace();
-                    mInitCb.onInitError();
+                    mInitCb.onOpenError();
                     if (!mWasAlreadyConnected) {
                         mBluetoothGatt.disconnect();
                         mBluetoothGatt.close();
                     }
                 }
             } else {
-                mInitCb.onInitError();
+                mInitCb.onOpenError();
                 if (!mWasAlreadyConnected) {
                     mBluetoothGatt.disconnect();
                     mBluetoothGatt.close();
@@ -335,9 +326,9 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
             Log.d(TAG, "Descriptor written: status " + status);
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                mInitCb.onInitSuccess();
+                mInitCb.onOpen();
             } else {
-                mInitCb.onInitError();
+                mInitCb.onOpenError();
             }
         }
 
@@ -352,7 +343,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            if(!mAsync) {
+            if (!mAsync) {
                 return;
             }
 
@@ -560,7 +551,7 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
         this.mInitCb = cb;
 
         if (isAlreadySetUp()) {
-            this.mInitCb.onInitSuccess();
+            this.mInitCb.onOpen();
         } else {
             checkBleIsEnabled();
             connectToGatt();

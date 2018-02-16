@@ -1,18 +1,9 @@
-/***************************************************************************
+/*
+ * Copyright (c) 2017-2018 Runtime Inc.
  * Copyright (c) Intellinium SAS, 2014-present
- * All Rights Reserved.
  *
- * NOTICE:  All information contained herein is, and remains
- * the property of Intellinium SAS and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Intellinium SAS
- * and its suppliers and may be covered by French and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Intellinium SAS.
- ***************************************************************************/
-/* TODO: add runtime copyright */
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 package io.runtime.mcumgr.dfu;
 
@@ -23,9 +14,9 @@ import java.util.Date;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
-import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrMtuCallback;
 import io.runtime.mcumgr.McuMgrMtuProvider;
+import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -83,30 +74,30 @@ public class FirmwareUpgradeManager
     }
 
     @Override
-    public void onInitSuccess() {
+    public void onOpen() {
         /* We have to check if the transporter is an {@link McuMgrMtuProvider}. If so, ask for the Mtu, as
-		 * it is part of the transporter initialization */
+         * it is part of the transporter initialization */
         if (mTransporter instanceof McuMgrMtuProvider) {
             ((McuMgrMtuProvider) mTransporter).getMtu(this);
         } else {
-            mInitCb.onInitSuccess();
+            mInitCb.onOpen();
         }
     }
 
     @Override
-    public void onInitError() {
-        mInitCb.onInitError();
+    public void onOpenError() {
+        mInitCb.onOpenError();
     }
 
     @Override
     public void onMtuFetched(int mtu) {
         this.mImageManager.setUploadMtu(mtu);
-        mInitCb.onInitSuccess();
+        mInitCb.onOpen();
     }
 
     @Override
     public void onMtuError() {
-        mInitCb.onInitError();
+        mInitCb.onOpenError();
     }
 
     public synchronized void start() {
@@ -339,15 +330,15 @@ public class FirmwareUpgradeManager
             try {
                 //TODO need to figure out a better way for UDP
                 synchronized (this) {
-                    wait(20*1000);
+                    wait(20 * 1000);
                 }
                 while (true) {
                     Log.d(TAG, "Checking if the transporter needs to be reinitialized");
-                    if(mTransporter.initAfterReset()) {
+                    if (mTransporter.initAfterReset()) {
                         mTransporter.close();
                         mTransporter.open(new McuMgrOpenCallback() {
                             @Override
-                            public void onInitSuccess() {
+                            public void onOpen() {
                                 if (mTransporter instanceof McuMgrMtuProvider) {
                                     ((McuMgrMtuProvider) mTransporter).getMtu(new McuMgrMtuCallback() {
                                         @Override
@@ -366,7 +357,7 @@ public class FirmwareUpgradeManager
                             }
 
                             @Override
-                            public void onInitError() {
+                            public void onOpenError() {
 
                             }
                         });

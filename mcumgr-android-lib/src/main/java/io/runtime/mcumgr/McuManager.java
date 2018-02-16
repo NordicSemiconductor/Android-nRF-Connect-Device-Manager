@@ -1,18 +1,9 @@
 /*
- *  Copyright (c) Intellinium SAS, 2014-present
- *  All Rights Reserved.
+ * Copyright (c) 2017-2018 Runtime Inc.
+ * Copyright (c) Intellinium SAS, 2014-present
  *
- *  NOTICE:  All information contained herein is, and remains
- *  the property of Intellinium SAS and its suppliers,
- *  if any.  The intellectual and technical concepts contained
- *  herein are proprietary to Intellinium SAS
- *  and its suppliers and may be covered by French and Foreign Patents,
- *  patents in process, and are protected by trade secret or copyright law.
- *  Dissemination of this information or reproduction of this material
- *  is strictly forbidden unless prior written permission is obtained
- *  from Intellinium SAS.
+ * SPDX-License-Identifier: Apache-2.0
  */
-/* TODO: add runtime copyright */
 
 package io.runtime.mcumgr;
 
@@ -21,7 +12,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -119,7 +109,7 @@ public abstract class McuManager {
         try {
             int len;
 
-             if (!getScheme().isCoap()) {
+            if (!getScheme().isCoap()) {
                 len = CBOR.toBytes(payloadMap).length;
             } else {
                 /* TODO for COAP */
