@@ -1,37 +1,31 @@
-apply plugin: 'com.android.library'
+/*
+ * Copyright (c) Intellinium SAS, 2014-present
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-android {
-    compileSdkVersion 26
-
-
-
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+buildscript {
+    
+    repositories {
+        google()
+        jcenter()
     }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
-
 }
 
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
 
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.3'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.9.3'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.3'
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }

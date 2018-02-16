@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) Intellinium SAS, 2014-present
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  ~
+  -->
+
+<resources>
+    <color name="colorAccent">#9E0E40</color>
+</resources>

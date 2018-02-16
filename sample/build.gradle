@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) Intellinium SAS, 2014-present
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+/*
+ * Copyright (c) Intellinium SAS, 2014-present
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "io.runtime.mcumgr"
+        minSdkVersion 21
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.0.2'
+    implementation 'com.android.support:design:27.0.2'
+    compile project(path: ':mcumgr-android-lib')
+}
