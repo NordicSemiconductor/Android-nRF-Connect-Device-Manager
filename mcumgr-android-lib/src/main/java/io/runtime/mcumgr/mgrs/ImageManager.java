@@ -452,22 +452,6 @@ public class ImageManager extends McuManager {
 
     }
 
-    //******************************************************************
-    // Utilities
-    //******************************************************************
-
-	/* NIET!!!
-	public static byte[] getHashFromImage(byte[] imageData) {
-		if (imageData.length < IMG_HASH_LEN) {
-			throw new IllegalArgumentException("Image data is too short to contain a hash.");
-		}
-		int offset = imageData.length - IMG_HASH_LEN;
-		byte[] hash = new byte[IMG_HASH_LEN];
-		System.arraycopy(imageData, offset, hash, 0, IMG_HASH_LEN);
-
-		return hash;
-	}*/
-
     public static byte[] getHashFromImage(byte[] data) throws McuMgrException {
         McuMgrImageTlvParser parser = new McuMgrImageTlvParser(data);
 
