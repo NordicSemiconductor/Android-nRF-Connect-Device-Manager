@@ -6,12 +6,16 @@
 
 package io.runtime.mcumgr.def;
 
+import android.util.Log;
+
+import io.runtime.mcumgr.cfg.McuMgrConfig;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 
 public class McuMgrImageHeader {
+    private static final String TAG = McuMgrImageHeader.class.getSimpleName();
+
     private static final int HEADER_LENGTH = 4 + 4 + 2 + 2 + 4 + 4 + 4;
-    private static final int MAGIC = 0x96f3b83d;
     private int mMagic;
     private int mLoadAddr;
     private short mHdrSize;
@@ -37,8 +41,9 @@ public class McuMgrImageHeader {
         McuMgrImageHeader header = new McuMgrImageHeader();
         header.mMagic = ByteUtil.unsignedByteArrayToInt(b, offset, 4);
 
-        if (header.mMagic != MAGIC) {
-            throw new McuMgrException("Wrong magic number: header=" + header.mMagic + ", magic=" + MAGIC);
+        if (header.mMagic != McuMgrConfig.IMG_HEADER_MAGIC) {
+            throw new McuMgrException("Wrong magic number: header=" + header.mMagic + ", magic=" +
+                    McuMgrConfig.IMG_HEADER_MAGIC);
         }
 
         header.mLoadAddr = ByteUtil.unsignedByteArrayToInt(b, 4 + offset, 4);
@@ -77,5 +82,4 @@ public class McuMgrImageHeader {
     public McuMgrImageVersion getVersion() {
         return mVersion;
     }
-
 }

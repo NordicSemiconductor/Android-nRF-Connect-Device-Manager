@@ -26,6 +26,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.WindowManager;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -37,6 +38,7 @@ import java.util.Locale;
 
 import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
+import io.runtime.mcumgr.cfg.McuMgrConfig;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -55,6 +57,7 @@ public class McumgrSampleActivity extends AppCompatActivity
     private TextView mBle, mResult, mProgress, mState, mFail, mSize, mFile;
     private FirmwareUpgradeManager mManager;
     private McuMgrBleTransport mBleTransport;
+    private CheckBox mCheck;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +77,15 @@ public class McumgrSampleActivity extends AppCompatActivity
         mFail = findViewById(R.id.fail);
         mSize = findViewById(R.id.size);
         mFile = findViewById(R.id.file);
+        mCheck = findViewById(R.id.legacy);
 
+        mCheck.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                McuMgrConfig.legacy();
+            } else {
+                McuMgrConfig.defaultConfig();
+            }
+        });
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION}, 2);
     }

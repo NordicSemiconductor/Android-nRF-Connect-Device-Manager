@@ -10,9 +10,6 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 
 public class McuMgrImageTlvTrailer {
-    public static final int IMAGE_TLV_SHA256 = 0x10;
-    public static final int IMAGE_HASH_LEN = 32;
-
     private byte mType;
     private byte mPad;
     private short mLen;

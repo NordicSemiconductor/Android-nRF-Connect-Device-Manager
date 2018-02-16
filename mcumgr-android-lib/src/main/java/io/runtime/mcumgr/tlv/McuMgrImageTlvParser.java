@@ -11,12 +11,10 @@ import android.util.Log;
 
 import java.util.Arrays;
 
+import io.runtime.mcumgr.cfg.McuMgrConfig;
 import io.runtime.mcumgr.def.McuMgrImageHeader;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
-
-import static io.runtime.mcumgr.tlv.McuMgrImageTlvTrailer.IMAGE_HASH_LEN;
-import static io.runtime.mcumgr.tlv.McuMgrImageTlvTrailer.IMAGE_TLV_SHA256;
 
 public class McuMgrImageTlvParser {
 
@@ -30,7 +28,7 @@ public class McuMgrImageTlvParser {
 
     public byte[] hash() throws McuMgrException {
         boolean hashFound = false;
-        byte[] hash = new byte[IMAGE_HASH_LEN];
+        byte[] hash = new byte[McuMgrConfig.IMAGE_HASH_LEN];
 
         McuMgrImageHeader header = McuMgrImageHeader.fromBytes(mData);
 
@@ -51,7 +49,7 @@ public class McuMgrImageTlvParser {
                 throw new McuMgrException(/* TODO*/ "Error here!");
             }
 
-            if (tlv.getType() != IMAGE_TLV_SHA256 || tlv.getLen() != IMAGE_HASH_LEN) {
+            if (tlv.getType() != McuMgrConfig.IMAGE_TLV_SHA256 || tlv.getLen() != McuMgrConfig.IMAGE_HASH_LEN) {
                 offset += McuMgrImageTlvTrailer.sizeof() + tlv.getLen();
                 continue;
             }
@@ -63,11 +61,11 @@ public class McuMgrImageTlvParser {
             hashFound = true;
             offset += McuMgrImageTlvTrailer.sizeof();
 
-            if (offset + IMAGE_HASH_LEN > end) {
+            if (offset + McuMgrConfig.IMAGE_HASH_LEN > end) {
                 throw new McuMgrException("The remaining data is to short to be a hash");
             }
 
-            hash = Arrays.copyOfRange(mData, offset, IMAGE_HASH_LEN + offset);
+            hash = Arrays.copyOfRange(mData, offset, McuMgrConfig.IMAGE_HASH_LEN + offset);
         }
 
         if (!hashFound) {
@@ -79,6 +77,10 @@ public class McuMgrImageTlvParser {
     }
 
     private McuMgrImageTlvInfo findTlvs(int offset) throws McuMgrException {
-        return McuMgrImageTlvInfo.fromBytes(mData, offset);
+        if(McuMgrConfig.HAS_TLV_INFO) {
+            return McuMgrImageTlvInfo.fromBytes(mData, offset);
+        }
+
+        return McuMgrImageTlvInfo.absent();
     }
 }

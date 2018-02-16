@@ -6,12 +6,11 @@
 
 package io.runtime.mcumgr.tlv;
 
+import io.runtime.mcumgr.cfg.McuMgrConfig;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 
 public class McuMgrImageTlvInfo {
-    public static final int MAGIC = 0x6907;
-
     private short mMagic;
     private short mTotal;
 
@@ -32,15 +31,20 @@ public class McuMgrImageTlvInfo {
         info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
         info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2);
 
-        if (info.mMagic != MAGIC) {
-            throw new McuMgrException("Wrong magic number");
+        if (info.mMagic != McuMgrConfig.TLV_INFO_MAGIC) {
+            throw new McuMgrException("Wrong magic number, magic= " + info.mMagic + " instead of " +
+                    McuMgrConfig.TLV_INFO_MAGIC);
         }
 
         return info;
     }
 
     public static int sizeof() {
-        return 4;
+        if(McuMgrConfig.HAS_TLV_INFO) {
+            return 4;
+        } else {
+            return 0;
+        }
     }
 
     public short getMagic() {
@@ -49,5 +53,12 @@ public class McuMgrImageTlvInfo {
 
     public short getTotal() {
         return mTotal;
+    }
+
+    public static McuMgrImageTlvInfo absent() {
+        McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
+
+        info.mTotal = Short.MAX_VALUE;
+        return info;
     }
 }
