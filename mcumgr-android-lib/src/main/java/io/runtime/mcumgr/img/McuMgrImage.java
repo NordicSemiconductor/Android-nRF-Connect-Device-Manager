@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017-2018 Runtime Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package io.runtime.mcumgr.img;
 
 import io.runtime.mcumgr.exception.McuMgrException;

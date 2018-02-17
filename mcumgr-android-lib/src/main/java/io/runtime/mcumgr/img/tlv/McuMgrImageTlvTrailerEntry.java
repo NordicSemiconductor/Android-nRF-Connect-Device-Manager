@@ -1,11 +1,15 @@
+/*
+ * Copyright (c) 2017-2018 Runtime Inc.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package io.runtime.mcumgr.img.tlv;
 
 import java.util.Arrays;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
-
-
 
 public class McuMgrImageTlvTrailerEntry {
 
