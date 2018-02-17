@@ -20,11 +20,11 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrLevelListResponse;
-import io.runtime.mcumgr.resp.McuMgrLogListResponse;
-import io.runtime.mcumgr.resp.McuMgrLogResponse;
-import io.runtime.mcumgr.resp.McuMgrModuleListResponse;
-import io.runtime.mcumgr.resp.McuMgrShowResponse;
+import io.runtime.mcumgr.resp.log.McuMgrLevelListResponse;
+import io.runtime.mcumgr.resp.log.McuMgrLogListResponse;
+import io.runtime.mcumgr.resp.log.McuMgrLogResponse;
+import io.runtime.mcumgr.resp.log.McuMgrModuleListResponse;
+import io.runtime.mcumgr.resp.log.McuMgrShowResponse;
 import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
 import io.runtime.mcumgr.util.CBOR;
 

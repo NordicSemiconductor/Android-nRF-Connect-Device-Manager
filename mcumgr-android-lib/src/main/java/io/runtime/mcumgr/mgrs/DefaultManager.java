@@ -15,10 +15,10 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrEchoResponse;
-import io.runtime.mcumgr.resp.McuMgrMpStatResponse;
-import io.runtime.mcumgr.resp.McuMgrReadDateTimeResponse;
-import io.runtime.mcumgr.resp.McuMgrTaskStatResponse;
+import io.runtime.mcumgr.resp.dflt.McuMgrEchoResponse;
+import io.runtime.mcumgr.resp.dflt.McuMgrMpStatResponse;
+import io.runtime.mcumgr.resp.dflt.McuMgrReadDateTimeResponse;
+import io.runtime.mcumgr.resp.dflt.McuMgrTaskStatResponse;
 import io.runtime.mcumgr.resp.McuMgrVoidResponse;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_DEFAULT;

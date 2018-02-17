@@ -12,8 +12,8 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrStatListResponse;
-import io.runtime.mcumgr.resp.McuMgrStatResponse;
+import io.runtime.mcumgr.resp.stat.McuMgrStatListResponse;
+import io.runtime.mcumgr.resp.stat.McuMgrStatResponse;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_STATS;
 import static io.runtime.mcumgr.McuMgrConstants.OP_READ;

@@ -3,7 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package io.runtime.mcumgr.resp;
+package io.runtime.mcumgr.resp.img;
+
+import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
 
 public class McuMgrImageStateResponse extends McuMgrSimpleResponse {
     public ImageSlot[] images;

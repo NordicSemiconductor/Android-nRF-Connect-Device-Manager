@@ -22,7 +22,7 @@ import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.mgrs.DefaultManager;
 import io.runtime.mcumgr.mgrs.ImageManager;
-import io.runtime.mcumgr.resp.McuMgrImageStateResponse;
+import io.runtime.mcumgr.resp.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.resp.McuMgrVoidResponse;
 
 // TODO Add retries for each step

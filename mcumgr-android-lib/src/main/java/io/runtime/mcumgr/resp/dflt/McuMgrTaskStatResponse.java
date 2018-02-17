@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp;
+package io.runtime.mcumgr.resp.dflt;
 
 import java.util.Map;
+
+import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
 
 public class McuMgrTaskStatResponse extends McuMgrSimpleResponse {
     public Map<String, TaskStat> tasks;

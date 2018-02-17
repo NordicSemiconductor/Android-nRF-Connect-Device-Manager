@@ -21,8 +21,8 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.img.McuMgrImage;
-import io.runtime.mcumgr.resp.McuMgrImageStateResponse;
-import io.runtime.mcumgr.resp.McuMgrImageUploadResponse;
+import io.runtime.mcumgr.resp.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.resp.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
 import io.runtime.mcumgr.util.CBOR;
 
@@ -70,7 +70,7 @@ public class ImageManager extends McuManager {
     /**
      * List the images on a device (asynchronous).
      * <p>
-     * The response payload can be mapped to a {@link io.runtime.mcumgr.resp.McuMgrImageStateResponse}.
+     * The response payload can be mapped to a {@link McuMgrImageStateResponse}.
      *
      * @param callback the asynchronous callback
      */
@@ -81,7 +81,7 @@ public class ImageManager extends McuManager {
     /**
      * List the images on a device (synchronous).
      * <p>
-     * The response payload can be mapped to a {@link io.runtime.mcumgr.resp.McuMgrImageStateResponse}.
+     * The response payload can be mapped to a {@link McuMgrImageStateResponse}.
      *
      * @return the response
      * @throws McuMgrException Transport error. See cause.

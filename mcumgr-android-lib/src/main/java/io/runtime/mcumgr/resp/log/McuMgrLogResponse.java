@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp;
+package io.runtime.mcumgr.resp.log;
 
 public class McuMgrLogResponse {
     public String name;
