@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.def;
+package io.runtime.mcumgr.img;
 
-import android.util.Log;
-
-import io.runtime.mcumgr.cfg.McuMgrConfig;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 
 public class McuMgrImageHeader {
     private static final String TAG = McuMgrImageHeader.class.getSimpleName();
+
+    public static int IMG_HEADER_MAGIC      = 0x96f3b83d;
+    public static int IMG_HEADER_MAGIC_V1   = 0x96f3b83c;
 
     private static final int HEADER_LENGTH = 4 + 4 + 2 + 2 + 4 + 4 + 4;
     private int mMagic;
@@ -25,9 +25,7 @@ public class McuMgrImageHeader {
     private McuMgrImageVersion mVersion;
     private int __mPad2;
 
-    private McuMgrImageHeader() {
-
-    }
+    private McuMgrImageHeader() {}
 
     public static McuMgrImageHeader fromBytes(byte[] b) throws McuMgrException {
         return fromBytes(b, 0);
@@ -41,9 +39,9 @@ public class McuMgrImageHeader {
         McuMgrImageHeader header = new McuMgrImageHeader();
         header.mMagic = ByteUtil.unsignedByteArrayToInt(b, offset, 4);
 
-        if (header.mMagic != McuMgrConfig.IMG_HEADER_MAGIC) {
+        if (header.mMagic != IMG_HEADER_MAGIC && header.mMagic != IMG_HEADER_MAGIC_V1) {
             throw new McuMgrException("Wrong magic number: header=" + header.mMagic + ", magic=" +
-                    McuMgrConfig.IMG_HEADER_MAGIC);
+                    IMG_HEADER_MAGIC + " or " + IMG_HEADER_MAGIC_V1);
         }
 
         header.mLoadAddr = ByteUtil.unsignedByteArrayToInt(b, 4 + offset, 4);
@@ -81,5 +79,9 @@ public class McuMgrImageHeader {
 
     public McuMgrImageVersion getVersion() {
         return mVersion;
+    }
+
+    public boolean isLegacy() {
+        return mMagic == IMG_HEADER_MAGIC_V1;
     }
 }

@@ -20,10 +20,10 @@ import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.img.McuMgrImage;
 import io.runtime.mcumgr.resp.McuMgrImageStateResponse;
 import io.runtime.mcumgr.resp.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
-import io.runtime.mcumgr.tlv.McuMgrImageTlvParser;
 import io.runtime.mcumgr.util.CBOR;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_IMAGE;
@@ -427,9 +427,13 @@ public class ImageManager extends McuManager {
         return -1;
     }
 
-//******************************************************************
-// Image Upload Callback
-//******************************************************************
+    public static byte[] getHashFromImage(byte[] data) throws McuMgrException {
+        return McuMgrImage.getHash(data);
+    }
+
+    //******************************************************************
+    // Image Upload Callback
+    //******************************************************************
 
     /**
      * Callback for upload command.
@@ -457,11 +461,5 @@ public class ImageManager extends McuManager {
          */
         void onUploadFinish();
 
-    }
-
-    public static byte[] getHashFromImage(byte[] data) throws McuMgrException {
-        McuMgrImageTlvParser parser = new McuMgrImageTlvParser(data);
-
-        return parser.hash();
     }
 }

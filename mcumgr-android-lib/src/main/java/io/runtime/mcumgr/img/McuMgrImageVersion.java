@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.def;
+package io.runtime.mcumgr.img;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;

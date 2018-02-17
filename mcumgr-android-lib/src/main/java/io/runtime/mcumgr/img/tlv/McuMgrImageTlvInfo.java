@@ -4,9 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.tlv;
+package io.runtime.mcumgr.img.tlv;
 
-import io.runtime.mcumgr.cfg.McuMgrConfig;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 
@@ -23,28 +22,23 @@ public class McuMgrImageTlvInfo {
     }
 
     public static McuMgrImageTlvInfo fromBytes(byte[] b, int offset) throws McuMgrException {
-        if (b.length - offset < sizeof())
+        if (b.length - offset < getSize())
             throw new McuMgrException("The byte array is too short to be a McuMgrImageTlvInfo: " +
-                    "length= " + b.length + ", offset= " + offset + ", min size= " + sizeof());
+                    "length= " + b.length + ", offset= " + offset + ", min size= " + getSize());
 
         McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
         info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
         info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2);
 
-        if (info.mMagic != McuMgrConfig.TLV_INFO_MAGIC) {
+        if (info.mMagic != McuMgrImageTlv.IMG_TLV_INFO_MAGIC) {
             throw new McuMgrException("Wrong magic number, magic= " + info.mMagic + " instead of " +
-                    McuMgrConfig.TLV_INFO_MAGIC);
+                    McuMgrImageTlv.IMG_TLV_INFO_MAGIC);
         }
-
         return info;
     }
 
-    public static int sizeof() {
-        if(McuMgrConfig.HAS_TLV_INFO) {
-            return 4;
-        } else {
-            return 0;
-        }
+    public static int getSize() {
+        return 4;
     }
 
     public short getMagic() {
@@ -53,12 +47,5 @@ public class McuMgrImageTlvInfo {
 
     public short getTotal() {
         return mTotal;
-    }
-
-    public static McuMgrImageTlvInfo absent() {
-        McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
-
-        info.mTotal = Short.MAX_VALUE;
-        return info;
     }
 }
