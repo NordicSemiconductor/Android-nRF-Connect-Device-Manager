@@ -41,8 +41,7 @@ public class CBOR {
     public static Map<String, String> toStringMap(byte[] data) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
         TypeReference<HashMap<String, String>> typeRef =
-                new TypeReference<HashMap<String, String>>() {
-                };
+                new TypeReference<HashMap<String, String>>() {};
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
         return mapper.readValue(inputStream, typeRef);
     }

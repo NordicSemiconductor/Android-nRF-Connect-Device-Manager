@@ -27,6 +27,7 @@ import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -39,6 +40,7 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.resp.McuMgrResponse;
 import io.runtime.mcumgr.util.ByteUtil;
+import io.runtime.mcumgr.util.CBOR;
 
 /* TODO */
 @SuppressLint("MissingPermission") /* To get rid of android studio warnings */

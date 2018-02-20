@@ -26,28 +26,46 @@ public class McuMgrResponse {
 
     public int rc = 0;
 
+    /**
+     * Scheme of the transport which produced this response.
+     */
     private McuMgrScheme mScheme;
+    /**
+     * The bytes of the response packet. This includes the McuMgrHeader for standard schemes and
+     * includes the CoAP header for CoAP schemes.
+     */
     private byte[] mBytes;
+    /**
+     * The McuMgrHeader for this response
+     */
     private McuMgrHeader mHeader;
+    /**
+     * The return code (enum) for this response. For the raw return code use the "rc" property.
+     */
     private McuMgrErrorCode mRc;
+    /**
+     * McuMgr payload for this response. This does not include the McuMgr header for standard
+     * schemes and does not include the CoAP header for CoAP schemes.
+     */
     private byte[] mPayload;
+    /**
+     * The CoAP Code used for CoAP schemes, formatted as ((class * 100) + detail).
+     */
     private int mCoapCode = 0;
 
-//    /**
-//     * Construct a McuMgrResponse.
-//     * <p>
-//     * Note: In the case of a CoAP scheme, bytes argument should contain only the CoAP payload,
-//     * not the entire CoAP packet (i.e. no CoAP header or header options).
-//     *
-//     * @param scheme the scheme used by the transporter
-//     * @param bytes  the mcu manager response. If using a CoAP scheme these bytes should NOT contain
-//     *               the CoAP header and options.
-//     * @throws IOException Error parsing response payload into header and return code.
-//     */
-//    McuMgrResponse(McuMgrScheme scheme, byte[] bytes) throws IOException {
-//        mScheme = scheme;
-//        mBytes = bytes;
-//    }
+    /**
+     * Return the string representation of the response payload.
+     * @return the string representation of the response payload.
+     */
+    @Override
+    public String toString() {
+        try {
+            return CBOR.toString(mPayload);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     /**
      * Get the McuMgrHeader for this response
@@ -127,6 +145,15 @@ public class McuMgrResponse {
         }
     }
 
+
+    /**
+     * Initialize the fields for this response.
+     * @param scheme the scheme
+     * @param bytes packet bytes
+     * @param header McuMgrHeader
+     * @param payload McuMgr CBOR payload
+     * @param rc the return code
+     */
     void initFields(McuMgrScheme scheme, byte[] bytes, McuMgrHeader header, byte[] payload,
                     McuMgrErrorCode rc) {
         mScheme = scheme;
@@ -137,6 +164,10 @@ public class McuMgrResponse {
 
     }
 
+    /**
+     * Set the return code for CoAP response schemes.
+     * @param code
+     */
     void setCoapCode(int code) {
         mCoapCode = code;
     }
@@ -163,13 +194,12 @@ public class McuMgrResponse {
     /**
      * Parse the payload from a response.
      * @param scheme the response's scheme
-     * @param bytes the response in bytes (If using a CoAP scheme, this should NOT include the CoAP
-     *              header and options).
+     * @param bytes the response in bytes
      * @return the payload
      */
-    public static byte[] parsePayload(McuMgrScheme scheme, byte[] bytes) {
+    public static byte[] parsePayload(McuMgrScheme scheme, byte[] bytes) throws IOException {
         if (scheme.isCoap()) {
-            return bytes;
+            return CoapUtil.getPayload(bytes);
         } else {
             return Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
         }
@@ -178,17 +208,20 @@ public class McuMgrResponse {
     /**
      * Build an McuMgrResponse.
      * @param scheme the transport scheme used
-     * @param bytes the
-     * @param type
-     * @param <T>
-     * @return
-     * @throws IOException
+     * @param bytes the response packet's bytes
+     * @param type the type of response to build
+     * @param <T> The response type to build
+     * @return The response
+     * @throws IOException Error parsing response
      */
     public static <T extends McuMgrResponse> T buildResponse(McuMgrScheme scheme, byte[] bytes,
                                                              Class<T> type) throws IOException {
-        byte[] payload = parsePayload(scheme, bytes);
-        T response = CBOR.toObject(payload, type);
+        // Parse header and payload
         McuMgrHeader header = parseHeader(scheme, bytes);
+        byte[] payload = parsePayload(scheme, bytes);
+
+        // Initialize response and set fields
+        T response = CBOR.toObject(payload, type);
         McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
         response.initFields(scheme, bytes, header, payload, rc);
         return response;
@@ -196,24 +229,24 @@ public class McuMgrResponse {
 
     /**
      * Parses a Coap scheme response
-     * @param scheme
-     * @param bytes
-     * @param type
-     * @param <T>
-     * @return
-     * @throws IOException
+     * @param scheme The transport scheme used
+     * @param bytes The response packet's bytes. This inlcudes the CoAP header and options
+     * @param type The type of response to build and return
+     * @param <T> The type of response to build and return
+     * @return The response
+     * @throws IOException Error parsing response
      */
     public static <T extends McuMgrResponse> T buildCoapResponse(McuMgrScheme scheme, byte[] bytes,
-                                                                 Class<T> type)
-        throws IOException {
-        int code = CoapUtil.getCode(bytes);
-        byte[] payload = CoapUtil.getPayload(bytes);
-        T response = buildResponse(scheme, payload, type);
-        response.setCoapCode(code);
+                                                                 Class<T> type) throws IOException {
+        // Build a response and set the CoAP Response Code
+        T response = buildResponse(scheme, bytes, type);
+        response.setCoapCode(CoapUtil.getCode(bytes));
         return response;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    /**
+     * POJO for obtaining the McuMgrHeader from a CoAP response payload
+     */
     private static class CoapHeaderResponse {
         public byte[] _h;
     }
