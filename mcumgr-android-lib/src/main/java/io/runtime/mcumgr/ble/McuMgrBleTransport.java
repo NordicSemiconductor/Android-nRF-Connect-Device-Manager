@@ -38,7 +38,6 @@ import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.resp.McuMgrResponse;
-import io.runtime.mcumgr.resp.McuMgrResponseBuilder;
 import io.runtime.mcumgr.util.ByteUtil;
 
 /* TODO */
@@ -304,10 +303,10 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
                     mByteOutput = new ByteArrayOutputStream();
                 } else {
                     try {
-                        McuMgrResponseBuilder builder =
-                                new McuMgrResponseBuilder(McuMgrScheme.BLE, mByteOutput.toByteArray());
+                        McuMgrResponse response = McuMgrResponse.buildResponse(McuMgrScheme.BLE,
+                                mByteOutput.toByteArray(), mResponseType);
                         mByteOutput = new ByteArrayOutputStream();
-                        mCallback.onResponse(builder.build(mResponseType));
+                        mCallback.onResponse(response);
                     } catch (IOException e) {
                         mCallback.onError(new McuMgrException(e));
                         if (!mWasAlreadyConnected) {
@@ -415,8 +414,8 @@ public class McuMgrBleTransport extends McuMgrTransport implements McuMgrMtuProv
             throw new McuMgrException("Could not get the mcumgr response");
         }
 
-        McuMgrResponseBuilder builder = new McuMgrResponseBuilder(McuMgrScheme.BLE, mByteOutput.toByteArray());
-        return builder.build(respType);
+        return McuMgrResponse.buildResponse(McuMgrScheme.BLE,
+                mByteOutput.toByteArray(), respType);
     }
 
     /**

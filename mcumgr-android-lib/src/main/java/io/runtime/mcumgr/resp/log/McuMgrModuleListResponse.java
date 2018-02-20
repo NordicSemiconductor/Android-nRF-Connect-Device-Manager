@@ -8,8 +8,8 @@ package io.runtime.mcumgr.resp.log;
 
 import java.util.Map;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrModuleListResponse extends McuMgrSimpleResponse {
+public class McuMgrModuleListResponse extends McuMgrResponse {
     public Map<String, Integer> module_map;
 }

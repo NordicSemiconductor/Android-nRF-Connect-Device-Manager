@@ -23,7 +23,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.img.McuMgrImage;
 import io.runtime.mcumgr.resp.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.resp.img.McuMgrImageUploadResponse;
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_IMAGE;
@@ -181,8 +181,8 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback
      */
-    public void erase(McuMgrCallback<McuMgrSimpleResponse> callback) {
-        send(OP_WRITE, ID_STATE, null, McuMgrSimpleResponse.class,
+    public void erase(McuMgrCallback<McuMgrResponse> callback) {
+        send(OP_WRITE, ID_STATE, null, McuMgrResponse.class,
                 callback);
     }
 
@@ -192,8 +192,8 @@ public class ImageManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrSimpleResponse erase() throws McuMgrException {
-        return send(OP_WRITE, ID_STATE, null, McuMgrSimpleResponse.class);
+    public McuMgrResponse erase() throws McuMgrException {
+        return send(OP_WRITE, ID_STATE, null, McuMgrResponse.class);
     }
 
     /**
@@ -202,8 +202,8 @@ public class ImageManager extends McuManager {
      * @param callback the asynchronous callback
      */
         /* TODO : create the correct response class */
-    public void coreList(McuMgrCallback<McuMgrSimpleResponse> callback) {
-        send(OP_READ, ID_CORELIST, null, McuMgrSimpleResponse.class, callback);
+    public void coreList(McuMgrCallback<McuMgrResponse> callback) {
+        send(OP_READ, ID_CORELIST, null, McuMgrResponse.class, callback);
     }
 
     /**
@@ -213,8 +213,8 @@ public class ImageManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
         /* TODO : create the correct response class */
-    public McuMgrSimpleResponse coreList() throws McuMgrException {
-        return send(OP_READ, ID_CORELIST, null, McuMgrSimpleResponse.class);
+    public McuMgrResponse coreList() throws McuMgrException {
+        return send(OP_READ, ID_CORELIST, null, McuMgrResponse.class);
     }
 
     /**
@@ -224,10 +224,10 @@ public class ImageManager extends McuManager {
      * @param callback the asynchronous callback
      */
 	/* TODO : create the correct response class */
-    public void coreLoad(int offset, McuMgrCallback<McuMgrSimpleResponse> callback) {
+    public void coreLoad(int offset, McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
-        send(OP_READ, ID_CORELOAD, payloadMap, McuMgrSimpleResponse.class, callback);
+        send(OP_READ, ID_CORELOAD, payloadMap, McuMgrResponse.class, callback);
     }
 
     /**
@@ -238,10 +238,10 @@ public class ImageManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
 	/* TODO : create the correct response class */
-    public McuMgrSimpleResponse coreLoad(int offset) throws McuMgrException {
+    public McuMgrResponse coreLoad(int offset) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
-        return send(OP_READ, ID_CORELOAD, payloadMap, McuMgrSimpleResponse.class);
+        return send(OP_READ, ID_CORELOAD, payloadMap, McuMgrResponse.class);
     }
 
     /**
@@ -250,8 +250,8 @@ public class ImageManager extends McuManager {
      * @param callback the asynchronous callback
      */
 		/* TODO : create the correct response class */
-    public void coreErase(McuMgrCallback<McuMgrSimpleResponse> callback) {
-        send(OP_WRITE, ID_CORELOAD, null, McuMgrSimpleResponse.class, callback);
+    public void coreErase(McuMgrCallback<McuMgrResponse> callback) {
+        send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class, callback);
     }
 
     /**
@@ -261,8 +261,8 @@ public class ImageManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
 		/* TODO : create the correct response class */
-    public McuMgrSimpleResponse coreErase() throws McuMgrException {
-        return send(OP_WRITE, ID_CORELOAD, null, McuMgrSimpleResponse.class);
+    public McuMgrResponse coreErase() throws McuMgrException {
+        return send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class);
     }
 
 

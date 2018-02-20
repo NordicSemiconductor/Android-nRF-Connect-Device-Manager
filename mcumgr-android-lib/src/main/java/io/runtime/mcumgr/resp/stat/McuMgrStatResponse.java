@@ -8,9 +8,9 @@ package io.runtime.mcumgr.resp.stat;
 
 import java.util.Map;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrStatResponse extends McuMgrSimpleResponse {
+public class McuMgrStatResponse extends McuMgrResponse {
     public String name;
     public Map<String, Integer> fields;
 }

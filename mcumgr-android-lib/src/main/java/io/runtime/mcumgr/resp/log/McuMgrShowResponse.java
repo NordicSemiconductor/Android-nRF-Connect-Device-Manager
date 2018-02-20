@@ -6,9 +6,9 @@
 
 package io.runtime.mcumgr.resp.log;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrShowResponse extends McuMgrSimpleResponse {
+public class McuMgrShowResponse extends McuMgrResponse {
     public int next_index;
     public LogResult[] logs;
 

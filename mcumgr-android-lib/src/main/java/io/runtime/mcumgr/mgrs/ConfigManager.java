@@ -13,7 +13,8 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.resp.config.McuMgrConfigReadResponse;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_CONFIG;
 import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
@@ -22,7 +23,6 @@ import static io.runtime.mcumgr.McuMgrConstants.OP_WRITE;
 /**
  * Config command group manager.
  */
-/* TODO: Implements the McuResponse format */
 public class ConfigManager extends McuManager {
 
     public final static int ID_CONFIG = 0;
@@ -42,10 +42,10 @@ public class ConfigManager extends McuManager {
      * @param name     the name of the config variable
      * @param callback the asynchronous callback
      */
-    public void read(String name, McuMgrCallback<ReadResponse> callback) {
+    public void read(String name, McuMgrCallback<McuMgrConfigReadResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
-        send(OP_READ, ID_CONFIG, payloadMap, ReadResponse.class, callback);
+        send(OP_READ, ID_CONFIG, payloadMap, McuMgrConfigReadResponse.class, callback);
     }
 
     /**
@@ -55,10 +55,10 @@ public class ConfigManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-    public ReadResponse read(String name) throws McuMgrException {
+    public McuMgrConfigReadResponse read(String name) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
-        return send(OP_READ, ID_CONFIG, payloadMap, ReadResponse.class);
+        return send(OP_READ, ID_CONFIG, payloadMap, McuMgrConfigReadResponse.class);
     }
 
     /**
@@ -68,11 +68,11 @@ public class ConfigManager extends McuManager {
      * @param value    the value to write
      * @param callback the asynchronous callback
      */
-    public void write(String name, String value, McuMgrCallback<McuMgrSimpleResponse> callback) {
+    public void write(String name, String value, McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
-        send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrSimpleResponse.class, callback);
+        send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrResponse.class, callback);
     }
 
     /**
@@ -83,21 +83,10 @@ public class ConfigManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrSimpleResponse write(String name, String value) throws McuMgrException {
+    public McuMgrResponse write(String name, String value) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
-        return send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrSimpleResponse.class);
-    }
-
-    //******************************************************************
-    // Config Manager Response POJOs
-    //******************************************************************
-
-    /**
-     * POJO representation of {@link ConfigManager#read(String)} response.
-     */
-    public static class ReadResponse extends McuMgrSimpleResponse {
-        public String val;
+        return send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrResponse.class);
     }
 }
