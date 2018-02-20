@@ -206,7 +206,7 @@ public class McuMgrResponse {
     }
 
     /**
-     * Build an McuMgrResponse.
+     * Build an standard (NON-CoAP) McuMgrResponse.
      * @param scheme the transport scheme used
      * @param bytes the response packet's bytes
      * @param type the type of response to build
@@ -228,7 +228,7 @@ public class McuMgrResponse {
     }
 
     /**
-     * Parses a Coap scheme response
+     * Build a CoAP scheme response
      * @param scheme The transport scheme used
      * @param bytes The response packet's bytes. This inlcudes the CoAP header and options
      * @param type The type of response to build and return
@@ -238,8 +238,14 @@ public class McuMgrResponse {
      */
     public static <T extends McuMgrResponse> T buildCoapResponse(McuMgrScheme scheme, byte[] bytes,
                                                                  Class<T> type) throws IOException {
-        // Build a response and set the CoAP Response Code
-        T response = buildResponse(scheme, bytes, type);
+        // Parse the payload then get the McuMgr header from the payload
+        byte[] payload = parsePayload(scheme, bytes);
+        McuMgrHeader header = parseHeader(scheme, payload);
+
+        // Initialize response and set fields
+        T response = CBOR.toObject(payload, type);
+        McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
+        response.initFields(scheme, bytes, header, payload, rc);
         response.setCoapCode(CoapUtil.getCode(bytes));
         return response;
     }
