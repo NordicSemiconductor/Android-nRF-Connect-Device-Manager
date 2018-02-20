@@ -24,6 +24,10 @@ public class McuMgrResponse {
 
     private final static String TAG = "McuMgrResponse";
 
+    /**
+     * The raw return code found in most McuMgr response payloads. If a rc value is not explicitly
+     * stated, a value of 0 is assumed.
+     */
     public int rc = 0;
 
     /**
@@ -145,7 +149,6 @@ public class McuMgrResponse {
         }
     }
 
-
     /**
      * Initialize the fields for this response.
      * @param scheme the scheme
@@ -161,7 +164,6 @@ public class McuMgrResponse {
         mHeader = header;
         mPayload = payload;
         mRc = rc;
-
     }
 
     /**
@@ -170,39 +172,6 @@ public class McuMgrResponse {
      */
     void setCoapCode(int code) {
         mCoapCode = code;
-    }
-
-    /**
-     * Parse the header from a response.
-     * @param scheme the response's scheme
-     * @param bytes the response in bytes (If using a CoAP scheme, this should NOT include the CoAP
-     *              header and options).
-     * @return the header
-     * @throws IOException Error parsing the bytes into an object
-     */
-    public static McuMgrHeader parseHeader(McuMgrScheme scheme, byte[] bytes)
-            throws IOException {
-        if (scheme.isCoap()) {
-            CoapHeaderResponse response = CBOR.toObject(bytes, CoapHeaderResponse.class);
-            return McuMgrHeader.fromBytes(response._h);
-        } else {
-            byte[] header = Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN);
-            return McuMgrHeader.fromBytes(header);
-        }
-    }
-
-    /**
-     * Parse the payload from a response.
-     * @param scheme the response's scheme
-     * @param bytes the response in bytes
-     * @return the payload
-     */
-    public static byte[] parsePayload(McuMgrScheme scheme, byte[] bytes) throws IOException {
-        if (scheme.isCoap()) {
-            return CoapUtil.getPayload(bytes);
-        } else {
-            return Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
-        }
     }
 
     /**
@@ -216,37 +185,27 @@ public class McuMgrResponse {
      */
     public static <T extends McuMgrResponse> T buildResponse(McuMgrScheme scheme, byte[] bytes,
                                                              Class<T> type) throws IOException {
-        // Parse header and payload
-        McuMgrHeader header = parseHeader(scheme, bytes);
-        byte[] payload = parsePayload(scheme, bytes);
+        McuMgrHeader header;
+        byte[] payload;
+        // Parse the McuMgrHeader and payload based on scheme
+        if (scheme.isCoap()) {
+            payload = CoapUtil.getPayload(bytes);
+            CoapHeaderResponse response = CBOR.toObject(bytes, CoapHeaderResponse.class);
+            header = McuMgrHeader.fromBytes(response._h);
+        } else {
+            payload = Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
+            header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN));
+        }
 
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
         McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
         response.initFields(scheme, bytes, header, payload, rc);
-        return response;
-    }
 
-    /**
-     * Build a CoAP scheme response
-     * @param scheme The transport scheme used
-     * @param bytes The response packet's bytes. This inlcudes the CoAP header and options
-     * @param type The type of response to build and return
-     * @param <T> The type of response to build and return
-     * @return The response
-     * @throws IOException Error parsing response
-     */
-    public static <T extends McuMgrResponse> T buildCoapResponse(McuMgrScheme scheme, byte[] bytes,
-                                                                 Class<T> type) throws IOException {
-        // Parse the payload then get the McuMgr header from the payload
-        byte[] payload = parsePayload(scheme, bytes);
-        McuMgrHeader header = parseHeader(scheme, payload);
-
-        // Initialize response and set fields
-        T response = CBOR.toObject(payload, type);
-        McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
-        response.initFields(scheme, bytes, header, payload, rc);
-        response.setCoapCode(CoapUtil.getCode(bytes));
+        // If we are using a CoAP scheme, parse the CoAP response code
+        if (scheme.isCoap()) {
+            response.setCoapCode(CoapUtil.getCode(bytes));
+        }
         return response;
     }
 
