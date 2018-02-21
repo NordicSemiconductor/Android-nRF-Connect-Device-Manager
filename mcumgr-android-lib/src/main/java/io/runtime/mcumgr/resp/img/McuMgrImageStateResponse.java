@@ -5,9 +5,9 @@
  */
 package io.runtime.mcumgr.resp.img;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrImageStateResponse extends McuMgrSimpleResponse {
+public class McuMgrImageStateResponse extends McuMgrResponse {
     public ImageSlot[] images;
     public int splitStatus;
 

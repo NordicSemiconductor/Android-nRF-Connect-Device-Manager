@@ -22,8 +22,8 @@ import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.mgrs.DefaultManager;
 import io.runtime.mcumgr.mgrs.ImageManager;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 import io.runtime.mcumgr.resp.img.McuMgrImageStateResponse;
-import io.runtime.mcumgr.resp.McuMgrVoidResponse;
 
 // TODO Add retries for each step
 
@@ -262,9 +262,9 @@ public class FirmwareUpgradeManager
         }
     };
 
-    private McuMgrCallback<McuMgrVoidResponse> mResetCallback = new McuMgrCallback<McuMgrVoidResponse>() {
+    private McuMgrCallback<McuMgrResponse> mResetCallback = new McuMgrCallback<McuMgrResponse>() {
         @Override
-        public void onResponse(McuMgrVoidResponse response) {
+        public void onResponse(McuMgrResponse response) {
             Log.d(TAG, "Reset successful");
             mResetPollThread.start();
         }
@@ -283,9 +283,9 @@ public class FirmwareUpgradeManager
                         fail(new McuMgrException("Confirm failed!"));
                         return;
                     }
-                    if (response.getRcCode() != McuMgrErrorCode.OK) {
-                        Log.e(TAG, "Confirm failed due to Newt Manager error: " + response.getRcCode());
-                        fail(new McuMgrErrorException(response.getRcCode()));
+                    if (response.getRc() != McuMgrErrorCode.OK) {
+                        Log.e(TAG, "Confirm failed due to Newt Manager error: " + response.getRc());
+                        fail(new McuMgrErrorException(response.getRc()));
                         return;
                     }
                     if (response.images.length == 0) {

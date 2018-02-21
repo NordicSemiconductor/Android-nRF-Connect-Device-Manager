@@ -15,11 +15,11 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 import io.runtime.mcumgr.resp.dflt.McuMgrEchoResponse;
 import io.runtime.mcumgr.resp.dflt.McuMgrMpStatResponse;
 import io.runtime.mcumgr.resp.dflt.McuMgrReadDateTimeResponse;
 import io.runtime.mcumgr.resp.dflt.McuMgrTaskStatResponse;
-import io.runtime.mcumgr.resp.McuMgrVoidResponse;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_DEFAULT;
 import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
@@ -197,8 +197,8 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback
      */
-    public void reset(McuMgrCallback<McuMgrVoidResponse> callback) {
-        send(OP_WRITE, ID_RESET, null, McuMgrVoidResponse.class, callback);
+    public void reset(McuMgrCallback<McuMgrResponse> callback) {
+        send(OP_WRITE, ID_RESET, null, McuMgrResponse.class, callback);
     }
 
     /**
@@ -207,7 +207,7 @@ public class DefaultManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrVoidResponse reset() throws McuMgrException {
-        return send(OP_WRITE, ID_RESET, null, McuMgrVoidResponse.class);
+    public McuMgrResponse reset() throws McuMgrException {
+        return send(OP_WRITE, ID_RESET, null, McuMgrResponse.class);
     }
 }

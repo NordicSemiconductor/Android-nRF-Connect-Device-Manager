@@ -25,7 +25,7 @@ import io.runtime.mcumgr.resp.log.McuMgrLogListResponse;
 import io.runtime.mcumgr.resp.log.McuMgrLogResponse;
 import io.runtime.mcumgr.resp.log.McuMgrModuleListResponse;
 import io.runtime.mcumgr.resp.log.McuMgrShowResponse;
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
 
 import static io.runtime.mcumgr.McuMgrConstants.GROUP_LOGS;
@@ -144,8 +144,8 @@ public class LogManager extends McuManager {
      *
      * @param callback The response callback
      */
-    public void clear(McuMgrCallback<McuMgrSimpleResponse> callback) {
-        send(OP_WRITE, ID_CLEAR, null, McuMgrSimpleResponse.class, callback);
+    public void clear(McuMgrCallback<McuMgrResponse> callback) {
+        send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class, callback);
     }
 
     /**
@@ -154,8 +154,8 @@ public class LogManager extends McuManager {
      * @return The response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrSimpleResponse clear() throws McuMgrException {
-        return send(OP_WRITE, ID_CLEAR, null, McuMgrSimpleResponse.class);
+    public McuMgrResponse clear() throws McuMgrException {
+        return send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class);
     }
 
     /**

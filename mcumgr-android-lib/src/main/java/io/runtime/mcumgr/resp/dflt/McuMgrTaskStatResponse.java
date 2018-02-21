@@ -8,9 +8,9 @@ package io.runtime.mcumgr.resp.dflt;
 
 import java.util.Map;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrTaskStatResponse extends McuMgrSimpleResponse {
+public class McuMgrTaskStatResponse extends McuMgrResponse {
     public Map<String, TaskStat> tasks;
 
     public static class TaskStat {

@@ -8,12 +8,6 @@ package io.runtime.mcumgr.resp.stat;
 
 import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrStatListResponse implements McuMgrResponse {
+public class McuMgrStatListResponse extends McuMgrResponse {
     private String[] stat_list;
-
-    /* TODO */
-    @Override
-    public boolean isSuccess() {
-        return true;
-    }
 }

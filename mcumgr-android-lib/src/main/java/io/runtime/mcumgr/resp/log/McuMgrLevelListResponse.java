@@ -6,8 +6,8 @@
 
 package io.runtime.mcumgr.resp.log;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrLevelListResponse extends McuMgrSimpleResponse {
+public class McuMgrLevelListResponse extends McuMgrResponse {
     public String[] level_map;
 }

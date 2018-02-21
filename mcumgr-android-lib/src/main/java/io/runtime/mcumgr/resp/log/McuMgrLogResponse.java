@@ -6,7 +6,9 @@
 
 package io.runtime.mcumgr.resp.log;
 
-public class McuMgrLogResponse {
+import io.runtime.mcumgr.resp.McuMgrResponse;
+
+public class McuMgrLogResponse extends McuMgrResponse {
     public String name;
     public int type;
     public LogEntry[] entries;

@@ -6,8 +6,8 @@
 
 package io.runtime.mcumgr.resp.dflt;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrReadDateTimeResponse extends McuMgrSimpleResponse {
+public class McuMgrReadDateTimeResponse extends McuMgrResponse {
     public String datetime;
 }

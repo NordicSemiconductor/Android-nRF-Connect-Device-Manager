@@ -6,8 +6,8 @@
 
 package io.runtime.mcumgr.resp.img;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrImageUploadResponse extends McuMgrSimpleResponse {
+public class McuMgrImageUploadResponse extends McuMgrResponse {
     public int off;
 }

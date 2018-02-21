@@ -6,8 +6,8 @@
 
 package io.runtime.mcumgr.resp.dflt;
 
-import io.runtime.mcumgr.resp.McuMgrSimpleResponse;
+import io.runtime.mcumgr.resp.McuMgrResponse;
 
-public class McuMgrEchoResponse extends McuMgrSimpleResponse {
+public class McuMgrEchoResponse extends McuMgrResponse {
     public String r;
 }
