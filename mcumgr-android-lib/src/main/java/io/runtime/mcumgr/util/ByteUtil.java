@@ -7,6 +7,7 @@
 
 package io.runtime.mcumgr.util;
 
+
 public class ByteUtil {
 
     /**
@@ -28,25 +29,36 @@ public class ByteUtil {
      * @param data   the unsigned byte array
      * @param offset the offset to start parsing the int
      * @param length the length of the int to parse in bytes
+     * @param endian the endianess to use while parsing the array ({@link Endian#LITTLE} or
+     *               {@link Endian#BIG})
      * @return the int
      */
-    public static int unsignedByteArrayToInt(byte[] data, int offset, int length) {
+    public static int unsignedByteArrayToInt(byte[] data, int offset, int length, Endian endian) {
         int result = 0;
         for (int i = 0; i < length; i++) {
-            result += unsignedByteToInt(data[i + offset]) << (i * 8);
+            int unsignedByte = unsignedByteToInt(data[i + offset]);
+            if (endian == Endian.BIG) {
+                result += unsignedByte << ((length - 1 - i) * 8); // big endian
+            } else {
+                result += unsignedByte << (i * 8); // little endian
+            }
         }
         return result;
     }
 
     public static String byteArrayToHex(byte[] a) {
-        return byteArrayToHex(a, "%02x ");
+        return byteArrayToHex(a, 0, a.length, "%02x ");
     }
 
     public static String byteArrayToHex(byte[] a, String format) {
-        StringBuilder sb = new StringBuilder(a.length * 2);
-        for (byte b : a)
-            sb.append(String.format(format, b));
-        return sb.toString();
+        return byteArrayToHex(a, 0, a.length, format);
     }
 
+    public static String byteArrayToHex(byte[] a, int offset, int length, String format) {
+        StringBuilder sb = new StringBuilder(a.length * 2);
+        for (int i = offset; i < length; i++) {
+            sb.append(String.format(format, a[i]));
+        }
+        return sb.toString();
+    }
 }

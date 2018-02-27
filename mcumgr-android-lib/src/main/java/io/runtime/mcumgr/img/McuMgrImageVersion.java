@@ -8,6 +8,7 @@ package io.runtime.mcumgr.img;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
+import io.runtime.mcumgr.util.Endian;
 
 public class McuMgrImageVersion {
     private byte mMajor;
@@ -31,8 +32,8 @@ public class McuMgrImageVersion {
         McuMgrImageVersion version = new McuMgrImageVersion();
         version.mMajor = b[offset++];
         version.mMinor = b[offset++];
-        version.mRevision = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
-        version.mBuildNum = ByteUtil.unsignedByteArrayToInt(b, offset + 2, 4);
+        version.mRevision = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2, Endian.LITTLE);
+        version.mBuildNum = ByteUtil.unsignedByteArrayToInt(b, offset + 2, 4, Endian.LITTLE);
 
         return version;
     }

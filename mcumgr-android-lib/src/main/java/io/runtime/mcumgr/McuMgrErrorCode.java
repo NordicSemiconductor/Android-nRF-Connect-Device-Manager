@@ -6,6 +6,13 @@
 
 package io.runtime.mcumgr;
 
+/**
+ * Almost all requests are responded to with an Mcu Manager return code in the response payload.
+ * This value determines whether the request has been successful (rc = 0) or has failed (rc != 0).
+ *
+ * This return code is not supposed to be very descriptive and the actual error reason must be
+ * determined based on the request and error code.
+ */
 public enum McuMgrErrorCode {
     OK(0),
     UNKNOWN(1),
@@ -30,7 +37,7 @@ public enum McuMgrErrorCode {
 
     @Override
     public String toString() {
-        return "NewtMgrError: " + super.toString() + "(" + mCode + ")";
+        return "McuMgrError: " + super.toString() + "(" + mCode + ")";
     }
 
     public static McuMgrErrorCode valueOf(int error) {

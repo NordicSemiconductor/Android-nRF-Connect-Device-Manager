@@ -15,15 +15,11 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrResponse;
-import io.runtime.mcumgr.resp.dflt.McuMgrEchoResponse;
-import io.runtime.mcumgr.resp.dflt.McuMgrMpStatResponse;
-import io.runtime.mcumgr.resp.dflt.McuMgrReadDateTimeResponse;
-import io.runtime.mcumgr.resp.dflt.McuMgrTaskStatResponse;
-
-import static io.runtime.mcumgr.McuMgrConstants.GROUP_DEFAULT;
-import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
-import static io.runtime.mcumgr.McuMgrConstants.OP_WRITE;
+import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.msg.dflt.McuMgrEchoResponse;
+import io.runtime.mcumgr.msg.dflt.McuMgrMpStatResponse;
+import io.runtime.mcumgr.msg.dflt.McuMgrReadDateTimeResponse;
+import io.runtime.mcumgr.msg.dflt.McuMgrTaskStatResponse;
 
 /**
  * Default command group manager.

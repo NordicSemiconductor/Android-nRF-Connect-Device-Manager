@@ -18,17 +18,14 @@ import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.img.McuMgrImage;
-import io.runtime.mcumgr.resp.img.McuMgrImageStateResponse;
-import io.runtime.mcumgr.resp.img.McuMgrImageUploadResponse;
-import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.msg.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.msg.img.McuMgrImageUploadResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
-
-import static io.runtime.mcumgr.McuMgrConstants.GROUP_IMAGE;
-import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
-import static io.runtime.mcumgr.McuMgrConstants.OP_WRITE;
 
 /**
  * Image command group manager.
@@ -201,7 +198,7 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback
      */
-        /* TODO : create the correct response class */
+    /* TODO : create the correct response class */
     public void coreList(McuMgrCallback<McuMgrResponse> callback) {
         send(OP_READ, ID_CORELIST, null, McuMgrResponse.class, callback);
     }
@@ -212,7 +209,7 @@ public class ImageManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-        /* TODO : create the correct response class */
+    /* TODO : create the correct response class */
     public McuMgrResponse coreList() throws McuMgrException {
         return send(OP_READ, ID_CORELIST, null, McuMgrResponse.class);
     }
@@ -237,7 +234,7 @@ public class ImageManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-	/* TODO : create the correct response class */
+    /* TODO : create the correct response class */
     public McuMgrResponse coreLoad(int offset) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
@@ -249,7 +246,7 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback
      */
-		/* TODO : create the correct response class */
+    /* TODO : create the correct response class */
     public void coreErase(McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class, callback);
     }
@@ -260,7 +257,7 @@ public class ImageManager extends McuManager {
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-		/* TODO : create the correct response class */
+    /* TODO : create the correct response class */
     public McuMgrResponse coreErase() throws McuMgrException {
         return send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class);
     }
@@ -271,7 +268,7 @@ public class ImageManager extends McuManager {
     //******************************************************************
 
     // Image Upload Constants
-    private final static int DEFAULT_MTU = 256;
+    private final static int DEFAULT_MTU = 512;
 
     // Upload states
     public final static int STATE_NONE = 0;
@@ -290,15 +287,20 @@ public class ImageManager extends McuManager {
      *
      * @param mtu the MTU to use for image upload
      */
-    public synchronized void setUploadMtu(int mtu) {
+    public synchronized boolean setUploadMtu(int mtu) {
+        Log.v(TAG, "Setting image upload MTU");
         if (mUploadState == STATE_UPLOADING) {
             Log.e(TAG, "Upload must not be in progress!");
+            return false;
         } else if (mtu < 23) {
             Log.e(TAG, "MTU is too small!");
+            return false;
         } else if (mtu > 1024) {
             Log.e(TAG, "MTU is too large!");
+            return false;
         } else {
             mMtu = mtu;
+            return true;
         }
     }
 
@@ -339,6 +341,13 @@ public class ImageManager extends McuManager {
         } else {
             Log.d(TAG, "Upload is not paused.");
         }
+    }
+
+    public synchronized void restartUpload() {
+        byte[] tempData = mImageUploadData;
+        ImageUploadCallback tempCallback = mUploadCallback;
+        resetUpload();
+        upload(tempData, tempCallback);
     }
 
     private synchronized void resetUpload() {
@@ -397,6 +406,15 @@ public class ImageManager extends McuManager {
 
         @Override
         public void onError(McuMgrException error) {
+            if (error instanceof InsufficientMtuException) {
+                InsufficientMtuException mtuErr = (InsufficientMtuException) error;
+                pauseUpload();
+                boolean isMtuSet = setUploadMtu(mtuErr.getMtu());
+                if (isMtuSet) {
+                    restartUpload();
+                    return;
+                }
+            }
             cancelUpload(error);
         }
     };
@@ -411,7 +429,7 @@ public class ImageManager extends McuManager {
             overheadTestMap.put("len", data.length);
         }
         try {
-            if (getScheme() == McuMgrScheme.COAP_BLE || getScheme() == McuMgrScheme.COAP_UDP) {
+            if (getScheme().isCoap()) {
                 overheadTestMap.put("_h", nmgrHeader);
                 byte[] cborData = CBOR.toBytes(overheadTestMap);
                 // 20 byte estimate of CoAP Header; 5 bytes for good measure

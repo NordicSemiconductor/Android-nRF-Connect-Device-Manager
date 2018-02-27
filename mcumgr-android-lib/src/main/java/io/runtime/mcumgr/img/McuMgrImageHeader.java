@@ -8,6 +8,7 @@ package io.runtime.mcumgr.img;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
+import io.runtime.mcumgr.util.Endian;
 
 public class McuMgrImageHeader {
     private static final String TAG = McuMgrImageHeader.class.getSimpleName();
@@ -37,17 +38,17 @@ public class McuMgrImageHeader {
         }
 
         McuMgrImageHeader header = new McuMgrImageHeader();
-        header.mMagic = ByteUtil.unsignedByteArrayToInt(b, offset, 4);
+        header.mMagic = ByteUtil.unsignedByteArrayToInt(b, offset, 4, Endian.LITTLE);
 
         if (header.mMagic != IMG_HEADER_MAGIC && header.mMagic != IMG_HEADER_MAGIC_V1) {
             throw new McuMgrException("Wrong magic number: header=" + header.mMagic + ", magic=" +
                     IMG_HEADER_MAGIC + " or " + IMG_HEADER_MAGIC_V1);
         }
 
-        header.mLoadAddr = ByteUtil.unsignedByteArrayToInt(b, 4 + offset, 4);
-        header.mHdrSize = (short) ByteUtil.unsignedByteArrayToInt(b, 8 + offset, 2);
-        header.mImgSize = ByteUtil.unsignedByteArrayToInt(b, 12 + offset, 4);
-        header.mFlags = ByteUtil.unsignedByteArrayToInt(b, 16 + offset, 4);
+        header.mLoadAddr = ByteUtil.unsignedByteArrayToInt(b, 4 + offset, 4, Endian.LITTLE);
+        header.mHdrSize = (short) ByteUtil.unsignedByteArrayToInt(b, 8 + offset, 2, Endian.LITTLE);
+        header.mImgSize = ByteUtil.unsignedByteArrayToInt(b, 12 + offset, 4, Endian.LITTLE);
+        header.mFlags = ByteUtil.unsignedByteArrayToInt(b, 16 + offset, 4, Endian.LITTLE);
         header.mVersion = McuMgrImageVersion.fromBytes(b, 20 + offset);
 
         return header;

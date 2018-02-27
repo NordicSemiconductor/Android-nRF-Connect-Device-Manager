@@ -14,21 +14,17 @@ import java.util.Date;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
-import io.runtime.mcumgr.McuMgrMtuCallback;
-import io.runtime.mcumgr.McuMgrMtuProvider;
-import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.mgrs.DefaultManager;
 import io.runtime.mcumgr.mgrs.ImageManager;
-import io.runtime.mcumgr.resp.McuMgrResponse;
-import io.runtime.mcumgr.resp.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.msg.img.McuMgrImageStateResponse;
 
 // TODO Add retries for each step
 
-public class FirmwareUpgradeManager
-        implements ImageManager.ImageUploadCallback, McuMgrOpenCallback, McuMgrMtuCallback {
+public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback {
 
     private final static String TAG = "FirmwareUpgradeManager";
     private final McuMgrTransport mTransporter;
@@ -46,7 +42,6 @@ public class FirmwareUpgradeManager
      * If set, we must call all the callbacks in the main thread
      */
     private Activity mActivity;
-    private McuMgrOpenCallback mInitCb;
 
     public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
                                   FirmwareUpgradeCallback callback) throws McuMgrException {
@@ -68,36 +63,12 @@ public class FirmwareUpgradeManager
         this.mActivity = activity;
     }
 
-    public synchronized void init(McuMgrOpenCallback cb) {
-        mInitCb = cb;
-        mTransporter.open(this);
-    }
-
-    @Override
-    public void onOpen() {
-        /* We have to check if the transporter is an {@link McuMgrMtuProvider}. If so, ask for the Mtu, as
-         * it is part of the transporter initialization */
-        if (mTransporter instanceof McuMgrMtuProvider) {
-            ((McuMgrMtuProvider) mTransporter).getMtu(this);
-        } else {
-            mInitCb.onOpen();
-        }
-    }
-
-    @Override
-    public void onOpenError() {
-        mInitCb.onOpenError();
-    }
-
-    @Override
-    public void onMtuFetched(int mtu) {
-        this.mImageManager.setUploadMtu(mtu);
-        mInitCb.onOpen();
-    }
-
-    @Override
-    public void onMtuError() {
-        mInitCb.onOpenError();
+    /**
+     * Set the MTU of the image upload
+     * @param mtu the mtu
+     */
+    public void setUploadMtu(int mtu) {
+        mImageManager.setUploadMtu(mtu);
     }
 
     public synchronized void start() {
@@ -241,6 +212,11 @@ public class FirmwareUpgradeManager
                 return;
             }
 
+            if (response.getRc() != McuMgrErrorCode.OK) {
+                Log.e(TAG, "Test failed due to Newt Manager error: " + response.getRc());
+                fail(new McuMgrErrorException(response.getRc()));
+                return;
+            }
             Log.v(TAG, "Test response: " + response.toString());
             if (response.images.length != 2) {
                 fail(new McuMgrException("Test response does not contain enough info"));
@@ -330,40 +306,12 @@ public class FirmwareUpgradeManager
             try {
                 //TODO need to figure out a better way for UDP
                 synchronized (this) {
-                    wait(20 * 1000);
+                    wait(21 * 1000);
                 }
                 while (true) {
-                    Log.d(TAG, "Checking if the transporter needs to be reinitialized");
-                    if (mTransporter.initAfterReset()) {
-                        mTransporter.close();
-                        mTransporter.open(new McuMgrOpenCallback() {
-                            @Override
-                            public void onOpen() {
-                                if (mTransporter instanceof McuMgrMtuProvider) {
-                                    ((McuMgrMtuProvider) mTransporter).getMtu(new McuMgrMtuCallback() {
-                                        @Override
-                                        public void onMtuFetched(int mtu) {
-                                            checkResetComplete();
-                                        }
 
-                                        @Override
-                                        public void onMtuError() {
+                    checkResetComplete();
 
-                                        }
-                                    });
-                                } else {
-                                    checkResetComplete();
-                                }
-                            }
-
-                            @Override
-                            public void onOpenError() {
-
-                            }
-                        });
-                    } else {
-                        checkResetComplete();
-                    }
                     if (attempts == 4) {
                         fail(new McuMgrException("Reset poller has reached attempt limit."));
                         return;

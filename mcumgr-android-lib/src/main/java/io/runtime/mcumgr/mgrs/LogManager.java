@@ -20,17 +20,13 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.log.McuMgrLevelListResponse;
-import io.runtime.mcumgr.resp.log.McuMgrLogListResponse;
-import io.runtime.mcumgr.resp.log.McuMgrLogResponse;
-import io.runtime.mcumgr.resp.log.McuMgrModuleListResponse;
-import io.runtime.mcumgr.resp.log.McuMgrShowResponse;
-import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.msg.log.McuMgrLevelListResponse;
+import io.runtime.mcumgr.msg.log.McuMgrLogListResponse;
+import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
+import io.runtime.mcumgr.msg.log.McuMgrModuleListResponse;
+import io.runtime.mcumgr.msg.log.McuMgrShowResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
-
-import static io.runtime.mcumgr.McuMgrConstants.GROUP_LOGS;
-import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
-import static io.runtime.mcumgr.McuMgrConstants.OP_WRITE;
 
 /**
  * Log command group manager.

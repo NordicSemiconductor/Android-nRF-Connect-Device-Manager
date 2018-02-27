@@ -26,7 +26,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.WindowManager;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -36,14 +35,16 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Locale;
 
-import io.runtime.mcumgr.McuMgrOpenCallback;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
 
+
 public class McumgrSampleActivity extends AppCompatActivity
-        implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback, McuMgrOpenCallback {
+        implements BluetoothAdapter.LeScanCallback, FirmwareUpgradeCallback {
+
+    private final static String TAG = "McumgrSampleActivity";
 
     private static final String DEFAULT_DEVICE_NAME = "";
 
@@ -254,28 +255,9 @@ public class McumgrSampleActivity extends AppCompatActivity
         }
         mBleTransport = new McuMgrBleTransport(this, mDevice);
         mManager = new FirmwareUpgradeManager(mBleTransport, data, this);
+        mManager.setUploadMtu(512);
         mManager.setCallbackOnUiThread(this);
-        mManager.init(this);
-    }
-
-    @Override
-    public void onOpen() {
         mManager.start();
-        /*DefaultManager dftManager = new DefaultManager(mBleTransport);
-		dftManager.echo("Hi!",
-				new McuMgrCallback() {
-					@Override
-					public void onResponse(McuMgrResponse response) {
-						String s = toHex(response.getPayload());
-						Log.d("a", s);
-						runOnUiThread(() -> mFail.setText(s));
-					}
-
-					@Override
-					public void onError(McuMgrException error) {
-						error.printStackTrace();
-					}
-				});*/
     }
 
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -290,15 +272,6 @@ public class McumgrSampleActivity extends AppCompatActivity
         return new String(hexChars);
     }
 
-    @Override
-    public void onOpenError() {
-        mResult.setText("FOTA open failed");
-        new AlertDialog.Builder(this)
-                .setTitle("FOTA error")
-                .setPositiveButton("OK", null)
-                .show();
-        mFab.show();
-    }
 
     @Override
     public boolean confirmUpgrade(FirmwareUpgradeManager firmwareUpgrade) {

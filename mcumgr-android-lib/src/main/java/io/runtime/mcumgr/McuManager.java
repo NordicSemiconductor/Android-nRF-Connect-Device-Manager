@@ -18,10 +18,8 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
-
-import static io.runtime.mcumgr.McuMgrConstants.HEADER_KEY;
 
 /**
  * TODO
@@ -29,6 +27,28 @@ import static io.runtime.mcumgr.McuMgrConstants.HEADER_KEY;
 public abstract class McuManager {
 
     private static final String TAG = McuManager.class.getSimpleName();
+
+    // CoAP Constants
+    public final static String COAP_URI     = "/omgr";
+    public final static String HEADER_KEY   = "_h";
+
+    // Newt Manager operation codes
+    public final static int OP_READ         = 0;
+    public final static int OP_READ_RSP     = 1;
+    public final static int OP_WRITE        = 2;
+    public final static int OP_WRITE_RSP    = 3;
+
+    // Newt Manager groups
+    public final static int GROUP_DEFAULT   = 0;
+    public final static int GROUP_IMAGE     = 1;
+    public final static int GROUP_STATS     = 2;
+    public final static int GROUP_CONFIG    = 3;
+    public final static int GROUP_LOGS      = 4;
+    public final static int GROUP_CRASH     = 5;
+    public final static int GROUP_SPLIT     = 6;
+    public final static int GROUP_RUN       = 7;
+    public final static int GROUP_FS        = 8;
+    public final static int GROUP_PERUSER   = 64;
 
     /**
      * This manager's group ID
@@ -84,7 +104,7 @@ public abstract class McuManager {
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
      * sending it to the transporter.
      *
-     * @param op         the operation ({@link McuMgrConstants#OP_READ}, {@link McuMgrConstants#OP_WRITE})
+     * @param op         the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
      * @param commandId  the ID of the command
      * @param payloadMap the map of values to send along. This argument can be null if the header is
      *                   the only required field.
@@ -101,7 +121,7 @@ public abstract class McuManager {
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
      * sending it to the transporter.
      *
-     * @param op         the operation ({@link McuMgrConstants#OP_READ}, {@link McuMgrConstants#OP_WRITE})
+     * @param op         the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
      * @param commandId  the ID of the command
      * @param payloadMap the map of values to send along. This argument can be null if the header is
      *                   the only required field.
@@ -119,7 +139,7 @@ public abstract class McuManager {
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
      * sending it to the transporter.
      *
-     * @param op          the operation ({@link McuMgrConstants#OP_READ}, {@link McuMgrConstants#OP_WRITE})
+     * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
      * @param flags       additional flags
      * @param groupId     group ID of the command
      * @param sequenceNum sequence number
@@ -143,8 +163,8 @@ public abstract class McuManager {
      * Additionally builds the Newt Manager header and formats the packet based on scheme before
      * sending it to the transporter.
      *
-     * @param op          The operation ({@link McuMgrConstants#OP_READ},
-     *                      {@link McuMgrConstants#OP_WRITE})
+     * @param op          The operation ({@link McuManager#OP_READ},
+     *                      {@link McuManager#OP_WRITE})
      * @param flags       Additional flags
      * @param groupId     Group ID of the command
      * @param sequenceNum Sequence number
@@ -186,8 +206,8 @@ public abstract class McuManager {
     /**
      * Build a Mcu Manager packet based on the transport scheme.
      *
-     * @param op          The operation ({@link McuMgrConstants#OP_READ},
-     *                    {@link McuMgrConstants#OP_WRITE})
+     * @param op          The operation ({@link McuManager#OP_READ},
+     *                    {@link McuManager#OP_WRITE})
      * @param flags       Additional flags
      * @param groupId     Group ID of the command
      * @param sequenceNum Sequence number

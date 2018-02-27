@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
+import io.runtime.mcumgr.util.Endian;
 
 public class McuMgrImageTlvTrailerEntry {
 
@@ -35,7 +36,7 @@ public class McuMgrImageTlvTrailerEntry {
         byte t = b[offset++];
         offset++; // Account for byte padding
         // Get length
-        short l = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
+        short l = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2, Endian.LITTLE);
         offset += 2; // Move past length
         // Get value
         byte[] v = Arrays.copyOfRange(b, offset, offset + l);

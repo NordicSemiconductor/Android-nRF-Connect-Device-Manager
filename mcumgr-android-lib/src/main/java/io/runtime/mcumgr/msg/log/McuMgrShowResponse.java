@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp.log;
+package io.runtime.mcumgr.msg.log;
 
-import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
 
 public class McuMgrShowResponse extends McuMgrResponse {
     public int next_index;

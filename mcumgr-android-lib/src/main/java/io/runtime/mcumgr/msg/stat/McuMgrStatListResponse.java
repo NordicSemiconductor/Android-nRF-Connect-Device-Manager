@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp.stat;
+package io.runtime.mcumgr.msg.stat;
 
-import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
 
 public class McuMgrStatListResponse extends McuMgrResponse {
     private String[] stat_list;

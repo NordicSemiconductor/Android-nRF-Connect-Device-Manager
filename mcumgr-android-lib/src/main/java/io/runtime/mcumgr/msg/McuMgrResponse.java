@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp;
+package io.runtime.mcumgr.msg;
 
 import android.util.Log;
 
@@ -34,24 +34,29 @@ public class McuMgrResponse {
      * Scheme of the transport which produced this response.
      */
     private McuMgrScheme mScheme;
+
     /**
      * The bytes of the response packet. This includes the McuMgrHeader for standard schemes and
      * includes the CoAP header for CoAP schemes.
      */
     private byte[] mBytes;
+
     /**
      * The McuMgrHeader for this response
      */
     private McuMgrHeader mHeader;
+
     /**
      * The return code (enum) for this response. For the raw return code use the "rc" property.
      */
     private McuMgrErrorCode mRc;
+
     /**
      * McuMgr payload for this response. This does not include the McuMgr header for standard
      * schemes and does not include the CoAP header for CoAP schemes.
      */
     private byte[] mPayload;
+
     /**
      * The CoAP Code used for CoAP schemes, formatted as ((class * 100) + detail).
      */
@@ -207,6 +212,28 @@ public class McuMgrResponse {
             response.setCoapCode(CoapUtil.getCode(bytes));
         }
         return response;
+    }
+
+    public static boolean requiresDefragmentation(McuMgrScheme scheme, byte[] bytes) throws IOException {
+        int expectedLength = getExpectedLength(scheme, bytes);
+        if (scheme.isCoap()) {
+            throw new RuntimeException("Method not implemented for coap");
+        } else {
+            return (expectedLength > (bytes.length - McuMgrHeader.NMGR_HEADER_LEN));
+        }
+    }
+
+    public static int getExpectedLength(McuMgrScheme scheme, byte[] bytes) throws IOException {
+        if (scheme.isCoap()) {
+            throw new RuntimeException("Method not implemented for coap");
+        } else {
+            byte[] headerBytes = Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN);
+            McuMgrHeader header = McuMgrHeader.fromBytes(headerBytes);
+            if (header == null) {
+                throw new IOException("Invalid McuMgrHeader");
+            }
+            return header.getLen() + McuMgrHeader.NMGR_HEADER_LEN;
+        }
     }
 
     /**

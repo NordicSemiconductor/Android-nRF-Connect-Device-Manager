@@ -8,6 +8,7 @@ package io.runtime.mcumgr.img.tlv;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
+import io.runtime.mcumgr.util.Endian;
 
 public class McuMgrImageTlvInfo {
     private short mMagic;
@@ -27,8 +28,8 @@ public class McuMgrImageTlvInfo {
                     "length= " + b.length + ", offset= " + offset + ", min size= " + getSize());
 
         McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
-        info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2);
-        info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2);
+        info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2, Endian.LITTLE);
+        info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2, Endian.LITTLE);
 
         if (info.mMagic != McuMgrImageTlv.IMG_TLV_INFO_MAGIC) {
             throw new McuMgrException("Wrong magic number, magic= " + info.mMagic + " instead of " +

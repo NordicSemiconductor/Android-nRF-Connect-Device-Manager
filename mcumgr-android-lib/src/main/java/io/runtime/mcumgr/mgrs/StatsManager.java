@@ -12,11 +12,8 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.stat.McuMgrStatListResponse;
-import io.runtime.mcumgr.resp.stat.McuMgrStatResponse;
-
-import static io.runtime.mcumgr.McuMgrConstants.GROUP_STATS;
-import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
+import io.runtime.mcumgr.msg.stat.McuMgrStatListResponse;
+import io.runtime.mcumgr.msg.stat.McuMgrStatResponse;
 
 /**
  * Stats command group manager.

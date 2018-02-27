@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp.stat;
+package io.runtime.mcumgr.msg.stat;
 
 import java.util.Map;
 
-import io.runtime.mcumgr.resp.McuMgrResponse;
+import io.runtime.mcumgr.msg.McuMgrResponse;
 
 public class McuMgrStatResponse extends McuMgrResponse {
     public String name;

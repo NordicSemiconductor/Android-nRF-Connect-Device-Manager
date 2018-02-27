@@ -40,4 +40,5 @@ dependencies {
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.3'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.3'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.3'
+    implementation 'no.nordicsemi.android:log:2.1.1'
 }

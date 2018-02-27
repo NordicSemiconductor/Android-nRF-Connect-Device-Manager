@@ -13,12 +13,8 @@ import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.resp.McuMgrResponse;
-import io.runtime.mcumgr.resp.config.McuMgrConfigReadResponse;
-
-import static io.runtime.mcumgr.McuMgrConstants.GROUP_CONFIG;
-import static io.runtime.mcumgr.McuMgrConstants.OP_READ;
-import static io.runtime.mcumgr.McuMgrConstants.OP_WRITE;
+import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.msg.config.McuMgrConfigReadResponse;
 
 /**
  * Config command group manager.

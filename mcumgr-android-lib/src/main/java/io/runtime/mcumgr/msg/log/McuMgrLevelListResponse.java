@@ -4,9 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.resp.log;
+package io.runtime.mcumgr.msg.log;
 
-import io.runtime.mcumgr.resp.McuMgrResponse;
+
+import io.runtime.mcumgr.msg.McuMgrResponse;
 
 public class McuMgrLevelListResponse extends McuMgrResponse {
     public String[] level_map;

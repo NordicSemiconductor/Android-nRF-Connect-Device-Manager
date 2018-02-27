@@ -8,8 +8,13 @@
 package io.runtime.mcumgr;
 
 import io.runtime.mcumgr.util.ByteUtil;
+import io.runtime.mcumgr.util.Endian;
 
-
+/**
+ * The Mcu Manager header is an 8-byte array which identifies the specific command and provides
+ * fields for optional values such as flags and sequence numbers. This class is used to parse
+ * and build headers.
+ */
 public class McuMgrHeader {
 
     public final static int NMGR_HEADER_LEN = 8;
@@ -24,6 +29,7 @@ public class McuMgrHeader {
     public McuMgrHeader(int op, int flags, int len, int groupId, int sequenceNum, int commandId) {
         mOp = op;
         mFlags = flags;
+        mLen = len;
         mGroupId = groupId;
         mSequenceNum = sequenceNum;
         mCommandId = commandId;
@@ -85,12 +91,12 @@ public class McuMgrHeader {
         if (header.length != NMGR_HEADER_LEN) {
             return null;
         }
-        int op = ByteUtil.unsignedByteArrayToInt(header, 0, 1);
-        int flags = ByteUtil.unsignedByteArrayToInt(header, 1, 1);
-        int len = ByteUtil.unsignedByteArrayToInt(header, 2, 2);
-        int groupId = ByteUtil.unsignedByteArrayToInt(header, 4, 2);
-        int sequenceNum = ByteUtil.unsignedByteArrayToInt(header, 6, 1);
-        int commandId = ByteUtil.unsignedByteArrayToInt(header, 7, 1);
+        int op = ByteUtil.unsignedByteArrayToInt(header, 0, 1, Endian.BIG);
+        int flags = ByteUtil.unsignedByteArrayToInt(header, 1, 1, Endian.BIG);
+        int len = ByteUtil.unsignedByteArrayToInt(header, 2, 2, Endian.BIG);
+        int groupId = ByteUtil.unsignedByteArrayToInt(header, 4, 2, Endian.BIG);
+        int sequenceNum = ByteUtil.unsignedByteArrayToInt(header, 6, 1, Endian.BIG);
+        int commandId = ByteUtil.unsignedByteArrayToInt(header, 7, 1, Endian.BIG);
         return new McuMgrHeader(op, flags, len, groupId, sequenceNum, commandId);
     }
 

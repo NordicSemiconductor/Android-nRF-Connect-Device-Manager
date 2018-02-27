@@ -92,11 +92,11 @@ public class CoapUtil {
         } else if (delta == 13) {
             byte[] b = new byte[8];
             reader.read(b, 0, b.length);
-            return ByteUtil.unsignedByteArrayToInt(b, 0, b.length) + 13;
+            return ByteUtil.unsignedByteArrayToInt(b, 0, b.length, Endian.BIG) + 13;
         } else if (delta == 14) {
             byte[] b = new byte[16];
             reader.read(b, 0, b.length);
-            return ByteUtil.unsignedByteArrayToInt(b, 0, b.length) + 269;
+            return ByteUtil.unsignedByteArrayToInt(b, 0, b.length, Endian.BIG) + 269;
         }
         return delta;
     }
@@ -129,7 +129,7 @@ public class CoapUtil {
         }
         int length = ByteUtil.unsignedByteToInt(data[0]) >>> 4;
         int extendedLengthLength = getExtendedLengthLength(data);
-        int extendedLength = ByteUtil.unsignedByteArrayToInt(data, 1, extendedLengthLength);
+        int extendedLength = ByteUtil.unsignedByteArrayToInt(data, 1, extendedLengthLength, Endian.BIG);
         if (length == 13) {
             extendedLength += 13;
         } else if (length == 14) {
