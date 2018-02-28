@@ -15,6 +15,6 @@ public class McuMgrShowResponse extends McuMgrResponse {
     public static class LogResult {
         public String name;
         public int type;
-        public McuMgrLogResponse.LogEntry[] entries;
+        public McuMgrLogResponse.Entry[] entries;
     }
 }

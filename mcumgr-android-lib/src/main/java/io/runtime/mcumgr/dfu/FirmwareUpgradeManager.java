@@ -43,6 +43,14 @@ public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback 
      */
     private Activity mActivity;
 
+    /**
+     * Construct a firmware upgrade manager.
+     *
+     * @param transport the transporter to use
+     * @param imageData the data of the image to send
+     * @param callback the callback
+     * @throws McuMgrException Thrown if the image data is invalid
+     */
     public FirmwareUpgradeManager(McuMgrTransport transport, byte[] imageData,
                                   FirmwareUpgradeCallback callback) throws McuMgrException {
         mImageData = imageData;

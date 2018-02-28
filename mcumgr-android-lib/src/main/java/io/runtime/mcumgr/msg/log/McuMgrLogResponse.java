@@ -12,9 +12,9 @@ import io.runtime.mcumgr.msg.McuMgrResponse;
 public class McuMgrLogResponse extends McuMgrResponse {
     public String name;
     public int type;
-    public LogEntry[] entries;
+    public Entry[] entries;
 
-    public static class LogEntry {
+    public static class Entry {
         public String msg;
         public long ts;
         public int level;

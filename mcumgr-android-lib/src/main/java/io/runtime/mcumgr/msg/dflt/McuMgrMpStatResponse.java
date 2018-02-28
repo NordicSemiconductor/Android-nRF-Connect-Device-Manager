@@ -12,9 +12,9 @@ import java.util.Map;
 import io.runtime.mcumgr.msg.McuMgrResponse;
 
 public class McuMgrMpStatResponse extends McuMgrResponse {
-    public Map<String, Mpstat> mpools;
+    public Map<String, MpStat> mpools;
 
-    public static class Mpstat {
+    public static class MpStat {
         public int blksiz;
         public int nblks;
         public int nfree;

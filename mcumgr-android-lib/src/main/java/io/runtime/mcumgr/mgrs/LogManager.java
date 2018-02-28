@@ -48,7 +48,7 @@ public class LogManager extends McuManager {
      */
     public static class LogState {
         public int nextIndex = 0;
-        public ArrayList<McuMgrLogResponse.LogEntry> entries = new ArrayList<>();
+        public ArrayList<McuMgrLogResponse.Entry> entries = new ArrayList<>();
 
         public void reset() {
             nextIndex = 0;

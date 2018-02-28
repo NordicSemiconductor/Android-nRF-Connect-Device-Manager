@@ -180,7 +180,7 @@ public class McuMgrResponse {
     }
 
     /**
-     * Build an standard (NON-CoAP) McuMgrResponse.
+     * Build a McuMgrResponse.
      * @param scheme the transport scheme used
      * @param bytes the response packet's bytes
      * @param type the type of response to build
@@ -195,7 +195,7 @@ public class McuMgrResponse {
         // Parse the McuMgrHeader and payload based on scheme
         if (scheme.isCoap()) {
             payload = CoapUtil.getPayload(bytes);
-            CoapHeaderResponse response = CBOR.toObject(bytes, CoapHeaderResponse.class);
+            CoapHeaderResponse response = CBOR.toObject(payload, CoapHeaderResponse.class);
             header = McuMgrHeader.fromBytes(response._h);
         } else {
             payload = Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
@@ -239,6 +239,7 @@ public class McuMgrResponse {
     /**
      * POJO for obtaining the McuMgrHeader from a CoAP response payload
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class CoapHeaderResponse {
         public byte[] _h;
     }
