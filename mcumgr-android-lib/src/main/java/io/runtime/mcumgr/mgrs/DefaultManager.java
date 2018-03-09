@@ -168,7 +168,7 @@ public class DefaultManager extends McuManager {
     /* TODO: check the response type */
     public void writeDatetime(Date date, TimeZone timeZone, McuMgrCallback<McuMgrReadDateTimeResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("datetime", formatDate(date, timeZone));
+        payloadMap.put("datetime", dateToString(date, timeZone));
         send(OP_WRITE, ID_DATETIME_STR, payloadMap, McuMgrReadDateTimeResponse.class, callback);
     }
 
@@ -184,7 +184,7 @@ public class DefaultManager extends McuManager {
     /* TODO: check the response type */
     public McuMgrReadDateTimeResponse writeDatetime(Date date, TimeZone timeZone) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("datetime", formatDate(date, timeZone));
+        payloadMap.put("datetime", dateToString(date, timeZone));
         return send(OP_WRITE, ID_DATETIME_STR, payloadMap, McuMgrReadDateTimeResponse.class);
     }
 

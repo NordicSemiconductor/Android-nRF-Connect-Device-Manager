@@ -10,7 +10,9 @@ package io.runtime.mcumgr;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -27,6 +29,9 @@ import io.runtime.mcumgr.util.CBOR;
 public abstract class McuManager {
 
     private static final String TAG = McuManager.class.getSimpleName();
+
+    // Date format
+    public final static String MCUMGR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ";
 
     // CoAP Constants
     public final static String COAP_URI     = "/omgr";
@@ -267,16 +272,35 @@ public abstract class McuManager {
      * @param timeZone The timezone of the given date. If null, the timezone on the device will be used.
      * @return A formatted string of the provided date and timezone
      */
-    public static String formatDate(Date date, TimeZone timeZone) {
+    public static String dateToString(Date date, TimeZone timeZone) {
         if (date == null) {
             date = new Date();
         }
         if (timeZone == null) {
             timeZone = TimeZone.getDefault();
         }
-        SimpleDateFormat nmgrFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ",
+        SimpleDateFormat mcumgrFormat = new SimpleDateFormat(MCUMGR_DATE_FORMAT,
                 new Locale("US"));
-        nmgrFormat.setTimeZone(timeZone);
-        return nmgrFormat.format(date);
+        mcumgrFormat.setTimeZone(timeZone);
+        return mcumgrFormat.format(date);
+    }
+
+    /**
+     * Parse a date string returned by a McuMgr response
+     * @param dateString the string to parse
+     * @return the Date of the string, null on error
+     */
+    public static Date stringToDate(String dateString) {
+        if (dateString == null) {
+            return null;
+        }
+        SimpleDateFormat mcumgrFormat = new SimpleDateFormat(MCUMGR_DATE_FORMAT,
+                new Locale("US"));
+        try {
+            return mcumgrFormat.parse(dateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

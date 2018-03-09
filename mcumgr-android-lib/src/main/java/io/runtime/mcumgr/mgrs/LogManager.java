@@ -9,7 +9,6 @@ package io.runtime.mcumgr.mgrs;
 
 import android.util.Log;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,7 +25,6 @@ import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
 import io.runtime.mcumgr.msg.log.McuMgrModuleListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrShowResponse;
 import io.runtime.mcumgr.msg.McuMgrResponse;
-import io.runtime.mcumgr.util.CBOR;
 
 /**
  * Log command group manager.
@@ -43,20 +41,7 @@ public class LogManager extends McuManager {
     private final static int ID_LEVEL_LIST = 4;
     private final static int ID_LOGS_LIST = 5;
 
-    /**
-     * Used to keep track of the state of a log.
-     */
-    public static class LogState {
-        public int nextIndex = 0;
-        public ArrayList<McuMgrLogResponse.Entry> entries = new ArrayList<>();
-
-        public void reset() {
-            nextIndex = 0;
-            entries = new ArrayList<>();
-        }
-    }
-
-    private HashMap<String, LogState> mLogStates = new HashMap<>();
+    private HashMap<String, State> mLogStates = new HashMap<>();
 
     /**
      * Construct an image manager.
@@ -94,7 +79,7 @@ public class LogManager extends McuManager {
         if (minIndex != null) {
             payloadMap.put("index", minIndex);
             if (minTimestamp != null) {
-                payloadMap.put("ts", formatDate(minTimestamp, null));
+                payloadMap.put("ts", dateToString(minTimestamp, null));
             }
         }
         send(OP_READ, ID_READ, payloadMap, McuMgrShowResponse.class, callback);
@@ -128,7 +113,7 @@ public class LogManager extends McuManager {
         if (minIndex != null) {
             payloadMap.put("index", minIndex);
             if (minTimestamp != null) {
-                payloadMap.put("ts", formatDate(minTimestamp, null));
+                payloadMap.put("ts", dateToString(minTimestamp, null));
             }
         }
         return send(OP_READ, ID_READ, payloadMap, McuMgrShowResponse.class);
@@ -219,66 +204,35 @@ public class LogManager extends McuManager {
         return send(OP_READ, ID_LOGS_LIST, null, McuMgrLogListResponse.class);
     }
 
-    public Map<String, LogState> showAll() {
+    /**
+     * Get all log entries from all logs on the device.
+     * @return a mapping of log name to state
+     */
+    public synchronized Map<String, State> getAll() {
         // Clear any log states
         mLogStates.clear();
         try {
-            Log.d(TAG, "Getting available logs...");
             // Get available logs
             McuMgrLogListResponse logListResponse = logsList();
             if (logListResponse == null || !logListResponse.isSuccess()) {
                 Log.e(TAG, "Error occurred getting the list of logs.");
                 return null;
             }
-            Log.d(TAG, "Available logs: " + CBOR.toString(logListResponse));
+            Log.d(TAG, "Available logs: " + logListResponse.toString());
 
             // For each log, get all the available logs
             for (String logName : logListResponse.log_list) {
                 Log.d(TAG, "Getting logs for log " + logName);
-                // Put a new LogState mapping if necessary
-                LogState logState = mLogStates.get(logName);
-                if (logState == null) {
-                    logState = new LogState();
-                    mLogStates.put(logName, logState);
+                // Put a new State mapping if necessary
+                State state = mLogStates.get(logName);
+                if (state == null) {
+                    state = new State(logName);
+                    mLogStates.put(logName, state);
                 }
-                // Loop until we run out of entries or encounter a problem
-                while (true) {
-                    // Get the next set of entries for this log
-                    McuMgrShowResponse showResponse = showNext(logName);
-                    // Check for an error
-                    if (showResponse == null) {
-                        Log.e(TAG, "Show logs resulted in an error");
-                        break;
-                    }
-                    Log.d(TAG, "Logs: " + CBOR.toString(showResponse));
-                    // Check for an index mismatch
-                    if (showResponse.next_index < logState.nextIndex) {
-                        Log.w(TAG, "Next index mismatch state.nextIndex=" + logState.nextIndex +
-                                ", response.nextIndex=" + showResponse.next_index);
-                        Log.w(TAG, "Resetting log state.");
-                        logState.reset();
-                        continue;
-                    }
-                    // If the logs are null or empty, break to the next log
-                    if (showResponse.logs == null || showResponse.logs.length == 0) {
-                        Log.e(TAG, "No logs returned in the response.");
-                        break;
-                    }
-                    // Get the log result object
-                    McuMgrShowResponse.LogResult log = showResponse.logs[0];
-                    logState.nextIndex = showResponse.next_index;
-                    //If er dont have any more entries, break out of this log to the next.s
-                    if (log.entries == null || log.entries.length == 0) {
-                        Log.d(TAG, "No more entries left for this log.");
-                        break;
-                    }
-                    // Add entries to the list and set the next index
-                    logState.entries.addAll(Arrays.asList(log.entries));
-                }
+                state = getAllFromState(state);
+                mLogStates.put(state.getName(), state);
             }
             return mLogStates;
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (McuMgrException e) {
             e.getCause().printStackTrace();
             Log.e(TAG, "Transport error getting available logs: " + e.getCause().toString());
@@ -286,11 +240,60 @@ public class LogManager extends McuManager {
         return null;
     }
 
-    public McuMgrShowResponse showNext(String name) {
-        LogState logState = mLogStates.get(name);
-        Log.d(TAG, "Show logs: name=" + name + ", nextIndex=" + logState.nextIndex);
+    /**
+     * Get logs from a state. The logs will be collected from the state's next index and added to
+     * the list of entries.
+     * @param state The log state to collect logs from
+     * @return The log state with updated next index and entry list
+     */
+    public State getAllFromState(State state) {
+        // Loop until we run out of entries or encounter a problem
+        while (true) {
+            // Get the next set of entries for this log
+            McuMgrShowResponse showResponse = showNext(state);
+            // Check for an error
+            if (showResponse == null) {
+                Log.e(TAG, "Show logs resulted in an error");
+                break;
+            }
+//            // Check for an index mismatch
+//            if (showResponse.next_index < state.getNextIndex()) {
+//                Log.w(TAG, "Next index mismatch state.nextIndex=" + state.getNextIndex() +
+//                        ", response.nextIndex=" + showResponse.next_index);
+//                Log.w(TAG, "Resetting log state.");
+//                state.reset();
+//                continue;
+//            }
+            // Check that the logs collected are not null or empty
+            if (showResponse.logs == null || showResponse.logs.length == 0) {
+                Log.e(TAG, "No logs returned in the response.");
+                break;
+            }
+            // Get the log result object
+            McuMgrShowResponse.LogResult log = showResponse.logs[0];
+            // If we don't have any more entries, break out of this log to the next.s
+            if (log.entries == null || log.entries.length == 0) {
+                Log.d(TAG, "No more entries left for this log.");
+                break;
+            }
+            state.setNextIndex(showResponse.next_index);
+            // Add entries to the list and set the next index
+            state.getEntries().addAll(Arrays.asList(log.entries));
+        }
+        return state;
+    }
+
+    /**
+     * Get the next set of logs from a log state and return the response. This method does not
+     * update the log state and only collects as many logs as can fit into a single response.
+     * @param state The state to get logs from
+     * @return the show response
+     */
+    public McuMgrShowResponse showNext(State state) {
+        Log.d(TAG, "Show logs: name=" + state.getName() +
+                ", nextIndex=" + state.getNextIndex());
         try {
-            McuMgrShowResponse response = show(name, logState.nextIndex, null);
+            McuMgrShowResponse response = show(state.getName(), state.getNextIndex(), null);
             if (response == null || !response.isSuccess()) {
                 Log.e(TAG, "Error occurred getting logs");
                 return null;
@@ -301,5 +304,49 @@ public class LogManager extends McuManager {
         }
 
         return null;
+    }
+
+    //******************************************************************
+    // State
+    //******************************************************************
+
+    /**
+     * Used to track of the state of a log and hold the collected entries.
+     */
+    public static class State {
+        private String mName;
+
+        private int mNextIndex = 0;
+        public ArrayList<McuMgrLogResponse.Entry> mEntries = new ArrayList<>();
+
+        public State(String name) {
+            this(name, 0);
+        }
+
+        public State(String name, int nextIndex) {
+            mName = name;
+            mNextIndex = nextIndex;
+        }
+
+        public void reset() {
+            mNextIndex = 0;
+            mEntries = new ArrayList<>();
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public int getNextIndex() {
+            return mNextIndex;
+        }
+
+        public void setNextIndex(int nextIndex) {
+            mNextIndex = nextIndex;
+        }
+
+        public ArrayList<McuMgrLogResponse.Entry> getEntries() {
+            return mEntries;
+        }
     }
 }
