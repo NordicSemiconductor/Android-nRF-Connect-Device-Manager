@@ -6,13 +6,17 @@
 
 package io.runtime.mcumgr.msg.log;
 
-
 import io.runtime.mcumgr.msg.McuMgrResponse;
 
 public class McuMgrLogResponse extends McuMgrResponse {
-    public String name;
-    public int type;
-    public Entry[] entries;
+    public int next_index;
+    public LogResult[] logs;
+
+    public static class LogResult {
+        public String name;
+        public int type;
+        public Entry[] entries;
+    }
 
     public static class Entry {
         public String msg;

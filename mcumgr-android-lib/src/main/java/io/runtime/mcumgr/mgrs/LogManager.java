@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.runtime.mcumgr.McuManager;
@@ -23,7 +24,6 @@ import io.runtime.mcumgr.msg.log.McuMgrLevelListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrLogListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
 import io.runtime.mcumgr.msg.log.McuMgrModuleListResponse;
-import io.runtime.mcumgr.msg.log.McuMgrShowResponse;
 import io.runtime.mcumgr.msg.McuMgrResponse;
 
 /**
@@ -40,8 +40,6 @@ public class LogManager extends McuManager {
     private final static int ID_MODULE_LIST = 3;
     private final static int ID_LEVEL_LIST = 4;
     private final static int ID_LOGS_LIST = 5;
-
-    private HashMap<String, State> mLogStates = new HashMap<>();
 
     /**
      * Construct an image manager.
@@ -70,7 +68,7 @@ public class LogManager extends McuManager {
      *                     it and minIndex are not null.
      * @param callback     The response callback
      */
-    public void show(String logName, Integer minIndex, Date minTimestamp, McuMgrCallback<McuMgrShowResponse>
+    public void show(String logName, Integer minIndex, Date minTimestamp, McuMgrCallback<McuMgrLogResponse>
             callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         if (logName != null) {
@@ -82,7 +80,7 @@ public class LogManager extends McuManager {
                 payloadMap.put("ts", dateToString(minTimestamp, null));
             }
         }
-        send(OP_READ, ID_READ, payloadMap, McuMgrShowResponse.class, callback);
+        send(OP_READ, ID_READ, payloadMap, McuMgrLogResponse.class, callback);
     }
 
     /**
@@ -104,7 +102,7 @@ public class LogManager extends McuManager {
      * @return The response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrShowResponse show(String logName, Integer minIndex, Date minTimestamp)
+    public McuMgrLogResponse show(String logName, Integer minIndex, Date minTimestamp)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         if (logName != null) {
@@ -116,7 +114,7 @@ public class LogManager extends McuManager {
                 payloadMap.put("ts", dateToString(minTimestamp, null));
             }
         }
-        return send(OP_READ, ID_READ, payloadMap, McuMgrShowResponse.class);
+        return send(OP_READ, ID_READ, payloadMap, McuMgrLogResponse.class);
     }
 
 
@@ -209,8 +207,7 @@ public class LogManager extends McuManager {
      * @return a mapping of log name to state
      */
     public synchronized Map<String, State> getAll() {
-        // Clear any log states
-        mLogStates.clear();
+        HashMap<String, State> logStates = new HashMap<>();
         try {
             // Get available logs
             McuMgrLogListResponse logListResponse = logsList();
@@ -224,15 +221,15 @@ public class LogManager extends McuManager {
             for (String logName : logListResponse.log_list) {
                 Log.d(TAG, "Getting logs for log " + logName);
                 // Put a new State mapping if necessary
-                State state = mLogStates.get(logName);
+                State state = logStates.get(logName);
                 if (state == null) {
                     state = new State(logName);
-                    mLogStates.put(logName, state);
+                    logStates.put(logName, state);
                 }
                 state = getAllFromState(state);
-                mLogStates.put(state.getName(), state);
+                logStates.put(state.getName(), state);
             }
-            return mLogStates;
+            return logStates;
         } catch (McuMgrException e) {
             e.getCause().printStackTrace();
             Log.e(TAG, "Transport error getting available logs: " + e.getCause().toString());
@@ -250,14 +247,14 @@ public class LogManager extends McuManager {
         // Loop until we run out of entries or encounter a problem
         while (true) {
             // Get the next set of entries for this log
-            McuMgrShowResponse showResponse = showNext(state);
+            McuMgrLogResponse showResponse = showNext(state);
             // Check for an error
             if (showResponse == null) {
                 Log.e(TAG, "Show logs resulted in an error");
                 break;
             }
 //            // Check for an index mismatch
-//            if (showResponse.next_index < state.getNextIndex()) {
+//            if (showResponse.next_index < state.getNextIndex())
 //                Log.w(TAG, "Next index mismatch state.nextIndex=" + state.getNextIndex() +
 //                        ", response.nextIndex=" + showResponse.next_index);
 //                Log.w(TAG, "Resetting log state.");
@@ -270,8 +267,8 @@ public class LogManager extends McuManager {
                 break;
             }
             // Get the log result object
-            McuMgrShowResponse.LogResult log = showResponse.logs[0];
-            // If we don't have any more entries, break out of this log to the next.s
+            McuMgrLogResponse.LogResult log = showResponse.logs[0];
+            // If we don't have any more entries, break out of this log to the next.
             if (log.entries == null || log.entries.length == 0) {
                 Log.d(TAG, "No more entries left for this log.");
                 break;
@@ -289,11 +286,11 @@ public class LogManager extends McuManager {
      * @param state The state to get logs from
      * @return the show response
      */
-    public McuMgrShowResponse showNext(State state) {
+    public McuMgrLogResponse showNext(State state) {
         Log.d(TAG, "Show logs: name=" + state.getName() +
                 ", nextIndex=" + state.getNextIndex());
         try {
-            McuMgrShowResponse response = show(state.getName(), state.getNextIndex(), null);
+            McuMgrLogResponse response = show(state.getName(), state.getNextIndex(), null);
             if (response == null || !response.isSuccess()) {
                 Log.e(TAG, "Error occurred getting logs");
                 return null;
@@ -345,7 +342,7 @@ public class LogManager extends McuManager {
             mNextIndex = nextIndex;
         }
 
-        public ArrayList<McuMgrLogResponse.Entry> getEntries() {
+        public List<McuMgrLogResponse.Entry> getEntries() {
             return mEntries;
         }
     }
