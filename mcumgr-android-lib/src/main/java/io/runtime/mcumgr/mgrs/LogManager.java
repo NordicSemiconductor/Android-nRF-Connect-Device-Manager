@@ -24,6 +24,7 @@ import io.runtime.mcumgr.msg.log.McuMgrLevelListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrLogListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
 import io.runtime.mcumgr.msg.log.McuMgrModuleListResponse;
+import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
 import io.runtime.mcumgr.msg.McuMgrResponse;
 
 /**
@@ -213,9 +214,14 @@ public class LogManager extends McuManager {
             McuMgrLogListResponse logListResponse = logsList();
             if (logListResponse == null || !logListResponse.isSuccess()) {
                 Log.e(TAG, "Error occurred getting the list of logs.");
-                return null;
+                return logStates;
             }
             Log.d(TAG, "Available logs: " + logListResponse.toString());
+
+            if (logListResponse.log_list == null) {
+                Log.w(TAG, "No logs available on this device");
+                return logStates;
+            }
 
             // For each log, get all the available logs
             for (String logName : logListResponse.log_list) {
@@ -234,7 +240,7 @@ public class LogManager extends McuManager {
             e.getCause().printStackTrace();
             Log.e(TAG, "Transport error getting available logs: " + e.getCause().toString());
         }
-        return null;
+        return logStates;
     }
 
     /**
@@ -244,6 +250,9 @@ public class LogManager extends McuManager {
      * @return The log state with updated next index and entry list
      */
     public State getAllFromState(State state) {
+        if (state == null) {
+            throw new NullPointerException("State must not be null!");
+        }
         // Loop until we run out of entries or encounter a problem
         while (true) {
             // Get the next set of entries for this log
