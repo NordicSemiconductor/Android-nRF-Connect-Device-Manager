@@ -88,7 +88,7 @@ public class McuMgrHeader {
     }
 
     public static McuMgrHeader fromBytes(byte[] header) {
-        if (header.length != NMGR_HEADER_LEN) {
+        if (header == null || header.length != NMGR_HEADER_LEN) {
             return null;
         }
         int op = ByteUtil.unsignedByteArrayToInt(header, 0, 1, Endian.BIG);

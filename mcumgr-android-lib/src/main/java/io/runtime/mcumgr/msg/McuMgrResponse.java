@@ -13,9 +13,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.IOException;
 import java.util.Arrays;
 
+import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrHeader;
 import io.runtime.mcumgr.McuMgrScheme;
+import io.runtime.mcumgr.exception.McuMgrCoapException;
+import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.CBOR;
 import io.runtime.mcumgr.util.CoapUtil;
 
@@ -64,6 +67,7 @@ public class McuMgrResponse {
 
     /**
      * Return the string representation of the response payload.
+     *
      * @return the string representation of the response payload.
      */
     @Override
@@ -134,6 +138,7 @@ public class McuMgrResponse {
 
     /**
      * Get the scheme used to initialize this response object.
+     *
      * @return the scheme
      */
     public McuMgrScheme getScheme() {
@@ -156,11 +161,12 @@ public class McuMgrResponse {
 
     /**
      * Initialize the fields for this response.
-     * @param scheme the scheme
-     * @param bytes packet bytes
-     * @param header McuMgrHeader
+     *
+     * @param scheme  the scheme
+     * @param bytes   packet bytes
+     * @param header  McuMgrHeader
      * @param payload McuMgr CBOR payload
-     * @param rc the return code
+     * @param rc      the return code
      */
     void initFields(McuMgrScheme scheme, byte[] bytes, McuMgrHeader header, byte[] payload,
                     McuMgrErrorCode rc) {
@@ -173,6 +179,7 @@ public class McuMgrResponse {
 
     /**
      * Set the return code for CoAP response schemes.
+     *
      * @param code
      */
     void setCoapCode(int code) {
@@ -181,36 +188,57 @@ public class McuMgrResponse {
 
     /**
      * Build a McuMgrResponse.
+     *
      * @param scheme the transport scheme used
-     * @param bytes the response packet's bytes
-     * @param type the type of response to build
-     * @param <T> The response type to build
+     * @param bytes  the response packet's bytes
+     * @param type   the type of response to build
+     * @param <T>    The response type to build
      * @return The response
-     * @throws IOException Error parsing response
+     * @throws IOException              Error parsing response
+     * @throws IllegalArgumentException if the scheme is coap
      */
     public static <T extends McuMgrResponse> T buildResponse(McuMgrScheme scheme, byte[] bytes,
                                                              Class<T> type) throws IOException {
-        McuMgrHeader header;
-        byte[] payload;
-        // Parse the McuMgrHeader and payload based on scheme
         if (scheme.isCoap()) {
-            payload = CoapUtil.getPayload(bytes);
-            CoapHeaderResponse response = CBOR.toObject(payload, CoapHeaderResponse.class);
-            header = McuMgrHeader.fromBytes(response._h);
-        } else {
-            payload = Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
-            header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN));
+            throw new IllegalArgumentException("Cannot use this method with a coap scheme");
         }
+
+        byte[] payload = Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
+        McuMgrHeader header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN));
 
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
         McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
         response.initFields(scheme, bytes, header, payload, rc);
 
-        // If we are using a CoAP scheme, parse the CoAP response code
-        if (scheme.isCoap()) {
-            response.setCoapCode(CoapUtil.getCode(bytes));
+        return response;
+    }
+
+    /**
+     * Build a McuMgrResponse.
+     *
+     * @param scheme the transport scheme used
+     * @param bytes  the response packet's bytes
+     * @param type   the type of response to build
+     * @param <T>    The response type to build
+     * @return The response
+     * @throws IOException Error parsing response
+     */
+    public static <T extends McuMgrResponse> T buildResponse(McuMgrScheme scheme, byte[] bytes,
+                                                             byte[] header, byte[] payload,
+                                                             int codeClass, int codeDetail,
+                                                             Class<T> type) throws IOException, McuMgrException {
+
+        // Initialize response and set fields
+        if (payload == null) {
+            throw new McuMgrCoapException(bytes, codeClass, codeDetail);
         }
+
+        T response = CBOR.toObject(payload, type);
+        McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
+        response.initFields(scheme, bytes, McuMgrHeader.fromBytes(header), payload, rc);
+        int code = (codeClass * 100) + codeDetail;
+        response.setCoapCode(code);
         return response;
     }
 
@@ -234,14 +262,6 @@ public class McuMgrResponse {
             }
             return header.getLen() + McuMgrHeader.NMGR_HEADER_LEN;
         }
-    }
-
-    /**
-     * POJO for obtaining the McuMgrHeader from a CoAP response payload
-     */
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class CoapHeaderResponse {
-        public byte[] _h;
     }
 }
 

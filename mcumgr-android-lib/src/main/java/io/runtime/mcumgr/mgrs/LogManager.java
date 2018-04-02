@@ -24,7 +24,6 @@ import io.runtime.mcumgr.msg.log.McuMgrLevelListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrLogListResponse;
 import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
 import io.runtime.mcumgr.msg.log.McuMgrModuleListResponse;
-import io.runtime.mcumgr.msg.log.McuMgrLogResponse;
 import io.runtime.mcumgr.msg.McuMgrResponse;
 
 /**
@@ -237,8 +236,8 @@ public class LogManager extends McuManager {
             }
             return logStates;
         } catch (McuMgrException e) {
-            e.getCause().printStackTrace();
-            Log.e(TAG, "Transport error getting available logs: " + e.getCause().toString());
+            e.printStackTrace();
+            Log.e(TAG, "Transport error getting available logs");
         }
         return logStates;
     }
