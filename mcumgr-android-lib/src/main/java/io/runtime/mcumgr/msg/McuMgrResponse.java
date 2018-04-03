@@ -13,14 +13,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.IOException;
 import java.util.Arrays;
 
-import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrHeader;
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.exception.McuMgrCoapException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.CBOR;
-import io.runtime.mcumgr.util.CoapUtil;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class McuMgrResponse {
