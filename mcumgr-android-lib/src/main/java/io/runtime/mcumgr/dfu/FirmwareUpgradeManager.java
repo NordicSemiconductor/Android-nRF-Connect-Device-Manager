@@ -92,7 +92,12 @@ public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback 
     public synchronized void cancel() {
         cancelPrivate();
         if (mActivity != null) {
-            mActivity.runOnUiThread(() -> mCallback.onCancel(mState));
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mCallback.onCancel(mState);
+                }
+            });
         } else {
             mCallback.onCancel(mState);
         }
@@ -106,9 +111,14 @@ public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback 
         }
     }
 
-    private synchronized void fail(McuMgrException error) {
+    private synchronized void fail(final McuMgrException error) {
         if (mActivity != null) {
-            mActivity.runOnUiThread(() -> mCallback.onFail(mState, error));
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mCallback.onFail(mState, error);
+                }
+            });
         } else {
             mCallback.onFail(mState, error);
         }
@@ -171,7 +181,7 @@ public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback 
             return;
         }
 
-        State prevState = mState;
+        final State prevState = mState;
         switch (mState) {
             case NONE:
                 return;
@@ -194,14 +204,24 @@ public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback 
         Log.d(TAG, "Moving from state " + prevState.name() + " to state " + mState.name());
 
         if (mActivity != null) {
-            mActivity.runOnUiThread(() -> mCallback.onStateChanged(prevState, mState));
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mCallback.onStateChanged(prevState, mState);
+                }
+            });
         } else {
             mCallback.onStateChanged(prevState, mState);
         }
 
         if (mState == State.SUCCESS) {
             if (mActivity != null) {
-                mActivity.runOnUiThread(() -> mCallback.onSuccess());
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mCallback.onSuccess();
+                    }
+                });
             } else {
                 mCallback.onSuccess();
             }
@@ -360,18 +380,28 @@ public class FirmwareUpgradeManager implements ImageManager.ImageUploadCallback 
     //******************************************************************
 
     @Override
-    public void onProgressChange(int bytesSent, int imageSize, Date ts) {
+    public void onProgressChange(final int bytesSent, final int imageSize, final Date ts) {
         if (mActivity != null) {
-            mActivity.runOnUiThread(() -> mCallback.onUploadProgressChanged(bytesSent, imageSize, ts));
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mCallback.onUploadProgressChanged(bytesSent, imageSize, ts);
+                }
+            });
         } else {
             mCallback.onUploadProgressChanged(bytesSent, imageSize, ts);
         }
     }
 
     @Override
-    public void onUploadFail(McuMgrException error) {
+    public void onUploadFail(final McuMgrException error) {
         if (mActivity != null) {
-            mActivity.runOnUiThread(() -> mCallback.onFail(mState, error));
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mCallback.onFail(mState, error);
+                }
+            });
         } else {
             mCallback.onFail(mState, error);
         }

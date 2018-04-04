@@ -1440,12 +1440,15 @@ public abstract class BleManager<E extends BleManagerCallbacks> implements ILogg
 				final int delay = bonded ? 1600 : 0; // around 1600 ms is required when connection interval is ~45ms.
 				if (delay > 0)
 					Logger.d(mLogSession, "wait(" + delay + ")");
-				mHandler.postDelayed(() -> {
-					// Some proximity tags (e.g. nRF PROXIMITY) initialize bonding automatically when connected.
-					if (gatt.getDevice().getBondState() != BluetoothDevice.BOND_BONDING) {
-						Logger.v(mLogSession, "Discovering Services...");
-						Logger.d(mLogSession, "gatt.discoverServices()");
-						gatt.discoverServices();
+				mHandler.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						// Some proximity tags (e.g. nRF PROXIMITY) initialize bonding automatically when connected.
+						if (gatt.getDevice().getBondState() != BluetoothDevice.BOND_BONDING) {
+							Logger.v(mLogSession, "Discovering Services...");
+							Logger.d(mLogSession, "gatt.discoverServices()");
+							gatt.discoverServices();
+						}
 					}
 				}, delay);
 			} else {
@@ -1816,9 +1819,12 @@ public abstract class BleManager<E extends BleManagerCallbacks> implements ILogg
 						// There is no callback for requestConnectionPriority(...) before Android Oreo.\
 						// Let's give it some time to finish as the request is an asynchronous operation.
 						if (result) {
-							mHandler.postDelayed(() -> {
-								mOperationInProgress = false;
-								nextRequest();
+							mHandler.postDelayed(new Runnable() {
+								@Override
+								public void run() {
+									mOperationInProgress = false;
+									nextRequest();
+								}
 							}, 100);
 						}
 					}
