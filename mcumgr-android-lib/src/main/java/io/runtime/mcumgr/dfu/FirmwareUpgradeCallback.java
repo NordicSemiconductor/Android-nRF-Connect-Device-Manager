@@ -15,12 +15,13 @@ import io.runtime.mcumgr.exception.McuMgrException;
 public interface FirmwareUpgradeCallback {
 
     /**
-     * Used to confirm a firmware upgrade before proceeding (the method can be blocked).
-     *
-     * @param firmwareUpgrade the manager used for the firmware upgrade
-     * @return true if the upgrade was confirmed, false otherwise
+     * Called when the {@link FirmwareUpgradeManager} has started.
+     * <p>
+     * This callback is used to pass the upgrade manager which can pause/resume/cancel an upgrade
+     * to a controller which may not have access to the original object.
+     * @param manager the manager
      */
-    boolean confirmUpgrade(FirmwareUpgradeManager firmwareUpgrade);
+    void onStart(FirmwareUpgradeManager manager);
 
     /**
      * Called when the firmware upgrade changes state (see {@link FirmwareUpgradeManager.State}).

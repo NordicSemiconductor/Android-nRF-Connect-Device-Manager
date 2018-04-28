@@ -17,7 +17,7 @@ import java.util.Queue;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
  * A McuMgrRequest is a helper class which holds the necessary info and methods to perform both

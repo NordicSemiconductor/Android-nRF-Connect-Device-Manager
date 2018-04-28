@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -20,7 +19,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
 
 /**

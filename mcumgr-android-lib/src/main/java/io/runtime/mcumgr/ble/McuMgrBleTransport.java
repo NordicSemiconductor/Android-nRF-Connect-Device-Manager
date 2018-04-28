@@ -20,7 +20,7 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.manager.BleManager;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.

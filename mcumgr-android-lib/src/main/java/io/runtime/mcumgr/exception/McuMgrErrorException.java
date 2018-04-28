@@ -7,7 +7,13 @@
 package io.runtime.mcumgr.exception;
 
 import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 
+/**
+ * Used to convey errors caused by an {@link McuMgrErrorCode} within a response. This is used in
+ * practice by {@link FirmwareUpgradeManager} to send a failure callback with the
+ * {@link McuMgrErrorCode} that caused the failure.
+ */
 public class McuMgrErrorException extends McuMgrException {
     private McuMgrErrorCode mCode;
 

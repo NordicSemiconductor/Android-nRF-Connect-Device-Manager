@@ -8,7 +8,7 @@
 package io.runtime.mcumgr;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
  * An McuMgrTransport is tasked with sending requests to, and receiving responses from a device.

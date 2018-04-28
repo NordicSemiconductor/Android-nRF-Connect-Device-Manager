@@ -8,7 +8,7 @@
 package io.runtime.mcumgr;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.msg.McuMgrResponse;
+import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
  * Callback for asynchronous Newt Manager commands.

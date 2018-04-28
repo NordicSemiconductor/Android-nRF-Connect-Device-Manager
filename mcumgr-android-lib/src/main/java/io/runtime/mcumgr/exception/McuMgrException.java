@@ -5,7 +5,9 @@
  */
 package io.runtime.mcumgr.exception;
 
-// TODO Finish this
+/**
+ * Essentially a renamed {@link Exception}.
+ */
 public class McuMgrException extends Exception {
     /**
      * Constructs a new exception with {@code null} as its detail message.
