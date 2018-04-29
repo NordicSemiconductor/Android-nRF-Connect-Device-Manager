@@ -255,27 +255,12 @@ public class McumgrSampleActivity extends AppCompatActivity
         }
         mBleTransport = new McuMgrBleTransport(this, mDevice);
         mManager = new FirmwareUpgradeManager(mBleTransport, data, this);
-        mManager.setUploadMtu(512);
-        mManager.setCallbackOnUiThread(this);
         mManager.start();
     }
-
-    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-    private String toHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-
+    
     @Override
-    public boolean confirmUpgrade(FirmwareUpgradeManager firmwareUpgrade) {
-        return true;
+    public void onStart(FirmwareUpgradeManager manager) {
+
     }
 
     @Override
