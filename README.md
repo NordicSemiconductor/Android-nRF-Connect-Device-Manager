@@ -11,21 +11,18 @@ You may clone/download the repository and add the source as a module in your app
 Add jitpack as a maven repository under all projects (root `build.gradle`):
 
 ```
-	allprojects {
-		repositories {
-			// ...
-			maven { url 'https://jitpack.io' }
-		}
+allprojects {
+	repositories {
+		// ...
+		maven { url 'https://jitpack.io' }
 	}
+}
 ```
 
 Add the dependency to your app:
 
 ```
-dependencies {
-	// ...
-	implementation 'com.github.runtimeco:mcumgr-android:<latest-release>'
-}
+implementation 'com.github.runtimeco:mcumgr-android:0.5'
 ```
 
 ## Sample App Quick Start
