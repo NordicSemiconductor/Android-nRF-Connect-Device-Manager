@@ -21,6 +21,14 @@ public class McuMgrErrorException extends McuMgrException {
         mCode = code;
     }
 
+    /**
+     * Get the code which caused this exception to be thrown.
+     * @return the McuManager response code which caused this exception to be thrown
+     */
+    public McuMgrErrorCode getCode() {
+        return mCode;
+    }
+
     @Override
     public String toString() {
         return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";

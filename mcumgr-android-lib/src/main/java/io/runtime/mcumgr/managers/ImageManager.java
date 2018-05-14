@@ -176,8 +176,7 @@ public class ImageManager extends McuManager {
      * @param callback the asynchronous callback
      */
     public void erase(McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_STATE, null, McuMgrResponse.class,
-                callback);
+        send(OP_WRITE, ID_STATE, null, McuMgrResponse.class, callback);
     }
 
     /**
