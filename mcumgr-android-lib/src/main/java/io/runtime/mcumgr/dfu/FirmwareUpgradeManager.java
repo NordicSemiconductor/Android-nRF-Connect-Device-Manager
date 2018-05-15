@@ -224,8 +224,8 @@ public class FirmwareUpgradeManager {
     }
 
     private synchronized void fail(McuMgrException error) {
-        mInternalCallback.onFail(mState, error);
         cancelPrivate();
+        mInternalCallback.onFail(mState, error);
     }
 
     /**
