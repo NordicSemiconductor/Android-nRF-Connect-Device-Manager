@@ -377,7 +377,7 @@ public class LogManager extends McuManager {
 
         /**
          * Set the next index to collecting new entries for this log
-         * @param nextIndex
+         * @param nextIndex the next index
          */
         public void setNextIndex(int nextIndex) {
             mNextIndex = nextIndex;

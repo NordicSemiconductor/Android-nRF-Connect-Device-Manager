@@ -132,6 +132,16 @@ public class McuMgrBleTransport extends BleManager<McuMgrBleCallbacks> implement
         new McuMgrRequest<>(payload, responseType, callback).asynchronous(mSendQueue);
     }
 
+    @Override
+    public void log(int level, String message) {
+
+    }
+
+    @Override
+    public void log(int level, int messageRes, Object... params) {
+
+    }
+
     //*******************************************************************************************
     // Mcu Manager Main Send Thread
     // TODO Look into disconnects causing race conditions

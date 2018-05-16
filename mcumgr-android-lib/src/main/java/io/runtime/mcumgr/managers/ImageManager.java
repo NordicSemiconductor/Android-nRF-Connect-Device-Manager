@@ -278,9 +278,10 @@ public class ImageManager extends McuManager {
     private int mMtu = DEFAULT_MTU;
 
     /**
-     * Sets the upload MTU.
+     * Sets the upload MTU. MTU must be between 23 and 1024.
      *
      * @param mtu the MTU to use for image upload
+     * @return true if the upload has been set, false otherwise
      */
     public synchronized boolean setUploadMtu(int mtu) {
         Log.v(TAG, "Setting image upload MTU");

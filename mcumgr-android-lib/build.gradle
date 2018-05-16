@@ -39,7 +39,6 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.3'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.9.3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.3'
-    implementation 'no.nordicsemi.android:log:2.1.1'
 }
 
 // build a jar with source files
@@ -51,8 +50,9 @@ task sourcesJar(type: Jar) {
 task javadoc(type: Javadoc) {
     failOnError  false
     source = android.sourceSets.main.java.sourceFiles
+    configurations.implementation.setCanBeResolved(true)
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    classpath += configurations.compile
+    classpath += configurations.implementation
 }
 
 // build a jar with javadoc
