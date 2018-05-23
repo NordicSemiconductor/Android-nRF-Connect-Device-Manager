@@ -204,8 +204,8 @@ public class McuMgrResponse {
             throw new IllegalArgumentException("Cannot use this method with a coap scheme");
         }
 
-        byte[] payload = Arrays.copyOfRange(bytes, McuMgrHeader.NMGR_HEADER_LEN, bytes.length);
-        McuMgrHeader header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN));
+        byte[] payload = Arrays.copyOfRange(bytes, McuMgrHeader.HEADER_LENGTH, bytes.length);
+        McuMgrHeader header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH));
 
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
@@ -255,7 +255,7 @@ public class McuMgrResponse {
         if (scheme.isCoap()) {
             throw new RuntimeException("Method not implemented for coap");
         } else {
-            return (expectedLength > (bytes.length - McuMgrHeader.NMGR_HEADER_LEN));
+            return (expectedLength > (bytes.length - McuMgrHeader.HEADER_LENGTH));
         }
     }
 
@@ -263,12 +263,12 @@ public class McuMgrResponse {
         if (scheme.isCoap()) {
             throw new RuntimeException("Method not implemented for coap");
         } else {
-            byte[] headerBytes = Arrays.copyOf(bytes, McuMgrHeader.NMGR_HEADER_LEN);
+            byte[] headerBytes = Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH);
             McuMgrHeader header = McuMgrHeader.fromBytes(headerBytes);
             if (header == null) {
                 throw new IOException("Invalid McuMgrHeader");
             }
-            return header.getLen() + McuMgrHeader.NMGR_HEADER_LEN;
+            return header.getLen() + McuMgrHeader.HEADER_LENGTH;
         }
     }
 }

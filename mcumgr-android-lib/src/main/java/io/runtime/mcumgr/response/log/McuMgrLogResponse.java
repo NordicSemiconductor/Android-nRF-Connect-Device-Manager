@@ -6,6 +6,8 @@
 
 package io.runtime.mcumgr.response.log;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrLogResponse extends McuMgrResponse {
@@ -18,11 +20,13 @@ public class McuMgrLogResponse extends McuMgrResponse {
         public Entry[] entries;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Entry {
         public String msg;
         public long ts;
         public int level;
         public int index;
         public int module;
+        public String type;
     }
 }
