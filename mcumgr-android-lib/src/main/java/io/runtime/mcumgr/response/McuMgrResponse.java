@@ -217,11 +217,11 @@ public class McuMgrResponse {
 
 
     /**
-     * Build a CoAP McuMgrResponse. This method will also throw a McuMgrCoapException if the CoAP
+     * Build a CoAP McuMgrResponse. This method will throw a McuMgrCoapException if the CoAP
      * response code indicates an error.
      *
      * @param scheme     The transport scheme used (should be either COAP_BLE or COAP_UDP).
-     * @param bytes      The packet's bytes
+     * @param bytes      The packet's bytes, including the CoAP header
      * @param header     The raw McuManager header
      * @param payload    the raw McuManager payload
      * @param codeClass  The class of the CoAP response code
