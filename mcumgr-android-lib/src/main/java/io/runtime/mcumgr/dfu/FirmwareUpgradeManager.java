@@ -317,7 +317,7 @@ public class FirmwareUpgradeManager {
     }
 
     //******************************************************************
-    // CoAP Handlers
+    // McuManagerCallbacks
     //******************************************************************
 
     /**
@@ -382,8 +382,9 @@ public class FirmwareUpgradeManager {
                         fail(new McuMgrErrorException(response.getRc()));
                         return;
                     }
+                    Log.v(TAG, "Confirm response: " + response.toString());
                     if (response.images.length == 0) {
-                        fail(new McuMgrException("Test response does not contain enough info"));
+                        fail(new McuMgrException("Confirm response does not contain enough info"));
                         return;
                     }
                     if (!response.images[0].confirmed) {

@@ -62,12 +62,15 @@ public class ConfigManager extends McuManager {
      *
      * @param name     the name of the config variable
      * @param value    the value to write
+     * @param save     whether or not to save the value after it is set. A saved value will persist
+     *                 in flash across device resets.
      * @param callback the asynchronous callback
      */
-    public void write(String name, String value, McuMgrCallback<McuMgrResponse> callback) {
+    public void write(String name, String value, boolean save, McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
+        payloadMap.put("save", save);
         send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrResponse.class, callback);
     }
 
@@ -76,13 +79,16 @@ public class ConfigManager extends McuManager {
      *
      * @param name  the name of the config variable
      * @param value the value to write
+     * @param save  whether or not to save the value after it is set. A saved value will persist
+     *              in flash across device resets.
      * @return the response
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrResponse write(String name, String value) throws McuMgrException {
+    public McuMgrResponse write(String name, String value, boolean save) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
+        payloadMap.put("save", save);
         return send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrResponse.class);
     }
 }
