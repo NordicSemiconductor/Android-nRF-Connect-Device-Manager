@@ -9,5 +9,6 @@ package io.runtime.mcumgr.response.dflt;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrEchoResponse extends McuMgrResponse {
+    /** The echo response. */
     public String r;
 }

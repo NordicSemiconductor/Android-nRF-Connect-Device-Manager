@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+
+	<style name="Widget.ActionButton" parent="Widget.AppCompat.Button.Borderless.Colored">
+		<!-- Empty-->
+	</style>
+
+</resources>

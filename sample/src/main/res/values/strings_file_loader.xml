@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string name="file_loader_error_no_file_browser">File Browser app not found.</string>
+	<string name="file_loader_error_no_uri">No file found.</string>
+	<string name="file_loader_error_loading_file_failed">Reading file failed.</string>
+</resources>

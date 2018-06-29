@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string name="echo_title">Echo</string>
+	<string name="echo_action">Send</string>
+	<string name="echo_hello">Hello!</string>
+	<string name="echo_hint">Text</string>
+	<string name="echo_empty">Empty</string>
+
+	<color name="echo_request">@color/colorPrimary</color>
+	<color name="echo_response">@color/zephyr</color>
+	<color name="echo_error">@color/red</color>
+</resources>

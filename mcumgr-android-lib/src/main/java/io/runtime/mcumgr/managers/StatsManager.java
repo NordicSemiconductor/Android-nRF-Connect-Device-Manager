@@ -18,11 +18,12 @@ import io.runtime.mcumgr.response.stat.McuMgrStatResponse;
 /**
  * Stats command group manager.
  */
+@SuppressWarnings("unused")
 public class StatsManager extends McuManager {
 
     // Command IDs
-    public final static int ID_READ = 0;
-    public final static int ID_LIST = 1;
+    private final static int ID_READ = 0;
+    private final static int ID_LIST = 1;
 
     /**
      * Construct an stats manager.
@@ -36,8 +37,8 @@ public class StatsManager extends McuManager {
     /**
      * Read a statistic module (asynchronous).
      *
-     * @param module   the name of the module to read
-     * @param callback the asynchronous callback
+     * @param module   the name of the module to read.
+     * @param callback the asynchronous callback.
      */
     public void read(String module, McuMgrCallback<McuMgrStatResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
@@ -49,7 +50,7 @@ public class StatsManager extends McuManager {
      * Read a statistic module (synchronous).
      *
      * @param module the name of the module to read.
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrStatResponse read(String module) throws McuMgrException {
@@ -61,7 +62,7 @@ public class StatsManager extends McuManager {
     /**
      * List the statistic modules (asynchronous).
      *
-     * @param callback the asynchronous callback
+     * @param callback the asynchronous callback.
      */
     public void list(McuMgrCallback<McuMgrStatListResponse> callback) {
         send(OP_READ, ID_LIST, null, McuMgrStatListResponse.class, callback);
@@ -70,7 +71,7 @@ public class StatsManager extends McuManager {
     /**
      * List the statistic modules (synchronous).
      *
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrStatListResponse list() throws McuMgrException {

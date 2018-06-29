@@ -24,15 +24,16 @@ import io.runtime.mcumgr.response.dflt.McuMgrTaskStatResponse;
 /**
  * Default command group manager.
  */
+@SuppressWarnings("unused")
 public class DefaultManager extends McuManager {
 
     // Command IDs
-    public final static int ID_ECHO = 0;
-    public final static int ID_CONS_ECHO_CTRL = 1;
-    public final static int ID_TASKSTATS = 2;
-    public final static int ID_MPSTATS = 3;
-    public final static int ID_DATETIME_STR = 4;
-    public final static int ID_RESET = 5;
+    private final static int ID_ECHO = 0;
+    private final static int ID_CONS_ECHO_CTRL = 1;
+    private final static int ID_TASKSTATS = 2;
+    private final static int ID_MPSTATS = 3;
+    private final static int ID_DATETIME_STR = 4;
+    private final static int ID_RESET = 5;
 
     /**
      * Construct an default manager.
@@ -50,8 +51,8 @@ public class DefaultManager extends McuManager {
     /**
      * Echo a string (asynchronous).
      *
-     * @param echo     the string to echo
-     * @param callback the asynchronous callback
+     * @param echo     the string to echo.
+     * @param callback the asynchronous callback.
      */
     public void echo(String echo, McuMgrCallback<McuMgrEchoResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
@@ -62,8 +63,8 @@ public class DefaultManager extends McuManager {
     /**
      * Echo a string (synchronous).
      *
-     * @param echo the string to echo
-     * @return the response
+     * @param echo the string to echo.
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrEchoResponse echo(String echo) throws McuMgrException {
@@ -75,8 +76,8 @@ public class DefaultManager extends McuManager {
     /**
      * Set the console echo on the device (synchronous).
      *
-     * @param echo     whether or not to echo to the console
-     * @param callback the asynchronous callback
+     * @param echo     whether or not to echo to the console.
+     * @param callback the asynchronous callback.
      */
     public void consoleEcho(boolean echo, McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
@@ -87,8 +88,8 @@ public class DefaultManager extends McuManager {
     /**
      * Set the console echo on the device (synchronous).
      *
-     * @param echo whether or not to echo to the console
-     * @return the response
+     * @param echo whether or not to echo to the console.
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrResponse consoleEcho(boolean echo) throws McuMgrException {
@@ -100,7 +101,7 @@ public class DefaultManager extends McuManager {
     /**
      * Get task statistics from the device (asynchronous).
      *
-     * @param callback the asynchronous callback
+     * @param callback the asynchronous callback.
      */
     public void taskstats(McuMgrCallback<McuMgrTaskStatResponse> callback) {
         send(OP_READ, ID_TASKSTATS, null, McuMgrTaskStatResponse.class, callback);
@@ -109,7 +110,7 @@ public class DefaultManager extends McuManager {
     /**
      * Get task statistics from the device (synchronous).
      *
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrTaskStatResponse taskstats() throws McuMgrException {
@@ -119,7 +120,7 @@ public class DefaultManager extends McuManager {
     /**
      * Get memory pool statistics from the device (asynchronous).
      *
-     * @param callback the asynchronous callback
+     * @param callback the asynchronous callback.
      */
     public void mpstat(McuMgrCallback<McuMgrMpStatResponse> callback) {
         send(OP_READ, ID_MPSTATS, null, McuMgrMpStatResponse.class, callback);
@@ -128,7 +129,7 @@ public class DefaultManager extends McuManager {
     /**
      * Get memory pool statistics from the device (synchronous).
      *
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrMpStatResponse mpstat() throws McuMgrException {
@@ -138,7 +139,7 @@ public class DefaultManager extends McuManager {
     /**
      * Read the date and time on the device (asynchronous).
      *
-     * @param callback the asynchronous callback
+     * @param callback the asynchronous callback.
      */
     public void readDatetime(McuMgrCallback<McuMgrReadDateTimeResponse> callback) {
         send(OP_READ, ID_DATETIME_STR, null, McuMgrReadDateTimeResponse.class, callback);
@@ -147,7 +148,7 @@ public class DefaultManager extends McuManager {
     /**
      * Read the date and time on the device (synchronous).
      *
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrReadDateTimeResponse readDatetime() throws McuMgrException {
@@ -159,9 +160,9 @@ public class DefaultManager extends McuManager {
      * <p>
      * If date or timeZone are null, the current value will be used.
      *
-     * @param date     the date to set the device to
-     * @param timeZone the timezone to use with the date
-     * @param callback the asynchronous callback
+     * @param date     the date to set the device to.
+     * @param timeZone the timezone to use with the date.
+     * @param callback the asynchronous callback.
      */
     public void writeDatetime(Date date, TimeZone timeZone, McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
@@ -174,9 +175,9 @@ public class DefaultManager extends McuManager {
      * <p>
      * If date or timeZone are null, the current value will be used.
      *
-     * @param date     the date to set the device to
-     * @param timeZone the timezone to use with the date
-     * @return the response
+     * @param date     the date to set the device to.
+     * @param timeZone the timezone to use with the date.
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrResponse writeDatetime(Date date, TimeZone timeZone) throws McuMgrException {
@@ -188,7 +189,7 @@ public class DefaultManager extends McuManager {
     /**
      * Reset the device (asynchronous).
      *
-     * @param callback the asynchronous callback
+     * @param callback the asynchronous callback.
      */
     public void reset(McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_RESET, null, McuMgrResponse.class, callback);
@@ -197,7 +198,7 @@ public class DefaultManager extends McuManager {
     /**
      * Reset the device (synchronous).
      *
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrResponse reset() throws McuMgrException {

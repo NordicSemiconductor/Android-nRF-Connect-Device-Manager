@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<android.support.v7.widget.CardView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+
+	<android.support.constraint.ConstraintLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:animateLayoutChanges="true"
+		android:paddingBottom="8dp">
+
+		<android.support.v7.widget.Toolbar
+			android:id="@+id/toolbar"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toTopOf="parent"
+			app:title="@string/files_download_title"/>
+
+		<EditText
+			android:id="@+id/file_name"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginEnd="8dp"
+			android:layout_marginStart="8dp"
+			android:hint="@string/files_download_hint"
+			android:inputType="text"
+			android:paddingRight="30dp"
+			android:lines="1"
+			app:layout_constraintEnd_toStartOf="@+id/action_download"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+
+		<ImageView
+			android:id="@+id/action_history"
+			android:layout_width="46dp"
+			android:layout_height="44dp"
+			android:background="?selectableItemBackgroundBorderless"
+			android:contentDescription="@string/files_download_recent_files"
+			android:scaleType="center"
+			app:layout_constraintEnd_toStartOf="@+id/action_download"
+			app:layout_constraintTop_toBottomOf="@+id/toolbar"
+			app:srcCompat="@drawable/ic_history"/>
+
+		<TextView
+			android:id="@+id/file_path"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginStart="8dp"
+			android:textSize="12sp"
+			app:layout_constraintStart_toStartOf="@+id/file_name"
+			app:layout_constraintTop_toBottomOf="@+id/file_name"
+			tools:text="/nffs/file"/>
+
+		<Button
+			android:id="@+id/action_download"
+			style="@style/Widget.AppCompat.Button.Colored"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginEnd="16dp"
+			android:text="@string/files_download_action"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+
+		<ProgressBar
+			android:id="@+id/progress"
+			style="?android:attr/progressBarStyleHorizontal"
+			android:layout_width="0dp"
+			android:layout_height="4dp"
+			android:layout_marginTop="8dp"
+			android:max="100"
+			android:progressBackgroundTint="@color/white"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/file_path"/>
+
+		<View
+			android:id="@+id/divider"
+			android:layout_width="0dp"
+			android:layout_height="1dp"
+			android:background="@color/divider"
+			android:visibility="gone"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/progress"
+			tools:visibility="visible"/>
+
+		<TextView
+			android:id="@+id/file_result"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_marginEnd="16dp"
+			android:layout_marginStart="16dp"
+			android:layout_marginTop="16dp"
+			android:freezesText="true"
+			android:visibility="gone"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/divider"
+			tools:text="Some text"
+			tools:visibility="visible"/>
+
+		<ImageView
+			android:id="@+id/image"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="8dp"
+			android:layout_marginEnd="8dp"
+			android:layout_marginStart="16dp"
+			android:importantForAccessibility="no"
+			android:visibility="gone"
+			app:layout_constraintBottom_toBottomOf="parent"
+			app:layout_constraintEnd_toEndOf="parent"
+			app:layout_constraintStart_toStartOf="parent"
+			app:layout_constraintTop_toBottomOf="@+id/file_result"
+			tools:visibility="visible"/>
+
+	</android.support.constraint.ConstraintLayout>
+</android.support.v7.widget.CardView>

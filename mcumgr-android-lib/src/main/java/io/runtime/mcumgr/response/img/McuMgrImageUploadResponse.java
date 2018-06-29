@@ -9,5 +9,6 @@ package io.runtime.mcumgr.response.img;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrImageUploadResponse extends McuMgrResponse {
+    /** The offset. Number of bytes that were received. */
     public int off;
 }

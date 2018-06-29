@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class CBOR {
     private final static CBORFactory sFactory = new CBORFactory();
 
@@ -33,6 +34,7 @@ public class CBOR {
         return mapper.readTree(data).toString();
     }
 
+    @SuppressWarnings("RedundantThrows")
     public static <T> String toString(T obj) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
         return mapper.valueToTree(obj).toString();

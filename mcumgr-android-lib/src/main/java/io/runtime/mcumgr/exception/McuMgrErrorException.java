@@ -6,8 +6,11 @@
 
 package io.runtime.mcumgr.exception;
 
+import android.support.annotation.NonNull;
+
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
  * Used to convey errors caused by an {@link McuMgrErrorCode} within a response. This is used in
@@ -15,22 +18,25 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
  * {@link McuMgrErrorCode} that caused the failure.
  */
 public class McuMgrErrorException extends McuMgrException {
+    @NonNull
     private McuMgrErrorCode mCode;
 
-    public McuMgrErrorException(McuMgrErrorCode code) {
+    public McuMgrErrorException(@NonNull McuMgrErrorCode code) {
+        super("Mcu Mgr Error: " + code);
         mCode = code;
+    }
+
+    public McuMgrErrorException(@NonNull McuMgrResponse response) {
+        this(McuMgrErrorCode.valueOf(response.rc));
     }
 
     /**
      * Get the code which caused this exception to be thrown.
-     * @return the McuManager response code which caused this exception to be thrown
+     *
+     * @return The McuManager response code which caused this exception to be thrown.
      */
+    @NonNull
     public McuMgrErrorCode getCode() {
         return mCode;
-    }
-
-    @Override
-    public String toString() {
-        return "McuMgrErrorException: " + mCode.toString() + " (" + mCode.value() + ")";
     }
 }

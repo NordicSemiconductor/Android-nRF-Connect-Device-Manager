@@ -7,6 +7,8 @@
 
 package io.runtime.mcumgr;
 
+import android.support.annotation.NonNull;
+
 import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.Endian;
 
@@ -15,8 +17,8 @@ import io.runtime.mcumgr.util.Endian;
  * fields for optional values such as flags and sequence numbers. This class is used to parse
  * and build headers.
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrHeader {
-
     public final static int HEADER_LENGTH = 8;
 
     private int mOp;
@@ -87,31 +89,39 @@ public class McuMgrHeader {
         this.mCommandId = commandId;
     }
 
+    @Override
+    public String toString() {
+        return "Header (Op: " + mOp + ", Flags: " + mFlags + ", Len: " + mLen + ", Group: " + mGroupId + ", Seq: " + mSequenceNum + ", Command: " + mCommandId + ")";
+    }
+
     public static McuMgrHeader fromBytes(byte[] header) {
         if (header == null || header.length != HEADER_LENGTH) {
             return null;
         }
-        int op = ByteUtil.unsignedByteArrayToInt(header, 0, 1, Endian.BIG);
-        int flags = ByteUtil.unsignedByteArrayToInt(header, 1, 1, Endian.BIG);
-        int len = ByteUtil.unsignedByteArrayToInt(header, 2, 2, Endian.BIG);
-        int groupId = ByteUtil.unsignedByteArrayToInt(header, 4, 2, Endian.BIG);
+        int op          = ByteUtil.unsignedByteArrayToInt(header, 0, 1, Endian.BIG);
+        int flags       = ByteUtil.unsignedByteArrayToInt(header, 1, 1, Endian.BIG);
+        int len         = ByteUtil.unsignedByteArrayToInt(header, 2, 2, Endian.BIG);
+        int groupId     = ByteUtil.unsignedByteArrayToInt(header, 4, 2, Endian.BIG);
         int sequenceNum = ByteUtil.unsignedByteArrayToInt(header, 6, 1, Endian.BIG);
-        int commandId = ByteUtil.unsignedByteArrayToInt(header, 7, 1, Endian.BIG);
+        int commandId   = ByteUtil.unsignedByteArrayToInt(header, 7, 1, Endian.BIG);
         return new McuMgrHeader(op, flags, len, groupId, sequenceNum, commandId);
     }
 
     /**
      * Builds a new manager header.
      *
-     * @param op       the operation for this packet: NMGR_WRITE, NMGR_WRITE_RSP, NMGR_READ, NMGR_READ_RSP
-     * @param flags    newt manager flags
-     * @param len      the length (this field is NOT required for all default newt manager commands)
+     * @param op       the operation for this packet: ({@link McuManager#OP_READ OP_READ},
+     *                 {@link McuManager#OP_READ_RSP OP_READ_RSP}, {@link McuManager#OP_WRITE OP_WRITE},
+     *                 {@link McuManager#OP_WRITE_RSP OP_WRITE_RSP}).
+     * @param flags    newt manager flags.
+     * @param len      the length (this field is NOT required for all default newt manager commands).
      * @param group    the newt manager command group. Some groups such as GROUP_IMAGE must also
-     *                 specify a subcommand ID.
-     * @param sequence the newt manager sequence number
-     * @param id       the subcommand ID for certain groups
-     * @return the built newt manager header
+     *                 specify a sub-command ID.
+     * @param sequence the newt manager sequence number.
+     * @param id       the sub-command ID for certain groups.
+     * @return The built newt manager header.
      */
+    @NonNull
     public static byte[] build(int op, int flags, int len, int group, int sequence, int id) {
         return new byte[]{
                 (byte) op,

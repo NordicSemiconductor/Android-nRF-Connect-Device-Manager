@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical">
+
+	<fragment
+		android:id="@+id/fragment_files_upload"
+		android:name="io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_margin="8dp"
+		tools:layout="@layout/fragment_card_files_upload"/>
+
+	<fragment
+		android:id="@+id/fragment_files_download"
+		android:name="io.runtime.mcumgr.sample.fragment.mcumgr.FilesDownloadFragment"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_margin="8dp"
+		tools:layout="@layout/fragment_card_files_download"/>
+
+</LinearLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto">
+
+	<item android:id="@+id/action_switch_to_advanced"
+		android:title="@string/image_action_switch_to_advanced"
+		app:showAsAction="ifRoom"/>
+
+	<item android:id="@+id/action_switch_to_basic"
+		android:title="@string/image_action_switch_to_basic"
+		app:showAsAction="ifRoom"/>
+</menu>

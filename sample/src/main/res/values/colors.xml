@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) Intellinium SAS, 2014-present
+  ~ Copyright (c) 2018, Nordic Semiconductor
   ~
   ~ SPDX-License-Identifier: Apache-2.0
-  ~
   -->
 
 <resources>
-    <color name="colorAccent">#9E0E40</color>
+    <color name="colorPrimary">#009CDE</color>
+    <color name="colorPrimaryDark">#0081B7</color>
+    <color name="colorAccent">#0081B7</color>
+    <color name="background">#FFF5F5F5</color>
+    <color name="divider">#FFDDDDDD</color>
+    <color name="error">@color/red</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="red">#CC0000</color>
+    <color name="light_red">#CCAAAA</color>
+    <color name="zephyr">#3B3E4E</color>
 </resources>

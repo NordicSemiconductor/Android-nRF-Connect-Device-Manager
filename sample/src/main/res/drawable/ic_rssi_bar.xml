@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+	<item
+		android:drawable="@drawable/ic_rssi_0_bar"
+		android:maxLevel="10"/>
+	<item
+		android:drawable="@drawable/ic_rssi_1_bar"
+		android:maxLevel="28"/>
+	<item
+		android:drawable="@drawable/ic_rssi_2_bars"
+		android:maxLevel="45"/>
+	<item
+		android:drawable="@drawable/ic_rssi_3_bars"
+		android:maxLevel="100"/>
+</level-list>

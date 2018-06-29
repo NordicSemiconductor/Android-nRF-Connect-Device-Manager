@@ -11,8 +11,8 @@ import io.runtime.mcumgr.McuMgrCallback;
  * This exception holds all the necessary information to determine the error code and reconstruct
  * the CoAP response.
  */
+@SuppressWarnings("unused")
 public class McuMgrCoapException extends McuMgrException {
-
     private byte[] mBytes;
     private int mCodeClass;
     private int mCodeDetail;
@@ -26,23 +26,26 @@ public class McuMgrCoapException extends McuMgrException {
 
     /**
      * Get the raw bytes of the response which caused this exception.
-     * @return the bytes of the response
+     *
+     * @return The bytes of the response.
      */
     public byte[] getBytes() {
         return mBytes;
     }
 
     /**
-     * Get the response's code class
-     * @return the response code class
+     * Get the response's code class.
+     *
+     * @return The response code class.
      */
     public int getCodeClass() {
         return mCodeClass;
     }
 
     /**
-     * Get the response's code detail
-     * @return the response code detail
+     * Get the response's code detail.
+     *
+     * @return The response code detail.
      */
     public int getCodeDetail() {
         return mCodeDetail;

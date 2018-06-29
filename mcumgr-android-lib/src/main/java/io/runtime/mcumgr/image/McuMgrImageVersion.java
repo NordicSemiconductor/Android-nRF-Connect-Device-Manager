@@ -17,8 +17,8 @@ import io.runtime.mcumgr.util.Endian;
  * For more info about McuBoot and image format see:
  * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
  */
+@SuppressWarnings("unused")
 public class McuMgrImageVersion {
-
     private byte mMajor;
     private byte mMinor;
     private short mRevision;

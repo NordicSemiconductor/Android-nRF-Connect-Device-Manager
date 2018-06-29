@@ -16,12 +16,19 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
  */
 public class InsufficientMtuException extends McuMgrException {
     private int mMtu;
-    public InsufficientMtuException(int mtu) {
-        super("Insufficient MTU!");
+    private int mDataLength;
+
+    public InsufficientMtuException(int payloadLength, int mtu) {
+        super("Payload (" + payloadLength + " bytes) too long for MTU: " + mtu);
+        mDataLength = payloadLength;
         mMtu = mtu;
     }
 
     public int getMtu() {
         return mMtu;
+    }
+
+    public int getDataLength() {
+        return mDataLength;
     }
 }

@@ -6,6 +6,8 @@
 
 package io.runtime.mcumgr.image;
 
+import android.support.annotation.NonNull;
+
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.tlv.McuMgrImageTlv;
 
@@ -17,23 +19,27 @@ import io.runtime.mcumgr.image.tlv.McuMgrImageTlv;
  * For more info about McuBoot and image format see:
  * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class McuMgrImage {
-
     public final static int IMG_HASH_LEN = 32;
 
-    private McuMgrImageHeader mHeader;
-    private McuMgrImageTlv mTlv;
-    private byte[] mData;
-    private byte[] mHash;
+    private final McuMgrImageHeader mHeader;
+    private final McuMgrImageTlv mTlv;
+    private final byte[] mData;
+    private final byte[] mHash;
 
-    public McuMgrImage(byte[] data) throws McuMgrException {
+    public McuMgrImage(@NonNull byte[] data) throws McuMgrException {
         mData = data;
-        mHeader = McuMgrImageHeader.fromBytes(mData);
-        mTlv = McuMgrImageTlv.fromBytes(mData, mHeader);
+        mHeader = McuMgrImageHeader.fromBytes(data);
+        mTlv = McuMgrImageTlv.fromBytes(data, mHeader);
         mHash = mTlv.getHash();
         if (mHash == null) {
             throw new McuMgrException("Image TLV trailer does not contain an image hash!");
         }
+    }
+
+    public byte[] getData() {
+        return mData;
     }
 
     public McuMgrImageHeader getHeader() {
@@ -48,7 +54,7 @@ public class McuMgrImage {
         return mHash;
     }
 
-    public static byte[] getHash(byte[] data) throws McuMgrException {
+    public static byte[] getHash(@NonNull byte[] data) throws McuMgrException {
         return new McuMgrImage(data).getHash();
     }
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string name="files_upload_title">Upload</string>
+	<string name="files_upload_file_name">File Name:</string>
+	<string name="files_upload_file_path">Destination:</string>
+	<string name="files_upload_size">File Size:</string>
+	<string name="files_upload_size_value">%d bytes</string>
+	<string name="files_upload_status">State:</string>
+	<string name="files_upload_action_start">Upload</string>
+
+	<string name="files_upload_status_ready">READY</string>
+	<string name="files_upload_status_uploading">UPLOADING…</string>
+	<string name="files_upload_status_paused">PAUSED</string>
+	<string name="files_upload_status_completed">UPLOAD COMPLETE</string>
+
+	<string name="files_action_generate">Generate</string>
+	<string name="files_action_select">Select</string>
+	<string name="files_action_pause">Pause</string>
+	<string name="files_action_resume">Resume</string>
+	<string name="files_action_cancel">Cancel</string>
+
+	<string name="files_upload_generate_title">Generate File</string>
+	<string name="files_upload_generate_hint">File size</string>
+	<string name="files_upload_generate_unit">bytes</string>
+	<string name="files_upload_generate_error">Value cannot be empty.</string>
+</resources>

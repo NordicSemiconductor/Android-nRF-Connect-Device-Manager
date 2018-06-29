@@ -31,17 +31,17 @@ import io.runtime.mcumgr.util.CBOR;
 /**
  * Log command group manager.
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class LogManager extends McuManager {
-
     private final static String TAG = "LogManager";
 
     // Command IDs
-    public final static int ID_READ = 0;
-    public final static int ID_CLEAR = 1;
-    public final static int ID_APPEND = 2;
-    public final static int ID_MODULE_LIST = 3;
-    public final static int ID_LEVEL_LIST = 4;
-    public final static int ID_LOGS_LIST = 5;
+    private final static int ID_READ = 0;
+    private final static int ID_CLEAR = 1;
+    private final static int ID_APPEND = 2;
+    private final static int ID_MODULE_LIST = 3;
+    private final static int ID_LEVEL_LIST = 4;
+    private final static int ID_LOGS_LIST = 5;
 
     /**
      * Construct an image manager.
@@ -63,12 +63,12 @@ public class LogManager extends McuManager {
      * from. Therefore, in order to pull all the logs from a device, you may have to call this
      * method multiple times.
      *
-     * @param logName      The name of the log to read. If null, the device will report from all logs
-     * @param minIndex     The minimum index to pull logs from. If null, the device will read from the
+     * @param logName      the name of the log to read. If null, the device will report from all logs.
+     * @param minIndex     the minimum index to pull logs from. If null, the device will read from the
      *                     oldest log.
-     * @param minTimestamp The minimum timestamp to pull logs from. This parameter is only used if
+     * @param minTimestamp the minimum timestamp to pull logs from. This parameter is only used if
      *                     it and minIndex are not null.
-     * @param callback     The response callback
+     * @param callback     the response callback.
      */
     public void show(String logName, Integer minIndex, Date minTimestamp, McuMgrCallback<McuMgrLogResponse>
             callback) {
@@ -96,12 +96,12 @@ public class LogManager extends McuManager {
      * from. Therefore, in order to pull all the logs from a device, you may have to call this
      * method multiple times.
      *
-     * @param logName      The name of the log to read. If null, the device will report from all logs
-     * @param minIndex     The minimum index to pull logs from. If null, the device will read from the
+     * @param logName      the name of the log to read. If null, the device will report from all logs.
+     * @param minIndex     the minimum index to pull logs from. If null, the device will read from the
      *                     oldest log.
-     * @param minTimestamp The minimum timestamp to pull logs from. This parameter is only used if
+     * @param minTimestamp the minimum timestamp to pull logs from. This parameter is only used if
      *                     it and minIndex are not null.
-     * @return The response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrLogResponse show(String logName, Integer minIndex, Date minTimestamp)
@@ -123,7 +123,7 @@ public class LogManager extends McuManager {
     /**
      * Clear the logs on a device (asynchronous).
      *
-     * @param callback The response callback
+     * @param callback the response callback.
      */
     public void clear(McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class, callback);
@@ -132,7 +132,7 @@ public class LogManager extends McuManager {
     /**
      * Clear the logs on a device (synchronous).
      *
-     * @return The response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrResponse clear() throws McuMgrException {
@@ -144,7 +144,7 @@ public class LogManager extends McuManager {
      * <p>
      * Note: This is NOT the log name to use to pass into show.
      *
-     * @param callback The response callback
+     * @param callback the response callback.
      */
     public void moduleList(McuMgrCallback<McuMgrModuleListResponse> callback) {
         send(OP_READ, ID_MODULE_LIST, null, McuMgrModuleListResponse.class, callback);
@@ -155,7 +155,7 @@ public class LogManager extends McuManager {
      * <p>
      * Note: This is NOT the log name to use to pass into show.
      *
-     * @return The response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrModuleListResponse moduleList() throws McuMgrException {
@@ -165,7 +165,7 @@ public class LogManager extends McuManager {
     /**
      * List the log levels on a device (asynchronous).
      *
-     * @param callback The response callback
+     * @param callback the response callback.
      */
     public void levelList(McuMgrCallback<McuMgrLevelListResponse> callback) {
         send(OP_READ, ID_LEVEL_LIST, null, McuMgrLevelListResponse.class, callback);
@@ -174,7 +174,7 @@ public class LogManager extends McuManager {
     /**
      * List the log levels on a device (synchronous).
      *
-     * @return The response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrLevelListResponse levelList() throws McuMgrException {
@@ -186,7 +186,7 @@ public class LogManager extends McuManager {
      * <p>
      * Note: this is the "log name" to pass into show to read logs.
      *
-     * @param callback The response callback
+     * @param callback the response callback.
      */
     public void logsList(McuMgrCallback<McuMgrLogListResponse> callback) {
         send(OP_READ, ID_LOGS_LIST, null, McuMgrLogListResponse.class, callback);
@@ -197,7 +197,7 @@ public class LogManager extends McuManager {
      * <p>
      * Note: this is the "log name" to pass into show to read logs.
      *
-     * @return The response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrLogListResponse logsList() throws McuMgrException {
@@ -205,8 +205,9 @@ public class LogManager extends McuManager {
     }
 
     /**
-     * Get all log entries from all logs on the device.
-     * @return a mapping of log name to state
+     * Get all log entries from all logs on the device (synchronous).
+     *
+     * @return A mapping of log name to state.
      */
     public synchronized Map<String, State> getAll() {
         HashMap<String, State> logStates = new HashMap<>();
@@ -238,17 +239,17 @@ public class LogManager extends McuManager {
             }
             return logStates;
         } catch (McuMgrException e) {
-            e.printStackTrace();
-            Log.e(TAG, "Transport error getting available logs");
+            Log.e(TAG, "Transport error while getting available logs", e);
         }
         return logStates;
     }
 
     /**
-     * Get logs from a state. The logs will be collected from the state's next index and added to
-     * the list of entries.
-     * @param state The log state to collect logs from
-     * @return The log state with updated next index and entry list
+     * Get logs from a state (synchronous). The logs will be collected from the state's
+     * next index and added to the list of entries.
+     *
+     * @param state The log state to collect logs from.
+     * @return The log state with updated next index and entry list.
      */
     public State getAllFromState(State state) {
         if (state == null) {
@@ -293,10 +294,12 @@ public class LogManager extends McuManager {
     }
 
     /**
-     * Get the next set of logs from a log state and return the response. This method does not
-     * update the log state and only collects as many logs as can fit into a single response.
-     * @param state The state to get logs from
-     * @return the show response
+     * Get the next set of logs from a log state and return the response (synchronous).
+     * This method does not update the log state and only collects as many logs as can fit into
+     * a single response.
+     *
+     * @param state The state to get logs from.
+     * @return The show response.
      */
     public McuMgrLogResponse showNext(State state) {
         Log.d(TAG, "Show logs: name=" + state.getName() +
@@ -310,9 +313,9 @@ public class LogManager extends McuManager {
             Log.v(TAG, "Show logs response: " + CBOR.toString(response.getPayload()));
             return response;
         } catch (McuMgrException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Requesting next set of logs failed", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Parsing response failed", e);
         }
 
         return null;
@@ -328,17 +331,17 @@ public class LogManager extends McuManager {
     public static class State {
 
         /**
-         * The name of the log
+         * The name of the log.
          */
         private String mName;
 
         /**
-         * The next index to use to get new logs
+         * The next index to use to get new logs.
          */
         private int mNextIndex = 0;
 
         /**
-         * The list of entries pulled from the log
+         * The list of entries pulled from the log.
          */
         private ArrayList<McuMgrLogResponse.Entry> mEntries = new ArrayList<>();
 
@@ -352,7 +355,7 @@ public class LogManager extends McuManager {
         }
 
         /**
-         * Reset the next index to 0 and clear the entry list
+         * Reset the next index to 0 and clear the entry list.
          */
         public void reset() {
             mNextIndex = 0;
@@ -360,32 +363,36 @@ public class LogManager extends McuManager {
         }
 
         /**
-         * Get the name of the log
-         * @return the name of the log
+         * Get the name of the log.
+         *
+         * @return The name of the log.
          */
         public String getName() {
             return mName;
         }
 
         /**
-         * The next index for collecting new entries for this log
-         * @return the next index
+         * The next index for collecting new entries for this log.
+         *
+         * @return the next index.
          */
         public int getNextIndex() {
             return mNextIndex;
         }
 
         /**
-         * Set the next index to collecting new entries for this log
-         * @param nextIndex the next index
+         * Set the next index to collecting new entries for this log.
+         *
+         * @param nextIndex the next index.
          */
         public void setNextIndex(int nextIndex) {
             mNextIndex = nextIndex;
         }
 
         /**
-         * Get collected entries for this log
-         * @return the collected entries
+         * Get collected entries for this log.
+         *
+         * @return The collected entries.
          */
         public List<McuMgrLogResponse.Entry> getEntries() {
             return mEntries;

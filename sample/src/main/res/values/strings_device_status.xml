@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string name="status_title">Device Status</string>
+	<string name="status_status_label">Connection status:</string>
+	<string name="status_bond_label">Bonding status:</string>
+
+	<string name="status_not_connected">Not connected</string>
+	<string name="status_connecting">Connecting…</string>
+	<string name="status_initializing">Initializing…</string>
+	<string name="status_connected">Connected</string>
+	<string name="status_disconnecting">Disconnecting…</string>
+	<string name="status_disconnected">Disconnected</string>
+
+	<string name="status_not_bonded">Not bonded</string>
+	<string name="status_bonding">Bonding…</string>
+	<string name="status_bonded">Bonded</string>
+</resources>

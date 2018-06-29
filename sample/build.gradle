@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2017-2018 Runtime Inc.
- * Copyright (c) Intellinium SAS, 2014-present
+ * Copyright (c) 2018, Nordic Semiconductor
  *
  * SPDX-License-Identifier: Apache-2.0
- *
  */
+
 apply plugin: 'com.android.application'
 
 android {
@@ -17,6 +16,9 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+        resConfigs "en"
+
+        vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -27,14 +29,34 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation 'com.android.support:cardview-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+
+    // Lifecycle extensions
+    implementation 'android.arch.lifecycle:extensions:1.1.1'
+
+    // Butter Knife
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+
+    // Dagger 2
+    implementation 'com.google.dagger:dagger:2.16'
+    implementation "com.google.dagger:dagger-android:2.16"
+    implementation "com.google.dagger:dagger-android-support:2.16"
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.16'
+    annotationProcessor "com.google.dagger:dagger-android-processor:2.16"
+
+    // Brings the new BluetoothLeScanner API to older platforms
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.1.0'
+
+    // Mcu Mgr
+    implementation project(path: ':mcumgr-android-lib')
 
     // Test
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     testImplementation 'junit:junit:4.12'
-
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
-    implementation project(path: ':mcumgr-android-lib')
 }

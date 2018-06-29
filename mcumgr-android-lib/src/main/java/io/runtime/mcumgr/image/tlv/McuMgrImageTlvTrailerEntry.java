@@ -20,7 +20,6 @@ import io.runtime.mcumgr.util.Endian;
  * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
  */
 public class McuMgrImageTlvTrailerEntry {
-
     public final byte type;
     public final short length;
     public final byte[] value;
@@ -49,7 +48,6 @@ public class McuMgrImageTlvTrailerEntry {
         byte[] v = Arrays.copyOfRange(b, offset, offset + l);
         return new McuMgrImageTlvTrailerEntry(t, l, v);
     }
-
 
     public static int getMinSize() {
         return 4;

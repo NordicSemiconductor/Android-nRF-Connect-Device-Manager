@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string name="nav_default">Device</string>
+	<string name="nav_image">Image</string>
+	<string name="nav_fs">Files</string>
+	<string name="nav_stats">Logs &amp; Stats</string>
+</resources>

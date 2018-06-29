@@ -7,24 +7,26 @@
 
 package io.runtime.mcumgr;
 
+import android.support.annotation.NonNull;
+
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
- * Callback for asynchronous Newt Manager commands.
+ * Callback for asynchronous Mcu Manager commands.
  */
 public interface McuMgrCallback<T extends McuMgrResponse> {
     /**
-     * Newt Manager has received a response.
+     * Mcu Manager has received a response.
      *
-     * @param response the response
+     * @param response the response.
      */
-    void onResponse(T response);
+    void onResponse(@NonNull T response);
 
     /**
-     * Newt Manager has encountered a transport error while sending the command.
+     * Mcu Manager has encountered a transport error while sending the command.
      *
-     * @param error the error
+     * @param error the error.
      */
-    void onError(McuMgrException error);
+    void onError(@NonNull McuMgrException error);
 }

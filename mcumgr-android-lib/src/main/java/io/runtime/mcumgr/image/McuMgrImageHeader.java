@@ -6,6 +6,8 @@
 
 package io.runtime.mcumgr.image;
 
+import android.support.annotation.NonNull;
+
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.Endian;
@@ -17,11 +19,12 @@ import io.runtime.mcumgr.util.Endian;
  * For more info about McuBoot and image format see:
  * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrImageHeader {
     private static final String TAG = McuMgrImageHeader.class.getSimpleName();
 
-    public static int IMG_HEADER_MAGIC      = 0x96f3b83d;
-    public static int IMG_HEADER_MAGIC_V1   = 0x96f3b83c;
+    private static final int IMG_HEADER_MAGIC      = 0x96f3b83d;
+    private static final int IMG_HEADER_MAGIC_V1   = 0x96f3b83c;
 
     private static final int HEADER_LENGTH = 4 + 4 + 2 + 2 + 4 + 4 + 4;
     private int mMagic;
@@ -35,11 +38,11 @@ public class McuMgrImageHeader {
 
     private McuMgrImageHeader() {}
 
-    public static McuMgrImageHeader fromBytes(byte[] b) throws McuMgrException {
+    public static McuMgrImageHeader fromBytes(@NonNull byte[] b) throws McuMgrException {
         return fromBytes(b, 0);
     }
 
-    public static McuMgrImageHeader fromBytes(byte[] b, int offset) throws McuMgrException {
+    public static McuMgrImageHeader fromBytes(@NonNull byte[] b, int offset) throws McuMgrException {
         if (b.length - offset < getSize()) {
             throw new McuMgrException("The byte array is too short to be a McuMgrImageHeader");
         }

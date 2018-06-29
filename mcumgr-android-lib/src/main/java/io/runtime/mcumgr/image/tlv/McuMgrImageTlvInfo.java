@@ -17,13 +17,13 @@ import io.runtime.mcumgr.util.Endian;
  * For more info about McuBoot and image format see:
  * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
  */
+@SuppressWarnings("unused")
 public class McuMgrImageTlvInfo {
-
     private short mMagic;
     private short mTotal;
 
     private McuMgrImageTlvInfo() {
-
+        // empty private constructor
     }
 
     public static McuMgrImageTlvInfo fromBytes(byte[] b) throws McuMgrException {

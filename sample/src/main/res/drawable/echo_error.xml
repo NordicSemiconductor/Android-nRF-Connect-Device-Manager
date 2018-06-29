@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+	<corners
+		android:bottomLeftRadius="0dp"
+		android:radius="16dp"/>
+	<solid android:color="@color/echo_error"/>
+	<padding
+		android:bottom="8dp"
+		android:left="16dp"
+		android:right="16dp"
+		android:top="8dp"/>
+</shape>

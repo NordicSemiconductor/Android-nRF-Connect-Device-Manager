@@ -19,9 +19,9 @@ import io.runtime.mcumgr.response.config.McuMgrConfigReadResponse;
 /**
  * Config command group manager.
  */
+@SuppressWarnings("unused")
 public class ConfigManager extends McuManager {
-
-    public final static int ID_CONFIG = 0;
+    private final static int ID_CONFIG = 0;
 
     /**
      * Construct an config manager.
@@ -35,8 +35,8 @@ public class ConfigManager extends McuManager {
     /**
      * Read a config variable (asynchronous).
      *
-     * @param name     the name of the config variable
-     * @param callback the asynchronous callback
+     * @param name     the name of the config variable.
+     * @param callback the asynchronous callback.
      */
     public void read(String name, McuMgrCallback<McuMgrConfigReadResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
@@ -47,8 +47,8 @@ public class ConfigManager extends McuManager {
     /**
      * Read a config variable (synchronous).
      *
-     * @param name the name of the config variable
-     * @return the response
+     * @param name the name of the config variable.
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrConfigReadResponse read(String name) throws McuMgrException {
@@ -60,11 +60,11 @@ public class ConfigManager extends McuManager {
     /**
      * Write a value to a config variable (asynchronous).
      *
-     * @param name     the name of the config variable
-     * @param value    the value to write
+     * @param name     the name of the config variable.
+     * @param value    the value to write.
      * @param save     whether or not to save the value after it is set. A saved value will persist
      *                 in flash across device resets.
-     * @param callback the asynchronous callback
+     * @param callback the asynchronous callback.
      */
     public void write(String name, String value, boolean save, McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
@@ -77,11 +77,11 @@ public class ConfigManager extends McuManager {
     /**
      * Write a value to a config variable (synchronous).
      *
-     * @param name  the name of the config variable
-     * @param value the value to write
+     * @param name  the name of the config variable.
+     * @param value the value to write.
      * @param save  whether or not to save the value after it is set. A saved value will persist
      *              in flash across device resets.
-     * @return the response
+     * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     public McuMgrResponse write(String name, String value, boolean save) throws McuMgrException {

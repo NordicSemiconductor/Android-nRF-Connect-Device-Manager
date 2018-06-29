@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string name="image_upload_title">Firmware Upload</string>
+	<string name="image_upload_file_name">File Name:</string>
+	<string name="image_upload_size">File Size:</string>
+	<string name="image_upload_size_value">%d bytes</string>
+	<string name="image_upload_hash">File Hash:</string>
+	<string name="image_upload_status">State:</string>
+	<string name="image_upload_action_start">Upload</string>
+
+	<string name="image_upload_status_ready">READY</string>
+	<string name="image_upload_status_validating">VALIDATING…</string>
+	<string name="image_upload_status_uploading">UPLOADING…</string>
+	<string name="image_upload_status_paused">PAUSED</string>
+	<string name="image_upload_status_completed">UPLOAD COMPLETE</string>
+
+	<string name="image_upload_dialog_help_title">Help</string>
+	<string name="image_upload_dialog_help_message"><b>Firmware Update</b> card lets you send
+		a new firmware image onto the device to slot&#160;1. After sending the image,
+		use <b>Images</b> card to test or confirm it, and the <b>Reset</b> card to reboot
+		the device.</string>
+</resources>

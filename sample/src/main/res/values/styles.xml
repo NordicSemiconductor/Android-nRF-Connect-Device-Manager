@@ -1,26 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) Intellinium SAS, 2014-present
+  ~ Copyright (c) 2018, Nordic Semiconductor
   ~
   ~ SPDX-License-Identifier: Apache-2.0
-  ~
   -->
 
-
 <resources>
+    <style name="Widget" />
+
+    <style name="Widget.ScannerSubtitle">
+        <item name="android:textColor">?android:textColorSecondary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.ActionButton" parent="Widget.AppCompat.Button.Borderless.Colored">
+        <!--
+            4 action buttons don't fit on the screen on narrow phones.
+            Default width would be 4 * 88 dip = 352. For narrower phones, use narrower buttons.
+        -->
+        <item name="android:minWidth">56dip</item>
+    </style>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="AppTheme.Base">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@android:color/holo_blue_light</item>
-        <item name="colorPrimaryDark">@android:color/holo_blue_dark</item>
+    </style>
+
+    <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/background</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
+    <!-- Main app's toolbar theme. -->
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
