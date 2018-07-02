@@ -18,7 +18,7 @@ buildscript {
 }
 
 ext {
-    mcuMgrVersion = "0.5.1"
+    mcuMgrVersion = "0.6.0"
 }
 
 allprojects {
