@@ -17,6 +17,7 @@ import java.util.concurrent.Executor;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.DefaultManager;
@@ -334,6 +335,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                     Log.v(TAG, "Validation response: " + response.toString());
 
+                    // Check for an error return code
+                    if (!response.isSuccess()) {
+                        fail(new McuMgrErrorException(response.getRc()));
+                        return;
+                    }
+
                     McuMgrImageStateResponse.ImageSlot[] images = response.images;
 
                     // Check if the new firmware is different than the active one.
@@ -407,6 +414,11 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         @Override
         public void onResponse(@NonNull McuMgrImageStateResponse response) {
             Log.v(TAG, "Test response: " + response.toString());
+            // Check for an error return code
+            if (!response.isSuccess()) {
+                fail(new McuMgrErrorException(response.getRc()));
+                return;
+            }
             if (response.images.length != 2) {
                 fail(new McuMgrException("Test response does not contain enough info"));
                 return;
@@ -465,6 +477,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         public void onResponse(@NonNull McuMgrResponse response) {
             // Reset command has been sent.
             Log.v(TAG, "Reset request sent. Waiting for reset");
+            // Check for an error return code
+            if (!response.isSuccess()) {
+                fail(new McuMgrErrorException(response.getRc()));
+            }
         }
 
         @Override
@@ -482,6 +498,11 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 @Override
                 public void onResponse(@NonNull McuMgrImageStateResponse response) {
                     Log.v(TAG, "Confirm response: " + response.toString());
+                    // Check for an error return code
+                    if (!response.isSuccess()) {
+                        fail(new McuMgrErrorException(response.getRc()));
+                        return;
+                    }
                     if (response.images.length == 0) {
                         fail(new McuMgrException("Confirm response does not contain enough info"));
                         return;
