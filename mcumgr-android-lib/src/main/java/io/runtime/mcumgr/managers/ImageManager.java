@@ -248,19 +248,21 @@ public class ImageManager extends McuManager {
      *
      * @param data     the image data to upload to slot 1.
      * @param callback the image upload callback.
+     * @return True, if the upload has stared, false otherwise.
      */
-    public synchronized void upload(@NonNull byte[] data, @NonNull ImageUploadCallback callback) {
+    public synchronized boolean upload(@NonNull byte[] data, @NonNull ImageUploadCallback callback) {
         if (mUploadState == STATE_NONE) {
             mUploadState = STATE_UPLOADING;
         } else {
             Log.d(TAG, "An image upload is already in progress");
-            return;
+            return false;
         }
 
         mUploadCallback = callback;
         mImageData = data;
 
         sendNext(0);
+        return true;
     }
 
     /**
