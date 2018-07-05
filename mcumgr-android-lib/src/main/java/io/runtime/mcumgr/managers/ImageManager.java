@@ -8,6 +8,7 @@
 package io.runtime.mcumgr.managers;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
@@ -207,12 +208,16 @@ public class ImageManager extends McuManager {
      * Confirming an image will make it the default to boot into.
      *
      * @param hash     the hash of the image to confirm.
+     *                 If not provided, the current image running on the device will be made
+     *                 permanent.
      * @param callback the asynchronous callback.
      */
-    public void confirm(@NonNull byte[] hash, @NonNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+    public void confirm(@Nullable byte[] hash, @NonNull McuMgrCallback<McuMgrImageStateResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("hash", hash);
         payloadMap.put("confirm", true);
+        if (hash != null) {
+            payloadMap.put("hash", hash);
+        }
         send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class, callback);
     }
 
@@ -222,13 +227,17 @@ public class ImageManager extends McuManager {
      * Confirming an image will make it the default to boot into.
      *
      * @param hash the hash of the image to confirm.
+     *             If not provided, the current image running on the device will be made
+     *             permanent.
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrImageStateResponse confirm(@NonNull byte[] hash) throws McuMgrException {
+    public McuMgrImageStateResponse confirm(@Nullable byte[] hash) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("hash", hash);
         payloadMap.put("confirm", true);
+        if (hash != null) {
+            payloadMap.put("hash", hash);
+        }
         return send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class);
     }
 
