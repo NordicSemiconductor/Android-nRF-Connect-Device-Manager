@@ -345,8 +345,24 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
                     // Check if the new firmware is different than the active one.
                     if (images.length > 0 && Arrays.equals(mHash, images[0].hash)) {
-                        // The new firmware is already active. No need to do anything.
-                        success();
+                        if (images[0].confirmed) {
+                            // The new firmware is already active and confirmed.
+                            // No need to do anything.
+                            success();
+                        } else {
+                            // The new firmware is in test mode.
+                            switch (mMode) {
+                                case CONFIRM_ONLY:
+                                case TEST_AND_CONFIRM:
+                                    // We have to confirm it.
+                                    confirm();
+                                    break;
+                                case TEST_ONLY:
+                                    // Nothing to be done.
+                                    success();
+                                    break;
+                            }
+                        }
                         return;
                     }
 
