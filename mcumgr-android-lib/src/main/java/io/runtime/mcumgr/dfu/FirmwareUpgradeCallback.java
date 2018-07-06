@@ -21,13 +21,14 @@ public interface FirmwareUpgradeCallback {
      *
      * @param controller the upgrade controller.
      */
-    void onStart(FirmwareUpgradeController controller);
+    void onUpgradeStarted(FirmwareUpgradeController controller);
 
     /**
-     * Called when the firmware upgrade changes state (see {@link FirmwareUpgradeManager.State}).
+     * Called when the firmware upgrade changes state.
      *
      * @param prevState previous state.
      * @param newState  new state.
+     * @see FirmwareUpgradeManager.State
      */
     void onStateChanged(FirmwareUpgradeManager.State prevState,
                         FirmwareUpgradeManager.State newState);
@@ -35,7 +36,7 @@ public interface FirmwareUpgradeCallback {
     /**
      * Called when the firmware upgrade has succeeded.
      */
-    void onSuccess();
+    void onUpgradeCompleted();
 
     /**
      * Called when the firmware upgrade has failed.
@@ -43,15 +44,17 @@ public interface FirmwareUpgradeCallback {
      * @param state the state the upgrade failed in.
      * @param error the error.
      */
-    void onFail(FirmwareUpgradeManager.State state, McuMgrException error);
+    void onUpgradeFailed(FirmwareUpgradeManager.State state, McuMgrException error);
 
     /**
      * Called when the firmware upgrade has been canceled using the
-     * {@link FirmwareUpgradeManager#cancel()} method.
+     * {@link FirmwareUpgradeManager#cancel()} method. The upgrade may be cancelled only during
+     * uploading the image. When the image is uploaded, the test and/or confirm commands will be
+     * sent depending on the {@link FirmwareUpgradeManager#setMode(FirmwareUpgradeManager.Mode)}.
      *
      * @param state the state the upgrade was cancelled in.
      */
-    void onCancel(FirmwareUpgradeManager.State state);
+    void onUpgradeCanceled(FirmwareUpgradeManager.State state);
 
     /**
      * Called when the {@link FirmwareUpgradeManager.State#UPLOAD} state progress has changed.

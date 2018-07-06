@@ -80,21 +80,21 @@ public class FilesDownloadViewModel extends McuMgrViewModel
 	}
 
 	@Override
-	public void onProgressChange(final int bytesDownloaded, final int imageSize,
-								 final long timestamp) {
+	public void onProgressChanged(final int bytesDownloaded, final int imageSize,
+								  final long timestamp) {
 		// Convert to percent
 		mProgressLiveData.postValue((int) (bytesDownloaded * 100.f / imageSize));
 	}
 
 	@Override
-	public void onDownloadCancel() {
+	public void onDownloadCanceled() {
 		mProgressLiveData.postValue(0);
 		mCancelledEvent.post();
 		postReady();
 	}
 
 	@Override
-	public void onDownloadFail(@NonNull final McuMgrException error) {
+	public void onDownloadFailed(@NonNull final McuMgrException error) {
 		mProgressLiveData.postValue(0);
 		if (error instanceof McuMgrErrorException) {
 			final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
@@ -110,7 +110,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel
 	}
 
 	@Override
-	public void onDownloadFinish(@NonNull final String name, @NonNull final byte[] data) {
+	public void onDownloadFinished(@NonNull final String name, @NonNull final byte[] data) {
 		mProgressLiveData.postValue(0);
 		mResponseLiveData.postValue(data);
 		postReady();

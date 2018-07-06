@@ -287,9 +287,9 @@ public class FsManager extends McuManager {
 
     private synchronized void failUpload(McuMgrException error) {
         if (mUploadCallback != null) {
-            mUploadCallback.onUploadFail(error);
+            mUploadCallback.onUploadFailed(error);
         }else if (mDownloadCallback != null) {
-            mDownloadCallback.onDownloadFail(error);
+            mDownloadCallback.onDownloadFailed(error);
         }
         cancelTransfer();
     }
@@ -364,7 +364,7 @@ public class FsManager extends McuManager {
                     if (mTransferState == STATE_NONE) {
                         Log.d(TAG, "Upload canceled!");
                         resetTransfer();
-                        mUploadCallback.onUploadCancel();
+                        mUploadCallback.onUploadCanceled();
                         mUploadCallback = null;
                         return;
                     }
@@ -373,14 +373,14 @@ public class FsManager extends McuManager {
                     mOffset = response.off;
 
                     // Call the progress callback.
-                    mUploadCallback.onProgressChange(mOffset, mFileData.length,
+                    mUploadCallback.onProgressChanged(mOffset, mFileData.length,
                             System.currentTimeMillis());
 
                     // Check if the upload has finished.
                     if (mOffset == mFileData.length) {
                         Log.d(TAG, "Upload finished!");
                         resetTransfer();
-                        mUploadCallback.onUploadFinish();
+                        mUploadCallback.onUploadFinished();
                         mUploadCallback = null;
                         return;
                     }
@@ -433,7 +433,7 @@ public class FsManager extends McuManager {
                     if (mTransferState == STATE_NONE) {
                         Log.d(TAG, "Download canceled!");
                         resetTransfer();
-                        mDownloadCallback.onDownloadCancel();
+                        mDownloadCallback.onDownloadCanceled();
                         mDownloadCallback = null;
                         return;
                     }
@@ -451,7 +451,7 @@ public class FsManager extends McuManager {
                     mOffset += response.data.length;
 
                     // Call the progress callback.
-                    mDownloadCallback.onProgressChange(mOffset, mFileData.length,
+                    mDownloadCallback.onProgressChanged(mOffset, mFileData.length,
                             System.currentTimeMillis());
 
                     // Check if the download has finished.
@@ -460,7 +460,7 @@ public class FsManager extends McuManager {
                         byte[] data = mFileData;
                         String fileName = mFileName;
                         resetTransfer();
-                        mDownloadCallback.onDownloadFinish(fileName, data);
+                        mDownloadCallback.onDownloadFinished(fileName, data);
                         mDownloadCallback = null;
                         return;
                     }
@@ -516,24 +516,24 @@ public class FsManager extends McuManager {
          * @param imageSize the size of the image in bytes.
          * @param timestamp the timestamp of when the response was received.
          */
-        void onProgressChange(int bytesSent, int imageSize, long timestamp);
+        void onProgressChanged(int bytesSent, int imageSize, long timestamp);
 
         /**
          * Called when the upload has failed.
          *
          * @param error the error. See the cause for more info.
          */
-        void onUploadFail(McuMgrException error);
+        void onUploadFailed(McuMgrException error);
 
         /**
          * Called when the upload has been canceled.
          */
-        void onUploadCancel();
+        void onUploadCanceled();
 
         /**
          * Called when the upload has finished successfully.
          */
-        void onUploadFinish();
+        void onUploadFinished();
     }
 
     //******************************************************************
@@ -549,19 +549,19 @@ public class FsManager extends McuManager {
          * @param imageSize       the size of the image in bytes.
          * @param timestamp       the timestamp of when the response was received.
          */
-        void onProgressChange(int bytesDownloaded, int imageSize, long timestamp);
+        void onProgressChanged(int bytesDownloaded, int imageSize, long timestamp);
 
         /**
          * Called when the download has failed.
          *
          * @param error the error. See the cause for more info.
          */
-        void onDownloadFail(@NonNull McuMgrException error);
+        void onDownloadFailed(@NonNull McuMgrException error);
 
         /**
          * Called when the download has been canceled.
          */
-        void onDownloadCancel();
+        void onDownloadCanceled();
 
         /**
          * Called when the download has finished successfully.
@@ -569,6 +569,6 @@ public class FsManager extends McuManager {
          * @param name file name.
          * @param data file data.
          */
-        void onDownloadFinish(@NonNull String name, @NonNull byte[] data);
+        void onDownloadFinished(@NonNull String name, @NonNull byte[] data);
     }
 }

@@ -209,7 +209,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         mHash = McuMgrImage.getHash(imageData);
 
         // Begin the upload
-        mInternalCallback.onStart(this);
+        mInternalCallback.onUpgradeStarted(this);
         validate();
     }
 
@@ -305,12 +305,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private synchronized void success() {
         mState = State.NONE;
         mPaused = false;
-        mInternalCallback.onSuccess();
+        mInternalCallback.onUpgradeCompleted();
     }
 
     private synchronized void fail(McuMgrException error) {
         cancelPrivate();
-        mInternalCallback.onFail(mState, error);
+        mInternalCallback.onUpgradeFailed(mState, error);
     }
 
     private synchronized void cancelPrivate() {
@@ -608,22 +608,22 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private ImageManager.ImageUploadCallback mImageUploadCallback =
             new ImageManager.ImageUploadCallback() {
         @Override
-        public void onProgressChange(int bytesSent, int imageSize, long timestamp) {
+        public void onProgressChanged(int bytesSent, int imageSize, long timestamp) {
             mInternalCallback.onUploadProgressChanged(bytesSent, imageSize, timestamp);
         }
 
         @Override
-        public void onUploadFail(@NonNull McuMgrException error) {
-            mInternalCallback.onFail(mState, error);
+        public void onUploadFailed(@NonNull McuMgrException error) {
+            mInternalCallback.onUpgradeFailed(mState, error);
         }
 
         @Override
-        public void onUploadCancel() {
-            mInternalCallback.onCancel(mState);
+        public void onUploadCanceled() {
+            mInternalCallback.onUpgradeCanceled(mState);
         }
 
         @Override
-        public void onUploadFinish() {
+        public void onUploadFinished() {
             // When upload is complete, send test on confirm commands, depending on the mode.
             switch (mMode) {
                 case TEST_ONLY:
@@ -655,16 +655,16 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         }
 
         @Override
-        public void onStart(final FirmwareUpgradeController controller) {
+        public void onUpgradeStarted(final FirmwareUpgradeController controller) {
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
-                        mCallback.onStart(controller);
+                        mCallback.onUpgradeStarted(controller);
                     }
                 });
             } else {
-                mCallback.onStart(controller);
+                mCallback.onUpgradeStarted(controller);
             }
         }
 
@@ -683,44 +683,44 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         }
 
         @Override
-        public void onSuccess() {
+        public void onUpgradeCompleted() {
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
-                        mCallback.onSuccess();
+                        mCallback.onUpgradeCompleted();
                     }
                 });
             } else {
-                mCallback.onSuccess();
+                mCallback.onUpgradeCompleted();
             }
         }
 
         @Override
-        public void onFail(final State state, final McuMgrException error) {
+        public void onUpgradeFailed(final State state, final McuMgrException error) {
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
-                        mCallback.onFail(state, error);
+                        mCallback.onUpgradeFailed(state, error);
                     }
                 });
             } else {
-                mCallback.onFail(state, error);
+                mCallback.onUpgradeFailed(state, error);
             }
         }
 
         @Override
-        public void onCancel(final State state) {
+        public void onUpgradeCanceled(final State state) {
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
-                        mCallback.onCancel(state);
+                        mCallback.onUpgradeCanceled(state);
                     }
                 });
             } else {
-                mCallback.onCancel(state);
+                mCallback.onUpgradeCanceled(state);
             }
         }
 

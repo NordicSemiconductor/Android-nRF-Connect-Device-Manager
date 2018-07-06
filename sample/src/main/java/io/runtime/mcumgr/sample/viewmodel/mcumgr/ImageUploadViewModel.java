@@ -145,20 +145,20 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
 	}
 
 	@Override
-	public void onProgressChange(final int bytesSent, final int imageSize, final long timestamp) {
+	public void onProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
 		// Convert to percent
 		mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
 	}
 
 	@Override
-	public void onUploadFail(@NonNull final McuMgrException error) {
+	public void onUploadFailed(@NonNull final McuMgrException error) {
 		mProgressLiveData.postValue(0);
 		mErrorLiveData.postValue(error.getMessage());
 		postReady();
 	}
 
 	@Override
-	public void onUploadCancel() {
+	public void onUploadCanceled() {
 		mProgressLiveData.postValue(0);
 		mStateLiveData.postValue(State.IDLE);
 		mCancelledEvent.post();
@@ -166,7 +166,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
 	}
 
 	@Override
-	public void onUploadFinish() {
+	public void onUploadFinished() {
 		mProgressLiveData.postValue(0);
 		mStateLiveData.postValue(State.COMPLETE);
 		postReady();
