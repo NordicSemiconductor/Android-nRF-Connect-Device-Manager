@@ -49,7 +49,7 @@ public class McuMgrResponse {
     /**
      * The return code (enum) for this response. For the raw return code use the "rc" property.
      */
-    private McuMgrErrorCode mRc;
+    private McuMgrErrorCode mReturnCode;
 
     /**
      * McuMgr payload for this response. This does not include the McuMgr header for standard
@@ -91,12 +91,12 @@ public class McuMgrResponse {
      *
      * @return Mcu Manager return code.
      */
-    public int getRcValue() {
-        if (mRc == null) {
+    public int getReturnCodeValue() {
+        if (mReturnCode == null) {
             Log.w(TAG, "Response does not contain a McuMgr return code.");
             return 0;
         } else {
-            return mRc.value();
+            return mReturnCode.value();
         }
     }
 
@@ -105,8 +105,8 @@ public class McuMgrResponse {
      *
      * @return The return code enum.
      */
-    public McuMgrErrorCode getRc() {
-        return mRc;
+    public McuMgrErrorCode getReturnCode() {
+        return mReturnCode;
     }
 
     /**
@@ -187,7 +187,7 @@ public class McuMgrResponse {
         mBytes = bytes;
         mHeader = header;
         mPayload = payload;
-        mRc = rc;
+        mReturnCode = rc;
     }
 
     /**
