@@ -310,8 +310,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     private synchronized void fail(McuMgrException error) {
+        State failedState = mState;
         cancelPrivate();
-        mInternalCallback.onUpgradeFailed(mState, error);
+        mInternalCallback.onUpgradeFailed(failedState, error);
     }
 
     private synchronized void cancelPrivate() {
