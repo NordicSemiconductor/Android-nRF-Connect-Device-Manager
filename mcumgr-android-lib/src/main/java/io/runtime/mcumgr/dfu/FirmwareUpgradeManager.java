@@ -10,6 +10,7 @@ package io.runtime.mcumgr.dfu;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -129,9 +130,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * @param transport the transporter to use.
      */
     public FirmwareUpgradeManager(@NonNull McuMgrTransport transport) {
-        mState = State.NONE;
-        mImageManager = new ImageManager(transport);
-        mDefaultManager = new DefaultManager(transport);
+        this(transport, null);
     }
 
     /**
@@ -141,8 +140,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * @param callback  the callback.
      */
     public FirmwareUpgradeManager(@NonNull McuMgrTransport transport,
-                                  @NonNull FirmwareUpgradeCallback callback) {
-        this(transport);
+                                  @Nullable FirmwareUpgradeCallback callback) {
+        mState = State.NONE;
+        mImageManager = new ImageManager(transport);
+        mDefaultManager = new DefaultManager(transport);
         mCallback = callback;
     }
 
@@ -160,7 +161,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      *
      * @param callback the callback for receiving status change events.
      */
-    public void setFirmwareUpgradeCallback(@NonNull FirmwareUpgradeCallback callback) {
+    public void setFirmwareUpgradeCallback(@Nullable FirmwareUpgradeCallback callback) {
         mCallback = callback;
     }
 
@@ -309,8 +310,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     private synchronized void fail(McuMgrException error) {
+        State failedState = mState;
         cancelPrivate();
-        mInternalCallback.onUpgradeFailed(mState, error);
+        mInternalCallback.onUpgradeFailed(failedState, error);
     }
 
     private synchronized void cancelPrivate() {
@@ -656,6 +658,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUpgradeStarted(final FirmwareUpgradeController controller) {
+            if (mCallback == null) {
+                return;
+            }
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
@@ -670,6 +675,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onStateChanged(final State prevState, final State newState) {
+            if (mCallback == null) {
+                return;
+            }
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
@@ -684,6 +692,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUpgradeCompleted() {
+            if (mCallback == null) {
+                return;
+            }
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
@@ -698,6 +709,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUpgradeFailed(final State state, final McuMgrException error) {
+            if (mCallback == null) {
+                return;
+            }
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
@@ -712,6 +726,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUpgradeCanceled(final State state) {
+            if (mCallback == null) {
+                return;
+            }
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
@@ -726,6 +743,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+            if (mCallback == null) {
+                return;
+            }
             if (mUiThreadCallbacks) {
                 getMainThreadExecutor().execute(new Runnable() {
                     @Override
