@@ -156,7 +156,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
             final SmpResponse<T> smpResponse = waitForNotification(mSmpCharacteristic)
                     .merge(mSMPMerger)
                     .trigger(writeCharacteristic(mSmpCharacteristic, payload))
-                    .await(new SmpResponse<>(responseType), 1000);
+                    .await(new SmpResponse<>(responseType), 10000);
             if (smpResponse.isValid()) {
                 //noinspection ConstantConditions
                 return smpResponse.getResponse();
@@ -239,7 +239,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                                 }
                             }
                         })
-                        .enqueue(1000);
+                        .enqueue(10000);
             }
         }).fail(new FailCallback() {
             @Override
