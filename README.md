@@ -1,8 +1,8 @@
 # Android McuManager 
 
-A transport agnostic implementation of the McuManager protocol (aka Newt Manager, Simple Management Protocol) for Android. 
+A transport agnostic implementation of the McuManager protocol (aka Newt Manager (NMP), Simple Management Protocol (SMP)) for Android. 
 
-## Download
+## Install
 
 You may clone/download the repository and add the source as a module in your app, or simply use gradle.
 
@@ -22,23 +22,62 @@ allprojects {
 Add the dependency to your app:
 
 ```
-implementation 'com.github.runtimeco:mcumgr-android:0.5'
+implementation 'com.github.runtimeco:mcumgr-android:0.6.1'
 ```
-
-## Sample App Quick Start
-
-Before integrating McuManager into your Android app, you may want to test the sample app with your device to make sure the device has been set up correctly. 
-
-// TODO
 
 # Introduction
 
-McuManager is a application layer protocol used to manage and montior microcontrollers running Apache Mynewt and Zephyr. More specifically, McuManagr implements over-the-air (OTA) firmware upgrades, log and stat collection, and file-system and configuration management. 
+McuManager is an application layer protocol used to manage and monitor microcontrollers running Apache Mynewt and Zephyr. More specifically, McuManagr implements over-the-air (OTA) firmware upgrades, log and stat collection, and file-system and configuration management. 
 
-# API Overview
+## Javadoc
 
-Since most apps will be using Bluetooth Low Energy (BLE) as the transport and likely already contain custom application protocols running over BLE to control the remote device, the primary design goal of this library is to allow developers to integrate mcumgr-android into their custom BLE state machine. Furthermore, because McuManager is capable of running over mutliple transports (BLE, UDP) and allows for commands to be sent on top of [CoAP](https://tools.ietf.org/html/rfc7252) the transport implementation is separated from the packet formation.
+[https://jitpack.io/com/github/runtimeco/mcumgr-android/0.6.1/javadoc/](https://jitpack.io/com/github/runtimeco/mcumgr-android/0.6.1/javadoc/)
 
-// TODO
+## Command Groups
+
+McuManager are organized by functionality into command groups. In _mcumgr-android_, command groups are called managers and extend the `McuManager` class. The managers (groups) implemented in _mcumgr-android_ are:
+
+* **`DefaultManager`**: Contains commands relevent to the OS. This includes task and memory pool statistics, device time read & write, and device reset.
+* **`ImageManager`**: Manage image state on the device and perform image uploads.
+* **`StatsManager`**: Read stats from the device.
+* **`ConfigManager`**: Read/Write config values on the device.
+* **`LogManager`**: Collect logs from the device.
+* **`FsManager`**: Download/upload files from the device file system.
+
+# Firmware Upgrade
+
+Firmware upgrade is generally a four step process performed using commands from the `image` and `default` commands groups: `upload`, `test`, `reset`, and `confirm`.
+
+This library provides a `FirmwareUpgradeManager` as a convinience for upgrading the image running on a device. 
+
+## FirmwareUpgradeManager
+
+A `FirmwareUpgradeManager` provides an easy way to perform firmware upgrades on a device. A `FirmwareUpgradeManager` must be initialized with an `McuMgrTransport` which defines the transport scheme and device. Once initialized, a `FirmwareUpgradeManager` can perform one firmware upgrade at a time. Firmware upgrades are started using the `start(byte[] imageData)` method and can be paused, resumed, and canceled using `pause()`, `resume()`, and `cancel()` respectively.
+
+#### Firmware Upgrade Mode
+
+McuManager firmware upgrades can actually be performed in few different ways. These different upgrade modes determine the commands sent after the upload step. The `FirmwareUpgradeManager` can be configured to perform these different methods using `setMode(FirmwareUpgradeManager.Mode mode)`. The different firmware upgrade modes are as follows:
+
+* **`TEST_AND_CONFIRM`**: This mode is the **default and recommended mode** for performing upgrades due to it's ability to recover from a bad firmware upgrade. The process for this mode is `upload`, `test`, `reset`, `confirm`. 
+* **`CONFIRM_ONLY`**: This mode is **not recommended**. If the device fails to boot into the new image, it will not be able to recover and will need to be re-flashed. The process for this mode is `upload`, `confirm`, `reset`.
+* **`TEST_ONLY`**: This mode is useful if you want to run tests on the new image running before confirming it manually as the primary boot image. The process for this mode is `upload`, `test`, `reset`.
+
+### Firmware Upgrade State
+
+`FirmwareUpgradeManager` acts as a simple, mostly linear state machine which is determined by the `Mode`. As the manager moves through the firmware upgrade process, state changes are provided through the `FirmwareUpgradeCallback`'s `onStateChanged` method.
+
+The `FirmwareUpgradeManager` contains an additional state, `VALIDATE`, which precedes the upload. The `VALIDATE` state checks the current image state of the device in an attempt to bypass certain states of the firmware upgrade. For example, if the image to upload is already in slot 1 on the device, the `State` will skip `UPLOAD` and move directly to `TEST` (or `CONFIRM` if `Mode.CONFIRM_ONLY` has been set). If the uploaded image is already active, and confirmed in slot 0, the upgrade will succeed immediately. The `VALIDATE` state makes it easy to reattempt an upgrade without needing to re-upload the image or manually determine where to start.
+
+### Example
+```java
+// Initialize the BLE transporter with context and a BluetoothDevice
+McuMgrTransport bleTransport = new McuMgrBleTransport(context, bluetoothDevice);
+
+// Initialize the FirmwareUpgradeManager
+FirmwareUpgradeManager dfuManager = new FirmwareUpgradeManager(transport, dfuCallback)
+
+// Start the firmware upgrade with the image data
+dfuManager.start(imageData);
+```
 
 
