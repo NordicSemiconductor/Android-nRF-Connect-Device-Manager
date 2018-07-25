@@ -295,6 +295,13 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         }
     }
 
+    private synchronized void verify() {
+        setState(State.CONFIRM);
+        if (!mPaused) {
+            mImageManager.confirm(null, mConfirmCallback);
+        }
+    }
+
     private synchronized void reset() {
         setState(State.RESET);
         if (!mPaused) {
@@ -387,7 +394,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                         }
 
                         // If image was already confirmed, reset (if confirm was planned), or fail.
-                        if (images[1].permanent) {
+                        if (images[1].permanent || images[1].confirmed) {
                             switch (mMode) {
                                 case CONFIRM_ONLY:
                                 case TEST_AND_CONFIRM:
@@ -442,7 +449,6 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (!response.images[1].pending) {
-                Log.e(TAG, "Tested image is not in a pending state.");
                 fail(new McuMgrException("Tested image is not in a pending state."));
                 return;
             }
@@ -475,7 +481,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             switch (mMode) {
                 case TEST_AND_CONFIRM:
                     // The device reconnected after testing.
-                    confirm();
+                    verify();
                     break;
                 case TEST_ONLY:
                 case CONFIRM_ONLY:
@@ -525,18 +531,33 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                         fail(new McuMgrException("Confirm response does not contain enough info"));
                         return;
                     }
-                    if (!response.images[0].confirmed) {
-                        Log.e(TAG, "Image is not in a confirmed state.");
-                        fail(new McuMgrException("Image is not in a confirmed state."));
-                        return;
-                    }
-                    // Confirm command has been sent.
+                    // Handle the response based on mode.
                     switch (mMode) {
                         case CONFIRM_ONLY:
+                            // Check that an image exists in slot 1
+                            if (response.images.length != 2) {
+                                fail(new McuMgrException("Confirm response does not contain enough info"));
+                                return;
+                            }
+                            // Check that the upgrade image has been confirmed
+                            if (!response.images[1].pending) {
+                                fail(new McuMgrException("Image is not in a confirmed state."));
+                                return;
+                            }
                             // Reset the device, we don't want to do anything more.
                             reset();
                             break;
                         case TEST_AND_CONFIRM:
+                            // Check that the upgrade image has successfully booted
+                            if (!Arrays.equals(mHash, response.images[0].hash)) {
+                                fail(new McuMgrException("Device failed to boot into new image"));
+                                return;
+                            }
+                            // Check that the upgrade image has been confirmed
+                            if (!response.images[0].confirmed) {
+                                fail(new McuMgrException("Image is not in a confirmed state."));
+                                return;
+                            }
                             // The device has been tested and confirmed.
                             success();
                             break;
