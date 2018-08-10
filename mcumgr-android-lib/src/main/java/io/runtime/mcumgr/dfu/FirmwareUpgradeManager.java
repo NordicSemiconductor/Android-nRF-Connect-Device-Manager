@@ -220,8 +220,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
     @Override
     public synchronized void cancel() {
-        if (mState.isInProgress()) {
-            cancelPrivate();
+        if (mState == State.UPLOAD) {
+            mImageManager.cancelUpload();
+            mPaused = false;
         }
     }
 
@@ -318,16 +319,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
     private synchronized void fail(McuMgrException error) {
         State failedState = mState;
-        cancelPrivate();
-        mInternalCallback.onUpgradeFailed(failedState, error);
-    }
-
-    private synchronized void cancelPrivate() {
-        if (mState == State.UPLOAD) {
-            mImageManager.cancelUpload();
-        }
         mState = State.NONE;
         mPaused = false;
+        mInternalCallback.onUpgradeFailed(failedState, error);
     }
 
     //******************************************************************
@@ -394,7 +388,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                         }
 
                         // If image was already confirmed, reset (if confirm was planned), or fail.
-                        if (images[1].permanent || images[1].confirmed) {
+                        if (images[1].permanent) {
                             switch (mMode) {
                                 case CONFIRM_ONLY:
                                 case TEST_AND_CONFIRM:
@@ -418,6 +412,17 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                                 reset();
                                 break;
                         }
+                        return;
+                    }
+
+                    // If the image in slot 1 is confirmed (we are in test mode)
+                    // we won't be able to erase the slot. A No Memory error
+                    // would be thrown. We have to reset the device and return
+                    // from test mode before firmware upgrade begins.
+                    if (images.length > 1 && images[1].confirmed) {
+                        // Send reset command without changing state.
+                        mDefaultManager.getTransporter().addObserver(mResetObserver);
+                        mDefaultManager.reset(mResetCallback);
                         return;
                     }
 
@@ -478,15 +483,23 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             // Device has reset.
             mDefaultManager.getTransporter().removeObserver(this);
             Log.v(TAG, "Reset successful");
-            switch (mMode) {
-                case TEST_AND_CONFIRM:
-                    // The device reconnected after testing.
-                    verify();
+            switch (mState) {
+                case VALIDATE:
+                    // The device has exited test mode. Slot 1 can now be erased.
+                    validate();
                     break;
-                case TEST_ONLY:
-                case CONFIRM_ONLY:
-                    // The device has been tested or confirmed.
-                    success();
+                case RESET:
+                    switch (mMode) {
+                        case TEST_AND_CONFIRM:
+                            // The device reconnected after testing.
+                            verify();
+                            break;
+                        case TEST_ONLY:
+                        case CONFIRM_ONLY:
+                            // The device has been tested or confirmed.
+                            success();
+                            break;
+                    }
                     break;
             }
         }
@@ -637,7 +650,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUploadFailed(@NonNull McuMgrException error) {
-            mInternalCallback.onUpgradeFailed(mState, error);
+            fail(error);
         }
 
         @Override
