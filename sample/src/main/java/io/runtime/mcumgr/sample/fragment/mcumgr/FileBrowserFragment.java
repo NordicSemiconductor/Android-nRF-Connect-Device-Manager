@@ -151,7 +151,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 						// File name and size must be obtained from Content Provider
 						final Bundle bundle = new Bundle();
 						bundle.putParcelable(EXTRA_FILE_URI, uri);
-						getLoaderManager().restartLoader(LOAD_FILE_LOADER_REQ, bundle, this);
+						LoaderManager.getInstance(this).restartLoader(LOAD_FILE_LOADER_REQ, bundle, this);
 					}
 				}
 			}
@@ -216,7 +216,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 				// Reset the loader as the URU read permission is one time only.
 				// We keep the file content in the fragment so no need to load it again.
 				// onLoaderReset(...) will be called after that.
-				getLoaderManager().destroyLoader(LOAD_FILE_LOADER_REQ);
+				LoaderManager.getInstance(this).destroyLoader(LOAD_FILE_LOADER_REQ);
 			}
 		}
 	}

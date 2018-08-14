@@ -5,7 +5,7 @@
   ~ SPDX-License-Identifier: Apache-2.0
   -->
 
-<android.support.v7.widget.CardView
+<android.support.design.card.MaterialCardView
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
@@ -125,7 +125,7 @@
 			app:layout_constraintStart_toStartOf="parent"
 			app:layout_constraintTop_toBottomOf="@+id/progress"/>
 
-		<Button
+		<android.support.design.button.MaterialButton
 			android:id="@+id/action_select_file"
 			style="@style/Widget.ActionButton"
 			android:layout_width="wrap_content"
@@ -135,7 +135,7 @@
 			app:layout_constraintEnd_toStartOf="@+id/action_start"
 			app:layout_constraintTop_toBottomOf="@+id/divider"/>
 
-		<Button
+		<android.support.design.button.MaterialButton
 			android:id="@+id/action_start"
 			style="@style/Widget.ActionButton"
 			android:layout_width="wrap_content"
@@ -147,7 +147,7 @@
 			app:layout_constraintEnd_toStartOf="@+id/action_cancel"
 			app:layout_constraintTop_toTopOf="@+id/action_select_file"/>
 
-		<Button
+		<android.support.design.button.MaterialButton
 			android:id="@+id/action_cancel"
 			style="@style/Widget.ActionButton"
 			android:layout_width="wrap_content"
@@ -159,7 +159,7 @@
 			app:layout_constraintEnd_toStartOf="@+id/action_pause_resume"
 			app:layout_constraintTop_toBottomOf="@+id/divider"/>
 
-		<Button
+		<android.support.design.button.MaterialButton
 			android:id="@+id/action_pause_resume"
 			style="@style/Widget.ActionButton"
 			android:layout_width="wrap_content"
@@ -172,4 +172,4 @@
 			app:layout_constraintTop_toBottomOf="@+id/divider"/>
 
 	</android.support.constraint.ConstraintLayout>
-</android.support.v7.widget.CardView>
+</android.support.design.card.MaterialCardView>

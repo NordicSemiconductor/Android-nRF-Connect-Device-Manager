@@ -7,7 +7,7 @@
 
 <resources>
 
-	<style name="Widget.ActionButton" parent="Widget.AppCompat.Button.Borderless.Colored">
+	<style name="Widget.ActionButton" parent="Widget.MaterialComponents.Button.TextButton">
 		<!-- Empty-->
 	</style>
 
