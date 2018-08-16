@@ -274,10 +274,10 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         disconnect().enqueue();
     }
 
-    @Override
-    public void log(int level, @NonNull String message) {
-        Log.d(TAG, message);
-    }
+//    @Override
+//    public void log(int level, @NonNull String message) {
+//        Log.d(TAG, message);
+//    }
 //
 //    @Override
 //    public void log(int level, int messageRes, Object... params) {
