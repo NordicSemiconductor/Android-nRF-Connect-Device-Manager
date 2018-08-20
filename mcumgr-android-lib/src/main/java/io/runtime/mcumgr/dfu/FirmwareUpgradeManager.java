@@ -220,7 +220,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
     @Override
     public synchronized void cancel() {
-        if (mState == State.UPLOAD) {
+        if (mState == State.VALIDATE) {
+            mState = State.NONE;
+            mPaused = false;
+        } else if (mState == State.UPLOAD) {
             mImageManager.cancelUpload();
             mPaused = false;
         }
@@ -324,6 +327,13 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         mInternalCallback.onUpgradeFailed(failedState, error);
     }
 
+    private synchronized void cancelled(State state) {
+        Log.v(TAG, "Upgrade cancelled!");
+        mState = State.NONE;
+        mPaused = false;
+        mInternalCallback.onUpgradeCanceled(state);
+    }
+
     //******************************************************************
     // McuManagerCallbacks
     //******************************************************************
@@ -341,6 +351,11 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                     // Check for an error return code
                     if (!response.isSuccess()) {
                         fail(new McuMgrErrorException(response.getReturnCode()));
+                        return;
+                    }
+
+                    if (mState == State.NONE) {
+                        cancelled(State.VALIDATE);
                         return;
                     }
 
@@ -484,6 +499,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             mDefaultManager.getTransporter().removeObserver(this);
             Log.v(TAG, "Reset successful");
             switch (mState) {
+                case NONE:
+                    // Upload was cancelled in VALIDATE state
+                    cancelled(State.VALIDATE);
+                    break;
                 case VALIDATE:
                     // The device has exited test mode. Slot 1 can now be erased.
                     validate();
@@ -513,7 +532,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         @Override
         public void onResponse(@NonNull McuMgrResponse response) {
             // Reset command has been sent.
-            Log.v(TAG, "Reset request sent. Waiting for reset");
+            Log.v(TAG, "Reset request sent. Waiting for reset...");
             // Check for an error return code
             if (!response.isSuccess()) {
                 fail(new McuMgrErrorException(response.getReturnCode()));
@@ -655,7 +674,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onUploadCanceled() {
-            mInternalCallback.onUpgradeCanceled(mState);
+            cancelled(State.UPLOAD);
         }
 
         @Override

@@ -39,7 +39,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 		}
 
 		public boolean canCancel() {
-			return this == UPLOADING || this == PAUSED;
+			return this == VALIDATING || this == UPLOADING || this == PAUSED;
 		}
 	}
 
