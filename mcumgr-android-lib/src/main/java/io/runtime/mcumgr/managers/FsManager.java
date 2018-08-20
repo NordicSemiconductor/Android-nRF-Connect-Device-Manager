@@ -246,7 +246,19 @@ public class FsManager extends McuManager {
     public synchronized void cancelTransfer() {
         if (mTransferState == STATE_NONE) {
             Log.d(TAG, "File transfer is not in progress");
+        } else if (mTransferState == STATE_PAUSED) {
+            Log.d(TAG, "Upload canceled!");
+            resetTransfer();
+            if (mUploadCallback != null) {
+                mUploadCallback.onUploadCanceled();
+                mUploadCallback = null;
+            }
+            if (mDownloadCallback != null) {
+                mDownloadCallback.onDownloadCanceled();
+                mDownloadCallback = null;
+            }
         } else {
+            // Transfer will be cancelled
             resetTransfer();
         }
     }
