@@ -296,25 +296,24 @@ public class FsManager extends McuManager {
     // Implementation
     //******************************************************************
 
-    private synchronized void failUpload(McuMgrException error) {
+    private synchronized void fail(McuMgrException error) {
         if (mUploadCallback != null) {
             mUploadCallback.onUploadFailed(error);
         }else if (mDownloadCallback != null) {
             mDownloadCallback.onDownloadFailed(error);
         }
-        cancelTransfer();
+        resetTransfer();
+        mUploadCallback = null;
+        mDownloadCallback = null;
     }
 
-    private synchronized void restartUpload() {
-        if (mFileData == null || mUploadCallback == null) {
-            Timber.e("Could not restart upload: image data or callback is null!");
-            return;
+    private synchronized void restartTransfer() {
+        mTransferState = STATE_NONE;
+        if (mUploadCallback != null) {
+            upload(mFileName, mFileData, mUploadCallback);
+        } else if (mDownloadCallback != null) {
+            download(mFileName, mDownloadCallback);
         }
-        String tempName = mFileName;
-        byte[] tempData = mFileData;
-        FileUploadCallback tempCallback = mUploadCallback;
-        resetTransfer();
-        upload(tempName, tempData, tempCallback);
     }
 
     private synchronized void resetTransfer() {
@@ -367,7 +366,7 @@ public class FsManager extends McuManager {
                     // Check for a McuManager error
                     if (response.rc != 0) {
                         Timber.e("Upload failed due to McuManager error: %s",  response.rc);
-                        failUpload(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
+                        fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
 
@@ -414,12 +413,12 @@ public class FsManager extends McuManager {
 
                         if (isMtuSet) {
                             // If the MTU has been set successfully, restart the upload.
-                            restartUpload();
+                            restartTransfer();
                             return;
                         }
                     }
                     // If the exception is not due to insufficient MTU fail the upload.
-                    failUpload(error);
+                    fail(error);
                 }
             };
 
@@ -436,7 +435,7 @@ public class FsManager extends McuManager {
                     // Check for a McuManager error.
                     if (response.rc != 0) {
                         Timber.e("Download failed due to McuManager error: %s", response.rc);
-                        failUpload(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
+                        fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
 
@@ -482,8 +481,24 @@ public class FsManager extends McuManager {
 
                 @Override
                 public void onError(@NonNull McuMgrException error) {
+                    // Check if the exception is due to an insufficient MTU.
+                    if (error instanceof InsufficientMtuException) {
+                        InsufficientMtuException mtuErr = (InsufficientMtuException) error;
+
+                        // Set the MTU to the value specified in the error response.
+                        int mtu = mtuErr.getMtu();
+                        if (mMtu == mtu)
+                            mtu -= 1;
+                        boolean isMtuSet = setUploadMtu(mtu);
+
+                        if (isMtuSet) {
+                            // If the MTU has been set successfully, restart the upload.
+                            restartTransfer();
+                            return;
+                        }
+                    }
                     // If the exception is not due to insufficient MTU fail the upload.
-                    failUpload(error);
+                    fail(error);
                 }
             };
 
