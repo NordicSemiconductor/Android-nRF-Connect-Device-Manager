@@ -22,7 +22,7 @@ allprojects {
 Add the dependency to your app:
 
 ```
-implementation 'com.github.runtimeco:mcumgr-android:0.6.1'
+implementation 'com.github.runtimeco:mcumgr-android:0.6.2'
 ```
 
 # Introduction
@@ -31,7 +31,7 @@ McuManager is an application layer protocol used to manage and monitor microcont
 
 ## Javadoc
 
-[https://jitpack.io/com/github/runtimeco/mcumgr-android/0.6.1/javadoc/](https://jitpack.io/com/github/runtimeco/mcumgr-android/0.6.1/javadoc/)
+[https://jitpack.io/com/github/runtimeco/mcumgr-android/0.6.2/javadoc/](https://jitpack.io/com/github/runtimeco/mcumgr-android/0.6.2/javadoc/)
 
 ## Command Groups
 
