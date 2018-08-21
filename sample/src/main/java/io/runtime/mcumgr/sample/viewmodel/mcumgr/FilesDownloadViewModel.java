@@ -99,7 +99,6 @@ public class FilesDownloadViewModel extends McuMgrViewModel
 		if (error instanceof McuMgrErrorException) {
 			final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
 			if (code == McuMgrErrorCode.UNKNOWN) {
-				// TODO Verify
 				mResponseLiveData.postValue(null); // File not found
 				postReady();
 				return;
