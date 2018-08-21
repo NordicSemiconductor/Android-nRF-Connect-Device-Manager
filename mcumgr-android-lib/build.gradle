@@ -42,6 +42,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.9.6'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.6'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }
 
 // build a jar with source files

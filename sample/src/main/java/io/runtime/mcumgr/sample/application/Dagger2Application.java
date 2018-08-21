@@ -17,6 +17,7 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
 import io.runtime.mcumgr.sample.di.AppInjector;
 import io.runtime.mcumgr.sample.di.component.McuMgrSubComponent;
+import timber.log.Timber;
 
 public class Dagger2Application extends Application implements HasActivityInjector {
 
@@ -32,6 +33,9 @@ public class Dagger2Application extends Application implements HasActivityInject
 		// The app injector makes sure that all activities and fragments that implement Injectable
 		// are injected in onCreate(...) or onActivityCreated(...)
 		AppInjector.init(this);
+
+		// Plant a Timber DebugTree to collect logs from sample app and McuManager
+		Timber.plant(new Timber.DebugTree());
 	}
 
 	@Override

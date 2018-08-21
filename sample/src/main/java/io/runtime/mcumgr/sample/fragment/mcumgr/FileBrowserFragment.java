@@ -34,6 +34,7 @@ import java.io.InputStream;
 
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.utils.Utils;
+import timber.log.Timber;
 
 public abstract class FileBrowserFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 	private static final String TAG = FileBrowserFragment.class.getSimpleName();
@@ -237,11 +238,11 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 								.openInputStream(cursorLoader.getUri());
 						loadContent(is);
 					} catch (final FileNotFoundException e) {
-						Log.e(TAG, "File not found", e);
+						Timber.e(e, "File not found");
 						onFileLoadingFailed(R.string.file_loader_error_no_uri);
 					}
 				} else {
-					Log.e(TAG, "Empty cursor");
+					Timber.e("Empty cursor");
 					onFileLoadingFailed(R.string.file_loader_error_no_uri);
 				}
 				// Reset the loader as the URU read permission is one time only.
@@ -291,7 +292,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 		try {
 			loadContent(new FileInputStream(file));
 		} catch (final FileNotFoundException e) {
-			Log.e(TAG, "File not found", e);
+			Timber.e(e, "File not found");
 			onFileLoadingFailed(R.string.file_loader_error_no_uri);
 		}
 	}
@@ -324,7 +325,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 			mFileContent = bytes;
 			onFileLoaded(bytes);
 		} catch (final IOException e) {
-			Log.e(TAG, "Reading file content failed", e);
+			Timber.e(e, "Reading file content failed");
 			onFileLoadingFailed(R.string.file_loader_error_loading_file_failed);
 		}
 	}

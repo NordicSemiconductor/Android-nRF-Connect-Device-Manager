@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.concurrent.Executor;
@@ -25,6 +24,7 @@ import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
+import timber.log.Timber;
 
 // TODO Add retries for each step
 
@@ -46,7 +46,6 @@ import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class FirmwareUpgradeManager implements FirmwareUpgradeController {
-    private final static String TAG = "FirmwareUpgradeManager";
 
     public enum Mode {
         /**
@@ -176,7 +175,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      */
     public void setMode(@NonNull Mode mode) {
         if (mState != State.NONE) {
-            Log.i(TAG, "Firmware upgrade is already in progress");
+            Timber.i("Firmware upgrade is already in progress");
             return;
         }
         mMode = mode;
@@ -202,7 +201,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      */
     public synchronized void start(@NonNull byte[] imageData) throws McuMgrException {
         if (mState != State.NONE) {
-            Log.i(TAG, "Firmware upgrade is already in progress");
+            Timber.i("Firmware upgrade is already in progress");
             return;
         }
         // Set image and validate
@@ -232,7 +231,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     @Override
     public synchronized void pause() {
         if (mState.isInProgress()) {
-            Log.i(TAG, "Pausing upgrade.");
+            Timber.i("Pausing upgrade.");
             mPaused = true;
             if (mState == State.UPLOAD) {
                 mImageManager.pauseUpload();
@@ -266,7 +265,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         State prevState = mState;
         mState = newState;
         if (newState != prevState) {
-            Log.v(TAG, "Moving from state " + prevState.name() + " to state " + newState.name());
+            Timber.v("Moving from state %s to state %s", prevState.name(), newState.name());
             mInternalCallback.onStateChanged(prevState, newState);
         }
     }
@@ -328,7 +327,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     private synchronized void cancelled(State state) {
-        Log.v(TAG, "Upgrade cancelled!");
+        Timber.v("Upgrade cancelled!");
         mState = State.NONE;
         mPaused = false;
         mInternalCallback.onUpgradeCanceled(state);
@@ -346,7 +345,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             new McuMgrCallback<McuMgrImageStateResponse>() {
                 @Override
                 public void onResponse(@NonNull final McuMgrImageStateResponse response) {
-                    Log.v(TAG, "Validation response: " + response.toString());
+                    Timber.v("Validation response: %s", response.toString());
 
                     // Check for an error return code
                     if (!response.isSuccess()) {
@@ -458,7 +457,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private McuMgrCallback<McuMgrImageStateResponse> mTestCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
         @Override
         public void onResponse(@NonNull McuMgrImageStateResponse response) {
-            Log.v(TAG, "Test response: " + response.toString());
+            Timber.v("Test response: %s", response.toString());
             // Check for an error return code
             if (!response.isSuccess()) {
                 fail(new McuMgrErrorException(response.getReturnCode()));
@@ -497,7 +496,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         public void onDisconnected() {
             // Device has reset.
             mDefaultManager.getTransporter().removeObserver(this);
-            Log.v(TAG, "Reset successful");
+            Timber.v("Reset successful");
             switch (mState) {
                 case NONE:
                     // Upload was cancelled in VALIDATE state
@@ -532,7 +531,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         @Override
         public void onResponse(@NonNull McuMgrResponse response) {
             // Reset command has been sent.
-            Log.v(TAG, "Reset request sent. Waiting for reset...");
+            Timber.v("Reset request sent. Waiting for reset...");
             // Check for an error return code
             if (!response.isSuccess()) {
                 fail(new McuMgrErrorException(response.getReturnCode()));
@@ -553,7 +552,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             new McuMgrCallback<McuMgrImageStateResponse>() {
                 @Override
                 public void onResponse(@NonNull McuMgrImageStateResponse response) {
-                    Log.v(TAG, "Confirm response: " + response.toString());
+                    Timber.v("Confirm response: %s", response.toString());
                     // Check for an error return code
                     if (!response.isSuccess()) {
                         fail(new McuMgrErrorException(response.getReturnCode()));

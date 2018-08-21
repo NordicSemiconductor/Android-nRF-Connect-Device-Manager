@@ -52,6 +52,9 @@ dependencies {
     // Brings the new BluetoothLeScanner API to older platforms
     implementation 'no.nordicsemi.android.support.v18:scanner:1.1.0'
 
+    // Timber
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
     // Mcu Mgr
     implementation project(path: ':mcumgr-android-lib')
 

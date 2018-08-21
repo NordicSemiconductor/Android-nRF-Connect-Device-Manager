@@ -12,7 +12,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +38,7 @@ import no.nordicsemi.android.ble.error.GattError;
 import no.nordicsemi.android.ble.exception.BluetoothDisabledException;
 import no.nordicsemi.android.ble.exception.DeviceDisconnectedException;
 import no.nordicsemi.android.ble.exception.RequestFailedException;
+import timber.log.Timber;
 
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.
@@ -48,7 +48,6 @@ import no.nordicsemi.android.ble.exception.RequestFailedException;
  * to perform your BLE actions by calling {@link BleManager#enqueue(Request)}.
  */
 public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implements McuMgrTransport {
-    private final static String TAG = "McuMgrBleTransport";
 
     public final static UUID SMP_SERVICE_UUID =
             UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
@@ -274,16 +273,6 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         disconnect().enqueue();
     }
 
-//    @Override
-//    public void log(int level, @NonNull String message) {
-//        Log.d(TAG, message);
-//    }
-//
-//    @Override
-//    public void log(int level, int messageRes, Object... params) {
-//
-//    }
-
     //*******************************************************************************************
     // Ble Manager Callbacks
     //*******************************************************************************************
@@ -295,12 +284,12 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
             mSmpService = gatt.getService(SMP_SERVICE_UUID);
             if (mSmpService == null) {
-                Log.e(TAG, "Device does not support SMP service");
+                Timber.e("Device does not support SMP service");
                 return false;
             }
             mSmpCharacteristic = mSmpService.getCharacteristic(SMP_CHAR_UUID);
             if (mSmpCharacteristic == null) {
-                Log.e(TAG, "Device does not support SMP characteristic");
+                Timber.e("Device does not support SMP characteristic");
                 return false;
             } else {
                 final int rxProperties = mSmpCharacteristic.getProperties();
@@ -308,8 +297,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                         BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0;
                 boolean notify = (rxProperties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0;
                 if (!write || !notify) {
-                    Log.e(TAG, "SMP characteristic does not support write(" + write +
-                            ") or notify(" + notify + ")");
+                    Timber.e("SMP characteristic does not support either write (%s) or notify (%s)", write, notify);
                     return false;
                 }
             }

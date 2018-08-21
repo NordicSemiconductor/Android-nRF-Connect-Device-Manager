@@ -9,7 +9,6 @@ package io.runtime.mcumgr;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -23,13 +22,13 @@ import java.util.TimeZone;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
+import timber.log.Timber;
 
 /**
  * TODO
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class McuManager {
-    private static final String TAG = McuManager.class.getSimpleName();
 
     // Transport constants
     private final static int DEFAULT_MTU = 515;
@@ -123,10 +122,10 @@ public abstract class McuManager {
      */
     public synchronized boolean setUploadMtu(int mtu) {
         if (mtu < 23) {
-            Log.e(TAG, "MTU is too small!");
+            Timber.e("MTU is too small! Must be greater than 23.");
             return false;
         } else if (mtu > 1024) {
-            Log.e(TAG, "MTU is too large!");
+            Timber.e("MTU is too large! Must be less than 1024.");
             return false;
         } else {
             mMtu = mtu;
@@ -365,7 +364,7 @@ public abstract class McuManager {
         try {
             return mcumgrFormat.parse(dateString);
         } catch (ParseException e) {
-            Log.e(TAG, "Converting string to Date failed", e);
+            Timber.e(e, "Converting string to Date failed");
             return null;
         }
     }
