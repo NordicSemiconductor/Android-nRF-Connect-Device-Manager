@@ -24,7 +24,9 @@
 			android:id="@+id/file_size"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:inputType="number"/>
+			android:inputType="number">
+			<requestFocus/>
+		</android.support.design.widget.TextInputEditText>
 	</android.support.design.widget.TextInputLayout>
 
 	<TextView

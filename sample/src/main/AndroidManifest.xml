@@ -3,10 +3,29 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools">
 
+	<!--
+	 Bluetooth permission is required in order to communicate with Bluetooth LE devices.
+	-->
 	<uses-permission android:name="android.permission.BLUETOOTH"/>
+
+	<!--
+	 Bluetooth Admin permission is required in order to scan for Bluetooth LE devices.
+	-->
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+	<!--
+	 Location permission is required from Android 6 to be able to scan for advertising
+	 Bluetooth LE devices. Some BLE devices, called beacons, may be used to position the phone.
+	 This is to ensure that the user agrees to do so.
+	 This app does not use this location information in any way.
+	 -->
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+	<!--
+	 This permission is required to read a file content when the file browser app have returned
+	 file:// URI, instead of content:// URI. This way of passing URIs is deprecated, but still
+	 may be used by some File Browser apps. Since Android 6+ this permission is a runtime type
+	 permission and must be requested on runtime. Check FileBrowserFragment class.
+	 -->
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
 	<application
 		android:allowBackup="false"

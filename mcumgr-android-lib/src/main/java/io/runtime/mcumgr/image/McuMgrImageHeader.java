@@ -21,7 +21,6 @@ import io.runtime.mcumgr.util.Endian;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrImageHeader {
-    private static final String TAG = McuMgrImageHeader.class.getSimpleName();
 
     private static final int IMG_HEADER_MAGIC      = 0x96f3b83d;
     private static final int IMG_HEADER_MAGIC_V1   = 0x96f3b83c;

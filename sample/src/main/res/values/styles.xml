@@ -13,7 +13,7 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="Widget.ActionButton" parent="Widget.AppCompat.Button.Borderless.Colored">
+    <style name="Widget.ActionButton" parent="Widget.MaterialComponents.Button.TextButton">
         <!--
             4 action buttons don't fit on the screen on narrow phones.
             Default width would be 4 * 88 dip = 352. For narrower phones, use narrower buttons.
@@ -26,7 +26,7 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme.Base" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:windowBackground">@color/background</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -34,8 +34,8 @@
     </style>
 
     <!-- Main app's toolbar theme. -->
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar"/>
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
 
 </resources>
