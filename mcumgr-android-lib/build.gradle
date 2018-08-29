@@ -10,7 +10,7 @@ apply plugin: 'com.android.library'
 // group='com.github.runtimeco'
 
 ext {
-    mcuMgrVersion = "0.6.0"
+    mcuMgrVersion = "0.6.2"
 }
 
 android {
