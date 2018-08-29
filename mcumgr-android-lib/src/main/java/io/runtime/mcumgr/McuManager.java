@@ -162,7 +162,7 @@ public abstract class McuManager {
                                                 @Nullable Map<String, Object> payloadMap,
                                                 @NonNull Class<T> respType,
                                                 @NonNull McuMgrCallback<T> callback) {
-        send(op, 0, mGroupId, 0, commandId, payloadMap, respType, callback);
+        send(op, 0, 0, commandId, payloadMap, respType, callback);
     }
 
     /**
@@ -185,7 +185,7 @@ public abstract class McuManager {
                                              @Nullable Map<String, Object> payloadMap,
                                              @NonNull Class<T> respType)
             throws McuMgrException {
-        return send(op, 0, mGroupId, 0, commandId, respType, payloadMap);
+        return send(op, 0, 0, commandId, respType, payloadMap);
     }
 
     /**
@@ -196,7 +196,6 @@ public abstract class McuManager {
      *
      * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
      * @param flags       additional flags.
-     * @param groupId     group ID of the command.
      * @param sequenceNum sequence number.
      * @param commandId   ID of the command in the group.
      * @param payloadMap  map of command's key-value pairs to construct a CBOR payload.
@@ -204,13 +203,13 @@ public abstract class McuManager {
      * @param callback    asynchronous callback.
      * @param <T>         the response type.
      */
-    public <T extends McuMgrResponse> void send(int op, int flags, int groupId,
-                                                int sequenceNum, int commandId,
+    public <T extends McuMgrResponse> void send(int op, int flags, int sequenceNum, int commandId,
                                                 @Nullable Map<String, Object> payloadMap,
                                                 @NonNull Class<T> respType,
                                                 @NonNull McuMgrCallback<T> callback) {
         try {
-            byte[] packet = buildPacket(op, flags, groupId, sequenceNum, commandId, payloadMap);
+            byte[] packet = buildPacket(getScheme(), op, flags, mGroupId, sequenceNum,
+                    commandId, payloadMap);
             send(packet, respType, callback);
         } catch (McuMgrException e) {
             callback.onError(e);
@@ -226,7 +225,6 @@ public abstract class McuManager {
      * @param op          the operation ({@link McuManager#OP_READ},
      *                    {@link McuManager#OP_WRITE}).
      * @param flags       additional flags.
-     * @param groupId     group ID of the command.
      * @param sequenceNum sequence number.
      * @param commandId   ID of the command in the group.
      * @param respType    the response type.
@@ -236,11 +234,12 @@ public abstract class McuManager {
      * @throws McuMgrException on transport error. See exception cause for more info.
      */
     @NonNull
-    public <T extends McuMgrResponse> T send(int op, int flags, int groupId, int sequenceNum,
+    public <T extends McuMgrResponse> T send(int op, int flags, int sequenceNum,
                                              int commandId, @NonNull Class<T> respType,
                                              @Nullable Map<String, Object> payloadMap)
             throws McuMgrException {
-        byte[] packet = buildPacket(op, flags, groupId, sequenceNum, commandId, payloadMap);
+        byte[] packet = buildPacket(getScheme(), op, flags, mGroupId, sequenceNum,
+                commandId, payloadMap);
         return send(packet, respType);
     }
 
@@ -275,6 +274,7 @@ public abstract class McuManager {
     /**
      * Build a Mcu Manager packet based on the transport scheme.
      *
+     * @param scheme      the transport scheme.
      * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE}).
      * @param flags       additional flags.
      * @param groupId     group ID of the command.
@@ -284,8 +284,9 @@ public abstract class McuManager {
      * @return The packet data.
      * @throws McuMgrException if the payload map could not be serialized into CBOR. See cause.
      */
-    public byte[] buildPacket(int op, int flags, int groupId, int sequenceNum,
-                              int commandId, @Nullable Map<String, Object> payloadMap)
+    public static byte[] buildPacket(McuMgrScheme scheme, int op, int flags, int groupId,
+                                     int sequenceNum, int commandId,
+                                     @Nullable Map<String, Object> payloadMap)
             throws McuMgrException {
         byte[] packet;
         try {
@@ -306,7 +307,7 @@ public abstract class McuManager {
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
 
             // Build the packet based on scheme
-            if (getScheme() == McuMgrScheme.COAP_BLE || getScheme() == McuMgrScheme.COAP_UDP) {
+            if (scheme.isCoap()) {
                 // CoAP Scheme puts the header as a key-value pair in the payload
                 if (payloadMap.get(HEADER_KEY) == null) {
                     payloadMap.put(HEADER_KEY, header);
