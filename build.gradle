@@ -13,12 +13,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.4'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+        // classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
     }
-}
-
-ext {
-    mcuMgrVersion = "0.6.0"
 }
 
 allprojects {

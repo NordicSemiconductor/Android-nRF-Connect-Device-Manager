@@ -6,8 +6,12 @@
  */
 
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-group='com.github.runtimeco'
+// apply plugin: 'com.github.dcendents.android-maven'
+// group='com.github.runtimeco'
+
+ext {
+    mcuMgrVersion = "0.6.0"
+}
 
 android {
     compileSdkVersion 28
