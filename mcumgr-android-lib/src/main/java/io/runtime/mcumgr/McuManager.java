@@ -115,14 +115,16 @@ public abstract class McuManager {
     }
 
     /**
-     * Sets the upload MTU. MTU must be between 23 and 1024.
+     * Sets the upload MTU. MTU must be between 20 and 1024.
+     * This is transport independent value, so should be equal to the maximum length of a packet
+     * with selected transport.
      *
-     * @param mtu the MTU to use for image upload.
+     * @param mtu the MTU to use for packets.
      * @return True if the upload has been set, false otherwise.
      */
     public synchronized boolean setUploadMtu(int mtu) {
-        if (mtu < 23) {
-            Timber.e("MTU is too small! Must be greater than 23.");
+        if (mtu < 20) {
+            Timber.e("MTU is too small! Must be greater than 20.");
             return false;
         } else if (mtu > 1024) {
             Timber.e("MTU is too large! Must be less than 1024.");
@@ -134,7 +136,7 @@ public abstract class McuManager {
     }
 
     /**
-     * Returns the upload MTU. MTU must be between 23 and 1024.
+     * Returns the upload MTU. MTU must be between 20 and 1024.
      *
      * @return The MTY.
      */

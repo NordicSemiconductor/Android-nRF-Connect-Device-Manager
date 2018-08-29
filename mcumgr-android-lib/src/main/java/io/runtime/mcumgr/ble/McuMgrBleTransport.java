@@ -31,6 +31,7 @@ import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.ble.BleManagerCallbacks;
 import no.nordicsemi.android.ble.Request;
 import no.nordicsemi.android.ble.callback.FailCallback;
+import no.nordicsemi.android.ble.callback.MtuCallback;
 import no.nordicsemi.android.ble.callback.SuccessCallback;
 import no.nordicsemi.android.ble.data.Data;
 import no.nordicsemi.android.ble.data.DataMerger;
@@ -47,6 +48,7 @@ import timber.log.Timber;
  * existing BLE implementation, you may simply implement {@link McuMgrTransport} or use this class
  * to perform your BLE actions by calling {@link BleManager#enqueue(Request)}.
  */
+@SuppressWarnings("unused")
 public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implements McuMgrTransport {
 
     public final static UUID SMP_SERVICE_UUID =
@@ -75,6 +77,15 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
     private final DataMerger mSMPMerger = new SmpMerger();
 
     /**
+     * The maximum packet length supported by the target device.
+     * This may be greater than MTU size.
+     * For packets longer than this value an {@link InsufficientMtuException} will be thrown.
+     * Packets longer than MTU, but shorter than this value will be split.
+     * Splitting packets must be supported by SMP Server on the target device.
+     */
+    private int mMaxPacketLength;
+
+    /**
      * Construct a McuMgrBleTransport object.
      *
      * @param context the context used to connect to the device.
@@ -96,6 +107,30 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
     @Override
     protected BleManagerGattCallback getGattCallback() {
         return mGattCallback;
+    }
+
+    /**
+     * In order to send packets longer than MTU size, this library supports automatic splitting
+     * of packets into at-most-MTU size chunks. This feature must be also supported by the target
+     * device, as it must merge received chunks into a single packet, based on the length field
+     * from the {@link io.runtime.mcumgr.McuMgrHeader}, included in the first chunk.
+     * <p>
+     * {@link io.runtime.mcumgr.managers.ImageManager} and
+     * {@link io.runtime.mcumgr.managers.FsManager} will automatically split the file into multiple
+     * SMP packets. This feature is about splitting SMP packet into chunks, not splitting data into
+     * SMP packets.
+     * <p>
+     * This method sets the maximum packet length supported by the target device.
+     * By default, this is be set to MTU - 3, which means that no splitting will be done.
+     * <p>
+     * Keep in mind, that before Android 5 requesting higher MTU was not supported. Setting the
+     * maximum length to a greater value is required on those devices in order to upgrade
+     * the firmware, send file or send any other SMP packet that is longer than 20 bytes.
+     *
+     * @param maxLength the maximum packet length.
+     */
+    public void setDeviceSidePacketMergingSupported(final int maxLength) {
+        mMaxPacketLength = maxLength;
     }
 
     //*******************************************************************************************
@@ -145,16 +180,16 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
             throw new McuMgrException("Bluetooth adapter disabled");
         }
 
-        // Ensure the MTU is sufficient
-        if (getMtu() - 3 < payload.length) {
-            throw new InsufficientMtuException(payload.length, getMtu());
+        // Ensure the MTU is sufficient.
+        if (mMaxPacketLength < payload.length) {
+            throw new InsufficientMtuException(payload.length, mMaxPacketLength);
         }
 
         // Send the request and wait for a notification in a synchronous way
         try {
             final SmpResponse<T> smpResponse = waitForNotification(mSmpCharacteristic)
                     .merge(mSMPMerger)
-                    .trigger(writeCharacteristic(mSmpCharacteristic, payload))
+                    .trigger(writeCharacteristic(mSmpCharacteristic, payload).split())
                     .await(new SmpResponse<>(responseType), 30000);
             if (smpResponse.isValid()) {
                 //noinspection ConstantConditions
@@ -191,9 +226,10 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                     notifyConnected();
                 }
 
-                // Ensure the MTU is sufficient
-                if (getMtu() - 3 < payload.length) {
-                    callback.onError(new InsufficientMtuException(payload.length, getMtu()));
+                // Ensure the MTU is sufficient. Packets longer than MTU, but shorter
+                // then few MTU lengths can be split automatically.
+                if (mMaxPacketLength < payload.length) {
+                    callback.onError(new InsufficientMtuException(payload.length, mMaxPacketLength));
                     return;
                 }
 
@@ -217,7 +253,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                                         "McuMgrResponse from response data: " + data));
                             }
                         })
-                        .trigger(writeCharacteristic(mSmpCharacteristic, payload))
+                        .trigger(writeCharacteristic(mSmpCharacteristic, payload).split())
                         .fail(new FailCallback() {
                             @Override
                             public void onRequestFailed(@NonNull BluetoothDevice device,
@@ -310,7 +346,19 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         // called.
         @Override
         protected void initialize() {
-            requestMtu(515).enqueue();
+            requestMtu(515)
+                    .with(new MtuCallback() {
+                        @Override
+                        public void onMtuChanged(@NonNull final BluetoothDevice device, final int mtu) {
+                            mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength);
+                        }
+                    })
+                    .fail(new FailCallback() {
+                        @Override
+                        public void onRequestFailed(@NonNull final BluetoothDevice device, final int status) {
+                            mMaxPacketLength = Math.max(getMtu() - 3, mMaxPacketLength);
+                        }
+                    }).enqueue();
             enableNotifications(mSmpCharacteristic).enqueue();
         }
 

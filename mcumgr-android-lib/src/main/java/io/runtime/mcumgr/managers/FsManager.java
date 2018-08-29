@@ -520,8 +520,8 @@ public class FsManager extends McuManager {
                 return cborData.length + 20 + 5;
             } else {
                 byte[] cborData = CBOR.toBytes(overheadTestMap);
-                // 8 bytes for McuMgr header; 2 bytes for data length; 3 for command type and att ID
-                return cborData.length + 8 + 2 + 3;
+                // 8 bytes for McuMgr header; 2 bytes for data length
+                return cborData.length + 8 + 2;
             }
         } catch (IOException e) {
             Timber.e(e, "Error while calculating packet overhead");
