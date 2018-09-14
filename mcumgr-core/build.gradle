@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2017-2018 Runtime Inc.
+ * Copyright (c) Intellinium SAS, 2014-present
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 18
+    }
+
+    buildTypes {
+        release {
+            consumerProguardFiles 'proguard-rules.pro'
+        }
+    }
+
+    // TODO replace with https://issuetracker.google.com/issues/72050365 once released.
+    libraryVariants.all {
+        it.generateBuildConfig.enabled = false
+    }
+}
+
+dependencies {
+    // Import the Timber library
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // Import CBOR parser
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.6'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.6'
+
+    // Test
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    testImplementation 'junit:junit:4.12'
+}
+
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
