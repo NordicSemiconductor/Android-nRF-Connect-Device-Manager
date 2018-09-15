@@ -384,6 +384,16 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                         return;
                     }
 
+                    // If the image in slot 1 is confirmed we won't be able to erase or test the
+                    // slot causing a no memory or bad state error, respectively. Therefore, We
+                    // must reset the device and revalidate the new image state.
+                    if (images.length > 1 && images[1].confirmed) {
+                        // Send reset command without changing state.
+                        mDefaultManager.getTransporter().addObserver(mResetObserver);
+                        mDefaultManager.reset(mResetCallback);
+                        return;
+                    }
+
                     // Check if the new firmware was already sent.
                     if (images.length > 1 && Arrays.equals(mHash, images[1].hash)) {
                         // Firmware is identical to one on slot 1. No need to send anything.
@@ -427,17 +437,6 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                                 reset();
                                 break;
                         }
-                        return;
-                    }
-
-                    // If the image in slot 1 is confirmed (we are in test mode)
-                    // we won't be able to erase the slot. A No Memory error
-                    // would be thrown. We have to reset the device and return
-                    // from test mode before firmware upgrade begins.
-                    if (images.length > 1 && images[1].confirmed) {
-                        // Send reset command without changing state.
-                        mDefaultManager.getTransporter().addObserver(mResetObserver);
-                        mDefaultManager.reset(mResetCallback);
                         return;
                     }
 
