@@ -384,10 +384,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                         return;
                     }
 
-                    // If the image in slot 1 is confirmed we won't be able to erase or test the
-                    // slot causing a no memory or bad state error, respectively. Therefore, We
-                    // must reset the device and revalidate the new image state.
-                    if (images.length > 1 && images[1].confirmed) {
+                    // If the image in slot 1 is confirmed or pending we won't be able to erase or
+                    // test the slot causing a no memory or bad state error, respectively.
+                    // Therefore, We must reset the device and revalidate the new image state.
+                    if (images.length > 1 && (images[1].confirmed || images[1].pending)) {
                         // Send reset command without changing state.
                         mDefaultManager.getTransporter().addObserver(mResetObserver);
                         mDefaultManager.reset(mResetCallback);
