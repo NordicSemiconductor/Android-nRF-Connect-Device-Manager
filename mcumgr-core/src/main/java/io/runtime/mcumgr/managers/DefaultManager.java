@@ -7,6 +7,10 @@
 
 package io.runtime.mcumgr.managers;
 
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
@@ -40,7 +44,7 @@ public class DefaultManager extends McuManager {
      *
      * @param transport the transport to use to send commands.
      */
-    public DefaultManager(McuMgrTransport transport) {
+    public DefaultManager(@NotNull McuMgrTransport transport) {
         super(GROUP_DEFAULT, transport);
     }
 
@@ -54,7 +58,7 @@ public class DefaultManager extends McuManager {
      * @param echo     the string to echo.
      * @param callback the asynchronous callback.
      */
-    public void echo(String echo, McuMgrCallback<McuMgrEchoResponse> callback) {
+    public void echo(@Nullable String echo, @NotNull McuMgrCallback<McuMgrEchoResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("d", echo);
         send(OP_WRITE, ID_ECHO, payloadMap, McuMgrEchoResponse.class, callback);
@@ -67,7 +71,8 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrEchoResponse echo(String echo) throws McuMgrException {
+    @NotNull
+    public McuMgrEchoResponse echo(@Nullable String echo) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("d", echo);
         return send(OP_WRITE, ID_ECHO, payloadMap, McuMgrEchoResponse.class);
@@ -79,7 +84,7 @@ public class DefaultManager extends McuManager {
      * @param echo     whether or not to echo to the console.
      * @param callback the asynchronous callback.
      */
-    public void consoleEcho(boolean echo, McuMgrCallback<McuMgrResponse> callback) {
+    public void consoleEcho(boolean echo, @NotNull McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
         send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, McuMgrResponse.class, callback);
@@ -92,6 +97,7 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse consoleEcho(boolean echo) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
@@ -103,7 +109,7 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void taskstats(McuMgrCallback<McuMgrTaskStatResponse> callback) {
+    public void taskstats(@NotNull McuMgrCallback<McuMgrTaskStatResponse> callback) {
         send(OP_READ, ID_TASKSTATS, null, McuMgrTaskStatResponse.class, callback);
     }
 
@@ -113,6 +119,7 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrTaskStatResponse taskstats() throws McuMgrException {
         return send(OP_READ, ID_TASKSTATS, null, McuMgrTaskStatResponse.class);
     }
@@ -122,7 +129,7 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void mpstat(McuMgrCallback<McuMgrMpStatResponse> callback) {
+    public void mpstat(@NotNull McuMgrCallback<McuMgrMpStatResponse> callback) {
         send(OP_READ, ID_MPSTATS, null, McuMgrMpStatResponse.class, callback);
     }
 
@@ -132,6 +139,7 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrMpStatResponse mpstat() throws McuMgrException {
         return send(OP_READ, ID_MPSTATS, null, McuMgrMpStatResponse.class);
     }
@@ -141,7 +149,7 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void readDatetime(McuMgrCallback<McuMgrReadDateTimeResponse> callback) {
+    public void readDatetime(@NotNull McuMgrCallback<McuMgrReadDateTimeResponse> callback) {
         send(OP_READ, ID_DATETIME_STR, null, McuMgrReadDateTimeResponse.class, callback);
     }
 
@@ -151,6 +159,7 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrReadDateTimeResponse readDatetime() throws McuMgrException {
         return send(OP_READ, ID_DATETIME_STR, null, McuMgrReadDateTimeResponse.class);
     }
@@ -164,7 +173,8 @@ public class DefaultManager extends McuManager {
      * @param timeZone the timezone to use with the date.
      * @param callback the asynchronous callback.
      */
-    public void writeDatetime(Date date, TimeZone timeZone, McuMgrCallback<McuMgrResponse> callback) {
+    public void writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone,
+                              @NotNull McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("datetime", dateToString(date, timeZone));
         send(OP_WRITE, ID_DATETIME_STR, payloadMap, McuMgrResponse.class, callback);
@@ -180,7 +190,9 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrResponse writeDatetime(Date date, TimeZone timeZone) throws McuMgrException {
+    @NotNull
+    public McuMgrResponse writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone)
+            throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("datetime", dateToString(date, timeZone));
         return send(OP_WRITE, ID_DATETIME_STR, payloadMap, McuMgrResponse.class);
@@ -191,7 +203,7 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void reset(McuMgrCallback<McuMgrResponse> callback) {
+    public void reset(@NotNull McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_RESET, null, McuMgrResponse.class, callback);
     }
 
@@ -201,6 +213,7 @@ public class DefaultManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse reset() throws McuMgrException {
         return send(OP_WRITE, ID_RESET, null, McuMgrResponse.class);
     }

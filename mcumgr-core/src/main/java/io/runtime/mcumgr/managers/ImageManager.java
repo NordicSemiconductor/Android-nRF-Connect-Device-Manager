@@ -107,7 +107,8 @@ public class ImageManager extends McuManager {
      * @param callback the asynchronous callback.
      * @see #upload(byte[], ImageUploadCallback)
      */
-    public void upload(byte[] data, int offset, @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
+    public void upload(@NotNull byte[] data, int offset,
+                       @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
         // Get the length of data (in bytes) to put into the upload packet. This calculated as:
         // min(MTU - packetOverhead, imageLength - uploadOffset)
         int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset),
@@ -164,7 +165,8 @@ public class ImageManager extends McuManager {
      * @return The upload response.
      * @see #upload(byte[], ImageUploadCallback)
      */
-    public McuMgrImageUploadResponse upload(byte[] data, int offset) throws McuMgrException {
+    @NotNull
+    public McuMgrImageUploadResponse upload(@NotNull byte[] data, int offset) throws McuMgrException {
         // Get the length of data (in bytes) to put into the upload packet. This calculated as:
         // min(MTU - packetOverhead, imageLength - uploadOffset)
         int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset),
@@ -269,6 +271,7 @@ public class ImageManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrImageStateResponse confirm(@Nullable byte[] hash) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
@@ -307,7 +310,7 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void erase(McuMgrCallback<McuMgrResponse> callback) {
+    public void erase(@NotNull McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_ERASE, null, McuMgrResponse.class, callback);
     }
 
@@ -317,6 +320,7 @@ public class ImageManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse erase() throws McuMgrException {
         return send(OP_WRITE, ID_ERASE, null, McuMgrResponse.class);
     }
@@ -326,7 +330,7 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void eraseState(McuMgrCallback<McuMgrResponse> callback) {
+    public void eraseState(@NotNull McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_ERASE_STATE, null, McuMgrResponse.class, callback);
     }
 
@@ -336,6 +340,7 @@ public class ImageManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse eraseState() throws McuMgrException {
         return send(OP_WRITE, ID_ERASE_STATE, null, McuMgrResponse.class);
     }
@@ -345,7 +350,7 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void coreList(McuMgrCallback<McuMgrResponse> callback) {
+    public void coreList(@NotNull McuMgrCallback<McuMgrResponse> callback) {
         send(OP_READ, ID_CORELIST, null, McuMgrResponse.class, callback);
     }
 
@@ -355,6 +360,7 @@ public class ImageManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse coreList() throws McuMgrException {
         return send(OP_READ, ID_CORELIST, null, McuMgrResponse.class);
     }
@@ -365,7 +371,7 @@ public class ImageManager extends McuManager {
      * @param offset   offset.
      * @param callback the asynchronous callback.
      */
-    public void coreLoad(int offset, McuMgrCallback<McuMgrCoreLoadResponse> callback) {
+    public void coreLoad(int offset, @NotNull McuMgrCallback<McuMgrCoreLoadResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
         send(OP_READ, ID_CORELOAD, payloadMap, McuMgrCoreLoadResponse.class, callback);
@@ -378,6 +384,7 @@ public class ImageManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrCoreLoadResponse coreLoad(int offset) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
@@ -389,7 +396,7 @@ public class ImageManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void coreErase(McuMgrCallback<McuMgrResponse> callback) {
+    public void coreErase(@NotNull McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class, callback);
     }
 
@@ -399,6 +406,7 @@ public class ImageManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse coreErase() throws McuMgrException {
         return send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class);
     }

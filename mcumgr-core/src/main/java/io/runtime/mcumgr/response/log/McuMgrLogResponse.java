@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.CBOR;
 
 public class McuMgrLogResponse extends McuMgrResponse {
@@ -22,40 +23,105 @@ public class McuMgrLogResponse extends McuMgrResponse {
     public LogResult[] logs;
 
     public static class LogResult {
+
+        public static final int LOG_TYPE_STREAM = 0;
+        public static final int LOG_TYPE_MEMORY = 1;
+        public static final int LOG_TYPE_STORAGE = 2;
+
+        /**
+         * Name of the log.
+         */
         public String name;
+
+        /**
+         * Type of the log. {@link #LOG_TYPE_STREAM}, {@link #LOG_TYPE_MEMORY}, or
+         * {@link #LOG_TYPE_STORAGE}.
+         */
         public int type;
+
+        /**
+         * Array of {@link Entry}s collected from this log.
+         */
         public Entry[] entries;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Entry {
+
+        public static final int LOG_LEVEL_DEBUG = 0;
+        public static final int LOG_LEVEL_INFO = 1;
+        public static final int LOG_LEVEL_WARN = 2;
+        public static final int LOG_LEVEL_ERROR = 3;
+        public static final int LOG_LEVEL_CRITICAL = 4;
+
+        public static final String LOG_ENTRY_TYPE_STRING = "str";
+        public static final String LOG_ENTRY_TYPE_CBOR = "cbor";
+        public static final String LOG_ENTRY_TYPE_BINARY = "bin";
+
+        /**
+         * Log entry message. Binary may be encoded as defined in the {@link #type}.
+         */
         public byte[] msg;
+
+        /**
+         * Log entry time stamp.
+         */
         public long ts;
+
+        /**
+         * Log entry level.
+         */
         public int level;
+
+        /**
+         * Log entry index. The index should be unique to this entry.
+         */
         public int index;
+
+        /**
+         * Module which logged the entry.
+         */
         public int module;
+
+        /**
+         * Log message type. {@link #LOG_ENTRY_TYPE_STRING}, {@link #LOG_ENTRY_TYPE_CBOR}, or
+         * {@link #LOG_ENTRY_TYPE_BINARY}.
+         */
         public String type;
 
         /**
-         * Get a string representation of the message based on the message type.
+         * Get a string representation of the {@link #msg} based on the message {@link #type}.
+         * <p>
+         * If the type is {@link #LOG_ENTRY_TYPE_BINARY}, null, or unknown, this method will return
+         * the hex encoding of the {@link #msg}.
+         *
          * @return the type decoded string of the log message or null if the msg is null or decoding
          * failed
          */
         @Nullable
-        public String getMessage() {
+        public String getMessageString() {
             if (msg == null) {
                 return null;
             }
-            if (type != null && type.equals("cbor")) {
-                try {
-                    return CBOR.toString(msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            } else {
-                return new String(msg, Charset.forName("UTF-8"));
+            if (type == null) {
+                return ByteUtil.byteArrayToHex(msg);
             }
+            switch (type) {
+                case LOG_ENTRY_TYPE_STRING:
+                    return new String(msg, Charset.forName("UTF-8"));
+                case LOG_ENTRY_TYPE_CBOR:
+                    try {
+                        return CBOR.toString(msg);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                case LOG_ENTRY_TYPE_BINARY:
+                    ByteUtil.byteArrayToHex(msg);
+
+            }
+            return ByteUtil.byteArrayToHex(msg);
+
         }
     }
 }

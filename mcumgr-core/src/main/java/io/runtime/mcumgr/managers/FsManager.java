@@ -34,7 +34,7 @@ public class FsManager extends McuManager {
      *
      * @param transporter the transporter to use to send commands.
      */
-    public FsManager(final McuMgrTransport transporter) {
+    public FsManager(@NotNull McuMgrTransport transporter) {
         super(GROUP_FS, transporter);
     }
 
@@ -197,7 +197,7 @@ public class FsManager extends McuManager {
      * @param callback the file upload callback.
      */
     public synchronized void upload(@NotNull String name, @NotNull byte[] data,
-                       @NotNull FileUploadCallback callback) {
+                                    @NotNull FileUploadCallback callback) {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_UPLOADING;
         } else {

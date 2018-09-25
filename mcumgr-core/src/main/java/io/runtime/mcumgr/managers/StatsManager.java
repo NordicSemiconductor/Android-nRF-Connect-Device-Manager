@@ -6,6 +6,9 @@
  */
 package io.runtime.mcumgr.managers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 
 import io.runtime.mcumgr.McuManager;
@@ -30,7 +33,7 @@ public class StatsManager extends McuManager {
      *
      * @param transport the transport to use to send commands.
      */
-    public StatsManager(McuMgrTransport transport) {
+    public StatsManager(@NotNull McuMgrTransport transport) {
         super(GROUP_STATS, transport);
     }
 
@@ -40,7 +43,7 @@ public class StatsManager extends McuManager {
      * @param module   the name of the module to read.
      * @param callback the asynchronous callback.
      */
-    public void read(String module, McuMgrCallback<McuMgrStatResponse> callback) {
+    public void read(@Nullable String module, @NotNull McuMgrCallback<McuMgrStatResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", module);
         send(OP_READ, ID_READ, payloadMap, McuMgrStatResponse.class, callback);
@@ -53,7 +56,8 @@ public class StatsManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrStatResponse read(String module) throws McuMgrException {
+    @NotNull
+    public McuMgrStatResponse read(@Nullable String module) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", module);
         return send(OP_READ, ID_READ, payloadMap, McuMgrStatResponse.class);
@@ -64,7 +68,7 @@ public class StatsManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void list(McuMgrCallback<McuMgrStatListResponse> callback) {
+    public void list(@NotNull McuMgrCallback<McuMgrStatListResponse> callback) {
         send(OP_READ, ID_LIST, null, McuMgrStatListResponse.class, callback);
     }
 
@@ -74,6 +78,7 @@ public class StatsManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrStatListResponse list() throws McuMgrException {
         return send(OP_READ, ID_LIST, null, McuMgrStatListResponse.class);
     }

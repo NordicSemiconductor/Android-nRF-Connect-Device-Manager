@@ -7,6 +7,9 @@
 
 package io.runtime.mcumgr.managers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 
 import io.runtime.mcumgr.McuManager;
@@ -28,7 +31,7 @@ public class ConfigManager extends McuManager {
      *
      * @param transport the transport to use to send commands.
      */
-    public ConfigManager(McuMgrTransport transport) {
+    public ConfigManager(@NotNull McuMgrTransport transport) {
         super(GROUP_CONFIG, transport);
     }
 
@@ -38,7 +41,8 @@ public class ConfigManager extends McuManager {
      * @param name     the name of the config variable.
      * @param callback the asynchronous callback.
      */
-    public void read(String name, McuMgrCallback<McuMgrConfigReadResponse> callback) {
+    public void read(@Nullable String name,
+                     @NotNull McuMgrCallback<McuMgrConfigReadResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         send(OP_READ, ID_CONFIG, payloadMap, McuMgrConfigReadResponse.class, callback);
@@ -51,7 +55,8 @@ public class ConfigManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrConfigReadResponse read(String name) throws McuMgrException {
+    @NotNull
+    public McuMgrConfigReadResponse read(@Nullable String name) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         return send(OP_READ, ID_CONFIG, payloadMap, McuMgrConfigReadResponse.class);
@@ -66,7 +71,8 @@ public class ConfigManager extends McuManager {
      *                 in flash across device resets.
      * @param callback the asynchronous callback.
      */
-    public void write(String name, String value, boolean save, McuMgrCallback<McuMgrResponse> callback) {
+    public void write(@Nullable String name, @Nullable String value, boolean save,
+                      @NotNull McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
@@ -84,7 +90,9 @@ public class ConfigManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrResponse write(String name, String value, boolean save) throws McuMgrException {
+    @NotNull
+    public McuMgrResponse write(@Nullable String name, @Nullable String value, boolean save)
+            throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);

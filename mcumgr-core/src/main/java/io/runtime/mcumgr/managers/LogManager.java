@@ -7,6 +7,9 @@
 
 package io.runtime.mcumgr.managers;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +49,7 @@ public class LogManager extends McuManager {
      *
      * @param transport the transport to use to send commands.
      */
-    public LogManager(McuMgrTransport transport) {
+    public LogManager(@NotNull McuMgrTransport transport) {
         super(GROUP_LOGS, transport);
     }
 
@@ -68,8 +71,10 @@ public class LogManager extends McuManager {
      *                     it and minIndex are not null.
      * @param callback     the response callback.
      */
-    public void show(String logName, Integer minIndex, Date minTimestamp, McuMgrCallback<McuMgrLogResponse>
-            callback) {
+    public void show(@Nullable String logName,
+                     @Nullable Integer minIndex,
+                     @Nullable Date minTimestamp,
+                     @NotNull McuMgrCallback<McuMgrLogResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         if (logName != null) {
             payloadMap.put("log_name", logName);
@@ -102,7 +107,9 @@ public class LogManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
-    public McuMgrLogResponse show(String logName, Integer minIndex, Date minTimestamp)
+    @NotNull
+    public McuMgrLogResponse show(@Nullable String logName, @Nullable Integer minIndex,
+                                  @Nullable Date minTimestamp)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         if (logName != null) {
@@ -123,7 +130,7 @@ public class LogManager extends McuManager {
      *
      * @param callback the response callback.
      */
-    public void clear(McuMgrCallback<McuMgrResponse> callback) {
+    public void clear(@NotNull McuMgrCallback<McuMgrResponse> callback) {
         send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class, callback);
     }
 
@@ -133,6 +140,7 @@ public class LogManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrResponse clear() throws McuMgrException {
         return send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class);
     }
@@ -144,7 +152,7 @@ public class LogManager extends McuManager {
      *
      * @param callback the response callback.
      */
-    public void moduleList(McuMgrCallback<McuMgrModuleListResponse> callback) {
+    public void moduleList(@NotNull McuMgrCallback<McuMgrModuleListResponse> callback) {
         send(OP_READ, ID_MODULE_LIST, null, McuMgrModuleListResponse.class, callback);
     }
 
@@ -156,6 +164,7 @@ public class LogManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrModuleListResponse moduleList() throws McuMgrException {
         return send(OP_READ, ID_MODULE_LIST, null, McuMgrModuleListResponse.class);
     }
@@ -165,7 +174,7 @@ public class LogManager extends McuManager {
      *
      * @param callback the response callback.
      */
-    public void levelList(McuMgrCallback<McuMgrLevelListResponse> callback) {
+    public void levelList(@NotNull McuMgrCallback<McuMgrLevelListResponse> callback) {
         send(OP_READ, ID_LEVEL_LIST, null, McuMgrLevelListResponse.class, callback);
     }
 
@@ -175,6 +184,7 @@ public class LogManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrLevelListResponse levelList() throws McuMgrException {
         return send(OP_READ, ID_LEVEL_LIST, null, McuMgrLevelListResponse.class);
     }
@@ -186,7 +196,7 @@ public class LogManager extends McuManager {
      *
      * @param callback the response callback.
      */
-    public void logsList(McuMgrCallback<McuMgrLogListResponse> callback) {
+    public void logsList(@NotNull McuMgrCallback<McuMgrLogListResponse> callback) {
         send(OP_READ, ID_LOGS_LIST, null, McuMgrLogListResponse.class, callback);
     }
 
@@ -198,6 +208,7 @@ public class LogManager extends McuManager {
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
+    @NotNull
     public McuMgrLogListResponse logsList() throws McuMgrException {
         return send(OP_READ, ID_LOGS_LIST, null, McuMgrLogListResponse.class);
     }
@@ -212,10 +223,6 @@ public class LogManager extends McuManager {
         try {
             // Get available logs
             McuMgrLogListResponse logListResponse = logsList();
-            if (logListResponse == null) {
-                Timber.e("Error occurred getting the list of logs.");
-                return logStates;
-            }
             Timber.d("Available logs: %s", logListResponse.toString());
 
             if (logListResponse.log_list == null) {
@@ -303,10 +310,6 @@ public class LogManager extends McuManager {
         Timber.d("Show logs: name=%s, nextIndex=%s", state.getName(), state.getNextIndex());
         try {
             McuMgrLogResponse response = show(state.getName(), state.getNextIndex(), null);
-            if (response == null) {
-                Timber.e("Error occurred getting logs");
-                return null;
-            }
             Timber.v("Show logs response: %s", CBOR.toString(response.getPayload()));
             return response;
         } catch (McuMgrException e) {

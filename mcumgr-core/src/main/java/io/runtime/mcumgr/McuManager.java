@@ -284,6 +284,7 @@ public abstract class McuManager {
      * @return The packet data.
      * @throws McuMgrException if the payload map could not be serialized into CBOR. See cause.
      */
+    @NotNull
     public static byte[] buildPacket(McuMgrScheme scheme, int op, int flags, int groupId,
                                      int sequenceNum, int commandId,
                                      @Nullable Map<String, Object> payloadMap)
