@@ -6,7 +6,9 @@
 
 package io.runtime.mcumgr.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ public class McuMgrResponse {
      * The raw return code found in most McuMgr response payloads. If a rc value is not explicitly
      * stated, a value of 0 is assumed.
      */
+    @JsonProperty("rc")
     public int rc = 0;
 
     /**
@@ -59,6 +62,9 @@ public class McuMgrResponse {
      * The CoAP Code used for CoAP schemes, formatted as ((class * 100) + detail).
      */
     private int mCoapCode = 0;
+
+    @JsonCreator
+    public McuMgrResponse() {}
 
     /**
      * Return the string representation of the response payload.

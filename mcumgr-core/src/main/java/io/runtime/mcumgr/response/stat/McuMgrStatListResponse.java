@@ -6,9 +6,16 @@
 
 package io.runtime.mcumgr.response.stat;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrStatListResponse extends McuMgrResponse {
     /** A list of modules. */
+    @JsonProperty("stat_list")
     public String[] stat_list;
+
+    @JsonCreator
+    public McuMgrStatListResponse() {}
 }

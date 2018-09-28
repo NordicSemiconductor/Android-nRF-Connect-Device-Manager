@@ -7,7 +7,9 @@
 package io.runtime.mcumgr.response.log;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -19,8 +21,13 @@ import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.CBOR;
 
 public class McuMgrLogResponse extends McuMgrResponse {
+    @JsonProperty("next_index")
     public int next_index;
+    @JsonProperty("logs")
     public LogResult[] logs;
+
+    @JsonCreator
+    public McuMgrLogResponse() {}
 
     public static class LogResult {
 
@@ -31,18 +38,24 @@ public class McuMgrLogResponse extends McuMgrResponse {
         /**
          * Name of the log.
          */
+        @JsonProperty("name")
         public String name;
 
         /**
          * Type of the log. {@link #LOG_TYPE_STREAM}, {@link #LOG_TYPE_MEMORY}, or
          * {@link #LOG_TYPE_STORAGE}.
          */
+        @JsonProperty("type")
         public int type;
 
         /**
          * Array of {@link Entry}s collected from this log.
          */
+        @JsonProperty("entries")
         public Entry[] entries;
+
+        @JsonCreator
+        public LogResult() {}
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -61,33 +74,42 @@ public class McuMgrLogResponse extends McuMgrResponse {
         /**
          * Log entry message. Binary may be encoded as defined in the {@link #type}.
          */
+        @JsonProperty("msg")
         public byte[] msg;
 
         /**
          * Log entry time stamp.
          */
+        @JsonProperty("ts")
         public long ts;
 
         /**
          * Log entry level.
          */
+        @JsonProperty("level")
         public int level;
 
         /**
          * Log entry index. The index should be unique to this entry.
          */
+        @JsonProperty("index")
         public int index;
 
         /**
          * Module which logged the entry.
          */
+        @JsonProperty("module")
         public int module;
 
         /**
          * Log message type. {@link #LOG_ENTRY_TYPE_STRING}, {@link #LOG_ENTRY_TYPE_CBOR}, or
          * {@link #LOG_ENTRY_TYPE_BINARY}.
          */
+        @JsonProperty("type")
         public String type;
+
+        @JsonCreator
+        public Entry() {}
 
         /**
          * Get a string representation of the {@link #msg} based on the message {@link #type}.

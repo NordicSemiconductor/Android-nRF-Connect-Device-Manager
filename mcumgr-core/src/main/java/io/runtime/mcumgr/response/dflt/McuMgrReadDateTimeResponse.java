@@ -6,11 +6,18 @@
 
 package io.runtime.mcumgr.response.dflt;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrReadDateTimeResponse extends McuMgrResponse {
     /**
      * Date & time in <code>yyyy-MM-dd'T'HH:mm:ss.SSSSSS</code> format.
      */
+    @JsonProperty("datetime")
     public String datetime;
+
+    @JsonCreator
+    public McuMgrReadDateTimeResponse() {}
 }
