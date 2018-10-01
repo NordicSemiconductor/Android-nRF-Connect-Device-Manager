@@ -23,7 +23,7 @@ android {
 
 dependencies {
     // Import the BLE Library
-    api 'no.nordicsemi.android:ble:2.0-alpha6'
+    api 'no.nordicsemi.android:ble:2.0-beta4'
 
     // Import the Timber library
     implementation 'com.jakewharton.timber:timber:4.7.1'

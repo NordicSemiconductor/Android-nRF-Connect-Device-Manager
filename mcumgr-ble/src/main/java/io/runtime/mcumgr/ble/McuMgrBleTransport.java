@@ -38,6 +38,7 @@ import no.nordicsemi.android.ble.data.DataMerger;
 import no.nordicsemi.android.ble.error.GattError;
 import no.nordicsemi.android.ble.exception.BluetoothDisabledException;
 import no.nordicsemi.android.ble.exception.DeviceDisconnectedException;
+import no.nordicsemi.android.ble.exception.InvalidRequestException;
 import no.nordicsemi.android.ble.exception.RequestFailedException;
 import timber.log.Timber;
 
@@ -178,6 +179,9 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         } catch (BluetoothDisabledException e) {
             // When Bluetooth was disabled, fail the request
             throw new McuMgrException("Bluetooth adapter disabled");
+        } catch (InvalidRequestException e) {
+            // Ignore. This exception won't be thrown
+            throw new RuntimeException("Invalid request");
         }
 
         // Ensure the MTU is sufficient.
@@ -209,6 +213,9 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         } catch (BluetoothDisabledException e) {
             // When Bluetooth was disabled, fail the request
             throw new McuMgrException("Bluetooth adapter disabled");
+        } catch (InvalidRequestException e) {
+            // Ignore. This exception won't be thrown
+            throw new RuntimeException("Invalid request");
         }
     }
 
