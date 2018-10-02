@@ -153,7 +153,9 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         final boolean wasConnected = isConnected();
         try {
             // Await will wait until the device is ready (that is initialization is complete)
-            connect(mDevice).await(25 * 1000);
+            connect(mDevice)
+                    .retry(3, 100)
+                    .await(25 * 1000);
             if (!wasConnected) {
                 notifyConnected();
             }
@@ -308,6 +310,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                 }
             }
         })
+        .retry(3, 100)
         .enqueue();
     }
 
