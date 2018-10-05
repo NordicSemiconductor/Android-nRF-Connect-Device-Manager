@@ -8,6 +8,8 @@
 package io.runtime.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,10 +24,11 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.fs.McuMgrFsDownloadResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsUploadResponse;
 import io.runtime.mcumgr.util.CBOR;
-import timber.log.Timber;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class FsManager extends McuManager {
+
+    private final static Logger LOG = LoggerFactory.getLogger(FsManager.class);
 
     private final static int ID_FILE = 0;
 
@@ -178,7 +181,7 @@ public class FsManager extends McuManager {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_DOWNLOADING;
         } else {
-            Timber.d("FsManager is not ready");
+            LOG.debug("FsManager is not ready");
             return;
         }
 
@@ -201,7 +204,7 @@ public class FsManager extends McuManager {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_UPLOADING;
         } else {
-            Timber.d("FsManager is not ready");
+            LOG.debug("FsManager is not ready");
             return;
         }
 
@@ -244,9 +247,9 @@ public class FsManager extends McuManager {
      */
     public synchronized void cancelTransfer() {
         if (mTransferState == STATE_NONE) {
-            Timber.d("File transfer is not in progress");
+            LOG.debug("File transfer is not in progress");
         } else if (mTransferState == STATE_PAUSED) {
-            Timber.d("Upload canceled!");
+            LOG.debug("Upload canceled!");
             resetTransfer();
             if (mUploadCallback != null) {
                 mUploadCallback.onUploadCanceled();
@@ -267,9 +270,9 @@ public class FsManager extends McuManager {
      */
     public synchronized void pauseTransfer() {
         if (mTransferState == STATE_NONE) {
-            Timber.d("File transfer is not in progress.");
+            LOG.debug("File transfer is not in progress.");
         } else {
-            Timber.d("Upload paused.");
+            LOG.debug("Upload paused.");
             mTransferState = STATE_PAUSED;
         }
     }
@@ -279,7 +282,7 @@ public class FsManager extends McuManager {
      */
     public synchronized void continueTransfer() {
         if (mTransferState == STATE_PAUSED) {
-            Timber.d("Continuing transfer.");
+            LOG.debug("Continuing transfer.");
             if (mDownloadCallback != null) {
                 mTransferState = STATE_DOWNLOADING;
                 requestNext(mOffset);
@@ -288,7 +291,7 @@ public class FsManager extends McuManager {
                 sendNext(mOffset);
             }
         } else {
-            Timber.d("Transfer is not paused.");
+            LOG.debug("Transfer is not paused.");
         }
     }
 
@@ -331,7 +334,7 @@ public class FsManager extends McuManager {
     private synchronized void sendNext(int offset) {
         // Check that the state is STATE_UPLOADING
         if (mTransferState != STATE_UPLOADING) {
-            Timber.d("Fs Manager is not in the UPLOADING state.");
+            LOG.debug("Fs Manager is not in the UPLOADING state.");
             return;
         }
         upload(mFileName, mFileData, offset, mUploadCallbackImpl);
@@ -345,7 +348,7 @@ public class FsManager extends McuManager {
     private synchronized void requestNext(int offset) {
         // Check that the state is STATE_UPLOADING
         if (mTransferState != STATE_DOWNLOADING) {
-            Timber.d("Fs Manager is not in the DOWNLOADING state.");
+            LOG.debug("Fs Manager is not in the DOWNLOADING state.");
             return;
         }
         download(mFileName, offset, mDownloadCallbackImpl);
@@ -365,14 +368,14 @@ public class FsManager extends McuManager {
                 public void onResponse(@NotNull McuMgrFsUploadResponse response) {
                     // Check for a McuManager error
                     if (response.rc != 0) {
-                        Timber.e("Upload failed due to McuManager error: %s",  response.rc);
+                        LOG.error("Upload failed due to McuManager error: {}",  response.rc);
                         fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
 
                     // Check if upload hasn't been cancelled.
                     if (mTransferState == STATE_NONE) {
-                        Timber.d("Upload canceled!");
+                        LOG.debug("Upload canceled!");
                         resetTransfer();
                         mUploadCallback.onUploadCanceled();
                         mUploadCallback = null;
@@ -388,7 +391,7 @@ public class FsManager extends McuManager {
 
                     // Check if the upload has finished.
                     if (mOffset == mFileData.length) {
-                        Timber.d("Upload finished!");
+                        LOG.debug("Upload finished!");
                         resetTransfer();
                         mUploadCallback.onUploadFinished();
                         mUploadCallback = null;
@@ -434,14 +437,14 @@ public class FsManager extends McuManager {
                 public void onResponse(@NotNull McuMgrFsDownloadResponse response) {
                     // Check for a McuManager error.
                     if (response.rc != 0) {
-                        Timber.e("Download failed due to McuManager error: %s", response.rc);
+                        LOG.error("Download failed due to McuManager error: {}", response.rc);
                         fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
 
                     // Check if download hasn't been cancelled.
                     if (mTransferState == STATE_NONE) {
-                        Timber.d("Download canceled!");
+                        LOG.debug("Download canceled!");
                         resetTransfer();
                         mDownloadCallback.onDownloadCanceled();
                         mDownloadCallback = null;
@@ -466,7 +469,7 @@ public class FsManager extends McuManager {
 
                     // Check if the download has finished.
                     if (mOffset == mFileData.length) {
-                        Timber.d("Download finished!");
+                        LOG.debug("Download finished!");
                         byte[] data = mFileData;
                         String fileName = mFileName;
                         resetTransfer();
@@ -524,7 +527,7 @@ public class FsManager extends McuManager {
                 return cborData.length + 8 + 2;
             }
         } catch (IOException e) {
-            Timber.e(e, "Error while calculating packet overhead");
+            LOG.error("Error while calculating packet overhead", e);
         }
         return -1;
     }

@@ -9,6 +9,8 @@ package io.runtime.mcumgr;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -22,13 +24,14 @@ import java.util.TimeZone;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
-import timber.log.Timber;
 
 /**
  * TODO
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class McuManager {
+
+    private final static Logger LOG = LoggerFactory.getLogger(McuManager.class);
 
     // Transport constants
     private final static int DEFAULT_MTU = 515;
@@ -124,10 +127,10 @@ public abstract class McuManager {
      */
     public synchronized boolean setUploadMtu(int mtu) {
         if (mtu < 20) {
-            Timber.e("MTU is too small! Must be greater than 20.");
+            LOG.error("MTU is too small! Must be greater than 20.");
             return false;
         } else if (mtu > 1024) {
-            Timber.e("MTU is too large! Must be less than 1024.");
+            LOG.error("MTU is too large! Must be less than 1024.");
             return false;
         } else {
             mMtu = mtu;
@@ -368,7 +371,7 @@ public abstract class McuManager {
         try {
             return mcumgrFormat.parse(dateString);
         } catch (ParseException e) {
-            Timber.e(e, "Converting string to Date failed");
+            LOG.error("Converting string to Date failed", e);
             return null;
         }
     }

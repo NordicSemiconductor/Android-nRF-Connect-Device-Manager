@@ -7,7 +7,6 @@
 
 package io.runtime.mcumgr.managers;
 
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

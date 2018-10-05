@@ -25,8 +25,8 @@ dependencies {
     // Import the BLE Library
     api 'no.nordicsemi.android:ble:2.0-beta5'
 
-    // Import the Timber library
-    implementation 'com.jakewharton.timber:timber:4.7.1'
+    // Logging
+    implementation 'org.slf4j:slf4j-android:1.7.7'
 
     // Import mcumgr-core
     api project(':mcumgr-core')

@@ -9,6 +9,8 @@ package io.runtime.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -29,7 +31,6 @@ import io.runtime.mcumgr.response.img.McuMgrCoreLoadResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.util.CBOR;
-import timber.log.Timber;
 
 /**
  * Image command-group manager. This manager can read the image state of a device, test or
@@ -44,6 +45,8 @@ import timber.log.Timber;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ImageManager extends McuManager {
+
+    private final static Logger LOG = LoggerFactory.getLogger(ImageManager.class);
 
     private final static int IMG_HASH_LEN = 32;
     private final static int TRUNCATED_HASH_LEN = 3;
@@ -294,7 +297,7 @@ public class ImageManager extends McuManager {
         if (mUploadState == STATE_NONE) {
             mUploadState = STATE_UPLOADING;
         } else {
-            Timber.d("An image upload is already in progress");
+            LOG.debug("An image upload is already in progress");
             return false;
         }
 
@@ -441,9 +444,9 @@ public class ImageManager extends McuManager {
      */
     public synchronized void cancelUpload() {
         if (mUploadState == STATE_NONE) {
-            Timber.d("Image upload is not in progress");
+            LOG.debug("Image upload is not in progress");
         } else if (mUploadState == STATE_PAUSED) {
-            Timber.d("Upload canceled!");
+            LOG.debug("Upload canceled!");
             resetUpload();
             mUploadCallback.onUploadCanceled();
             mUploadCallback = null;
@@ -456,9 +459,9 @@ public class ImageManager extends McuManager {
      */
     public synchronized void pauseUpload() {
         if (mUploadState == STATE_NONE) {
-            Timber.d("Upload is not in progress.");
+            LOG.debug("Upload is not in progress.");
         } else {
-            Timber.d("Upload paused.");
+            LOG.debug("Upload paused.");
             mUploadState = STATE_PAUSED;
         }
     }
@@ -468,11 +471,11 @@ public class ImageManager extends McuManager {
      */
     public synchronized void continueUpload() {
         if (mUploadState == STATE_PAUSED) {
-            Timber.d("Continuing upload.");
+            LOG.debug("Continuing upload.");
             mUploadState = STATE_UPLOADING;
             sendNext(mUploadOffset);
         } else {
-            Timber.d("Upload is not paused.");
+            LOG.debug("Upload is not paused.");
         }
     }
 
@@ -489,7 +492,7 @@ public class ImageManager extends McuManager {
 
     private synchronized void restartUpload() {
         if (mImageData == null || mUploadCallback == null) {
-            Timber.e("Could not restart upload: image data or callback is null!");
+            LOG.error("Could not restart upload: image data or callback is null!");
             return;
         }
         byte[] tempData = mImageData;
@@ -512,7 +515,7 @@ public class ImageManager extends McuManager {
     private synchronized void sendNext(int offset) {
         // Check that the state is STATE_UPLOADING.
         if (mUploadState != STATE_UPLOADING) {
-            Timber.d("Image Manager is not in the UPLOADING state.");
+            LOG.debug("Image Manager is not in the UPLOADING state.");
             return;
         }
         upload(mImageData, offset, mUploadCallbackImpl);
@@ -533,7 +536,7 @@ public class ImageManager extends McuManager {
                     // Check for a McuManager error.
                     if (response.rc != 0) {
                         // TODO when the image in slot 1 is confirmed, this will return ENOMEM (2).
-                        Timber.e("Upload failed due to McuManager error: %s", response.rc);
+                        LOG.error("Upload failed due to McuManager error: {}", response.rc);
                         failUpload(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
@@ -546,7 +549,7 @@ public class ImageManager extends McuManager {
                             System.currentTimeMillis());
 
                     if (mUploadState == STATE_NONE) {
-                        Timber.d("Upload canceled!");
+                        LOG.debug("Upload canceled!");
                         resetUpload();
                         mUploadCallback.onUploadCanceled();
                         mUploadCallback = null;
@@ -555,7 +558,7 @@ public class ImageManager extends McuManager {
 
                     // Check if the upload has finished.
                     if (mUploadOffset == mImageData.length) {
-                        Timber.d("Upload finished!");
+                        LOG.debug("Upload finished!");
                         resetUpload();
                         mUploadCallback.onUploadFinished();
                         mUploadCallback = null;
@@ -611,7 +614,7 @@ public class ImageManager extends McuManager {
                 return cborData.length + 8 + 2;
             }
         } catch (IOException e) {
-            Timber.e(e, "Error while calculating packet overhead");
+            LOG.error("Error while calculating packet overhead", e);
         }
         return -1;
     }

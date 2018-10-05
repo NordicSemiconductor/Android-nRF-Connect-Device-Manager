@@ -27,8 +27,12 @@ android {
 }
 
 dependencies {
-    // Import the Timber library
-    implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // Annotations
+    implementation 'org.jetbrains:annotations:16.0.1'
+
+    // Logging
+    implementation 'org.slf4j:slf4j-android:1.7.7'
 
     // Import CBOR parser
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6'

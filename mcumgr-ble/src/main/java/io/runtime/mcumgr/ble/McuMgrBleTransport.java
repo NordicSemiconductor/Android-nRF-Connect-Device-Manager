@@ -13,6 +13,9 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +43,6 @@ import no.nordicsemi.android.ble.exception.BluetoothDisabledException;
 import no.nordicsemi.android.ble.exception.DeviceDisconnectedException;
 import no.nordicsemi.android.ble.exception.InvalidRequestException;
 import no.nordicsemi.android.ble.exception.RequestFailedException;
-import timber.log.Timber;
 
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.
@@ -51,6 +53,8 @@ import timber.log.Timber;
  */
 @SuppressWarnings("unused")
 public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implements McuMgrTransport {
+
+    private static final Logger LOG = LoggerFactory.getLogger(McuMgrBleTransport.class);
 
     public final static UUID SMP_SERVICE_UUID =
             UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
@@ -330,12 +334,12 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
             mSmpService = gatt.getService(SMP_SERVICE_UUID);
             if (mSmpService == null) {
-                Timber.e("Device does not support SMP service");
+                LOG.error("Device does not support SMP service");
                 return false;
             }
             mSmpCharacteristic = mSmpService.getCharacteristic(SMP_CHAR_UUID);
             if (mSmpCharacteristic == null) {
-                Timber.e("Device does not support SMP characteristic");
+                LOG.error("Device does not support SMP characteristic");
                 return false;
             } else {
                 final int rxProperties = mSmpCharacteristic.getProperties();
@@ -343,7 +347,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                         BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0;
                 boolean notify = (rxProperties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0;
                 if (!write || !notify) {
-                    Timber.e("SMP characteristic does not support either write (%s) or notify (%s)", write, notify);
+                    LOG.error("SMP characteristic does not support either write ({}) or notify ({})", write, notify);
                     return false;
                 }
             }

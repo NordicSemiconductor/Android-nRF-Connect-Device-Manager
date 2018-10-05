@@ -9,6 +9,8 @@ package io.runtime.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,13 +30,14 @@ import io.runtime.mcumgr.response.log.McuMgrLogResponse;
 import io.runtime.mcumgr.response.log.McuMgrModuleListResponse;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
-import timber.log.Timber;
 
 /**
  * Log command group manager.
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class LogManager extends McuManager {
+
+    private final static Logger LOG = LoggerFactory.getLogger(LogManager.class);
 
     // Command IDs
     private final static int ID_READ = 0;
@@ -223,16 +226,16 @@ public class LogManager extends McuManager {
         try {
             // Get available logs
             McuMgrLogListResponse logListResponse = logsList();
-            Timber.d("Available logs: %s", logListResponse.toString());
+            LOG.debug("Available logs: {}", logListResponse.toString());
 
             if (logListResponse.log_list == null) {
-                Timber.w("No logs available on this device");
+                LOG.warn("No logs available on this device");
                 return logStates;
             }
 
             // For each log, get all the available logs
             for (String logName : logListResponse.log_list) {
-                Timber.d("Getting logs from: %s", logName);
+                LOG.debug("Getting logs from: {}", logName);
                 // Put a new State mapping if necessary
                 State state = logStates.get(logName);
                 if (state == null) {
@@ -244,7 +247,7 @@ public class LogManager extends McuManager {
             }
             return logStates;
         } catch (McuMgrException e) {
-            Timber.e(e, "Transport error while getting available logs");
+            LOG.error("Transport error while getting available logs", e);
         }
         return logStates;
     }
@@ -266,27 +269,27 @@ public class LogManager extends McuManager {
             McuMgrLogResponse showResponse = showNext(state);
             // Check for an error
             if (showResponse == null) {
-                Timber.e("Show logs resulted in an error");
+                LOG.error("Show logs resulted in an error");
                 break;
             }
 //            // Check for an index mismatch
 //            if (showResponse.next_index < state.getNextIndex())
-//                Timber.w("Next index mismatch state.nextIndex=" + state.getNextIndex() +
+//                LOG.warn("Next index mismatch state.nextIndex=" + state.getNextIndex() +
 //                        ", response.nextIndex=" + showResponse.next_index);
-//                Timber.w("Resetting log state.");
+//                LOG.warn("Resetting log state.");
 //                state.reset();
 //                continue;
 //            }
             // Check that the logs collected are not null or empty
             if (showResponse.logs == null || showResponse.logs.length == 0) {
-                Timber.e("No logs returned in the response.");
+                LOG.error("No logs returned in the response.");
                 break;
             }
             // Get the log result object
             McuMgrLogResponse.LogResult log = showResponse.logs[0];
             // If we don't have any more entries, break out of this log to the next.
             if (log.entries == null || log.entries.length == 0) {
-                Timber.d("No more entries left for this log.");
+                LOG.debug("No more entries left for this log.");
                 break;
             }
             // Get the index of the last entry in the list and set the LogState nextIndex
@@ -307,15 +310,15 @@ public class LogManager extends McuManager {
      * @return The show response.
      */
     public McuMgrLogResponse showNext(State state) {
-        Timber.d("Show logs: name=%s, nextIndex=%s", state.getName(), state.getNextIndex());
+        LOG.debug("Show logs: name={}, nextIndex={}", state.getName(), state.getNextIndex());
         try {
             McuMgrLogResponse response = show(state.getName(), state.getNextIndex(), null);
-            Timber.v("Show logs response: %s", CBOR.toString(response.getPayload()));
+            LOG.trace("Show logs response: {}", CBOR.toString(response.getPayload()));
             return response;
         } catch (McuMgrException e) {
-            Timber.e(e, "Requesting next set of logs failed");
+            LOG.error("Requesting next set of logs failed", e);
         } catch (IOException e) {
-            Timber.e(e, "Parsing response failed");
+            LOG.error("Parsing response failed", e);
         }
 
         return null;
