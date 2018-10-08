@@ -32,7 +32,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:16.0.1'
 
     // Logging
-    implementation 'org.slf4j:slf4j-android:1.7.7'
+    implementation 'org.slf4j:slf4j-api:1.7.25'
 
     // Import CBOR parser
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.6'

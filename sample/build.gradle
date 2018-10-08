@@ -54,6 +54,7 @@ dependencies {
 
     // Timber & SLF4J
     implementation 'com.arcao:slf4j-timber:3.0@aar'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // Mcu Mgr
     implementation project(':mcumgr-ble')
