@@ -103,6 +103,12 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         setGattCallbacks(new McuMgrBleCallbacksStub());
     }
 
+    /**
+     * Returns the device set in the constructor.
+     *
+     * @return The device to connect to and communicate with.
+     */
+    @NonNull
     @Override
     public BluetoothDevice getBluetoothDevice() {
         return mDevice;
@@ -159,7 +165,8 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
             // Await will wait until the device is ready (that is initialization is complete)
             connect(mDevice)
                     .retry(3, 100)
-                    .await(25 * 1000);
+                    .timeout(25 * 1000)
+                    .await();
             if (!wasConnected) {
                 notifyConnected();
             }
@@ -200,7 +207,8 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
             final SmpResponse<T> smpResponse = waitForNotification(mSmpCharacteristic)
                     .merge(mSMPMerger)
                     .trigger(writeCharacteristic(mSmpCharacteristic, payload).split())
-                    .await(new SmpResponse<>(responseType), 30000);
+                    .timeout(30000)
+                    .await(new SmpResponse<>(responseType));
             if (smpResponse.isValid()) {
                 //noinspection ConstantConditions
                 return smpResponse.getResponse();
@@ -287,7 +295,8 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
                                 }
                             }
                         })
-                        .enqueue(30000);
+                        .timeout(30000)
+                        .enqueue();
             }
         }).fail(new FailCallback() {
             @Override
