@@ -16,11 +16,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
 public class ImageUploadViewModel extends McuMgrViewModel implements ImageManager.ImageUploadCallback {
 	public enum State {
@@ -92,6 +95,10 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
 			return;
 		}
 
+		final McuMgrTransport transport = mManager.getTransporter();
+		if (transport instanceof McuMgrBleTransport) {
+			((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+		}
 		mManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
 			@Override
 			public void onResponse(@NonNull final McuMgrImageStateResponse response) {

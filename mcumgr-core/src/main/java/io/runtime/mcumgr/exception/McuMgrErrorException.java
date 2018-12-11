@@ -17,6 +17,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
  * practice by {@link FirmwareUpgradeManager} to send a failure callback with the
  * {@link McuMgrErrorCode} that caused the failure.
  */
+@SuppressWarnings("unused")
 public class McuMgrErrorException extends McuMgrException {
     @NotNull
     private McuMgrErrorCode mCode;

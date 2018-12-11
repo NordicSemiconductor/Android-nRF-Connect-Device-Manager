@@ -14,10 +14,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
 @SuppressWarnings("unused")
 public class FilesDownloadViewModel extends McuMgrViewModel
@@ -58,6 +61,10 @@ public class FilesDownloadViewModel extends McuMgrViewModel
 
 	public void download(final String path) {
 		setBusy();
+		final McuMgrTransport transport = mManager.getTransporter();
+		if (transport instanceof McuMgrBleTransport) {
+			((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+		}
 		mManager.download(path, this);
 	}
 

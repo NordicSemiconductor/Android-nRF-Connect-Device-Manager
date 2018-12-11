@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +82,8 @@ public class McuMgrResponse {
             return CBOR.toString(mPayload);
         } catch (IOException e) {
             LOG.error("Failed to parse response", e);
+            return "Failed to parse response";
         }
-        return null;
     }
 
     /**
@@ -90,6 +91,7 @@ public class McuMgrResponse {
      *
      * @return The McuMgrHeader.
      */
+    @NotNull
     public McuMgrHeader getHeader() {
         return mHeader;
     }
@@ -189,8 +191,9 @@ public class McuMgrResponse {
      * @param payload McuMgr CBOR payload.
      * @param rc      the return code.
      */
-    void initFields(McuMgrScheme scheme, byte[] bytes, McuMgrHeader header, byte[] payload,
-                    McuMgrErrorCode rc) {
+    void initFields(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes,
+                    @NotNull McuMgrHeader header, @NotNull byte[] payload,
+                    @NotNull McuMgrErrorCode rc) {
         mScheme = scheme;
         mBytes = bytes;
         mHeader = header;
@@ -209,8 +212,10 @@ public class McuMgrResponse {
      * @throws IOException              Error parsing response.
      * @throws IllegalArgumentException If the scheme is CoAP.
      */
-    public static <T extends McuMgrResponse> T buildResponse(McuMgrScheme scheme, byte[] bytes,
-                                                             Class<T> type) throws IOException {
+    public static <T extends McuMgrResponse> T buildResponse(@NotNull McuMgrScheme scheme,
+                                                             @NotNull byte[] bytes,
+                                                             @NotNull Class<T> type)
+            throws IOException {
         if (scheme.isCoap()) {
             throw new IllegalArgumentException("Cannot use this method with a CoAP scheme");
         }
@@ -243,10 +248,13 @@ public class McuMgrResponse {
      * @throws IOException         if parsing the payload into the object (type T) failed
      * @throws McuMgrCoapException if the CoAP code class indicates a CoAP error response
      */
-    public static <T extends McuMgrResponse> T buildCoapResponse(McuMgrScheme scheme, byte[] bytes,
-                                                                 byte[] header, byte[] payload,
+    public static <T extends McuMgrResponse> T buildCoapResponse(@NotNull McuMgrScheme scheme,
+                                                                 @NotNull byte[] bytes,
+                                                                 @NotNull byte[] header,
+                                                                 @NotNull byte[] payload,
                                                                  int codeClass, int codeDetail,
-                                                                 Class<T> type) throws IOException, McuMgrCoapException {
+                                                                 Class<T> type)
+            throws IOException, McuMgrCoapException {
         // If the code class indicates a CoAP error response, throw a McuMgrCoapException
         if (codeClass == 4 || codeClass == 5) {
             LOG.error("Received CoAP Error response, throwing McuMgrCoapException");
@@ -261,7 +269,8 @@ public class McuMgrResponse {
         return response;
     }
 
-    public static boolean requiresDefragmentation(McuMgrScheme scheme, byte[] bytes) throws IOException {
+    public static boolean requiresDefragmentation(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes)
+            throws IOException {
         if (scheme.isCoap()) {
             throw new UnsupportedOperationException("Method not implemented for CoAP");
         } else {
@@ -270,7 +279,8 @@ public class McuMgrResponse {
         }
     }
 
-    public static int getExpectedLength(McuMgrScheme scheme, byte[] bytes) throws IOException {
+    public static int getExpectedLength(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes)
+            throws IOException {
         if (scheme.isCoap()) {
             throw new UnsupportedOperationException("Method not implemented for CoAP");
         } else {

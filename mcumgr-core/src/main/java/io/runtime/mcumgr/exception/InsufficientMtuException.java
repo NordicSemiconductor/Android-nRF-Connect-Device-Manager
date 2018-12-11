@@ -14,6 +14,7 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
  * MTU. This is used in practice by the {@link FirmwareUpgradeManager} to resize it's packets to
  * fit within the transporter's MTU.
  */
+@SuppressWarnings("unused")
 public class InsufficientMtuException extends McuMgrException {
     private int mMtu;
     private int mDataLength;

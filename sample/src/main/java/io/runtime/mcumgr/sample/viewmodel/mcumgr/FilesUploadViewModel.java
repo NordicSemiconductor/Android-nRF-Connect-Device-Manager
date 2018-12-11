@@ -13,9 +13,12 @@ import android.support.annotation.NonNull;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
 public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.FileUploadCallback {
 	public enum State {
@@ -75,6 +78,10 @@ public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.F
 	public void upload(final String path, final byte[] data) {
 		setBusy();
 		mStateLiveData.setValue(State.UPLOADING);
+		final McuMgrTransport transport = mManager.getTransporter();
+		if (transport instanceof McuMgrBleTransport) {
+			((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+		}
 		mManager.upload(path, data, this);
 	}
 
