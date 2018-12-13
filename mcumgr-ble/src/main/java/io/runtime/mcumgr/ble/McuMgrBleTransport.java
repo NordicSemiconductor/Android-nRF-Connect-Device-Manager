@@ -13,6 +13,7 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ import no.nordicsemi.android.ble.exception.RequestFailedException;
  * existing BLE implementation, you may simply implement {@link McuMgrTransport} or use this class
  * to perform your BLE actions by calling {@link BleManager#enqueue(Request)}.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implements McuMgrTransport {
 
     private static final Logger LOG = LoggerFactory.getLogger(McuMgrBleTransport.class);
@@ -92,6 +93,12 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
      * Splitting packets must be supported by SMP Server on the target device.
      */
     private int mMaxPacketLength;
+
+    /**
+     * Flag indicating should low-level logging be enabled. Default to false.
+     * Call {@link #setLoggingEnabled(boolean)} to change.
+     */
+    private boolean mLoggingEnabled;
 
     /**
      * Construct a McuMgrBleTransport object.
@@ -143,8 +150,46 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
      *
      * @param maxLength the maximum packet length.
      */
-    public void setDeviceSidePacketMergingSupported(final int maxLength) {
+    public void setDeviceSidePacketMergingSupported(int maxLength) {
         mMaxPacketLength = maxLength;
+    }
+
+    //*******************************************************************************************
+    // Logging
+    //*******************************************************************************************
+
+    /**
+     * Allows to enable low-level logging. If enabled, all BLE events will be logged.
+     *
+     * @param enabled true to enable logging, false to disable (default).
+     */
+    public void setLoggingEnabled(boolean enabled) {
+        mLoggingEnabled = enabled;
+    }
+
+    @Override
+    public void log(int priority, @NonNull String message) {
+        if (mLoggingEnabled) {
+            switch (priority) {
+                case Log.DEBUG:
+                    LOG.debug(message);
+                    break;
+                case Log.INFO:
+                    LOG.info(message);
+                    break;
+                case Log.WARN:
+                    LOG.warn(message);
+                    break;
+                case Log.ERROR:
+                case Log.ASSERT:
+                    LOG.error(message);
+                    break;
+                case Log.VERBOSE:
+                default:
+                    LOG.trace(message);
+                    break;
+            }
+        }
     }
 
     //*******************************************************************************************
