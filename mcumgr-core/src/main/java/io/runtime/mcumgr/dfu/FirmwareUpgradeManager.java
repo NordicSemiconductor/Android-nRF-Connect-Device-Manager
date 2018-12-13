@@ -9,6 +9,7 @@ package io.runtime.mcumgr.dfu;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,6 +136,14 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private int mEstimatedSwapTime = 0;
 
     /**
+     * The timestamp at which the response to Reset command was received.
+     * Assuming that the target device has reset just after sending this response,
+     * the time difference between this moment and receiving disconnection event may be deducted
+     * from the {@link #mEstimatedSwapTime}.
+     */
+    private long mResetResponseTime;
+
+    /**
      * Construct a firmware upgrade manager. If using this constructor, the callback must be set
      * using {@link #setFirmwareUpgradeCallback(FirmwareUpgradeCallback)} before calling
      * {@link FirmwareUpgradeManager#start}.
@@ -231,7 +240,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * @param swapTime estimated time required for swapping images, in milliseconds. 0 by default.
      */
     public void setEstimatedSwapTime(int swapTime) {
-        this.mEstimatedSwapTime = Math.max(swapTime, 0);
+        mEstimatedSwapTime = Math.max(swapTime, 0);
     }
 
     /**
@@ -556,7 +565,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             LOG.trace("Reset successful");
             switch (mState) {
                 case NONE:
-                    // Upload was cancelled in VALIDATE state
+                    // Upload was cancelled in VALIDATE state.
                     cancelled(State.VALIDATE);
                     break;
                 case VALIDATE:
@@ -573,8 +582,15 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                                     verify();
                                 }
                             };
-                            if (mEstimatedSwapTime > 0) {
-                                new Handler().postDelayed(verify, mEstimatedSwapTime);
+                            // Calculate the delay needed before verification.
+                            // It may have taken 20 sec before the phone realized that it's
+                            // disconnected. No need to wait more, perhaps?
+                            long now = SystemClock.elapsedRealtime();
+                            long timeSinceReset = now - mResetResponseTime;
+                            long remainingTime = mEstimatedSwapTime - timeSinceReset;
+
+                            if (remainingTime > 0) {
+                                new Handler().postDelayed(verify, remainingTime);
                             } else {
                                 verify.run();
                             }
@@ -603,6 +619,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             if (!response.isSuccess()) {
                 fail(new McuMgrErrorException(response.getReturnCode()));
             }
+            mResetResponseTime = SystemClock.elapsedRealtime();
         }
 
         @Override
