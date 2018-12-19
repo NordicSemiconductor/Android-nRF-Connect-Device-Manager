@@ -613,13 +613,13 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private McuMgrCallback<McuMgrResponse> mResetCallback = new McuMgrCallback<McuMgrResponse>() {
         @Override
         public void onResponse(@NotNull McuMgrResponse response) {
-            // Reset command has been sent.
-            LOG.trace("Reset request sent. Waiting for reset...");
             // Check for an error return code
             if (!response.isSuccess()) {
                 fail(new McuMgrErrorException(response.getReturnCode()));
+                return;
             }
             mResetResponseTime = SystemClock.elapsedRealtime();
+            LOG.trace("Reset request sent. Waiting for reset...");
         }
 
         @Override
