@@ -69,7 +69,8 @@ public class McuMgrResponse {
     private int mCoapCode = 0;
 
     @JsonCreator
-    public McuMgrResponse() {}
+    public McuMgrResponse() {
+    }
 
     /**
      * Return the string representation of the response payload.
@@ -122,6 +123,7 @@ public class McuMgrResponse {
     /**
      * Returns true if the response payload contains a return code of 0 or no return code. In other
      * words, return true if the command was a success, false otherwise.
+     *
      * @return return true if the command was a success, false otherwise
      */
     public boolean isSuccess() {
@@ -231,7 +233,6 @@ public class McuMgrResponse {
         return response;
     }
 
-
     /**
      * Build a CoAP McuMgrResponse. This method will throw a McuMgrCoapException if the CoAP
      * response code indicates an error.
@@ -269,26 +270,28 @@ public class McuMgrResponse {
         return response;
     }
 
-    public static boolean requiresDefragmentation(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes)
-            throws IOException {
-        if (scheme.isCoap()) {
-            throw new UnsupportedOperationException("Method not implemented for CoAP");
-        } else {
-            int expectedLength = getExpectedLength(scheme, bytes);
-            return (expectedLength > (bytes.length - McuMgrHeader.HEADER_LENGTH));
-        }
-    }
-
+    /**
+     * This method parses the given bytes and reads the LENGTH field from the header.
+     * Returns the LENGTH + length of the header. This method may be used to determine whether
+     * more bytes must be received before parsing them into a response.
+     *
+     * @param scheme must be {@link McuMgrScheme#BLE}. COAP schemes are not supported.
+     * @param bytes  an array containing the whole or beginning of the message. It must contain
+     *               at least the whole header.
+     * @return The size of an array containing the header and complete response.
+     * @throws IOException                   thrown when the header could not be parsed.
+     * @throws UnsupportedOperationException when scheme is not equal to {@link McuMgrScheme#BLE}.
+     */
     public static int getExpectedLength(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes)
             throws IOException {
         if (scheme.isCoap()) {
             throw new UnsupportedOperationException("Method not implemented for CoAP");
         } else {
-            byte[] headerBytes = Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH);
-            McuMgrHeader header = McuMgrHeader.fromBytes(headerBytes);
-            if (header == null) {
+            if (bytes.length < McuMgrHeader.HEADER_LENGTH) {
                 throw new IOException("Invalid McuMgrHeader");
             }
+            byte[] headerBytes = Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH);
+            McuMgrHeader header = McuMgrHeader.fromBytes(headerBytes);
             return header.getLen() + McuMgrHeader.HEADER_LENGTH;
         }
     }
