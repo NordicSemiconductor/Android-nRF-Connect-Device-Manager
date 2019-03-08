@@ -402,118 +402,117 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: VALIDATE.
      * Callback for the list command.
      */
-    private McuMgrCallback<McuMgrImageStateResponse> mImageValidateCallback =
-            new McuMgrCallback<McuMgrImageStateResponse>() {
-                @Override
-                public void onResponse(@NotNull final McuMgrImageStateResponse response) {
-                    LOG.trace("Validation response: {}", response.toString());
+    private McuMgrCallback<McuMgrImageStateResponse> mImageValidateCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
+        @Override
+        public void onResponse(@NotNull final McuMgrImageStateResponse response) {
+            LOG.trace("Validation response: {}", response.toString());
 
-                    // Check for an error return code
-                    if (!response.isSuccess()) {
-                        fail(new McuMgrErrorException(response.getReturnCode()));
-                        return;
-                    }
+            // Check for an error return code
+            if (!response.isSuccess()) {
+                fail(new McuMgrErrorException(response.getReturnCode()));
+                return;
+            }
 
-                    if (mState == State.NONE) {
-                        cancelled(State.VALIDATE);
-                        return;
-                    }
+            if (mState == State.NONE) {
+                cancelled(State.VALIDATE);
+                return;
+            }
 
-                    McuMgrImageStateResponse.ImageSlot[] images = response.images;
-                    if (images == null) {
-                        LOG.error("Missing images information: {}", response.toString());
-                        fail(new McuMgrException("Missing images information"));
-                        return;
-                    }
+            McuMgrImageStateResponse.ImageSlot[] images = response.images;
+            if (images == null) {
+                LOG.error("Missing images information: {}", response.toString());
+                fail(new McuMgrException("Missing images information"));
+                return;
+            }
 
-                    // Check if the new firmware is different than the active one.
-                    if (images.length > 0 && Arrays.equals(mHash, images[0].hash)) {
-                        if (images[0].confirmed) {
-                            // The new firmware is already active and confirmed.
-                            // No need to do anything.
+            // Check if the new firmware is different than the active one.
+            if (images.length > 0 && Arrays.equals(mHash, images[0].hash)) {
+                if (images[0].confirmed) {
+                    // The new firmware is already active and confirmed.
+                    // No need to do anything.
+                    success();
+                } else {
+                    // The new firmware is in test mode.
+                    switch (mMode) {
+                        case CONFIRM_ONLY:
+                        case TEST_AND_CONFIRM:
+                            // We have to confirm it.
+                            confirm();
+                            break;
+                        case TEST_ONLY:
+                            // Nothing to be done.
                             success();
-                        } else {
-                            // The new firmware is in test mode.
-                            switch (mMode) {
-                                case CONFIRM_ONLY:
-                                case TEST_AND_CONFIRM:
-                                    // We have to confirm it.
-                                    confirm();
-                                    break;
-                                case TEST_ONLY:
-                                    // Nothing to be done.
-                                    success();
-                                    break;
-                            }
-                        }
-                        return;
+                            break;
                     }
+                }
+                return;
+            }
 
-                    // If the image in slot 1 is confirmed or pending we won't be able to erase or
-                    // test the slot causing a no memory or bad state error, respectively.
-                    // Therefore, We must reset the device and revalidate the new image state.
-                    if (images.length > 1 && (images[1].confirmed || images[1].pending)) {
-                        // Send reset command without changing state.
-                        mDefaultManager.getTransporter().addObserver(mResetObserver);
-                        mDefaultManager.reset(mResetCallback);
-                        return;
+            // If the image in slot 1 is confirmed or pending we won't be able to erase or
+            // test the slot causing a no memory or bad state error, respectively.
+            // Therefore, We must reset the device and revalidate the new image state.
+            if (images.length > 1 && (images[1].confirmed || images[1].pending)) {
+                // Send reset command without changing state.
+                mDefaultManager.getTransporter().addObserver(mResetObserver);
+                mDefaultManager.reset(mResetCallback);
+                return;
+            }
+
+            // Check if the new firmware was already sent.
+            if (images.length > 1 && Arrays.equals(mHash, images[1].hash)) {
+                // Firmware is identical to one on slot 1. No need to send anything.
+
+                // If the test or confirm commands were not sent, proceed with next state.
+                if (!images[1].pending) {
+                    switch (mMode) {
+                        case TEST_AND_CONFIRM:
+                        case TEST_ONLY:
+                            test();
+                            break;
+                        case CONFIRM_ONLY:
+                            confirm();
+                            break;
                     }
-
-                    // Check if the new firmware was already sent.
-                    if (images.length > 1 && Arrays.equals(mHash, images[1].hash)) {
-                        // Firmware is identical to one on slot 1. No need to send anything.
-
-                        // If the test or confirm commands were not sent, proceed with next state.
-                        if (!images[1].pending) {
-                            switch (mMode) {
-                                case TEST_AND_CONFIRM:
-                                case TEST_ONLY:
-                                    test();
-                                    break;
-                                case CONFIRM_ONLY:
-                                    confirm();
-                                    break;
-                            }
-                            return;
-                        }
-
-                        // If image was already confirmed, reset (if confirm was planned), or fail.
-                        if (images[1].permanent) {
-                            switch (mMode) {
-                                case CONFIRM_ONLY:
-                                case TEST_AND_CONFIRM:
-                                    // If confirm command was sent, just reset.
-                                    reset();
-                                    break;
-                                case TEST_ONLY:
-                                    fail(new McuMgrException("Image already confirmed. Can't be tested."));
-                                    break;
-                            }
-                            return;
-                        }
-
-                        // If image was not confirmed, but test command was sent, confirm or reset.
-                        switch (mMode) {
-                            case CONFIRM_ONLY:
-                                confirm();
-                                break;
-                            case TEST_AND_CONFIRM:
-                            case TEST_ONLY:
-                                reset();
-                                break;
-                        }
-                        return;
-                    }
-
-                    // Validation successful, begin image upload.
-                    upload();
+                    return;
                 }
 
-                @Override
-                public void onError(@NotNull McuMgrException e) {
-                    fail(e);
+                // If image was already confirmed, reset (if confirm was planned), or fail.
+                if (images[1].permanent) {
+                    switch (mMode) {
+                        case CONFIRM_ONLY:
+                        case TEST_AND_CONFIRM:
+                            // If confirm command was sent, just reset.
+                            reset();
+                            break;
+                        case TEST_ONLY:
+                            fail(new McuMgrException("Image already confirmed. Can't be tested."));
+                            break;
+                    }
+                    return;
                 }
-            };
+
+                // If image was not confirmed, but test command was sent, confirm or reset.
+                switch (mMode) {
+                    case CONFIRM_ONLY:
+                        confirm();
+                        break;
+                    case TEST_AND_CONFIRM:
+                    case TEST_ONLY:
+                        reset();
+                        break;
+                }
+                return;
+            }
+
+            // Validation successful, begin image upload.
+            upload();
+        }
+
+        @Override
+        public void onError(@NotNull McuMgrException e) {
+            fail(e);
+        }
+    };
 
     /**
      * State: TEST.
@@ -550,49 +549,79 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: RESET.
      * Observer for the transport disconnection.
      */
-    private McuMgrTransport.ConnectionObserver mResetObserver
-            = new McuMgrTransport.ConnectionObserver() {
+    private McuMgrTransport.ConnectionObserver mResetObserver = new McuMgrTransport.ConnectionObserver() {
         @Override
         public void onConnected() {
-            // ignore
+            // Do nothing
         }
 
         @Override
         public void onDisconnected() {
-            // Device has reset.
-            mDefaultManager.getTransporter().removeObserver(this);
-            LOG.trace("Reset successful");
+            mDefaultManager.getTransporter().removeObserver(mResetObserver);
+
+            LOG.trace("Device disconnected.");
+            Runnable reconnect = new Runnable() {
+                @Override
+                public void run() {
+                    mDefaultManager.getTransporter().connect(mReconnectCallback);
+                }
+            };
+            // Calculate the delay needed before verification.
+            // It may have taken 20 sec before the phone realized that it's
+            // disconnected. No need to wait more, perhaps?
+            long now = SystemClock.elapsedRealtime();
+            long timeSinceReset = now - mResetResponseTime;
+            long remainingTime = mEstimatedSwapTime - timeSinceReset;
+
+            if (remainingTime > 0) {
+                LOG.trace("Waiting for estimated swap time {}ms", mEstimatedSwapTime);
+                new Handler().postDelayed(reconnect, remainingTime);
+            } else {
+                reconnect.run();
+            }
+        }
+    };
+
+    /**
+     * State: RESET.
+     * Callback for reconnecting to the device.
+     */
+    private McuMgrTransport.ConnectionCallback mReconnectCallback = new McuMgrTransport.ConnectionCallback() {
+
+        @Override
+        public void onConnected() {
+            LOG.trace("Reconnect successful.");
+            continueUpgrade();
+        }
+
+        @Override
+        public void onDeferred() {
+            LOG.trace("Reconnect deferred.");
+            continueUpgrade();
+        }
+
+        @Override
+        public void onError(@NotNull Throwable t) {
+            LOG.trace("Reconnect failed.");
+            fail(new McuMgrException(t));
+        }
+
+        public void continueUpgrade() {
             switch (mState) {
                 case NONE:
-                    // Upload was cancelled in VALIDATE state.
+                    // Upload cancelled in state validate.
                     cancelled(State.VALIDATE);
                     break;
                 case VALIDATE:
-                    // The device has exited test mode. Slot 1 can now be erased.
+                    // If the reset occurred in the validate state, we must re-validate as
+                    // multiple resets may be required.
                     validate();
                     break;
                 case RESET:
                     switch (mMode) {
                         case TEST_AND_CONFIRM:
                             // The device reconnected after testing.
-                            Runnable verify = new Runnable() {
-                                @Override
-                                public void run() {
-                                    verify();
-                                }
-                            };
-                            // Calculate the delay needed before verification.
-                            // It may have taken 20 sec before the phone realized that it's
-                            // disconnected. No need to wait more, perhaps?
-                            long now = SystemClock.elapsedRealtime();
-                            long timeSinceReset = now - mResetResponseTime;
-                            long remainingTime = mEstimatedSwapTime - timeSinceReset;
-
-                            if (remainingTime > 0) {
-                                new Handler().postDelayed(verify, remainingTime);
-                            } else {
-                                verify.run();
-                            }
+                            verify();
                             break;
                         case TEST_ONLY:
                         case CONFIRM_ONLY:
@@ -600,7 +629,6 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                             success();
                             break;
                     }
-                    break;
             }
         }
     };
@@ -618,7 +646,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             mResetResponseTime = SystemClock.elapsedRealtime();
-            LOG.trace("Reset request sent. Waiting for reset...");
+            LOG.trace("Reset request success. Waiting for disconnect...");
         }
 
         @Override
@@ -631,76 +659,75 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: CONFIRM.
      * Callback for the confirm command.
      */
-    private McuMgrCallback<McuMgrImageStateResponse> mConfirmCallback =
-            new McuMgrCallback<McuMgrImageStateResponse>() {
-                private final static int MAX_ATTEMPTS = 2;
-                private int mAttempts = 0;
+    private McuMgrCallback<McuMgrImageStateResponse> mConfirmCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
+        private final static int MAX_ATTEMPTS = 2;
+        private int mAttempts = 0;
 
-                @Override
-                public void onResponse(@NotNull McuMgrImageStateResponse response) {
-                    // Reset retry counter
-                    mAttempts = 0;
+        @Override
+        public void onResponse(@NotNull McuMgrImageStateResponse response) {
+            // Reset retry counter
+            mAttempts = 0;
 
-                    LOG.trace("Confirm response: {}", response.toString());
-                    // Check for an error return code
-                    if (!response.isSuccess()) {
-                        fail(new McuMgrErrorException(response.getReturnCode()));
-                        return;
-                    }
-                    if (response.images.length == 0) {
+            LOG.trace("Confirm response: {}", response.toString());
+            // Check for an error return code
+            if (!response.isSuccess()) {
+                fail(new McuMgrErrorException(response.getReturnCode()));
+                return;
+            }
+            if (response.images.length == 0) {
+                fail(new McuMgrException("Confirm response does not contain enough info"));
+                return;
+            }
+            // Handle the response based on mode.
+            switch (mMode) {
+                case CONFIRM_ONLY:
+                    // Check that an image exists in slot 1
+                    if (response.images.length != 2) {
                         fail(new McuMgrException("Confirm response does not contain enough info"));
                         return;
                     }
-                    // Handle the response based on mode.
-                    switch (mMode) {
-                        case CONFIRM_ONLY:
-                            // Check that an image exists in slot 1
-                            if (response.images.length != 2) {
-                                fail(new McuMgrException("Confirm response does not contain enough info"));
-                                return;
-                            }
-                            // Check that the upgrade image has been confirmed
-                            if (!response.images[1].pending) {
-                                fail(new McuMgrException("Image is not in a confirmed state."));
-                                return;
-                            }
-                            // Reset the device, we don't want to do anything more.
-                            reset();
-                            break;
-                        case TEST_AND_CONFIRM:
-                            // Check that the upgrade image has successfully booted
-                            if (!Arrays.equals(mHash, response.images[0].hash)) {
-                                fail(new McuMgrException("Device failed to boot into new image"));
-                                return;
-                            }
-                            // Check that the upgrade image has been confirmed
-                            if (!response.images[0].confirmed) {
-                                fail(new McuMgrException("Image is not in a confirmed state."));
-                                return;
-                            }
-                            // The device has been tested and confirmed.
-                            success();
-                            break;
+                    // Check that the upgrade image has been confirmed
+                    if (!response.images[1].pending) {
+                        fail(new McuMgrException("Image is not in a confirmed state."));
+                        return;
                     }
-                }
+                    // Reset the device, we don't want to do anything more.
+                    reset();
+                    break;
+                case TEST_AND_CONFIRM:
+                    // Check that the upgrade image has successfully booted
+                    if (!Arrays.equals(mHash, response.images[0].hash)) {
+                        fail(new McuMgrException("Device failed to boot into new image"));
+                        return;
+                    }
+                    // Check that the upgrade image has been confirmed
+                    if (!response.images[0].confirmed) {
+                        fail(new McuMgrException("Image is not in a confirmed state."));
+                        return;
+                    }
+                    // The device has been tested and confirmed.
+                    success();
+                    break;
+            }
+        }
 
-                @Override
-                public void onError(@NotNull McuMgrException e) {
-                    // The confirm request might have been sent after the device was rebooted
-                    // and the images were swapped. Swapping images, depending on the hardware,
-                    // make take a long time, during which the phone may throw 133 error as a
-                    // timeout. In such case we should try again.
-                    if (e instanceof McuMgrTimeoutException) {
-                        if (mAttempts++ < MAX_ATTEMPTS) {
-                            // Try again
-                            LOG.info("Connection timeout. Retrying...");
-                            verify();
-                            return;
-                        }
-                    }
-                    fail(e);
+        @Override
+        public void onError(@NotNull McuMgrException e) {
+            // The confirm request might have been sent after the device was rebooted
+            // and the images were swapped. Swapping images, depending on the hardware,
+            // make take a long time, during which the phone may throw 133 error as a
+            // timeout. In such case we should try again.
+            if (e instanceof McuMgrTimeoutException) {
+                if (mAttempts++ < MAX_ATTEMPTS) {
+                    // Try again
+                    LOG.info("Connection timeout. Retrying...");
+                    verify();
+                    return;
                 }
-            };
+            }
+            fail(e);
+        }
+    };
 
     //******************************************************************
     // Firmware Upgrade State
@@ -711,7 +738,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         public boolean isInProgress() {
             return this == VALIDATE || this == UPLOAD || this == TEST ||
-                    this == RESET    || this == CONFIRM;
+                    this == RESET || this == CONFIRM;
         }
     }
 
@@ -752,7 +779,6 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         }
     }
 
-
     //******************************************************************
     // Image Upload Callback
     //******************************************************************
@@ -760,6 +786,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     /**
      * Image upload callback. Forwards upload callbacks to the FirmwareUpgradeCallback.
      */
+
     private UploadCallback mImageUploadCallback = new UploadCallback() {
 
         @Override
@@ -793,7 +820,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     };
 
     //******************************************************************
-    // Main Thread Executor
+    // Internal Callback forwarder
     //******************************************************************
 
     /**
@@ -911,6 +938,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             }
         }
     };
+
+    //******************************************************************
+    // Main Thread Executor
+    //******************************************************************
 
     /**
      * Used to execute callbacks on the main UI thread.

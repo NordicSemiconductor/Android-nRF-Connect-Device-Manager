@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity
 					.add(R.id.container, mImageFragment, "image")
 					.add(R.id.container, mFilesFragment, "fs")
 					.add(R.id.container, mLogsStatsFragment, "logs")
-                    // Initially, show the Device fragment and hide others.
+					// Initially, show the Device fragment and hide others.
 					.hide(mImageFragment).hide(mFilesFragment).hide(mLogsStatsFragment)
 					.commit();
 		} else {
@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity
 			mFilesFragment = getSupportFragmentManager().findFragmentByTag("fs");
 			mLogsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
 		}
+
+		// Connect the transporter
+		mMcuMgrTransport.connect(null);
 	}
 
 	@Override
