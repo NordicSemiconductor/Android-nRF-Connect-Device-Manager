@@ -1,10 +1,3 @@
-/*
- * Copyright (c) 2017-2018 Runtime Inc.
- * Copyright (c) Intellinium SAS, 2014-present
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package io.runtime.mcumgr.dfu;
 
 import android.os.Handler;
@@ -30,6 +23,8 @@ import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.transfer.TransferController;
+import io.runtime.mcumgr.transfer.UploadCallback;
 
 // TODO Add retries for each step
 
@@ -92,6 +87,11 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * Performs the reset command.
      */
     private DefaultManager mDefaultManager;
+
+    /**
+     * Upload controller used to pause, resume, and cancel upload. Set when the upload is started.
+     */
+    private TransferController mUploadController;
 
     /**
      * Firmware upgrade callback passed into the constructor or set before the upload has started.
@@ -285,7 +285,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             mState = State.NONE;
             mPaused = false;
         } else if (mState == State.UPLOAD) {
-            mImageManager.cancelUpload();
+            mUploadController.cancel();
             mPaused = false;
         }
     }
@@ -293,10 +293,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     @Override
     public synchronized void pause() {
         if (mState.isInProgress()) {
-            LOG.info("Pausing upgrade.");
             mPaused = true;
             if (mState == State.UPLOAD) {
-                mImageManager.pauseUpload();
+                mUploadController.pause();
             }
         }
     }
@@ -310,12 +309,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     @Override
-    public boolean isPaused() {
+    public synchronized boolean isPaused() {
         return mPaused;
     }
 
     @Override
-    public boolean isInProgress() {
+    public synchronized boolean isInProgress() {
         return mState.isInProgress() && !isPaused();
     }
 
@@ -342,7 +341,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private synchronized void upload() {
         setState(State.UPLOAD);
         if (!mPaused) {
-            mImageManager.upload(mImageData, mImageUploadCallback);
+            mUploadController = mImageManager.imageUpload(mImageData, mImageUploadCallback);
         }
     }
 
@@ -712,7 +711,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         public boolean isInProgress() {
             return this == VALIDATE || this == UPLOAD || this == TEST ||
-                   this == RESET    || this == CONFIRM;
+                    this == RESET    || this == CONFIRM;
         }
     }
 
@@ -739,7 +738,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 validate();
                 break;
             case UPLOAD:
-                mImageManager.continueUpload();
+                mUploadController.resume();
                 break;
             case TEST:
                 test();
@@ -761,11 +760,11 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     /**
      * Image upload callback. Forwards upload callbacks to the FirmwareUpgradeCallback.
      */
-    private ImageManager.ImageUploadCallback mImageUploadCallback =
-            new ImageManager.ImageUploadCallback() {
+    private UploadCallback mImageUploadCallback = new UploadCallback() {
+
         @Override
-        public void onProgressChanged(int bytesSent, int imageSize, long timestamp) {
-            mInternalCallback.onUploadProgressChanged(bytesSent, imageSize, timestamp);
+        public void onUploadProgressChanged(int current, int total, long timestamp) {
+            mInternalCallback.onUploadProgressChanged(current, total, timestamp);
         }
 
         @Override
@@ -779,7 +778,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         }
 
         @Override
-        public void onUploadFinished() {
+        public void onUploadCompleted() {
             // When upload is complete, send test on confirm commands, depending on the mode.
             switch (mMode) {
                 case TEST_ONLY:

@@ -11,12 +11,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.UploadResponse;
 
-public class McuMgrFsUploadResponse extends McuMgrResponse {
-    /** The offset. Number of bytes that were received. */
-    @JsonProperty("off")
-    public int off;
-
+public class McuMgrFsUploadResponse extends UploadResponse {
     @JsonCreator
     public McuMgrFsUploadResponse() {}
 }

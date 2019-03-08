@@ -48,17 +48,17 @@ public class McuMgrImageHeader {
         }
 
         McuMgrImageHeader header = new McuMgrImageHeader();
-        header.mMagic = ByteUtil.unsignedByteArrayToInt(b, offset, 4, Endian.LITTLE);
+        header.mMagic = ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 4);
 
         if (header.mMagic != IMG_HEADER_MAGIC && header.mMagic != IMG_HEADER_MAGIC_V1) {
             throw new McuMgrException("Wrong magic number: header=" + header.mMagic + ", magic=" +
                     IMG_HEADER_MAGIC + " or " + IMG_HEADER_MAGIC_V1);
         }
 
-        header.mLoadAddr = ByteUtil.unsignedByteArrayToInt(b, 4 + offset, 4, Endian.LITTLE);
-        header.mHdrSize = (short) ByteUtil.unsignedByteArrayToInt(b, 8 + offset, 2, Endian.LITTLE);
-        header.mImgSize = ByteUtil.unsignedByteArrayToInt(b, 12 + offset, 4, Endian.LITTLE);
-        header.mFlags = ByteUtil.unsignedByteArrayToInt(b, 16 + offset, 4, Endian.LITTLE);
+        header.mLoadAddr = ByteUtil.byteArrayToUnsignedInt(b, 4 + offset, Endian.LITTLE, 4);
+        header.mHdrSize = (short) ByteUtil.byteArrayToUnsignedInt(b, 8 + offset, Endian.LITTLE, 2);
+        header.mImgSize = ByteUtil.byteArrayToUnsignedInt(b, 12 + offset, Endian.LITTLE, 4);
+        header.mFlags = ByteUtil.byteArrayToUnsignedInt(b, 16 + offset, Endian.LITTLE, 4);
         header.mVersion = McuMgrImageVersion.fromBytes(b, 20 + offset);
 
         return header;

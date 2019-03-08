@@ -99,12 +99,12 @@ public class McuMgrHeader {
         if (header == null || header.length != HEADER_LENGTH) {
             return null;
         }
-        int op          = ByteUtil.unsignedByteArrayToInt(header, 0, 1, Endian.BIG);
-        int flags       = ByteUtil.unsignedByteArrayToInt(header, 1, 1, Endian.BIG);
-        int len         = ByteUtil.unsignedByteArrayToInt(header, 2, 2, Endian.BIG);
-        int groupId     = ByteUtil.unsignedByteArrayToInt(header, 4, 2, Endian.BIG);
-        int sequenceNum = ByteUtil.unsignedByteArrayToInt(header, 6, 1, Endian.BIG);
-        int commandId   = ByteUtil.unsignedByteArrayToInt(header, 7, 1, Endian.BIG);
+        int op          = ByteUtil.byteArrayToUnsignedInt(header, 0, Endian.BIG, 1);
+        int flags       = ByteUtil.byteArrayToUnsignedInt(header, 1, Endian.BIG, 1);
+        int len         = ByteUtil.byteArrayToUnsignedInt(header, 2, Endian.BIG, 2);
+        int groupId     = ByteUtil.byteArrayToUnsignedInt(header, 4, Endian.BIG, 2);
+        int sequenceNum = ByteUtil.byteArrayToUnsignedInt(header, 6, Endian.BIG, 1);
+        int commandId   = ByteUtil.byteArrayToUnsignedInt(header, 7, Endian.BIG, 1);
         return new McuMgrHeader(op, flags, len, groupId, sequenceNum, commandId);
     }
 

@@ -14,19 +14,26 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 
-import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.response.DownloadResponse;
+import io.runtime.mcumgr.response.UploadResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsDownloadResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsUploadResponse;
+import io.runtime.mcumgr.transfer.Download;
+import io.runtime.mcumgr.transfer.DownloadCallback;
+import io.runtime.mcumgr.transfer.TransferController;
+import io.runtime.mcumgr.transfer.TransferManager;
+import io.runtime.mcumgr.transfer.Upload;
+import io.runtime.mcumgr.transfer.UploadCallback;
 import io.runtime.mcumgr.util.CBOR;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class FsManager extends McuManager {
+public class FsManager extends TransferManager {
 
     private final static Logger LOG = LoggerFactory.getLogger(FsManager.class);
 
@@ -45,13 +52,12 @@ public class FsManager extends McuManager {
      * Read a packet of a file with given name from the specified offset from the device
      * (asynchronous).
      * <p>
-     * Use {@link #download(String, FileDownloadCallback)} to download the whole file
-     * asynchronously using one command.
+     * Use {@link #fileDownload} to download the whole file asynchronously using one command.
      *
      * @param name   the file name.
      * @param offset the offset, from which the chunk will be requested.
      * @param callback the asynchronous callback.
-     * @see #upload(String, byte[], FileUploadCallback)
+     * @see #fileDownload(String, byte[], DownloadCallback)
      */
     public void download(@NotNull String name, int offset,
                          @NotNull McuMgrCallback<McuMgrFsDownloadResponse> callback) {
@@ -65,13 +71,12 @@ public class FsManager extends McuManager {
      * Read a packet of a file with given name from the specified offset from the device
      * (synchronous).
      * <p>
-     * Use {@link #download(String, FileDownloadCallback)} to download the whole file
-     * asynchronously using one command.
+     * Use {@link #fileDownload} to download the whole file asynchronously using one command.
      *
      * @param name   the file name.
      * @param offset the offset, from which the chunk will be requested.
      * @return The upload response.
-     * @see #upload(String, byte[], FileUploadCallback)
+     * @see #fileDownload(String, byte[], DownloadCallback)
      */
     @NotNull
     public McuMgrFsDownloadResponse download(@NotNull String name, int offset)
@@ -90,38 +95,17 @@ public class FsManager extends McuManager {
      * thrown. Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
      * pass it to {@link #setUploadMtu(int)} and try again.
      * <p>
-     * Use {@link #upload(String, byte[], FileUploadCallback)} to send the whole file asynchronously
-     * using one command.
+     * Use {@link #fileUpload} to upload the whole file asynchronously using one command.
      *
      * @param name   the file name.
      * @param data   the file data.
      * @param offset the offset, from which the chunk will be sent.
      * @param callback the asynchronous callback.
-     * @see #upload(String, byte[], FileUploadCallback)
+     * @see #fileUpload(String, byte[], UploadCallback)
      */
     public void upload(@NotNull String name, @NotNull byte[] data, int offset,
                        @NotNull McuMgrCallback<McuMgrFsUploadResponse> callback) {
-        // Get the length of data (in bytes) to put into the upload packet. This calculated as:
-        // min(MTU - packetOverhead, imageLength - uploadOffset)
-        int dataLength = Math.min(mMtu - calculatePacketOverhead(name, data, offset),
-                data.length - offset);
-
-        // Copy the data from the image into a buffer.
-        byte[] sendBuffer = new byte[dataLength];
-        System.arraycopy(data, offset, sendBuffer, 0, dataLength);
-
-        // Create the map of key-values for the McuManager payload
-        HashMap<String, Object> payloadMap = new HashMap<>();
-        // Put the name, data and offset
-        payloadMap.put("name", name);
-        payloadMap.put("data", sendBuffer);
-        payloadMap.put("off", offset);
-        if (offset == 0) {
-            // Only send the length of the image in the first packet of the upload
-            payloadMap.put("len", data.length);
-        }
-
-        // Send the request
+        HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset);
         send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class, callback);
     }
 
@@ -133,18 +117,25 @@ public class FsManager extends McuManager {
      * thrown. Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
      * pass it to {@link #setUploadMtu(int)} and try again.
      * <p>
-     * Use {@link #upload(String, byte[], FileUploadCallback)} to send the whole file asynchronously
-     * using one command.
+     * Use {@link #fileUpload} to upload the whole file asynchronously using one command.
      *
      * @param name   the file name.
      * @param data   the file data.
      * @param offset the offset, from which the chunk will be sent.
      * @return The upload response.
-     * @see #upload(String, byte[], FileUploadCallback)
+     * @see #fileUpload(String, byte[], UploadCallback)
      */
     @NotNull
     public McuMgrFsUploadResponse upload(@NotNull String name, @NotNull byte[] data, int offset)
             throws McuMgrException {
+        HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset);
+        return send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class);
+    }
+
+    /*
+     * Build the upload payload map.
+     */
+    private HashMap<String, Object> buildUploadPayload(@NotNull String name, @NotNull byte[] data, int offset) {
         // Get the length of data (in bytes) to put into the upload packet. This calculated as:
         // min(MTU - packetOverhead, imageLength - uploadOffset)
         int dataLength = Math.min(mMtu - calculatePacketOverhead(name, data, offset),
@@ -164,10 +155,106 @@ public class FsManager extends McuManager {
             // Only send the length of the image in the first packet of the upload
             payloadMap.put("len", data.length);
         }
-
-        // Send the request
-        return send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class);
+        return payloadMap;
     }
+
+    //******************************************************************
+    // File Upload
+    //******************************************************************
+
+    /**
+     * Start image upload.
+     * <p>
+     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
+     * downloads executed from {@link #fileDownload}.
+     * <p>
+     * The upload may be controlled using the {@link TransferController} returned by this method.
+     *
+     * @param data The file data to upload.
+     * @param callback  Receives callbacks from the upload.
+     * @return The object used to control this upload.
+     * @see TransferController
+     */
+    public TransferController fileUpload(@NotNull String name, @NotNull byte[] data, @NotNull UploadCallback callback) {
+        return startUpload(new FileUpload(name, data, callback));
+    }
+
+    /**
+     * File Upload Implementation.
+     */
+    public class FileUpload extends Upload {
+
+        @NotNull
+        private String mName;
+
+        protected FileUpload(@NotNull String name, @NotNull byte[] data, @NotNull UploadCallback callback) {
+            super(data, callback);
+            mName = name;
+        }
+
+        @Override
+        protected UploadResponse write(@NotNull byte[] data, int offset) throws McuMgrException {
+            return upload(mName, data, offset);
+        }
+    }
+
+    //******************************************************************
+    // File Download
+    //******************************************************************
+
+    /**
+     * Start image upload.
+     * <p>
+     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
+     * downloads executed from {@link #fileUpload}.
+     * <p>
+     * The upload may be controlled using the {@link TransferController} returned by this method.
+     *
+     * @param data The file data to upload.
+     * @param callback  Receives callbacks from the upload.
+     * @return The object used to control this upload.
+     * @see TransferController
+     */
+    public TransferController fileDownload(@NotNull String name, @NotNull byte[] data, @NotNull DownloadCallback callback) {
+        return startDownload(new FileDownload(name, callback));
+    }
+
+    /**
+     * File Download Implementation
+     */
+    public class FileDownload extends Download {
+
+        @NotNull
+        private String mName;
+
+        protected FileDownload(@NotNull String name, @NotNull DownloadCallback callback) {
+            super(callback);
+            mName = name;
+        }
+
+        @Override
+        protected DownloadResponse read(int offset) throws McuMgrException {
+            return download(mName, offset);
+        }
+    }
+
+    //******************************************************************
+    // File Upload / Download (OLD, DEPRECATED)
+    //******************************************************************
+
+    // Upload / Download states
+    public final static int STATE_NONE = 0;
+    public final static int STATE_UPLOADING = 1;
+    public final static int STATE_DOWNLOADING = 2;
+    public final static int STATE_PAUSED = 3;
+
+    // Upload / Download variables
+    private int mTransferState = STATE_NONE;
+    private String mFileName = null;
+    private int mOffset = 0;
+    private byte[] mFileData;
+    private FileUploadCallback mUploadCallback;
+    private FileDownloadCallback mDownloadCallback;
 
     /**
      * Begin a file download.
@@ -176,7 +263,9 @@ public class FsManager extends McuManager {
      *
      * @param name     the file name.
      * @param callback the file download callback.
+     * @deprecated Use {@link #fileDownload(String, byte[], DownloadCallback)} instead.
      */
+    @Deprecated
     public synchronized void download(@NotNull String name, @NotNull FileDownloadCallback callback) {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_DOWNLOADING;
@@ -198,7 +287,9 @@ public class FsManager extends McuManager {
      * @param name     the file name.
      * @param data     the file data to upload.
      * @param callback the file upload callback.
+     * @deprecated Use {@link #fileUpload(String, byte[], UploadCallback)} instead.
      */
+    @Deprecated
     public synchronized void upload(@NotNull String name, @NotNull byte[] data,
                                     @NotNull FileUploadCallback callback) {
         if (mTransferState == STATE_NONE) {
@@ -214,37 +305,23 @@ public class FsManager extends McuManager {
         sendNext(0);
     }
 
-    //******************************************************************
-    // File Upload / Download
-    //******************************************************************
-
-    // Upload / Download states
-    public final static int STATE_NONE = 0;
-    public final static int STATE_UPLOADING = 1;
-    public final static int STATE_DOWNLOADING = 2;
-    public final static int STATE_PAUSED = 3;
-
-    // Upload / Download variables
-    private int mTransferState = STATE_NONE;
-    private String mFileName = null;
-    private int mOffset = 0;
-    private byte[] mFileData;
-    private FileUploadCallback mUploadCallback;
-    private FileDownloadCallback mDownloadCallback;
-
     /**
      * Get the current upload state ({@link #STATE_NONE},
      * {@link #STATE_UPLOADING}, {@link #STATE_DOWNLOADING}, {@link #STATE_PAUSED}).
      *
      * @return The current upload state.
+     * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
      */
+    @Deprecated
     public synchronized int getState() {
         return mTransferState;
     }
 
     /**
      * Cancel an undergoing file transfer. Does nothing if no transfer is in progress.
+     * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
      */
+    @Deprecated
     public synchronized void cancelTransfer() {
         if (mTransferState == STATE_NONE) {
             LOG.debug("File transfer is not in progress");
@@ -267,7 +344,9 @@ public class FsManager extends McuManager {
 
     /**
      * Pause an in progress transfer.
+     * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
      */
+    @Deprecated
     public synchronized void pauseTransfer() {
         if (mTransferState == STATE_NONE) {
             LOG.debug("File transfer is not in progress.");
@@ -279,7 +358,9 @@ public class FsManager extends McuManager {
 
     /**
      * Continue a paused file transfer.
+     * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
      */
+    @Deprecated
     public synchronized void continueTransfer() {
         if (mTransferState == STATE_PAUSED) {
             LOG.debug("Continuing transfer.");
@@ -294,10 +375,6 @@ public class FsManager extends McuManager {
             LOG.debug("Transfer is not paused.");
         }
     }
-
-    //******************************************************************
-    // Implementation
-    //******************************************************************
 
     private synchronized void fail(McuMgrException error) {
         if (mUploadCallback != null) {
@@ -536,6 +613,10 @@ public class FsManager extends McuManager {
     // File Upload Callback
     //******************************************************************
 
+    /**
+     * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
+     */
+    @Deprecated
     public interface FileUploadCallback {
 
         /**
@@ -569,6 +650,10 @@ public class FsManager extends McuManager {
     // File Download Callback
     //******************************************************************
 
+    /**
+     * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
+     */
+    @Deprecated
     public interface FileDownloadCallback {
 
         /**
@@ -577,6 +662,7 @@ public class FsManager extends McuManager {
          * @param bytesDownloaded the number of bytes downloaded so far.
          * @param imageSize       the size of the image in bytes.
          * @param timestamp       the timestamp of when the response was received.
+         * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
         void onProgressChanged(int bytesDownloaded, int imageSize, long timestamp);
 
@@ -584,11 +670,13 @@ public class FsManager extends McuManager {
          * Called when the download has failed.
          *
          * @param error the error. See the cause for more info.
+         * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
         void onDownloadFailed(@NotNull McuMgrException error);
 
         /**
          * Called when the download has been canceled.
+         * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
         void onDownloadCanceled();
 
@@ -597,6 +685,7 @@ public class FsManager extends McuManager {
          *
          * @param name file name.
          * @param data file data.
+         * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
         void onDownloadFinished(@NotNull String name, @NotNull byte[] data);
     }

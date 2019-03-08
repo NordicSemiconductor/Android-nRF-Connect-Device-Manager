@@ -53,7 +53,7 @@ dependencies {
     implementation 'no.nordicsemi.android.support.v18:scanner:1.1.0'
 
     // Timber & SLF4J
-    implementation 'com.arcao:slf4j-timber:3.0@aar'
+    implementation 'com.arcao:slf4j-timber:3.1@aar'
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // Mcu Mgr

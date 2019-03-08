@@ -36,8 +36,8 @@ public class McuMgrImageTlvInfo {
                     "length= " + b.length + ", offset= " + offset + ", min size= " + getSize());
 
         McuMgrImageTlvInfo info = new McuMgrImageTlvInfo();
-        info.mMagic = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2, Endian.LITTLE);
-        info.mTotal = (short) ByteUtil.unsignedByteArrayToInt(b, offset + 2, 2, Endian.LITTLE);
+        info.mMagic = (short) ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 2);
+        info.mTotal = (short) ByteUtil.byteArrayToUnsignedInt(b, offset + 2, Endian.LITTLE, 2);
 
         if (info.mMagic != McuMgrImageTlv.IMG_TLV_INFO_MAGIC) {
             throw new McuMgrException("Wrong magic number, magic= " + info.mMagic + " instead of " +

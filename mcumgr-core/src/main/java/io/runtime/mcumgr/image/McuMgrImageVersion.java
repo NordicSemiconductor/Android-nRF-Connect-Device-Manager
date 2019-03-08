@@ -38,8 +38,8 @@ public class McuMgrImageVersion {
         McuMgrImageVersion version = new McuMgrImageVersion();
         version.mMajor = b[offset++];
         version.mMinor = b[offset++];
-        version.mRevision = (short) ByteUtil.unsignedByteArrayToInt(b, offset, 2, Endian.LITTLE);
-        version.mBuildNum = ByteUtil.unsignedByteArrayToInt(b, offset + 2, 4, Endian.LITTLE);
+        version.mRevision = (short) ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 2);
+        version.mBuildNum = ByteUtil.byteArrayToUnsignedInt(b, offset + 2, Endian.LITTLE, 4);
 
         return version;
     }
