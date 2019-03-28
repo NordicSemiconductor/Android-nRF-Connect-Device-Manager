@@ -22,7 +22,7 @@ import io.runtime.mcumgr.util.CBOR;
 
 public class McuMgrLogResponse extends McuMgrResponse {
     @JsonProperty("next_index")
-    public int next_index;
+    public long next_index;
     @JsonProperty("logs")
     public LogResult[] logs;
 
@@ -93,7 +93,7 @@ public class McuMgrLogResponse extends McuMgrResponse {
          * Log entry index. The index should be unique to this entry.
          */
         @JsonProperty("index")
-        public int index;
+        public long index;
 
         /**
          * Module which logged the entry.
