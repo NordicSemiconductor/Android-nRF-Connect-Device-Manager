@@ -448,10 +448,30 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
 
-            // If the image in slot 1 is confirmed or pending we won't be able to erase or
-            // test the slot causing a no memory or bad state error, respectively.
-            // Therefore, We must reset the device and revalidate the new image state.
-            if (images.length > 1 && (images[1].confirmed || images[1].pending)) {
+            // If the image in slot 1 is confirmed, we wont be able to erase or upload the image.
+            // Therefore we must confirm the image in slot 0 and revalidate the image state.
+            if (images.length > 1 && images[1].confirmed) {
+                mImageManager.confirm(images[0].hash, new McuMgrCallback<McuMgrImageStateResponse>() {
+                    @Override
+                    public void onResponse(@NotNull McuMgrImageStateResponse response) {
+                        if (!response.isSuccess()) {
+                            fail(new McuMgrErrorException(response.getReturnCode()));
+                            return;
+                        }
+                        validate();
+                    }
+
+                    @Override
+                    public void onError(@NotNull McuMgrException error) {
+                        fail(error);
+                    }
+                });
+                return;
+            }
+
+            // If the image in slot 1 is pending, we won't be able to erase, upload or test the
+            // image. Therefore, We must reset the device and revalidate the new image state.
+            if (images.length > 1 && images[1].pending) {
                 // Send reset command without changing state.
                 mDefaultManager.getTransporter().addObserver(mResetObserver);
                 mDefaultManager.reset(mResetCallback);
