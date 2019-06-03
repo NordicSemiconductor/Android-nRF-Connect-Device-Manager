@@ -19,7 +19,7 @@ public class McuMgrStatResponse extends McuMgrResponse {
     public String name;
     /** A map of key-value pairs for the given module. */
     @JsonProperty("fields")
-    public Map<String, Integer> fields;
+    public Map<String, Long> fields;
 
     @JsonCreator
     public McuMgrStatResponse() {}

@@ -75,7 +75,7 @@ public class LogManager extends McuManager {
      * @param callback     the response callback.
      */
     public void show(@Nullable String logName,
-                     @Nullable Integer minIndex,
+                     @Nullable Long minIndex,
                      @Nullable Date minTimestamp,
                      @NotNull McuMgrCallback<McuMgrLogResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();

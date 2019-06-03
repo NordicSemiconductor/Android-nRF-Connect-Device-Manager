@@ -53,31 +53,31 @@ public class McuMgrTaskStatResponse extends McuMgrResponse {
     public static class TaskStat {
         /** Task Priority. */
         @JsonProperty("prio")
-        public int prio;
+        public long prio;
         /** Task ID. */
         @JsonProperty("tid")
-        public int tid;
+        public long tid;
         /** Task state. See THREAD_* or _OS_TASK_* constants. */
         @JsonProperty("state")
-        public int state;
+        public long state;
         /** Stack usage, in bytes. */
         @JsonProperty("stkuse")
-        public int stkuse;
+        public long stkuse;
         /** Size of this task's stack. */
         @JsonProperty("stksiz")
-        public int stksiz;
+        public long stksiz;
         /** Total number of times this task has been context switched during execution. */
         @JsonProperty("cswcnt")
-        public int cswcnt;
+        public long cswcnt;
         /** Total task run time. */
         @JsonProperty("runtime")
-        public int runtime;
+        public long runtime;
         /** Last checking time. */
         @JsonProperty("last_checkin")
-        public int last_checkin;
+        public long last_checkin;
         /** Next checking time. */
         @JsonProperty("next_checkin")
-        public int next_checkin;
+        public long next_checkin;
 
         @JsonCreator
         public TaskStat() {}
