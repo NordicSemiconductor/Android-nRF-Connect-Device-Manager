@@ -97,7 +97,7 @@ public class StatsFragment extends Fragment implements Injectable {
 			builder.setSpan(new StyleSpan(Typeface.BOLD), start, start + response.name.length(),
 					Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
 
-			for (final Map.Entry<String, Integer> entry : response.fields.entrySet()) {
+			for (final Map.Entry<String, Long> entry : response.fields.entrySet()) {
 				builder.append(getString(R.string.stats_field,
 						entry.getKey(), entry.getValue())).append("\n");
 			}
