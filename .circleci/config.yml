@@ -24,8 +24,8 @@ jobs:
                      --stacktrace
                      assembleDebug 
       - run:
-          name: Import GPG Files
-          command: gpg --version && mkdir -p ~/.gnupg && echo "$SIGNING_PUBLIC_KEY_RING" | base64 --decode > ~/.gnupg/pubring.kbx && mkdir -p ~/.gnupg && echo "$SIGNING_TRUST_DB" | base64 --decode > ~/.gnupg/trustdb.gpg && echo "$SIGNING_SECRET_KEY_RING" | base64 --decode > ~/.gnupg/secring.gpg && gpg -k
+          name: Import GPG Keys
+          command: echo "$SIGNING_SECRET_KEY" | base64 --decode > ~/mcumgr-private.asc && gpg --batch --import ~/mcumgr-private.asc && echo "$SIGNING_PASSWORD" > ~/mcumgr-private-passphrase && gpg --pinentry-mode loopback --passphrase-file ~/mcumgr-private-passphrase --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg 
       - run:
           name: Deploy
           command: .circleci/deploy.sh
