@@ -21,14 +21,18 @@ import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.CBOR;
 
 public class McuMgrLogResponse extends McuMgrResponse {
+
+    @Deprecated
     @JsonProperty("next_index")
     public long next_index;
+
     @JsonProperty("logs")
     public LogResult[] logs;
 
     @JsonCreator
     public McuMgrLogResponse() {}
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LogResult {
 
         public static final int LOG_TYPE_STREAM = 0;
