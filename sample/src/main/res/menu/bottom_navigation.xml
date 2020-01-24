@@ -6,32 +6,32 @@
   -->
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto">
-	<item
-		android:id="@+id/nav_default"
-		android:enabled="true"
-		android:icon="@drawable/ic_nav_general"
-		android:title="@string/nav_default"
-		app:showAsAction="ifRoom" />
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nav_default"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_general"
+        android:title="@string/nav_default"
+        app:showAsAction="ifRoom"/>
 
-	<item
-		android:id="@+id/nav_dfu"
-		android:enabled="true"
-		android:icon="@drawable/ic_nav_image"
-		android:title="@string/nav_image"
-		app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/nav_dfu"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_image"
+        android:title="@string/nav_image"
+        app:showAsAction="ifRoom"/>
 
-	<item
-		android:id="@+id/nav_fs"
-		android:enabled="true"
-		android:icon="@drawable/ic_nav_fs"
-		android:title="@string/nav_fs"
-		app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/nav_fs"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_fs"
+        android:title="@string/nav_fs"
+        app:showAsAction="ifRoom"/>
 
-	<item
-		android:id="@+id/nav_stats"
-		android:enabled="true"
-		android:icon="@drawable/ic_nav_stats"
-		android:title="@string/nav_stats"
-		app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/nav_stats"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_stats"
+        android:title="@string/nav_stats"
+        app:showAsAction="ifRoom"/>
 </menu>

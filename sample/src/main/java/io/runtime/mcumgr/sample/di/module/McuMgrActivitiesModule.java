@@ -13,6 +13,6 @@ import io.runtime.mcumgr.sample.MainActivity;
 @SuppressWarnings("unused")
 @Module
 public abstract class McuMgrActivitiesModule {
-	@ContributesAndroidInjector
-	abstract MainActivity contributeMainActivity();
+    @ContributesAndroidInjector
+    abstract MainActivity contributeMainActivity();
 }

@@ -6,6 +6,6 @@
   -->
 
 <resources>
-	<string name="files_action_generate">Generate File</string>
-	<string name="files_action_select">Select File</string>
+    <string name="files_action_generate">Generate File</string>
+    <string name="files_action_select">Select File</string>
 </resources>

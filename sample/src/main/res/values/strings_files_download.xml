@@ -6,15 +6,15 @@
   -->
 
 <resources>
-	<string name="files_download_title">Download</string>
-	<string name="files_download_action">Download</string>
-	<string name="files_download_hint">File name</string>
-	<string name="files_download_recent_files">Recent files</string>
-	<string name="files_download_recent_files_empty">No recent files</string>
-	<string name="files_download_empty">File name cannot be empty.</string>
+    <string name="files_download_title">Download</string>
+    <string name="files_download_action">Download</string>
+    <string name="files_download_hint">File name</string>
+    <string name="files_download_recent_files">Recent files</string>
+    <string name="files_download_recent_files_empty">No recent files</string>
+    <string name="files_download_empty">File name cannot be empty.</string>
 
-	<string name="files_download_error_file_not_found"><i>File not found</i></string>
-	<string name="files_download_file_empty"><i>File empty</i></string>
-	<string name="files_download_file">%s (%d bytes)\n\n%s</string>
-	<string name="files_download_image">%s (%d bytes)\n</string>
+    <string name="files_download_error_file_not_found"><i>File not found</i></string>
+    <string name="files_download_file_empty"><i>File empty</i></string>
+    <string name="files_download_file">%s (%d bytes)\n\n%s</string>
+    <string name="files_download_image">%s (%d bytes)\n</string>
 </resources>

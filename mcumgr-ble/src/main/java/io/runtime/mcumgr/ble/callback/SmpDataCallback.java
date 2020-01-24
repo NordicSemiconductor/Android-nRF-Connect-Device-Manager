@@ -7,7 +7,7 @@
 package io.runtime.mcumgr.ble.callback;
 
 import android.bluetooth.BluetoothDevice;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.response.McuMgrResponse;

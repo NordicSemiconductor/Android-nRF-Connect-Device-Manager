@@ -16,14 +16,14 @@ import io.runtime.mcumgr.sample.di.component.ViewModelSubComponent;
 import io.runtime.mcumgr.sample.viewmodel.ViewModelFactory;
 
 @Module(subcomponents = {
-		ViewModelSubComponent.class
+        ViewModelSubComponent.class
 })
 public class ViewModelModule {
 
-	@Provides
-	@Singleton
-	static ViewModelFactory provideViewModelFactory(final Application application,
-													final ViewModelSubComponent.Builder viewModelSubComponent) {
-		return new ViewModelFactory(application, viewModelSubComponent.build());
-	}
+    @Provides
+    @Singleton
+    static ViewModelFactory provideViewModelFactory(final Application application,
+                                                    final ViewModelSubComponent.Builder viewModelSubComponent) {
+        return new ViewModelFactory(application, viewModelSubComponent.build());
+    }
 }

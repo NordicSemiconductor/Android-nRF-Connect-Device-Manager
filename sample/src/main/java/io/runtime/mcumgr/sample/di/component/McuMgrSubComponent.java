@@ -19,34 +19,35 @@ import io.runtime.mcumgr.sample.di.module.McuMgrTransportModule;
 import io.runtime.mcumgr.sample.di.module.McuMgrViewModelModule;
 
 @Subcomponent(modules = {
-		McuMgrActivitiesModule.class,
-		McuMgrFragmentBuildersModule.class,
-		McuMgrViewModelModule.class,
-		McuMgrTransportModule.class,
-		McuMgrManagerModule.class
+        McuMgrActivitiesModule.class,
+        McuMgrFragmentBuildersModule.class,
+        McuMgrViewModelModule.class,
+        McuMgrTransportModule.class,
+        McuMgrManagerModule.class
 })
 @McuMgrScope
 public interface McuMgrSubComponent {
-	@Subcomponent.Builder
-	interface Builder {
-		/**
-		 * Sets the connection target.
-		 *
-		 * @param device teh target Bluetooth device.
-		 * @return The builder instance.
-		 */
-		@BindsInstance Builder target(final BluetoothDevice device);
+    @Subcomponent.Builder
+    interface Builder {
+        /**
+         * Sets the connection target.
+         *
+         * @param device teh target Bluetooth device.
+         * @return The builder instance.
+         */
+        @BindsInstance
+        Builder target(final BluetoothDevice device);
 
-		McuMgrSubComponent build();
-	}
+        McuMgrSubComponent build();
+    }
 
-	/**
-	 * Adds the {@link io.runtime.mcumgr.sample.MainActivity} to the
-	 * {@link Dagger2Application#dispatchingAndroidInjector}.
-	 * The {@link io.runtime.mcumgr.sample.MainActivity} requires the
-	 * {@link io.runtime.mcumgr.McuMgrTransport} to be instantiated before injecting.
-	 *
-	 * @param application the application.
-	 */
-	void update(final Dagger2Application application);
+    /**
+     * Adds the {@link io.runtime.mcumgr.sample.MainActivity} to the
+     * {@link Dagger2Application#dispatchingAndroidInjector}.
+     * The {@link io.runtime.mcumgr.sample.MainActivity} requires the
+     * {@link io.runtime.mcumgr.McuMgrTransport} to be instantiated before injecting.
+     *
+     * @param application the application.
+     */
+    void update(final Dagger2Application application);
 }

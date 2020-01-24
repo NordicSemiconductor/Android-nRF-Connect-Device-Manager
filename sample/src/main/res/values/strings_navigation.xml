@@ -6,8 +6,8 @@
   -->
 
 <resources>
-	<string name="nav_default">Device</string>
-	<string name="nav_image">Image</string>
-	<string name="nav_fs">Files</string>
-	<string name="nav_stats">Logs &amp; Stats</string>
+    <string name="nav_default">Device</string>
+    <string name="nav_image">Image</string>
+    <string name="nav_fs">Files</string>
+    <string name="nav_stats">Logs &amp; Stats</string>
 </resources>

@@ -6,10 +6,10 @@
   -->
 
 <resources>
-	<string name="stats_title">Stats</string>
-	<string name="stats_action_request">Request</string>
-	<string name="stats_hint">Tap REFRESH button to download stats.</string>
+    <string name="stats_title">Stats</string>
+    <string name="stats_action_request">Request</string>
+    <string name="stats_hint">Tap REFRESH button to download stats.</string>
 
-	<string name="stats_module">%s:</string>
-	<string name="stats_field">• %s: %d</string>
+    <string name="stats_module">%s:</string>
+    <string name="stats_field">• %s: %d</string>
 </resources>

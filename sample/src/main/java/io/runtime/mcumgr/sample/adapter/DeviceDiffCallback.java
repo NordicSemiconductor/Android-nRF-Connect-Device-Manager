@@ -6,9 +6,9 @@
 
 package io.runtime.mcumgr.sample.adapter;
 
-import android.support.v7.util.DiffUtil;
-
 import java.util.List;
+
+import androidx.recyclerview.widget.DiffUtil;
 
 public class DeviceDiffCallback extends DiffUtil.Callback {
     private final List<DiscoveredBluetoothDevice> oldList;

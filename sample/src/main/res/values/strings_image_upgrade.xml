@@ -6,27 +6,27 @@
   -->
 
 <resources>
-	<string name="image_upgrade_title">Firmware Upgrade</string>
-	<string name="image_upgrade_file_name">File Name:</string>
-	<string name="image_upgrade_size">File Size:</string>
-	<string name="image_upgrade_size_value">%d bytes</string>
-	<string name="image_upgrade_hash">File Hash:</string>
-	<string name="image_upgrade_status">State:</string>
-	<string name="image_upgrade_action_start">Start</string>
+    <string name="image_upgrade_title">Firmware Upgrade</string>
+    <string name="image_upgrade_file_name">File Name:</string>
+    <string name="image_upgrade_size">File Size:</string>
+    <string name="image_upgrade_size_value">%d bytes</string>
+    <string name="image_upgrade_hash">File Hash:</string>
+    <string name="image_upgrade_status">State:</string>
+    <string name="image_upgrade_action_start">Start</string>
 
-	<string name="image_upgrade_mode">Select Mode</string>
-	<string-array name="image_upgrade_options">
-		<item>Test and confirm</item>
-		<item>Test only</item>
-		<item>Confirm only</item>
-	</string-array>
+    <string name="image_upgrade_mode">Select Mode</string>
+    <string-array name="image_upgrade_options">
+        <item>Test and confirm</item>
+        <item>Test only</item>
+        <item>Confirm only</item>
+    </string-array>
 
-	<string name="image_upgrade_status_ready">READY</string>
-	<string name="image_upgrade_status_validating">VALIDATING…</string>
-	<string name="image_upgrade_status_uploading">UPLOADING…</string>
-	<string name="image_upgrade_status_paused">PAUSED</string>
-	<string name="image_upgrade_status_testing">TESTING…</string>
-	<string name="image_upgrade_status_confirming">CONFIRMING…</string>
-	<string name="image_upgrade_status_resetting">RESETTING…</string>
-	<string name="image_upgrade_status_completed">UPLOAD COMPLETE</string>
+    <string name="image_upgrade_status_ready">READY</string>
+    <string name="image_upgrade_status_validating">VALIDATING…</string>
+    <string name="image_upgrade_status_uploading">UPLOADING…</string>
+    <string name="image_upgrade_status_paused">PAUSED</string>
+    <string name="image_upgrade_status_testing">TESTING…</string>
+    <string name="image_upgrade_status_confirming">CONFIRMING…</string>
+    <string name="image_upgrade_status_resetting">RESETTING…</string>
+    <string name="image_upgrade_status_completed">UPLOAD COMPLETE</string>
 </resources>

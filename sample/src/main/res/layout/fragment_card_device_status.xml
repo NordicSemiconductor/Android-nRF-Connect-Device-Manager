@@ -5,78 +5,78 @@
   ~ SPDX-License-Identifier: Apache-2.0
   -->
 
-<android.support.design.card.MaterialCardView
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
-	xmlns:tools="http://schemas.android.com/tools"
-	android:layout_width="match_parent"
-	android:layout_height="wrap_content">
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-	<android.support.constraint.ConstraintLayout
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-		<android.support.v7.widget.Toolbar
-			android:id="@+id/toolbar"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			app:layout_constraintEnd_toEndOf="parent"
-			app:layout_constraintStart_toStartOf="parent"
-			app:layout_constraintTop_toTopOf="parent"
-			app:title="@string/status_title">
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:title="@string/status_title">
 
-			<ProgressBar
-				android:id="@+id/work_indicator"
-				style="?android:attr/progressBarStyleSmall"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="end"
-				android:layout_marginEnd="16dp"
-				android:visibility="gone"
-				tools:visibility="visible"/>
-		</android.support.v7.widget.Toolbar>
+            <ProgressBar
+                android:id="@+id/work_indicator"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginEnd="16dp"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+        </androidx.appcompat.widget.Toolbar>
 
-		<TextView
-			android:id="@+id/connection_status_label"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_marginStart="16dp"
-			android:text="@string/status_status_label"
-			app:layout_constraintStart_toStartOf="parent"
-			app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+        <TextView
+            android:id="@+id/connection_status_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/status_status_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
 
-		<TextView
-			android:id="@+id/bonding_status_label"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_marginBottom="16dp"
-			android:layout_marginStart="16dp"
-			android:text="@string/status_bond_label"
-			app:layout_constraintBottom_toBottomOf="parent"
-			app:layout_constraintStart_toStartOf="parent"
-			app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
+        <TextView
+            android:id="@+id/bonding_status_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="16dp"
+            android:text="@string/status_bond_label"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
 
-		<TextView
-			android:id="@+id/connection_status"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_marginStart="8dp"
-			android:text="@string/status_not_connected"
-			android:textAllCaps="true"
-			android:textStyle="bold"
-			app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-			app:layout_constraintTop_toTopOf="@+id/connection_status_label"/>
+        <TextView
+            android:id="@+id/connection_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/status_not_connected"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
+            app:layout_constraintTop_toTopOf="@+id/connection_status_label"/>
 
-		<TextView
-			android:id="@+id/bonding_status"
-			android:layout_width="wrap_content"
-			android:layout_height="21dp"
-			android:layout_marginStart="8dp"
-			android:text="@string/status_not_bonded"
-			android:textAllCaps="true"
-			android:textStyle="bold"
-			app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-			app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
+        <TextView
+            android:id="@+id/bonding_status"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/status_not_bonded"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
 
-	</android.support.constraint.ConstraintLayout>
-</android.support.design.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

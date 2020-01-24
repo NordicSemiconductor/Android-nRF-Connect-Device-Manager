@@ -6,17 +6,18 @@
 
 package io.runtime.mcumgr.sample.utils;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.annotation.NonNull;
-import android.support.v4.util.ArraySet;
 import android.util.DisplayMetrics;
 
 import java.util.Set;
+
+import androidx.annotation.NonNull;
+import androidx.collection.ArraySet;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 public class FsUtils {
     private static final String PREFS_RECENTS = "recents";
@@ -97,7 +98,7 @@ public class FsUtils {
      * Tries to create a Bitmap from the given data.
      *
      * @param resources the resources.
-     * @param data the byte array to be decoded.
+     * @param data      the byte array to be decoded.
      * @return A decoded bitmap, or null, if data do not contain an image.
      */
     public static Bitmap toBitmap(@NonNull final Resources resources, @NonNull final byte[] data) {

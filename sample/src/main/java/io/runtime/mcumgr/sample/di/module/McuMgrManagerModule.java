@@ -20,38 +20,38 @@ import io.runtime.mcumgr.managers.StatsManager;
 @Module
 public class McuMgrManagerModule {
 
-	@Provides
-	static ConfigManager provideConfigManager(final McuMgrTransport transport) {
-		return new ConfigManager(transport);
-	}
+    @Provides
+    static ConfigManager provideConfigManager(final McuMgrTransport transport) {
+        return new ConfigManager(transport);
+    }
 
-	@Provides
-	static DefaultManager provideDefaultManager(final McuMgrTransport transport) {
-		return new DefaultManager(transport);
-	}
+    @Provides
+    static DefaultManager provideDefaultManager(final McuMgrTransport transport) {
+        return new DefaultManager(transport);
+    }
 
-	@Provides
-	static FsManager provideFsManager(final McuMgrTransport transport) {
-		return new FsManager(transport);
-	}
+    @Provides
+    static FsManager provideFsManager(final McuMgrTransport transport) {
+        return new FsManager(transport);
+    }
 
-	@Provides
-	static LogManager provideLogManager(final McuMgrTransport transport) {
-		return new LogManager(transport);
-	}
+    @Provides
+    static LogManager provideLogManager(final McuMgrTransport transport) {
+        return new LogManager(transport);
+    }
 
-	@Provides
-	static ImageManager provideImageManager(final McuMgrTransport transport) {
-		return new ImageManager(transport);
-	}
+    @Provides
+    static ImageManager provideImageManager(final McuMgrTransport transport) {
+        return new ImageManager(transport);
+    }
 
-	@Provides
-	static StatsManager provideStatsManager(final McuMgrTransport transport) {
-		return new StatsManager(transport);
-	}
+    @Provides
+    static StatsManager provideStatsManager(final McuMgrTransport transport) {
+        return new StatsManager(transport);
+    }
 
-	@Provides
-	static FirmwareUpgradeManager provideFirmwareUpgradeManager(final McuMgrTransport transport) {
-		return new FirmwareUpgradeManager(transport);
-	}
+    @Provides
+    static FirmwareUpgradeManager provideFirmwareUpgradeManager(final McuMgrTransport transport) {
+        return new FirmwareUpgradeManager(transport);
+    }
 }

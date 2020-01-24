@@ -6,11 +6,11 @@
   -->
 
 <resources>
-	<string name="files_settings_title">Settings</string>
-	<string name="files_settings_partition">Partition</string>
-	<string name="files_settings_action_save">Save</string>
-	<string name="files_settings_action_restore">Default</string>
-	<string name="files_settings_error">Partition name cannot be empty.</string>
+    <string name="files_settings_title">Settings</string>
+    <string name="files_settings_partition">Partition</string>
+    <string name="files_settings_action_save">Save</string>
+    <string name="files_settings_action_restore">Default</string>
+    <string name="files_settings_error">Partition name cannot be empty.</string>
 
-	<string name="files_file_path">/%s/%s</string>
+    <string name="files_file_path">/%s/%s</string>
 </resources>

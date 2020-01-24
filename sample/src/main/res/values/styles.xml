@@ -6,7 +6,8 @@
   -->
 
 <resources>
-    <style name="Widget" />
+
+    <style name="Widget"/>
 
     <style name="Widget.ScannerSubtitle">
         <item name="android:textColor">?android:textColorSecondary</item>

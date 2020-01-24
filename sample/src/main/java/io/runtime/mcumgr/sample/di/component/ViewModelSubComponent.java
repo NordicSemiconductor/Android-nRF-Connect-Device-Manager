@@ -17,9 +17,10 @@ import io.runtime.mcumgr.sample.viewmodel.ViewModelFactory;
  */
 @Subcomponent
 public interface ViewModelSubComponent {
-	@Subcomponent.Builder
-	interface Builder {
-		ViewModelSubComponent build();
-	}
-	ScannerViewModel scannerViewModel();
+    @Subcomponent.Builder
+    interface Builder {
+        ViewModelSubComponent build();
+    }
+
+    ScannerViewModel scannerViewModel();
 }

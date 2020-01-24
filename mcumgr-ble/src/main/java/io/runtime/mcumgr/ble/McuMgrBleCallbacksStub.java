@@ -8,6 +8,7 @@ package io.runtime.mcumgr.ble;
 
 import android.bluetooth.BluetoothDevice;
 
+import androidx.annotation.NonNull;
 import no.nordicsemi.android.ble.BleManagerCallbacks;
 
 /**
@@ -20,59 +21,59 @@ import no.nordicsemi.android.ble.BleManagerCallbacks;
 public class McuMgrBleCallbacksStub implements BleManagerCallbacks {
 
     @Override
-    public void onDeviceConnecting(BluetoothDevice device) {
+    public void onDeviceConnecting(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onDeviceConnected(BluetoothDevice device) {
+    public void onDeviceConnected(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onDeviceDisconnecting(BluetoothDevice device) {
+    public void onDeviceDisconnecting(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onDeviceDisconnected(BluetoothDevice device) {
+    public void onDeviceDisconnected(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onLinkLossOccurred(BluetoothDevice device) {
+    public void onLinkLossOccurred(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onServicesDiscovered(BluetoothDevice device, boolean optionalServicesFound) {
+    public void onServicesDiscovered(@NonNull BluetoothDevice device, boolean optionalServicesFound) {
     }
 
     @Override
-    public void onDeviceReady(BluetoothDevice device) {
+    public void onDeviceReady(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public boolean shouldEnableBatteryLevelNotifications(BluetoothDevice device) {
+    public boolean shouldEnableBatteryLevelNotifications(@NonNull BluetoothDevice device) {
         return false;
     }
 
     @Override
-    public void onBatteryValueReceived(BluetoothDevice device, int value) {
+    public void onBatteryValueReceived(@NonNull BluetoothDevice device, int value) {
     }
 
     @Override
-    public void onBondingRequired(BluetoothDevice device) {
+    public void onBondingRequired(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onBondingFailed(BluetoothDevice device) {
+    public void onBondingFailed(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onBonded(BluetoothDevice device) {
+    public void onBonded(@NonNull BluetoothDevice device) {
     }
 
     @Override
-    public void onError(BluetoothDevice device, String message, int errorCode) {
+    public void onError(@NonNull BluetoothDevice device, @NonNull String message, int errorCode) {
     }
 
     @Override
-    public void onDeviceNotSupported(BluetoothDevice device) {
+    public void onDeviceNotSupported(@NonNull BluetoothDevice device) {
     }
 }

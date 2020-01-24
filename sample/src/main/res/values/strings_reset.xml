@@ -6,6 +6,6 @@
   -->
 
 <resources>
-	<string name="reset_title">Reset</string>
-	<string name="reset_action">Send Reset Command</string>
+    <string name="reset_title">Reset</string>
+    <string name="reset_action">Send Reset Command</string>
 </resources>

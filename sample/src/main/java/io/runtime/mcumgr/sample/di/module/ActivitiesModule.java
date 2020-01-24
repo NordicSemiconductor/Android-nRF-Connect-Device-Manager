@@ -13,6 +13,6 @@ import io.runtime.mcumgr.sample.ScannerActivity;
 @SuppressWarnings("unused")
 @Module
 public abstract class ActivitiesModule {
-	@ContributesAndroidInjector
-	abstract ScannerActivity contributeScannerActivity();
+    @ContributesAndroidInjector
+    abstract ScannerActivity contributeScannerActivity();
 }

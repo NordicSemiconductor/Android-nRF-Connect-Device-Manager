@@ -13,14 +13,14 @@ import io.runtime.mcumgr.sample.di.component.McuMgrViewModelSubComponent;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 @Module(subcomponents = {
-		McuMgrViewModelSubComponent.class
+        McuMgrViewModelSubComponent.class
 })
 public class McuMgrViewModelModule {
 
-	@Provides
-	@McuMgrScope
-	static McuMgrViewModelFactory provideMcuMgrViewModelFactory(
-			final McuMgrViewModelSubComponent.Builder viewModelSubComponent) {
-		return new McuMgrViewModelFactory(viewModelSubComponent.build());
-	}
+    @Provides
+    @McuMgrScope
+    static McuMgrViewModelFactory provideMcuMgrViewModelFactory(
+            final McuMgrViewModelSubComponent.Builder viewModelSubComponent) {
+        return new McuMgrViewModelFactory(viewModelSubComponent.build());
+    }
 }

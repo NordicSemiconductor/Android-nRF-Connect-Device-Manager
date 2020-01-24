@@ -23,26 +23,26 @@ import io.runtime.mcumgr.sample.fragment.mcumgr.StatsFragment;
 @SuppressWarnings("unused")
 @Module
 public abstract class McuMgrFragmentBuildersModule {
-	@ContributesAndroidInjector
-	abstract DeviceStatusFragment contributeDeviceStatusFragment();
-	@ContributesAndroidInjector
-	abstract EchoFragment contributeEchoFragment();
-	@ContributesAndroidInjector
-	abstract ResetFragment contributeResetFragment();
-	@ContributesAndroidInjector
-	abstract StatsFragment contributeStatsFragment();
-	@ContributesAndroidInjector
-	abstract ImageFragment contributeImageFragment();
-	@ContributesAndroidInjector
-	abstract ImageUpgradeFragment contributeImageUpgradeFragment();
-	@ContributesAndroidInjector
-	abstract ImageUploadFragment contributeImageUploadFragment();
-	@ContributesAndroidInjector
-	abstract ImageControlFragment contributeImageControlFragment();
-	@ContributesAndroidInjector
-	abstract PartitionDialogFragment contributePartitionDialogFragment();
-	@ContributesAndroidInjector
-	abstract FilesDownloadFragment contributeFileDownloadFragment();
-	@ContributesAndroidInjector
-	abstract FilesUploadFragment contributeFilesUploadFragment();
+    @ContributesAndroidInjector
+    abstract DeviceStatusFragment contributeDeviceStatusFragment();
+    @ContributesAndroidInjector
+    abstract EchoFragment contributeEchoFragment();
+    @ContributesAndroidInjector
+    abstract ResetFragment contributeResetFragment();
+    @ContributesAndroidInjector
+    abstract StatsFragment contributeStatsFragment();
+    @ContributesAndroidInjector
+    abstract ImageFragment contributeImageFragment();
+    @ContributesAndroidInjector
+    abstract ImageUpgradeFragment contributeImageUpgradeFragment();
+    @ContributesAndroidInjector
+    abstract ImageUploadFragment contributeImageUploadFragment();
+    @ContributesAndroidInjector
+    abstract ImageControlFragment contributeImageControlFragment();
+    @ContributesAndroidInjector
+    abstract PartitionDialogFragment contributePartitionDialogFragment();
+    @ContributesAndroidInjector
+    abstract FilesDownloadFragment contributeFileDownloadFragment();
+    @ContributesAndroidInjector
+    abstract FilesUploadFragment contributeFilesUploadFragment();
 }
