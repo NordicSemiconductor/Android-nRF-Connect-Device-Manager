@@ -8,6 +8,7 @@ package io.runtime.mcumgr.image;
 
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.tlv.McuMgrImageTlv;
@@ -24,38 +25,86 @@ import io.runtime.mcumgr.image.tlv.McuMgrImageTlv;
 public class McuMgrImage {
     public final static int IMG_HASH_LEN = 32;
 
+    @NotNull
     private final McuMgrImageHeader mHeader;
+    @Nullable
+    private final McuMgrImageTlv mProtectedTlv;
+    @NotNull
     private final McuMgrImageTlv mTlv;
-    private final byte[] mData;
+    @NotNull
     private final byte[] mHash;
+    @NotNull
+    private final byte[] mData;
 
-    public McuMgrImage(@NotNull byte[] data) throws McuMgrException {
+    public McuMgrImage(@NotNull McuMgrImageHeader header,
+                       @Nullable McuMgrImageTlv protectedTlv,
+                       @NotNull McuMgrImageTlv tlv,
+                       @NotNull byte[] hash,
+                       @NotNull byte[] data) {
+        mHeader = header;
+        mProtectedTlv = protectedTlv;
+        mTlv = tlv;
+        mHash = hash;
         mData = data;
-        mHeader = McuMgrImageHeader.fromBytes(data);
-        mTlv = McuMgrImageTlv.fromBytes(data, mHeader);
-        mHash = mTlv.getHash();
-        if (mHash == null) {
-            throw new McuMgrException("Image TLV trailer does not contain an image hash!");
-        }
     }
 
+    @Deprecated
+    public McuMgrImage(@NotNull byte[] data) throws McuMgrException {
+        McuMgrImage image = fromBytes(data);
+        mHeader = image.mHeader;
+        mProtectedTlv = image.mProtectedTlv;
+        mTlv = image.mTlv;
+        mHash = image.mHash;
+        mData = image.mData;
+    }
+
+    @NotNull
     public byte[] getData() {
         return mData;
     }
 
+    @NotNull
     public McuMgrImageHeader getHeader() {
         return mHeader;
     }
 
+    @Nullable
+    public McuMgrImageTlv getProtectedTlv() {
+        return mProtectedTlv;
+    }
+
+    @NotNull
     public McuMgrImageTlv getTlv() {
         return mTlv;
     }
 
+    @NotNull
     public byte[] getHash() {
         return mHash;
     }
 
+    @NotNull
     public static byte[] getHash(@NotNull byte[] data) throws McuMgrException {
-        return new McuMgrImage(data).getHash();
+        return fromBytes(data).getHash();
+    }
+
+    @NotNull
+    public static McuMgrImage fromBytes(@NotNull byte[] data) throws McuMgrException {
+        McuMgrImageHeader header = McuMgrImageHeader.fromBytes(data);
+        int tlvOffset = header.getHdrSize() + header.getImgSize();
+        McuMgrImageTlv tlv = McuMgrImageTlv.fromBytes(data, tlvOffset, header.isLegacy());
+        McuMgrImageTlv protectedTlv = null;
+        byte[] hash;
+        if (tlv.isProtected()) {
+            // If the first TLV is protected, we need to parse the next, unprotected TLV
+            protectedTlv = tlv;
+            tlv = McuMgrImageTlv.fromBytes(data, tlvOffset + protectedTlv.getSize(), header.isLegacy());
+        }
+        hash = tlv.getHash();
+        if (hash == null) {
+            throw new McuMgrException("Image TLV trailer does not contain an image hash!");
+        }
+
+        return new McuMgrImage(header, protectedTlv, tlv, hash, data);
     }
 }

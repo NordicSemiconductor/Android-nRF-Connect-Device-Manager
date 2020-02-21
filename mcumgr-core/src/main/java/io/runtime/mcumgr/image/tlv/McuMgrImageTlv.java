@@ -6,6 +6,9 @@
 
 package io.runtime.mcumgr.image.tlv;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,68 +24,131 @@ import io.runtime.mcumgr.image.McuMgrImageHeader;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrImageTlv {
-    public final static int IMG_TLV_SHA256 = 0x10;
+
+    /** Hash of the public key. Used for legacy versions of mcuboot. */
     public final static int IMG_TLV_SHA256_V1 = 0x01;
+    /** SHA256 of image hdr and body */
+    public final static int IMG_TLV_SHA256 = 0x10;
+    /** RSA2048 of hash output */
+    public final static int IMG_TLV_RSA2048_PSS = 0x20;
+    /** ECDSA of hash output */
+    public final static int IMG_TLV_ECDSA224 = 0x21;
+    /** ECDSA of hash output */
+    public final static int IMG_TLV_ECDSA256 = 0x22;
+    /** RSA3072 of hash output */
+    public final static int IMG_TLV_RSA3072_PSS = 0x23;
+    /** ED25519 of hash output */
+    public final static int IMG_TLV_ED25519 = 0x24;
+    /** Key encrypted with RSA-OAEP-2048 */
+    public final static int IMG_TLV_ENC_RSA2048 = 0x30;
+    /** Key encrypted with AES-KW-128 */
+    public final static int IMG_TLV_ENC_KW128 = 0x31;
+    /** Key encrypted with ECIES P256 */
+    public final static int IMG_TLV_ENC_EC256 = 0x32;
+    /** Image depends on other image */
+    public final static int IMG_TLV_DEPENDENCY = 0x40;
+
+    /** Magic number for the unprotected TLV */
     public final static int IMG_TLV_INFO_MAGIC = 0x6907;
+    /** Magic number for the protected TLV */
+    public final static int IMG_TLV_PROTECTED_INFO_MAGIC = 0x6908;
 
-    private byte[] mData;
-    private McuMgrImageHeader mHeader;
-
+    @Nullable
     private McuMgrImageTlvInfo mTlvInfo;
+    @NotNull
     private List<McuMgrImageTlvTrailerEntry> mTrailerEntries;
+    private boolean mIsLegacy;
+    private int mSize;
 
-    private McuMgrImageTlv(byte[] data, McuMgrImageHeader header) {
-        mData = data;
-        mHeader = header;
-        mTrailerEntries = new ArrayList<>();
+    private McuMgrImageTlv(@NotNull McuMgrImageTlvInfo tlvInfo,
+                           @NotNull ArrayList<McuMgrImageTlvTrailerEntry> entries) {
+        mIsLegacy = false;
+        mTlvInfo = tlvInfo;
+        mTrailerEntries = entries;
+        mSize = tlvInfo.getTotal();
     }
 
-    public byte[] getData() {
-        return mData;
+    /*
+     * Legacy Constructor
+     */
+    private McuMgrImageTlv(@NotNull ArrayList<McuMgrImageTlvTrailerEntry> entries, int size) {
+        mIsLegacy = true;
+        mTlvInfo = null;
+        mTrailerEntries = entries;
+        mSize = size;
     }
 
-    public McuMgrImageHeader getHeader() {
-        return mHeader;
-    }
-
+    @Nullable
     public McuMgrImageTlvInfo getTlvInfo() {
         return mTlvInfo;
     }
 
+    @NotNull
     public List<McuMgrImageTlvTrailerEntry> getTrailerEntries() {
         return mTrailerEntries;
     }
 
+    public boolean isLegacy() {
+        return mIsLegacy;
+    }
+
+    public int getSize() {
+        return mSize;
+    }
+
+    public boolean isProtected() {
+        if (mIsLegacy || mTlvInfo == null) {
+            return false;
+        }
+        return mTlvInfo.isProtected();
+    }
+
+    @Nullable
     public byte[] getHash() {
         for (McuMgrImageTlvTrailerEntry entry : getTrailerEntries()) {
-            if (mHeader.isLegacy() && entry.type == IMG_TLV_SHA256_V1 ||
-                    !mHeader.isLegacy() && entry.type == IMG_TLV_SHA256) {
+            if (mIsLegacy && entry.type == IMG_TLV_SHA256_V1 ||
+                    !mIsLegacy && entry.type == IMG_TLV_SHA256) {
                 return entry.value;
             }
         }
         return null;
     }
 
-    public static McuMgrImageTlv fromBytes(byte[] data, McuMgrImageHeader header)
+    public static McuMgrImageTlv fromBytes(byte[] data, int offset, boolean isLegacy)
             throws McuMgrException {
-        // Init Tlv
-        McuMgrImageTlv tlv = new McuMgrImageTlv(data, header);
 
-        int offset = header.getHdrSize() + header.getImgSize();
-        int end = tlv.mData.length;
+        McuMgrImageTlvInfo tlvInfo = null;
+        ArrayList<McuMgrImageTlvTrailerEntry> entries = new ArrayList<>();
+
+        int end;
 
         // If image is legacy, skip the tlv info
-        if (!header.isLegacy()) {
-            tlv.mTlvInfo = McuMgrImageTlvInfo.fromBytes(tlv.mData, offset);
+        if (isLegacy) {
+            end = data.length;
+        } else {
+            tlvInfo = McuMgrImageTlvInfo.fromBytes(data, offset);
             offset += McuMgrImageTlvInfo.getSize();
+            end = offset + tlvInfo.getTotal();
         }
 
-        // Parse each trailer item
+        // Parse each trailer entry
         while (offset + McuMgrImageTlvTrailerEntry.getMinSize() < end) {
             McuMgrImageTlvTrailerEntry tlvEntry = McuMgrImageTlvTrailerEntry.fromBytes(data, offset);
-            tlv.mTrailerEntries.add(tlvEntry);
+            entries.add(tlvEntry);
             offset += tlvEntry.getEntryLength();
         }
-        return tlv;
+
+        if (isLegacy) {
+            return new McuMgrImageTlv(entries, offset - end);
+        } else {
+            return new McuMgrImageTlv(tlvInfo, entries);
+        }
+    }
+
+    @Deprecated
+    public static McuMgrImageTlv fromBytes(byte[] data, McuMgrImageHeader header)
+            throws McuMgrException {
+        int offset = header.getHdrSize() + header.getImgSize();
+        return fromBytes(data, offset, header.isLegacy());
     }
 }

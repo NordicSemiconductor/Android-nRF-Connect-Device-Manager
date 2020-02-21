@@ -39,9 +39,9 @@ public class McuMgrImageTlvInfo {
         info.mMagic = (short) ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 2);
         info.mTotal = (short) ByteUtil.byteArrayToUnsignedInt(b, offset + 2, Endian.LITTLE, 2);
 
-        if (info.mMagic != McuMgrImageTlv.IMG_TLV_INFO_MAGIC) {
-            throw new McuMgrException("Wrong magic number, magic= " + info.mMagic + " instead of " +
-                    McuMgrImageTlv.IMG_TLV_INFO_MAGIC);
+        if (info.mMagic != McuMgrImageTlv.IMG_TLV_INFO_MAGIC &&
+                info.mMagic != McuMgrImageTlv.IMG_TLV_PROTECTED_INFO_MAGIC) {
+            throw new McuMgrException("Wrong magic number, magic=" + info.mMagic);
         }
         return info;
     }
@@ -56,5 +56,9 @@ public class McuMgrImageTlvInfo {
 
     public short getTotal() {
         return mTotal;
+    }
+
+    public boolean isProtected() {
+        return mMagic == McuMgrImageTlv.IMG_TLV_PROTECTED_INFO_MAGIC;
     }
 }
