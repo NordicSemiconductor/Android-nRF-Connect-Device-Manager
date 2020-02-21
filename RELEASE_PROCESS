@@ -7,3 +7,4 @@
 8. Update gradle.properties version with -SNAPSHOT
 9. Push release commit to master
 10. Create release on github w/ release notes
+11. In sonatype nexus, Release the closed staging repository artifact
