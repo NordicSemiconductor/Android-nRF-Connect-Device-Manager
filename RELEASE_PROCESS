@@ -1,0 +1,9 @@
+1. Update gradle.properties with new release version
+2. Run ./gradlew uploadArchives
+3. Log into https://oss.sonatype.org/ and check staging repository artifacts
+4. Close the staging repository
+5. Perform any tests or validation using staging artifact from 'https://oss.sonatype.org/content/repositories/staging' 
+7. Update README with new version 
+8. Update gradle.properties version with -SNAPSHOT
+9. Push release commit to master
+10. Create release on github w/ release notes
