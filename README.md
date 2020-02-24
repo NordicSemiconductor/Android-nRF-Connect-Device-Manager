@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/JuulLabs-OSS/mcumgr-android/branch/master/graph/badge.svg)](https://codecov.io/gh/JuulLabs-OSS/mcumgr-android)
+
 # McuManager Android
 
 A transport agnostic implementation of the McuManager protocol. Contains a default implementation for BLE transport.
