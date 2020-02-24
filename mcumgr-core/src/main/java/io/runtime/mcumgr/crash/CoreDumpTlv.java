@@ -15,6 +15,7 @@ public class CoreDumpTlv {
 
     private static final int OFFSET = 8;
 
+    @NotNull
     private List<CoreDumpTlvEntry> mEntries;
 
     public CoreDumpTlv(@NotNull List<CoreDumpTlvEntry> entries) {
@@ -81,6 +82,11 @@ public class CoreDumpTlv {
         return entries;
     }
 
+    /**
+     * Get the list of core dump TLV entries.
+     * @return the list of TLV entries
+     */
+    @NotNull
     public List<CoreDumpTlvEntry> getEntries() {
         return mEntries;
     }

@@ -30,6 +30,7 @@ public class CoreDumpHeader {
      * @return The core dump header.
      * @throws IOException If the magic number was invalid.
      */
+    @NotNull
     public static CoreDumpHeader fromBytes(@NotNull byte[] data) throws IOException {
         return fromBytes(data, OFFSET);
     }
@@ -41,6 +42,7 @@ public class CoreDumpHeader {
      * @return The core dump header.
      * @throws IOException If the magic number was invalid.
      */
+    @NotNull
     public static CoreDumpHeader fromBytes(@NotNull byte[] data, int offset) throws IOException {
         int magic = ByteUtil.byteArrayToUnsignedInt(data, offset, Endian.LITTLE, 4);
         if (magic != CoreDump.MAGIC) {

@@ -20,7 +20,7 @@ import io.runtime.mcumgr.image.McuMgrImageHeader;
  * Mynewt bootloader.
  * <p>
  * For more info about McuBoot and image format see:
- * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
+ * <a href="https://juullabs-oss.github.io/mcuboot/design.html">https://juullabs-oss.github.io/mcuboot/design.html</a>
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrImageTlv {

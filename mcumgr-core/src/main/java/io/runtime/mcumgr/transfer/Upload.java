@@ -53,7 +53,7 @@ public abstract class Upload extends Transfer {
     }
 
     @Override
-    public void onFailed(McuMgrException e) {
+    public void onFailed(@NotNull McuMgrException e) {
         if (mCallback != null) {
             mCallback.onUploadFailed(e);
         }

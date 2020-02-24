@@ -1,6 +1,7 @@
 package io.runtime.mcumgr.transfer;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.runtime.mcumgr.McuMgrErrorCode;
@@ -67,7 +68,7 @@ public abstract class Download extends Transfer {
     }
 
     @Override
-    public void onFailed(McuMgrException e) {
+    public void onFailed(@NotNull McuMgrException e) {
         if (mCallback != null) {
             mCallback.onDownloadFailed(e);
         }

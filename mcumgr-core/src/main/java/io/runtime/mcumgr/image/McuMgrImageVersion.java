@@ -6,6 +6,8 @@
 
 package io.runtime.mcumgr.image;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.util.ByteUtil;
 import io.runtime.mcumgr.util.Endian;
@@ -15,33 +17,40 @@ import io.runtime.mcumgr.util.Endian;
  * bootloader.
  * <p>
  * For more info about McuBoot and image format see:
- * <a href="https://runtimeco.github.io/mcuboot/design.html">https://runtimeco.github.io/mcuboot/design.html</a>
+ * <a href="https://juullabs-oss.github.io/mcuboot/design.html">https://juullabs-oss.github.io/mcuboot/design.html</a>
  */
 @SuppressWarnings("unused")
 public class McuMgrImageVersion {
+
     private byte mMajor;
     private byte mMinor;
     private short mRevision;
     private int mBuildNum;
 
-    private McuMgrImageVersion() {}
+    private McuMgrImageVersion(byte major, byte minor, short revision, int buildNum) {
+        mMajor = major;
+        mMinor = minor;
+        mRevision = revision;
+        mBuildNum = buildNum;
+    }
 
-    public static McuMgrImageVersion fromBytes(byte[] b) throws McuMgrException {
+    @NotNull
+    public static McuMgrImageVersion fromBytes(@NotNull byte[] b) throws McuMgrException {
         return fromBytes(b, 0);
     }
 
-    public static McuMgrImageVersion fromBytes(byte[] b, int offset) throws McuMgrException {
+    @NotNull
+    public static McuMgrImageVersion fromBytes(@NotNull byte[] b, int offset) throws McuMgrException {
         if (b.length - offset < getSize()) {
             throw new McuMgrException("The byte array is too short to be a McuMgrImageVersion");
         }
 
-        McuMgrImageVersion version = new McuMgrImageVersion();
-        version.mMajor = b[offset++];
-        version.mMinor = b[offset++];
-        version.mRevision = (short) ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 2);
-        version.mBuildNum = ByteUtil.byteArrayToUnsignedInt(b, offset + 2, Endian.LITTLE, 4);
+        byte major = b[offset++];
+        byte minor = b[offset++];
+        short revision = (short) ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 2);
+        int buildNum = ByteUtil.byteArrayToUnsignedInt(b, offset + 2, Endian.LITTLE, 4);
 
-        return version;
+        return new McuMgrImageVersion(major, minor, revision, buildNum);
     }
 
     public static int getSize() {

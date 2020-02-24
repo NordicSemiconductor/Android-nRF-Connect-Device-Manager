@@ -20,6 +20,7 @@ import io.runtime.mcumgr.util.Endian;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrHeader {
+
     public final static int HEADER_LENGTH = 8;
 
     private int mOp;
@@ -38,6 +39,7 @@ public class McuMgrHeader {
         mCommandId = commandId;
     }
 
+    @NotNull
     public byte[] toBytes() {
         return build(mOp, mFlags, mLen, mGroupId, mSequenceNum, mCommandId);
     }
@@ -90,14 +92,25 @@ public class McuMgrHeader {
         this.mCommandId = commandId;
     }
 
+    @NotNull
     @Override
     public String toString() {
-        return "Header (Op: " + mOp + ", Flags: " + mFlags + ", Len: " + mLen + ", Group: " + mGroupId + ", Seq: " + mSequenceNum + ", Command: " + mCommandId + ")";
+        return "Header (Op: " + mOp + ", Flags: " + mFlags + ", Len: " + mLen + ", Group: " +
+                mGroupId + ", Seq: " + mSequenceNum + ", Command: " + mCommandId + ")";
     }
 
-    public static McuMgrHeader fromBytes(byte[] header) {
-        if (header == null || header.length != HEADER_LENGTH) {
-            return null;
+    /**
+     * Parse the mcumgr header from a byte array.
+     * This function will parse the first 8 bytes from the array, discounting any additional bytes.
+     *
+     * @param header the byte array to parse the header from.
+     * @return The parsed mcumgr header.
+     * @throws IllegalArgumentException when the byte array length is less than 8 bytes
+     */
+    @NotNull
+    public static McuMgrHeader fromBytes(@NotNull byte[] header) {
+        if (header.length < HEADER_LENGTH) {
+            throw new IllegalArgumentException("Failed to parse mcumgr header from bytes; too short - length=" + header.length);
         }
         int op          = ByteUtil.byteArrayToUnsignedInt(header, 0, Endian.BIG, 1);
         int flags       = ByteUtil.byteArrayToUnsignedInt(header, 1, Endian.BIG, 1);

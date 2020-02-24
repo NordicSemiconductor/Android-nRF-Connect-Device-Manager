@@ -53,6 +53,7 @@ public class CrashManager extends McuManager {
      * @return The response
      * @throws McuMgrException on failure.
      */
+    @NotNull
     public McuMgrResponse test(@NotNull Test test) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("t", test.toString());

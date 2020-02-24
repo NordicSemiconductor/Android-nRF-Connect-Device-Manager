@@ -127,7 +127,6 @@ public class LogManager extends McuManager {
         return send(OP_READ, ID_READ, payloadMap, McuMgrLogResponse.class);
     }
 
-
     /**
      * Clear the logs on a device (asynchronous).
      *
@@ -221,6 +220,7 @@ public class LogManager extends McuManager {
      *
      * @return A mapping of log name to state.
      */
+    @NotNull
     public synchronized Map<String, State> getAll() {
         HashMap<String, State> logStates = new HashMap<>();
         try {
@@ -259,10 +259,8 @@ public class LogManager extends McuManager {
      * @param state The log state to collect logs from.
      * @return The log state with updated next index and entry list.
      */
-    public State getAllFromState(State state) {
-        if (state == null) {
-            throw new NullPointerException("State must not be null!");
-        }
+    @NotNull
+    public State getAllFromState(@NotNull State state) {
         // Loop until we run out of entries or encounter a problem
         while (true) {
             // Get the next set of entries for this log
@@ -309,7 +307,8 @@ public class LogManager extends McuManager {
      * @param state The state to get logs from.
      * @return The show response.
      */
-    public McuMgrLogResponse showNext(State state) {
+    @Nullable
+    public McuMgrLogResponse showNext(@NotNull State state) {
         LOG.debug("Show logs: name={}, nextIndex={}", state.getName(), state.getNextIndex());
         try {
             McuMgrLogResponse response = show(state.getName(), state.getNextIndex(), null);

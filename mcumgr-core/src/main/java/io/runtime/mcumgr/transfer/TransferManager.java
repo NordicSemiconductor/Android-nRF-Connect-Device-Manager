@@ -31,6 +31,7 @@ public class TransferManager extends McuManager {
      * @param upload The upload to start.
      * @return The controller used to pause, resume, or cancel the upload.
      */
+    @NotNull
     public TransferController startUpload(@NotNull Upload upload) {
         return startTransfer(upload);
     }
@@ -43,10 +44,12 @@ public class TransferManager extends McuManager {
      * @param download The upload to start.
      * @return The controller used to pause, resume, or cancel the download.
      */
+    @NotNull
     public TransferController startDownload(@NotNull Download download) {
         return startTransfer(download);
     }
 
+    @NotNull
     private synchronized TransferController startTransfer(@NotNull final Transfer transfer) {
 
         final TransferCallable transferCallable = new TransferCallable(transfer);

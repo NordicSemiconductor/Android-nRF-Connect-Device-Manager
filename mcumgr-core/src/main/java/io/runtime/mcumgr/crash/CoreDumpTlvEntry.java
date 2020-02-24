@@ -22,7 +22,6 @@ public class CoreDumpTlvEntry {
     private static final int MIN_SIZE = 8;
 
     private int mType;      // uint8_t
-    //private byte __pad;   // uint8_t
     private int mLength;    // uint16_t
     private long mOff;      // uint32_t
 
@@ -77,6 +76,7 @@ public class CoreDumpTlvEntry {
         return new CoreDumpTlvEntry(type, length, off, value);
     }
 
+    @NotNull
     @Override
     public String toString() {
         return String.format("{type=%s, length=%s, off=%s, value=%s}", mType, mLength, mOff,

@@ -149,6 +149,7 @@ public class ImageManager extends TransferManager {
     /*
      * Build the upload payload.
      */
+    @NotNull
     private HashMap<String, Object> buildUploadPayload(@NotNull byte[] data, int offset) {
         // Get chunk of image data to send
         int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset), data.length - offset);
@@ -387,6 +388,7 @@ public class ImageManager extends TransferManager {
      * @see TransferController
      * @see CoreDump
      */
+    @NotNull
     public TransferController coreDownload(@NotNull DownloadCallback callback) {
         return startDownload(new CoreDownload(callback));
     }
@@ -422,6 +424,7 @@ public class ImageManager extends TransferManager {
      * @return The object used to control this upload.
      * @see TransferController
      */
+    @NotNull
     public TransferController imageUpload(@NotNull byte[] imageData, @NotNull UploadCallback callback) {
         return startUpload(new ImageUpload(imageData, callback));
     }

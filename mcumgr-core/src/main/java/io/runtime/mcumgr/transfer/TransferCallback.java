@@ -1,5 +1,7 @@
 package io.runtime.mcumgr.transfer;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.runtime.mcumgr.exception.McuMgrException;
 
 public interface TransferCallback {
@@ -11,7 +13,7 @@ public interface TransferCallback {
      * @param timestamp the timestamp of when the response was received.
      */
     void onProgressChanged(int current, int total, long timestamp);
-    void onFailed(McuMgrException e);
+    void onFailed(@NotNull McuMgrException e);
     void onCompleted();
     void onCanceled();
 }

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,7 @@ import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.exception.McuMgrCoapException;
 import io.runtime.mcumgr.util.CBOR;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings("unused")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class McuMgrResponse {
 
@@ -53,11 +54,6 @@ public class McuMgrResponse {
     private McuMgrHeader mHeader;
 
     /**
-     * The return code (enum) for this response. For the raw return code use the "rc" property.
-     */
-    private McuMgrErrorCode mReturnCode;
-
-    /**
      * McuMgr payload for this response. This does not include the McuMgr header for standard
      * schemes and does not include the CoAP header for CoAP schemes.
      */
@@ -77,6 +73,7 @@ public class McuMgrResponse {
      *
      * @return The string representation of the response payload.
      */
+    @NotNull
     @Override
     public String toString() {
         try {
@@ -92,7 +89,7 @@ public class McuMgrResponse {
      *
      * @return The McuMgrHeader.
      */
-    @NotNull
+    @Nullable
     public McuMgrHeader getHeader() {
         return mHeader;
     }
@@ -103,12 +100,7 @@ public class McuMgrResponse {
      * @return Mcu Manager return code.
      */
     public int getReturnCodeValue() {
-        if (mReturnCode == null) {
-            LOG.warn("Response does not contain a McuMgr return code.");
-            return 0;
-        } else {
-            return mReturnCode.value();
-        }
+        return rc;
     }
 
     /**
@@ -117,7 +109,7 @@ public class McuMgrResponse {
      * @return The return code enum.
      */
     public McuMgrErrorCode getReturnCode() {
-        return mReturnCode;
+        return McuMgrErrorCode.valueOf(rc);
     }
 
     /**
@@ -150,6 +142,7 @@ public class McuMgrResponse {
      *
      * @return The payload bytes.
      */
+    @Nullable
     public byte[] getPayload() {
         return mPayload;
     }
@@ -191,16 +184,13 @@ public class McuMgrResponse {
      * @param bytes   packet bytes.
      * @param header  McuMgrHeader.
      * @param payload McuMgr CBOR payload.
-     * @param rc      the return code.
      */
     void initFields(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes,
-                    @NotNull McuMgrHeader header, @NotNull byte[] payload,
-                    @NotNull McuMgrErrorCode rc) {
+                    @NotNull McuMgrHeader header, @NotNull byte[] payload) {
         mScheme = scheme;
         mBytes = bytes;
         mHeader = header;
         mPayload = payload;
-        mReturnCode = rc;
     }
 
     /**
@@ -214,6 +204,7 @@ public class McuMgrResponse {
      * @throws IOException              Error parsing response.
      * @throws IllegalArgumentException If the scheme is CoAP.
      */
+    @NotNull
     public static <T extends McuMgrResponse> T buildResponse(@NotNull McuMgrScheme scheme,
                                                              @NotNull byte[] bytes,
                                                              @NotNull Class<T> type)
@@ -227,8 +218,7 @@ public class McuMgrResponse {
 
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
-        McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
-        response.initFields(scheme, bytes, header, payload, rc);
+        response.initFields(scheme, bytes, header, payload);
 
         return response;
     }
@@ -249,6 +239,7 @@ public class McuMgrResponse {
      * @throws IOException         if parsing the payload into the object (type T) failed
      * @throws McuMgrCoapException if the CoAP code class indicates a CoAP error response
      */
+    @NotNull
     public static <T extends McuMgrResponse> T buildCoapResponse(@NotNull McuMgrScheme scheme,
                                                                  @NotNull byte[] bytes,
                                                                  @NotNull byte[] header,
@@ -263,8 +254,7 @@ public class McuMgrResponse {
         }
 
         T response = CBOR.toObject(payload, type);
-        McuMgrErrorCode rc = McuMgrErrorCode.valueOf(response.rc);
-        response.initFields(scheme, bytes, McuMgrHeader.fromBytes(header), payload, rc);
+        response.initFields(scheme, bytes, McuMgrHeader.fromBytes(header), payload);
         int code = (codeClass * 100) + codeDetail;
         response.setCoapCode(code);
         return response;

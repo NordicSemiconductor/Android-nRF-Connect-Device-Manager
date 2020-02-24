@@ -135,6 +135,7 @@ public class FsManager extends TransferManager {
     /*
      * Build the upload payload map.
      */
+    @NotNull
     private HashMap<String, Object> buildUploadPayload(@NotNull String name, @NotNull byte[] data, int offset) {
         // Get the length of data (in bytes) to put into the upload packet. This calculated as:
         // min(MTU - packetOverhead, imageLength - uploadOffset)
@@ -175,6 +176,7 @@ public class FsManager extends TransferManager {
      * @return The object used to control this upload.
      * @see TransferController
      */
+    @NotNull
     public TransferController fileUpload(@NotNull String name, @NotNull byte[] data, @NotNull UploadCallback callback) {
         return startUpload(new FileUpload(name, data, callback));
     }
@@ -215,6 +217,7 @@ public class FsManager extends TransferManager {
      * @return The object used to control this upload.
      * @see TransferController
      */
+    @NotNull
     public TransferController fileDownload(@NotNull String name, @NotNull byte[] data, @NotNull DownloadCallback callback) {
         return startDownload(new FileDownload(name, callback));
     }
