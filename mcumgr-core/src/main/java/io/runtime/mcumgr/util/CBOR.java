@@ -10,6 +10,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -56,4 +58,16 @@ public class CBOR {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
         return mapper.readValue(inputStream, typeRef);
     }
+
+    public static <T> T getObject(@NotNull byte[] data, @NotNull String key, @NotNull Class<T> type) throws IOException {
+        ObjectMapper mapper = new ObjectMapper(sFactory);
+        return mapper.convertValue(mapper.readTree(data).get(key), type);
+    }
+
+    @NotNull
+    public static String getString(@NotNull byte[] data, @NotNull String key) throws IOException {
+        ObjectMapper mapper = new ObjectMapper(sFactory);
+        return mapper.readTree(data).get(key).asText();
+    }
+
 }
