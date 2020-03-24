@@ -71,6 +71,6 @@ McuManager firmware upgrades can actually be performed in few different ways. Th
 
 The `FirmwareUpgradeManager` contains an additional state, `VALIDATE`, which precedes the upload. The `VALIDATE` state checks the current image state of the device in an attempt to bypass certain states of the firmware upgrade. For example, if the image to upload is already in slot 1 on the device, the `State` will skip `UPLOAD` and move directly to `TEST` (or `CONFIRM` if `Mode.CONFIRM_ONLY` has been set). If the uploaded image is already active, and confirmed in slot 0, the upgrade will succeed immediately. The `VALIDATE` state makes it easy to reattempt an upgrade without needing to re-upload the image or manually determine where to start.
 
+## License
 
-
-
+This library is licensed under the Apache 2.0 license. For more info, see the `LICENSE` file.
