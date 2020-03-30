@@ -23,7 +23,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.sample.R;
@@ -33,7 +33,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class EchoFragment extends Fragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -54,7 +53,7 @@ public class EchoFragment extends Fragment implements Injectable {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(EchoViewModel.class);
         mImm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
@@ -75,24 +74,23 @@ public class EchoFragment extends Fragment implements Injectable {
         mValue.setSelection(mValue.getText().length());
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getBusyState().observe(this, busy -> mSendAction.setEnabled(!busy));
-        mViewModel.getRequest().observe(this, text -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mSendAction.setEnabled(!busy));
+        mViewModel.getRequest().observe(getViewLifecycleOwner(), text -> {
             mContent.setVisibility(View.VISIBLE);
             print(mRequest, text);
             if (mResponse.getVisibility() == View.VISIBLE) {
                 mResponse.setVisibility(View.INVISIBLE);
             }
         });
-        mViewModel.getResponse().observe(this, response -> {
+        mViewModel.getResponse().observe(getViewLifecycleOwner(), response -> {
             mResponse.setBackgroundResource(R.drawable.echo_response);
             print(mResponse, response);
         });
-        mViewModel.getError().observe(this, error -> {
+        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mResponse.setVisibility(View.VISIBLE);
             mResponse.setBackgroundResource(R.drawable.echo_error);
             mResponse.setText(error);

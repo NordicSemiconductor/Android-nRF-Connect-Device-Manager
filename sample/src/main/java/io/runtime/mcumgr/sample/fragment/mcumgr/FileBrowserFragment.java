@@ -40,8 +40,6 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     @SuppressWarnings("unused")
     private static final String TAG = FileBrowserFragment.class.getSimpleName();
 
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1023; // random number
-
     private static final int SELECT_FILE_REQ = 1;
     private static final int LOAD_FILE_LOADER_REQ = 2;
     private static final String EXTRA_FILE_URI = "uri";
@@ -127,19 +125,6 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      */
     protected abstract void onFileLoadingFailed(@StringRes final int error);
 
-    @Override
-    public void onRequestPermissionsResult(final int requestCode,
-                                           @NonNull final String[] permissions,
-                                           @NonNull final int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_WRITE_EXTERNAL_STORAGE:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadFile(mFileUri);
-                }
-                mFileUri = null;
-                break;
-        }
-    }
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
@@ -147,7 +132,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
-                case SELECT_FILE_REQ: {
+                case SELECT_FILE_REQ:
                     clearFileContent();
 
                     final Uri uri = data.getData();
@@ -158,35 +143,14 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
                         return;
                     }
 
-                    // The URI returned may be of 2 schemes: file:// (legacy) or content:// (new)
-                    if (uri.getScheme().equals("file")) {
-                        if (Utils.isStoragePermissionsGranted(requireContext())) {
-                            loadFile(uri);
-                        } else {
-                            if (Utils.isStoragePermissionDeniedForever(requireActivity())) {
-                                Snackbar.make(getView(), R.string.file_loader_permission_denied, Snackbar.LENGTH_LONG)
-                                        .setAction(R.string.menu_settings, v -> {
-                                            final Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                            intent.setData(Uri.fromParts("package", requireContext().getPackageName(), null));
-                                            startActivity(intent);
-                                        })
-                                        .show();
-                                return;
-                            }
-                            mFileUri = uri;
-                            Utils.markStoragePermissionRequested(requireContext());
-                            requestPermissions(
-                                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                    REQUEST_WRITE_EXTERNAL_STORAGE
-                            );
-                        }
-                    } else {
+                    final String scheme = uri.getScheme();
+                    if (scheme != null && scheme.equals("content")) {
                         // File name and size must be obtained from Content Provider
                         final Bundle bundle = new Bundle();
                         bundle.putParcelable(EXTRA_FILE_URI, uri);
                         LoaderManager.getInstance(this).restartLoader(LOAD_FILE_LOADER_REQ, bundle, this);
                     }
-                }
+                    break;
             }
         }
     }
@@ -274,27 +238,6 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
         } else {
             Toast.makeText(requireContext(), R.string.file_loader_error_no_file_browser,
                     Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Loads file given in file:// scheme. This will not work with content:// scheme.
-     * The app must have WRITE_EXTERNAL_STORAGE permission in order to read the file.
-     *
-     * @param uri the file URI in file:// scheme.
-     */
-    private void loadFile(@NonNull final Uri uri) {
-        final String path = uri.getPath();
-        final String fileName = path.substring(path.lastIndexOf('/') + 1);
-
-        final File file = new File(path);
-        final int fileSize = (int) file.length();
-        onFileSelected(fileName, fileSize);
-        try {
-            loadContent(new FileInputStream(file));
-        } catch (final FileNotFoundException e) {
-            Timber.e(e, "File not found");
-            onFileLoadingFailed(R.string.file_loader_error_no_uri);
         }
     }
 

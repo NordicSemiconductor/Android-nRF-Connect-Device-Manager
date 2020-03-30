@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+    <color name="background">#000</color>
+    <color name="appBar">#222</color>
+    <color name="statusBar">#111</color>
+    <color name="icon">#FFF</color>
+    <color name="colorAccent">@color/colorPrimary</color>
+    <color name="colorOnAccent">#FFFFFF</color>
+    <color name="divider">#222</color>
+    <color name="error">#800</color>
+
+    <color name="colorDestructive">#800</color>
+    <color name="colorDestructiveDisabled">#8800</color>
+</resources>

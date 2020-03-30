@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.sample.R;
@@ -28,7 +28,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class DeviceStatusFragment extends Fragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -44,7 +43,7 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(DeviceStatusViewModel.class);
     }
 
@@ -62,16 +61,15 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
         ButterKnife.bind(this, view);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getConnectionState().observe(this,
+        mViewModel.getConnectionState().observe(getViewLifecycleOwner(),
                 resId -> mConnectionStatus.setText(resId));
-        mViewModel.getBondState().observe(this, resId ->
+        mViewModel.getBondState().observe(getViewLifecycleOwner(), resId ->
                 mBondingStatus.setText(resId));
-        mViewModel.getBusyState().observe(this, busy ->
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
                 mWorkIndicator.setVisibility(busy ? View.VISIBLE : View.GONE));
     }
 }

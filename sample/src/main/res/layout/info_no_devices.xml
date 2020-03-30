@@ -16,21 +16,22 @@
     android:paddingStart="@dimen/activity_horizontal_margin"
     tools:ignore="ContentDescription">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:padding="@dimen/activity_horizontal_margin"
         app:srcCompat="@drawable/ic_bluetooth_searching"/>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         style="@style/Widget.ScannerSubtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
+        android:textColor="?colorAccent"
         android:text="@string/mcumgr_guide_title"/>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/activity_vertical_margin"
@@ -43,13 +44,13 @@
         android:orientation="vertical"
         android:visibility="invisible">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:text="@string/mcumgr_guide_location_info"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/action_enable_location"
             style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="wrap_content"

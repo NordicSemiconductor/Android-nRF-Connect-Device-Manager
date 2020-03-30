@@ -14,5 +14,5 @@
 
     <color name="echo_request">@color/colorPrimary</color>
     <color name="echo_response">@color/zephyr</color>
-    <color name="echo_error">@color/red</color>
+    <color name="echo_error">@color/error</color>
 </resources>

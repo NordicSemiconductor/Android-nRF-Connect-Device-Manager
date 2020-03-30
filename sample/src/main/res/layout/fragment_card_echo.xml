@@ -10,7 +10,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -18,7 +19,7 @@
         android:animateLayoutChanges="true"
         android:paddingBottom="16dp">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -77,7 +78,7 @@
                 android:layout_height="1dp"
                 android:background="@color/divider"/>
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/echo_request"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -92,7 +93,7 @@
                 tools:text="Some text is very, very, very long. Some text is very, very, very long."
                 tools:visibility="visible"/>
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/echo_response"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

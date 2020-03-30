@@ -10,13 +10,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -34,9 +35,9 @@
                 android:layout_marginEnd="16dp"
                 android:visibility="gone"
                 tools:visibility="visible"/>
-        </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.MaterialToolbar>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/connection_status_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -45,7 +46,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bonding_status_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -56,7 +57,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/connection_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -67,7 +68,7 @@
             app:layout_constraintStart_toEndOf="@+id/connection_status_label"
             app:layout_constraintTop_toTopOf="@+id/connection_status_label"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bonding_status"
             android:layout_width="wrap_content"
             android:layout_height="21dp"

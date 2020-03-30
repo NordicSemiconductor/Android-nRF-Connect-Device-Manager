@@ -29,7 +29,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
@@ -42,7 +42,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class ImageControlFragment extends Fragment implements Injectable, Toolbar.OnMenuItemClickListener {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -64,7 +63,7 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(ImageControlViewModel.class);
     }
 
@@ -104,20 +103,19 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
         return false;
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getResponse().observe(this, this::printImageSlotInfo);
-        mViewModel.getError().observe(this, this::printError);
-        mViewModel.getTestOperationAvailability().observe(this,
+        mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printImageSlotInfo);
+        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        mViewModel.getTestOperationAvailability().observe(getViewLifecycleOwner(),
                 enabled -> mTestAction.setEnabled(enabled));
-        mViewModel.getConfirmOperationAvailability().observe(this,
+        mViewModel.getConfirmOperationAvailability().observe(getViewLifecycleOwner(),
                 enabled -> mConfirmAction.setEnabled(enabled));
-        mViewModel.getEraseOperationAvailability().observe(this,
+        mViewModel.getEraseOperationAvailability().observe(getViewLifecycleOwner(),
                 enabled -> mEraseAction.setEnabled(enabled));
-        mViewModel.getBusyState().observe(this, busy -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             if (busy) {
                 mReadAction.setEnabled(false);
                 mTestAction.setEnabled(false);

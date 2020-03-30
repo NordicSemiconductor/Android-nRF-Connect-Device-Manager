@@ -6,23 +6,23 @@
 
 package io.runtime.mcumgr.sample.application;
 
-import android.app.Activity;
 import android.app.Application;
 import android.bluetooth.BluetoothDevice;
 
 import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
+import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
-import dagger.android.HasActivityInjector;
+import dagger.android.HasAndroidInjector;
 import io.runtime.mcumgr.sample.di.AppInjector;
 import io.runtime.mcumgr.sample.di.component.McuMgrSubComponent;
 import timber.log.Timber;
 
-public class Dagger2Application extends Application implements HasActivityInjector {
+public class Dagger2Application extends Application implements HasAndroidInjector {
 
     @Inject
-    DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
+    DispatchingAndroidInjector<Object> dispatchingAndroidInjector;
     @Inject
     McuMgrSubComponent.Builder mBuilder;
 
@@ -39,7 +39,7 @@ public class Dagger2Application extends Application implements HasActivityInject
     }
 
     @Override
-    public DispatchingAndroidInjector<Activity> activityInjector() {
+    public AndroidInjector<Object> androidInjector() {
         return dispatchingAndroidInjector;
     }
 

@@ -10,13 +10,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -25,7 +26,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:title="@string/image_upgrade_title"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_name_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -34,7 +35,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_size_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,7 +43,7 @@
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/file_name"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_hash_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -50,7 +51,7 @@
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/file_size"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/status_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -58,7 +59,7 @@
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/file_hash"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -71,7 +72,7 @@
             app:layout_constraintTop_toTopOf="@+id/file_name_label"
             tools:text="a_very_long_file_name_indeed_very_very_long.img"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_size"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -82,7 +83,7 @@
             app:layout_constraintTop_toTopOf="@+id/file_size_label"
             tools:text="1234 bytes"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_hash"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -93,7 +94,7 @@
             app:layout_constraintTop_toTopOf="@+id/file_hash_label"
             tools:text="001122334455667788990011223344556677889900112233445566778899AABB"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/status"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

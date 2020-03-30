@@ -18,14 +18,17 @@
         android:id="@+id/appbar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"/>
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
@@ -35,12 +38,10 @@
             android:layout_marginBottom="-7dp"
             android:layout_marginTop="-8dp"
             android:indeterminate="true"
-            android:indeterminateTintMode="src_in"
             android:indeterminateTint="@android:color/white"
+            android:indeterminateTintMode="src_in"
             android:visibility="invisible"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/recycler_view_ble_devices"/>
+            tools:visibility="visible"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

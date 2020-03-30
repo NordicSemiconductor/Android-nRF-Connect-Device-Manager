@@ -16,28 +16,29 @@
     android:paddingStart="@dimen/activity_horizontal_margin"
     tools:ignore="ContentDescription">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:padding="@dimen/activity_horizontal_margin"
         app:srcCompat="@drawable/ic_location_off"/>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         style="@style/Widget.ScannerSubtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
+        android:textColor="?colorAccent"
         android:text="@string/location_permission_title"/>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:text="@string/location_permission_info"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/action_grant_location_permission"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:layout_width="wrap_content"
@@ -45,12 +46,13 @@
         android:layout_gravity="center_horizontal"
         android:text="@string/location_permission_action"/>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/action_permission_settings"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="@string/location_permission_settings"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        tools:visibility="visible"/>
 </LinearLayout>

@@ -38,7 +38,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.sample.R;
@@ -49,10 +49,8 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class FilesDownloadFragment extends Fragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
-    @SuppressWarnings("WeakerAccess")
     @Inject
     FsUtils mFsUtils;
 
@@ -80,7 +78,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(FilesDownloadViewModel.class);
         mImm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
@@ -107,20 +105,19 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         });
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mFsUtils.getPartition().observe(this, partition -> {
+        mFsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
             mPartition = partition;
             final String fileName = mFileName.getText().toString();
             mFilePath.setText(getString(R.string.files_file_path, partition, fileName));
         });
-        mViewModel.getProgress().observe(this, progress -> mProgress.setProgress(progress));
-        mViewModel.getResponse().observe(this, this::printContent);
-        mViewModel.getError().observe(this, this::printError);
-        mViewModel.getBusyState().observe(this, busy -> mDownloadAction.setEnabled(!busy));
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mProgress.setProgress(progress));
+        mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printContent);
+        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mDownloadAction.setEnabled(!busy));
         mHistoryAction.setOnClickListener(v -> {
             final PopupMenu popupMenu = new PopupMenu(requireContext(), v);
             final Menu menu = popupMenu.getMenu();
@@ -207,7 +204,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         }
     }
 
-    private abstract class SimpleTextWatcher implements TextWatcher {
+    private abstract static class SimpleTextWatcher implements TextWatcher {
         @Override
         public void beforeTextChanged(final CharSequence s,
                                       final int start, final int count, final int after) {

@@ -12,20 +12,22 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_files_upload"
         android:name="io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         tools:layout="@layout/fragment_card_files_upload"/>
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_files_download"
         android:name="io.runtime.mcumgr.sample.fragment.mcumgr.FilesDownloadFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         tools:layout="@layout/fragment_card_files_download"/>
 
 </LinearLayout>

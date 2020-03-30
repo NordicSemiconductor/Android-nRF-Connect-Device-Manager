@@ -22,7 +22,6 @@ import androidx.core.content.ContextCompat;
 public class Utils {
     private static final String PREFS_LOCATION_NOT_REQUIRED = "location_not_required";
     private static final String PREFS_PERMISSION_REQUESTED = "permission_requested";
-    private static final String PREFS_STORAGE_PERMISSION_REQUESTED = "storage_permission_requested";
 
     /**
      * Checks whether Bluetooth is enabled.
@@ -39,47 +38,8 @@ public class Utils {
      *
      * @return True if permissions are already granted, false otherwise.
      */
-    public static boolean isStoragePermissionsGranted(final Context context) {
-        return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
-    }
-
-    /**
-     * Returns true if storage permission has been requested at least twice and
-     * user denied it, and checked 'Don't ask again'.
-     *
-     * @param activity the activity.
-     * @return True if permission has been denied and the popup will not come up any more,
-     * false otherwise.
-     */
-    public static boolean isStoragePermissionDeniedForever(final Activity activity) {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
-
-        return !isStoragePermissionsGranted(activity) // Storage permission must be denied
-                && preferences.getBoolean(PREFS_STORAGE_PERMISSION_REQUESTED, false) // Permission must have been requested before
-                && !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE); // This method should return false
-    }
-
-    /**
-     * The first time an app requests a permission there is no 'Don't ask again' checkbox and
-     * {@link ActivityCompat#shouldShowRequestPermissionRationale(Activity, String)} returns false.
-     * This situation is similar to a permission being denied forever, so to distinguish both cases
-     * a flag needs to be saved.
-     *
-     * @param context the context.
-     */
-    public static void markStoragePermissionRequested(final Context context) {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        preferences.edit().putBoolean(PREFS_STORAGE_PERMISSION_REQUESTED, true).apply();
-    }
-
-    /**
-     * Checks for required permissions.
-     *
-     * @return True if permissions are already granted, false otherwise.
-     */
     public static boolean isLocationPermissionsGranted(final Context context) {
-        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
@@ -96,7 +56,7 @@ public class Utils {
 
         return !isLocationPermissionsGranted(activity) // Location permission must be denied
                 && preferences.getBoolean(PREFS_PERMISSION_REQUESTED, false) // Permission must have been requested before
-                && !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_COARSE_LOCATION); // This method should return false
+                && !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION); // This method should return false
     }
 
     /**
@@ -135,8 +95,8 @@ public class Utils {
     /**
      * When a Bluetooth LE packet is received while Location is disabled it means that Location
      * is not required on this device in order to scan for LE devices.
-     * This is a case of Samsung phones, for example. Save this information for the future to
-     * keep the Location info hidden.
+     * This is a case of Samsung phones, until Android 9. Save this information for
+     * the future to keep the Location info hidden.
      *
      * @param context the context.
      */

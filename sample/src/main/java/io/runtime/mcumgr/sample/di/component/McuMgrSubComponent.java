@@ -43,7 +43,7 @@ public interface McuMgrSubComponent {
 
     /**
      * Adds the {@link io.runtime.mcumgr.sample.MainActivity} to the
-     * {@link Dagger2Application#dispatchingAndroidInjector}.
+     * {@link Dagger2Application#androidInjector()}.
      * The {@link io.runtime.mcumgr.sample.MainActivity} requires the
      * {@link io.runtime.mcumgr.McuMgrTransport} to be instantiated before injecting.
      *

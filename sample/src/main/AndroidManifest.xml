@@ -17,15 +17,9 @@
 	 Bluetooth LE devices. Some BLE devices, called beacons, may be used to position the phone.
 	 This is to ensure that the user agrees to do so.
 	 This app does not use this location information in any way.
+	 Since Android 10 ACCESS_FINE_LOCATION is required.
 	 -->
-	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-	<!--
-	 This permission is required to read a file content when the file browser app have returned
-	 file:// URI, instead of content:// URI. This way of passing URIs is deprecated, but still
-	 may be used by some File Browser apps. Since Android 6+ this permission is a runtime type
-	 permission and must be requested on runtime. Check FileBrowserFragment class.
-	 -->
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
 	<application
 		android:allowBackup="false"

@@ -13,10 +13,11 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import dagger.android.AndroidInjection;
+import dagger.android.HasAndroidInjector;
 import dagger.android.support.AndroidSupportInjection;
-import dagger.android.support.HasSupportFragmentInjector;
 import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.di.component.DaggerApplicationComponent;
 import io.runtime.mcumgr.sample.di.module.ContextModule;
@@ -73,10 +74,10 @@ public class AppInjector {
     }
 
     private static void handleActivity(final Activity activity) {
-        if (activity instanceof Injectable || activity instanceof HasSupportFragmentInjector) {
+        if (activity instanceof Injectable || activity instanceof HasAndroidInjector) {
             AndroidInjection.inject(activity);
         }
-        if (activity instanceof AppCompatActivity) {
+        if (activity instanceof FragmentActivity) {
             ((AppCompatActivity) activity).getSupportFragmentManager()
                     .registerFragmentLifecycleCallbacks(
                             new FragmentManager.FragmentLifecycleCallbacks() {

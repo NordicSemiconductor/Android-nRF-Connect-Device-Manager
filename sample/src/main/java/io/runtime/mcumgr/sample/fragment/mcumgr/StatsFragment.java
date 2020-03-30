@@ -29,7 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.response.stat.McuMgrStatResponse;
@@ -40,7 +40,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.StatsViewModel;
 
 public class StatsFragment extends Fragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -56,7 +55,7 @@ public class StatsFragment extends Fragment implements Injectable {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(StatsViewModel.class);
     }
 
@@ -79,14 +78,13 @@ public class StatsFragment extends Fragment implements Injectable {
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getResponse().observe(this, this::printStats);
-        mViewModel.getError().observe(this, this::printError);
-        mViewModel.getBusyState().observe(this, busy -> mActionRefresh.setEnabled(!busy));
+        mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printStats);
+        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mActionRefresh.setEnabled(!busy));
         mActionRefresh.setOnClickListener(v -> mViewModel.readStats());
     }
 

@@ -25,7 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.sample.R;
@@ -37,10 +37,8 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class FilesUploadFragment extends FileBrowserFragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
-    @SuppressWarnings("WeakerAccess")
     @Inject
     FsUtils mFsUtils;
 
@@ -70,7 +68,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(FilesUploadViewModel.class);
     }
 
@@ -88,18 +86,17 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
         ButterKnife.bind(this, view);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mFsUtils.getPartition().observe(this, partition -> {
+        mFsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
             if (isFileLoaded()) {
                 final String fileName = mFileName.getText().toString();
                 mFileDestination.setText(getString(R.string.files_file_path, partition, fileName));
             }
         });
-        mViewModel.getState().observe(this, state -> {
+        mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             mUploadAction.setEnabled(isFileLoaded());
             mCancelAction.setEnabled(state.canCancel());
             mPauseResumeAction.setEnabled(state.canPauseOrResume());
@@ -124,8 +121,8 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
                     break;
             }
         });
-        mViewModel.getProgress().observe(this, progress -> mProgress.setProgress(progress));
-        mViewModel.getError().observe(this, error -> {
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mProgress.setProgress(progress));
+        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mGenerateFileAction.setVisibility(View.VISIBLE);
             mSelectFileAction.setVisibility(View.VISIBLE);
             mUploadAction.setVisibility(View.VISIBLE);
@@ -133,7 +130,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
             mPauseResumeAction.setVisibility(View.GONE);
             printError(error);
         });
-        mViewModel.getCancelledEvent().observe(this, nothing -> {
+        mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
             clearFileContent();
             mFileName.setText(null);
             mFileDestination.setText(null);
@@ -146,7 +143,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
             mCancelAction.setVisibility(View.GONE);
             mPauseResumeAction.setVisibility(View.GONE);
         });
-        mViewModel.getBusyState().observe(this, busy -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             mGenerateFileAction.setEnabled(!busy);
             mSelectFileAction.setEnabled(!busy);
             mUploadAction.setEnabled(isFileLoaded() && !busy);

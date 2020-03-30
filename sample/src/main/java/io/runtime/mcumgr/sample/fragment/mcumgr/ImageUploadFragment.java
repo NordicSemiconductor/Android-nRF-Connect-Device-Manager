@@ -27,7 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -42,7 +42,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 public class ImageUploadFragment extends FileBrowserFragment implements Injectable,
         Toolbar.OnMenuItemClickListener {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -70,7 +69,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(ImageUploadViewModel.class);
     }
 
@@ -110,7 +109,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getState().observe(this, state -> {
+        mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             mUploadAction.setEnabled(isFileLoaded());
             mCancelAction.setEnabled(state.canCancel());
             mPauseResumeAction.setEnabled(state.canPauseOrResume());
@@ -138,15 +137,15 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                     break;
             }
         });
-        mViewModel.getProgress().observe(this, progress -> mProgress.setProgress(progress));
-        mViewModel.getError().observe(this, error -> {
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mProgress.setProgress(progress));
+        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mSelectFileAction.setVisibility(View.VISIBLE);
             mUploadAction.setVisibility(View.VISIBLE);
             mCancelAction.setVisibility(View.GONE);
             mPauseResumeAction.setVisibility(View.GONE);
             printError(error);
         });
-        mViewModel.getCancelledEvent().observe(this, nothing -> {
+        mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
             clearFileContent();
             mFileName.setText(null);
             mFileSize.setText(null);
@@ -158,7 +157,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             mCancelAction.setVisibility(View.GONE);
             mPauseResumeAction.setVisibility(View.GONE);
         });
-        mViewModel.getBusyState().observe(this, busy -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             mSelectFileAction.setEnabled(!busy);
             mUploadAction.setEnabled(isFileLoaded() && !busy);
         });

@@ -25,7 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
@@ -40,7 +40,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -68,7 +67,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(ImageUpgradeViewModel.class);
     }
 
@@ -86,12 +85,11 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         ButterKnife.bind(this, view);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getState().observe(this, state -> {
+        mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             mStartAction.setEnabled(isFileLoaded());
             mCancelAction.setEnabled(state.canCancel());
             mPauseResumeAction.setEnabled(state.canPauseOrResume());
@@ -128,15 +126,15 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
             }
         });
-        mViewModel.getProgress().observe(this, progress -> mProgress.setProgress(progress));
-        mViewModel.getError().observe(this, error -> {
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mProgress.setProgress(progress));
+        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mSelectFileAction.setVisibility(View.VISIBLE);
             mStartAction.setVisibility(View.VISIBLE);
             mCancelAction.setVisibility(View.GONE);
             mPauseResumeAction.setVisibility(View.GONE);
             printError(error);
         });
-        mViewModel.getCancelledEvent().observe(this, nothing -> {
+        mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
             clearFileContent();
             mFileName.setText(null);
             mFileSize.setText(null);
@@ -148,7 +146,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             mCancelAction.setVisibility(View.GONE);
             mPauseResumeAction.setVisibility(View.GONE);
         });
-        mViewModel.getBusyState().observe(this, busy -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             mSelectFileAction.setEnabled(!busy);
             mStartAction.setEnabled(isFileLoaded() && !busy);
         });

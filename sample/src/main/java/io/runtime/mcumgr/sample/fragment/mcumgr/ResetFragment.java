@@ -18,7 +18,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.runtime.mcumgr.sample.R;
@@ -28,7 +28,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
 
 public class ResetFragment extends Fragment implements Injectable {
 
-    @SuppressWarnings("WeakerAccess")
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
@@ -42,7 +41,7 @@ public class ResetFragment extends Fragment implements Injectable {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(ResetViewModel.class);
     }
 
@@ -60,13 +59,12 @@ public class ResetFragment extends Fragment implements Injectable {
         ButterKnife.bind(this, view);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getError().observe(this, s -> mErrorView.setText(s));
-        mViewModel.getBusyState().observe(this, busy -> mResetAction.setEnabled(!busy));
+        mViewModel.getError().observe(getViewLifecycleOwner(), s -> mErrorView.setText(s));
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mResetAction.setEnabled(!busy));
         mResetAction.setOnClickListener(v -> mViewModel.reset());
     }
 }

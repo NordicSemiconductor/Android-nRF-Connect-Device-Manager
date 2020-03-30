@@ -16,8 +16,9 @@ import javax.inject.Inject;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
-import dagger.android.support.HasSupportFragmentInjector;
+import dagger.android.HasAndroidInjector;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -28,11 +29,11 @@ import io.runtime.mcumgr.sample.fragment.LogsStatsFragment;
 
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends AppCompatActivity
-        implements Injectable, HasSupportFragmentInjector {
+        implements Injectable, HasAndroidInjector {
     public static final String EXTRA_DEVICE = "device";
 
     @Inject
-    DispatchingAndroidInjector<Fragment> mDispatchingAndroidInjector;
+    DispatchingAndroidInjector<Object> mDispatchingAndroidInjector;
     @Inject
     McuMgrTransport mMcuMgrTransport;
 
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity
     private Fragment mLogsStatsFragment;
 
     @Override
-    public DispatchingAndroidInjector<Fragment> supportFragmentInjector() {
+    public AndroidInjector<Object> androidInjector() {
         return mDispatchingAndroidInjector;
     }
 
