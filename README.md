@@ -10,14 +10,14 @@ A transport agnostic implementation of the McuManager protocol. Contains a defau
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library/tree/develop). 
 
 ```
-implementation 'io.runtime.mcumgr:mcumgr-ble:0.9.1'
+implementation 'io.runtime.mcumgr:mcumgr-ble:0.10.0'
 ```
 
 #### McuManager Core
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```
-implementation 'io.runtime.mcumgr:mcumgr-core:0.9.1'
+implementation 'io.runtime.mcumgr:mcumgr-core:0.10.0'
 ```
 
 # Introduction
