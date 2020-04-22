@@ -19,7 +19,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             consumerProguardFiles 'mcumgr-core-proguard-rules.pro'
         }
     }
@@ -28,7 +28,6 @@ android {
 dependencies {
 
     // Kotlin
-    implementation "androidx.core:core-ktx:1.2.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // Annotations
