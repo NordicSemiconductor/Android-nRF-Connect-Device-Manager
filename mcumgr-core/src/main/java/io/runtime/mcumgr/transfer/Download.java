@@ -10,6 +10,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.DownloadResponse;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
+@SuppressWarnings("unused")
 public abstract class Download extends Transfer {
 
     @Nullable
@@ -20,10 +21,16 @@ public abstract class Download extends Transfer {
     }
 
     protected Download(@Nullable DownloadCallback callback) {
-        super(null, 0);
         mCallback = callback;
     }
 
+    /**
+     * Sends read request from given offset.
+     *
+     * @param offset the offset.
+     * @return received response.
+     * @throws McuMgrException a reason of a failure.
+     */
     protected abstract DownloadResponse read(int offset) throws McuMgrException;
 
     @Override

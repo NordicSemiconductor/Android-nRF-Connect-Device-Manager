@@ -13,7 +13,21 @@ public interface TransferCallback {
      * @param timestamp the timestamp of when the response was received.
      */
     void onProgressChanged(int current, int total, long timestamp);
+
+    /**
+     * Called when a response with failure has been received.
+     *
+     * @param e the exception.
+     */
     void onFailed(@NotNull McuMgrException e);
+
+    /**
+     * Called when the transfer is complete.
+     */
     void onCompleted();
+
+    /**
+     * Called when the transfer has been cancelled.
+     */
     void onCanceled();
 }
