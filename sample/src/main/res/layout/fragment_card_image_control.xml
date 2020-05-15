@@ -46,7 +46,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
             android:freezesText="true"
-            android:textColor="@color/error"
+            android:textColor="?colorError"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -59,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginTop="16dp"
-            android:background="@color/divider"
+            android:background="@color/colorDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/image_control_error"/>

@@ -35,7 +35,8 @@
         android:layout_toStartOf="@+id/rssi"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:textSize="24sp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
+        android:textSize="18sp"
         android:singleLine="true"
         android:ellipsize="end"
         tools:text="Zephyr"/>
@@ -45,10 +46,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/device_name"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
         android:layout_toEndOf="@id/icon"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:textSize="12sp"
         tools:text="AA:BB:CC:DD:EE:FF"/>
 
     <androidx.appcompat.widget.AppCompatImageView

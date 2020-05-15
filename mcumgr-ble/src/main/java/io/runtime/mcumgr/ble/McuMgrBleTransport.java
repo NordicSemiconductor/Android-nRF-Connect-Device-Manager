@@ -35,7 +35,6 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import no.nordicsemi.android.ble.BleManager;
-import no.nordicsemi.android.ble.BleManagerCallbacks;
 import no.nordicsemi.android.ble.Request;
 import no.nordicsemi.android.ble.annotation.ConnectionPriority;
 import no.nordicsemi.android.ble.callback.FailCallback;
@@ -56,8 +55,8 @@ import no.nordicsemi.android.ble.exception.RequestFailedException;
  * existing BLE implementation, you may simply implement {@link McuMgrTransport} or use this class
  * to perform your BLE actions by calling {@link BleManager#enqueue(Request)}.
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
-public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implements McuMgrTransport {
+@SuppressWarnings("unused")
+public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     private static final Logger LOG = LoggerFactory.getLogger(McuMgrBleTransport.class);
 
@@ -110,8 +109,6 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
     public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice device) {
         super(context);
         mDevice = device;
-        // By default, the callbacks will ignore all calls to it
-        setGattCallbacks(new McuMgrBleCallbacksStub());
     }
 
     /**
@@ -128,7 +125,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
     @NonNull
     @Override
     protected BleManagerGattCallback getGattCallback() {
-        return mGattCallback;
+        return new McuMgrGattCallback();
     }
 
     /**
@@ -436,6 +433,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
 
     @Override
     public void release() {
+        cancelQueue();
         disconnect().enqueue();
     }
 
@@ -477,7 +475,7 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
     // Ble Manager Callbacks
     //*******************************************************************************************
 
-    private final BleManagerGattCallback mGattCallback = new BleManagerGattCallback() {
+    private class McuMgrGattCallback extends BleManagerGattCallback {
 
         // Determines whether the device supports the SMP Service
         @Override
@@ -532,9 +530,15 @@ public class McuMgrBleTransport extends BleManager<BleManagerCallbacks> implemen
         protected void onDeviceDisconnected() {
             mSmpService = null;
             mSmpCharacteristic = null;
-            notifyDisconnected();
+
+            runOnCallbackThread(new Runnable() {
+                @Override
+                public void run() {
+                    notifyDisconnected();
+                }
+            });
         }
-    };
+    }
 
     //*******************************************************************************************
     // Manager Connection Observers

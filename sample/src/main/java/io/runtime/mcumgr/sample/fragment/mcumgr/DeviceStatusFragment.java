@@ -65,10 +65,44 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mViewModel.getConnectionState().observe(getViewLifecycleOwner(),
-                resId -> mConnectionStatus.setText(resId));
-        mViewModel.getBondState().observe(getViewLifecycleOwner(), resId ->
-                mBondingStatus.setText(resId));
+        mViewModel.getConnectionState().observe(getViewLifecycleOwner(), state -> {
+            switch (state) {
+                case CONNECTING:
+                    mConnectionStatus.setText(R.string.status_connecting);
+                    break;
+                case INITIALIZING:
+                    mConnectionStatus.setText(R.string.status_initializing);
+                    break;
+                case READY:
+                    mConnectionStatus.setText(R.string.status_connected);
+                    break;
+                case DISCONNECTING:
+                    mConnectionStatus.setText(R.string.status_disconnecting);
+                    break;
+                case DISCONNECTED:
+                    mConnectionStatus.setText(R.string.status_disconnected);
+                    break;
+                case TIMEOUT:
+                    mConnectionStatus.setText(R.string.status_connection_timeout);
+                    break;
+                case NOT_SUPPORTED:
+                    mConnectionStatus.setText(R.string.status_not_supported);
+                    break;
+            }
+        });
+        mViewModel.getBondState().observe(getViewLifecycleOwner(), state -> {
+            switch (state) {
+                case NOT_BONDED:
+                    mBondingStatus.setText(R.string.status_not_bonded);
+                    break;
+                case BONDING:
+                    mBondingStatus.setText(R.string.status_bonding);
+                    break;
+                case BONDED:
+                    mBondingStatus.setText(R.string.status_bonded);
+                    break;
+            }
+        });
         mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
                 mWorkIndicator.setVisibility(busy ? View.VISIBLE : View.GONE));
     }
