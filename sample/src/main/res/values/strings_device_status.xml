@@ -16,6 +16,9 @@
     <string name="status_connected">Connected</string>
     <string name="status_disconnecting">Disconnecting…</string>
     <string name="status_disconnected">Disconnected</string>
+    <string name="status_not_supported">Device not supported</string>
+    <string name="status_connection_failed">Connection failed</string>
+    <string name="status_connection_timeout">Connection timed out</string>
 
     <string name="status_not_bonded">Not bonded</string>
     <string name="status_bonding">Bonding…</string>

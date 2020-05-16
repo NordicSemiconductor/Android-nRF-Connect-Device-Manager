@@ -14,6 +14,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -107,8 +108,9 @@ public class StatsFragment extends Fragment implements Injectable {
     private void printError(@Nullable final String error) {
         if (error != null) {
             final SpannableString spannable = new SpannableString(error);
+            TypedValue typedValue = new TypedValue();
             spannable.setSpan(new ForegroundColorSpan(
-                            ContextCompat.getColor(requireContext(), R.color.error)),
+                            ContextCompat.getColor(requireContext(), R.color.colorError)),
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             spannable.setSpan(new StyleSpan(Typeface.BOLD),
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);

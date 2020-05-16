@@ -6,21 +6,19 @@
   -->
 
 <resources>
-    <color name="colorPrimary">#009CDE</color>
-    <color name="colorPrimaryDark">#0081B7</color>
 
-    <color name="background">#FFF5F5F5</color>
-    <color name="appBar">@color/colorPrimary</color>
-    <color name="statusBar">@color/colorPrimaryDark</color>
-    <color name="icon">#000</color>
-    <color name="colorAccent">#0081B7</color>
-    <color name="colorOnAccent">#FFFFFF</color>
-    <color name="divider">#FDDD</color>
-    <color name="error">#CC0000</color>
-
+    <!-- Base theme colors -->
+    <color name="colorPrimary">@color/nordicBlue</color>
+    <color name="colorOnPrimary">@color/white</color>
+    <color name="colorAccentOnPrimary">@color/white</color>
+    <color name="colorSecondary">@color/nordicLake</color>
+    <color name="colorStatusBar">@color/nordicBlueDark</color>
+    <color name="colorOnSurface">?colorOnSurface</color>
+    <color name="colorDivider">#DDD</color>
+    <color name="colorError">#FFB00020</color>
+    <color name="colorBackground">@color/lightGray</color>
+    <color name="colorOnBackground">@color/black</color>
     <color name="colorDestructive">#CC0000</color>
     <color name="colorDestructiveDisabled">#CCAAAA</color>
 
-    <color name="white">#FFFFFF</color>
-    <color name="zephyr">#3B3E4E</color>
 </resources>

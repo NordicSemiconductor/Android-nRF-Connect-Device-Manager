@@ -9,6 +9,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.UploadResponse;
 
+@SuppressWarnings("unused")
 public abstract class Upload extends Transfer {
 
     private UploadCallback mCallback;
@@ -18,7 +19,7 @@ public abstract class Upload extends Transfer {
     }
 
     protected Upload(@NotNull byte[] data, @Nullable UploadCallback callback) {
-        super(data, 0);
+        super(data);
         mCallback = callback;
     }
 

@@ -28,18 +28,20 @@
     </style>
 
     <style name="AppTheme.Base" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:windowBackground">@color/background</item>
-        <item name="colorPrimary">@color/colorAccent</item>
-        <item name="colorOnPrimary">@color/colorOnAccent</item>
-        <item name="colorPrimaryDark">@color/statusBar</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="colorError">@color/error</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <!-- Primary color of the app. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <!-- Status bar. -->
+        <item name="colorPrimaryDark">@color/colorStatusBar</item>
+        <!-- Secondary color of the app. -->
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <!-- Color for displaying error messages.  -->
+        <item name="colorError">@color/colorError</item>
     </style>
 
     <!-- Main app's toolbar theme. -->
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="colorPrimary">@color/appBar</item>
-    </style>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.Dark.ActionBar"/>
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
 

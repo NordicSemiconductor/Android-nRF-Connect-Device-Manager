@@ -22,9 +22,11 @@ import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import io.runtime.mcumgr.transfer.TransferController;
+import io.runtime.mcumgr.transfer.UploadCallback;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
-public class ImageUploadViewModel extends McuMgrViewModel implements ImageManager.ImageUploadCallback {
+public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallback {
     public enum State {
         IDLE,
         VALIDATING,
@@ -46,6 +48,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
     }
 
     private final ImageManager mManager;
+    private TransferController mController;
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
@@ -82,6 +85,9 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
     }
 
     public void upload(@NonNull final byte[] data) {
+        if (mController != null) {
+            return;
+        }
         setBusy();
         mStateLiveData.setValue(State.VALIDATING);
 
@@ -119,7 +125,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
 
                 // Send the firmware.
                 mStateLiveData.postValue(State.UPLOADING);
-                mManager.upload(data, ImageUploadViewModel.this);
+                mController = mManager.imageUpload(data, ImageUploadViewModel.this);
             }
 
             @Override
@@ -131,33 +137,39 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
     }
 
     public void pause() {
-        if (mManager.getUploadState() == ImageManager.STATE_UPLOADING) {
+        final TransferController controller = mController;
+        if (controller != null) {
             mStateLiveData.setValue(State.PAUSED);
-            mManager.pauseUpload();
+            mController.pause();
             setReady();
         }
     }
 
     public void resume() {
-        if (mManager.getUploadState() == ImageManager.STATE_PAUSED) {
+        final TransferController controller = mController;
+        if (controller != null) {
             setBusy();
             mStateLiveData.setValue(State.UPLOADING);
-            mManager.continueUpload();
+            mController.resume();
         }
     }
 
     public void cancel() {
-        mManager.cancelUpload();
+        final TransferController controller = mController;
+        if (controller != null) {
+            mController.cancel();
+        }
     }
 
     @Override
-    public void onProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+    public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
         // Convert to percent
-        mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
+        mProgressLiveData.postValue((int) (current * 100.f / total));
     }
 
     @Override
     public void onUploadFailed(@NonNull final McuMgrException error) {
+        mController = null;
         mProgressLiveData.postValue(0);
         mErrorLiveData.postValue(error.getMessage());
         postReady();
@@ -165,6 +177,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
 
     @Override
     public void onUploadCanceled() {
+        mController = null;
         mProgressLiveData.postValue(0);
         mStateLiveData.postValue(State.IDLE);
         mCancelledEvent.post();
@@ -172,7 +185,8 @@ public class ImageUploadViewModel extends McuMgrViewModel implements ImageManage
     }
 
     @Override
-    public void onUploadFinished() {
+    public void onUploadCompleted() {
+        mController = null;
         mProgressLiveData.postValue(0);
         mStateLiveData.postValue(State.COMPLETE);
         postReady();

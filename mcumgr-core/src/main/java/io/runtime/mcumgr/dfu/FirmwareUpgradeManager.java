@@ -595,7 +595,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
             if (remainingTime > 0) {
                 LOG.trace("Waiting for estimated swap time {}ms", mEstimatedSwapTime);
-                new Handler().postDelayed(reconnect, remainingTime);
+                new Handler(Looper.getMainLooper()).postDelayed(reconnect, remainingTime);
             } else {
                 reconnect.run();
             }

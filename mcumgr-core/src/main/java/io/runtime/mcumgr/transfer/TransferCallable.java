@@ -35,6 +35,7 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
     @Override
     public synchronized void pause() {
         if (mState == State.TRANSFER) {
+            mState = State.PAUSED;
             mPauseLock.close();
         }
     }
@@ -42,6 +43,7 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
     @Override
     public synchronized void resume() {
         if (mState == State.PAUSED) {
+            mState = State.TRANSFER;
             mPauseLock.open();
         }
     }
@@ -49,6 +51,7 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
     @Override
     public synchronized void cancel() {
         mState = State.CLOSED;
+        mPauseLock.open();
         mTransfer.onCanceled();
     }
 
@@ -71,7 +74,13 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
             // Block if the transfer has been paused
             mPauseLock.block();
 
+            // Check if transfer hasn't been cancelled while paused
+            if (mState == State.CLOSED) {
+                return mTransfer;
+            }
+
             // Send the next packet
+            mState = State.TRANSFER;
             try {
                 mTransfer.sendNext();
             } catch (McuMgrException e) {
@@ -83,7 +92,7 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
             }
 
             synchronized (this) {
-                // Check if upload hasn't been cancelled.
+                // Check if transfer hasn't been cancelled.
                 if (mState == State.CLOSED) {
                     return mTransfer;
                 }

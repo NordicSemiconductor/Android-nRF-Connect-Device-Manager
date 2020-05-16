@@ -210,7 +210,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
     private void printError(@NonNull final String error) {
         final SpannableString spannable = new SpannableString(error);
         spannable.setSpan(new ForegroundColorSpan(
-                        ContextCompat.getColor(requireContext(), R.color.error)),
+                        ContextCompat.getColor(requireContext(), R.color.colorError)),
                 0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);

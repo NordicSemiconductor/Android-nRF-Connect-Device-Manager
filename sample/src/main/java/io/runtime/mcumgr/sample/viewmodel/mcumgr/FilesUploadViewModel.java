@@ -17,9 +17,11 @@ import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import io.runtime.mcumgr.transfer.TransferController;
+import io.runtime.mcumgr.transfer.UploadCallback;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
-public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.FileUploadCallback {
+public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallback {
     public enum State {
         IDLE,
         UPLOADING,
@@ -40,6 +42,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.F
     }
 
     private final FsManager mManager;
+    private TransferController mController;
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
@@ -75,43 +78,52 @@ public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.F
     }
 
     public void upload(final String path, final byte[] data) {
+        if (mController != null) {
+            return;
+        }
         setBusy();
         mStateLiveData.setValue(State.UPLOADING);
         final McuMgrTransport transport = mManager.getTransporter();
         if (transport instanceof McuMgrBleTransport) {
             ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
-        mManager.upload(path, data, this);
+        mController = mManager.fileUpload(path, data, this);
     }
 
     public void pause() {
-        if (mManager.getState() == FsManager.STATE_UPLOADING) {
+        final TransferController controller = mController;
+        if (controller != null) {
             mStateLiveData.setValue(State.PAUSED);
-            mManager.pauseTransfer();
+            controller.pause();
             setReady();
         }
     }
 
     public void resume() {
-        if (mManager.getState() == FsManager.STATE_PAUSED) {
+        final TransferController controller = mController;
+        if (controller != null) {
             mStateLiveData.setValue(State.UPLOADING);
             setBusy();
-            mManager.continueTransfer();
+            controller.resume();
         }
     }
 
     public void cancel() {
-        mManager.cancelTransfer();
+        final TransferController controller = mController;
+        if (controller != null) {
+            controller.cancel();
+        }
     }
 
     @Override
-    public void onProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+    public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
         // Convert to percent
-        mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
+        mProgressLiveData.postValue((int) (current * 100.f / total));
     }
 
     @Override
     public void onUploadFailed(@NonNull final McuMgrException error) {
+        mController = null;
         mProgressLiveData.postValue(0);
         mErrorLiveData.postValue(error.getMessage());
         postReady();
@@ -119,6 +131,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.F
 
     @Override
     public void onUploadCanceled() {
+        mController = null;
         mProgressLiveData.postValue(0);
         mStateLiveData.postValue(State.IDLE);
         mCancelledEvent.post();
@@ -126,7 +139,8 @@ public class FilesUploadViewModel extends McuMgrViewModel implements FsManager.F
     }
 
     @Override
-    public void onUploadFinished() {
+    public void onUploadCompleted() {
+        mController = null;
         mProgressLiveData.postValue(0);
         mStateLiveData.postValue(State.COMPLETE);
         postReady();

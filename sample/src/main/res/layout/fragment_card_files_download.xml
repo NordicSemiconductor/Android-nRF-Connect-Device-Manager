@@ -66,10 +66,10 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_path"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:textSize="12sp"
             app:layout_constraintStart_toStartOf="@+id/file_name_layout"
             app:layout_constraintTop_toBottomOf="@+id/file_name_layout"
             tools:text="/nffs/file"/>
@@ -92,7 +92,7 @@
             android:layout_height="4dp"
             android:layout_marginTop="8dp"
             android:max="100"
-            android:progressBackgroundTint="@color/white"
+            android:progressBackgroundTint="?colorSurface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/file_path"/>
@@ -101,7 +101,7 @@
             android:id="@+id/divider"
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:background="@color/divider"
+            android:background="@color/colorDivider"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

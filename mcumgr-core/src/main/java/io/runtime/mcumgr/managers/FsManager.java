@@ -57,7 +57,7 @@ public class FsManager extends TransferManager {
      * @param name   the file name.
      * @param offset the offset, from which the chunk will be requested.
      * @param callback the asynchronous callback.
-     * @see #fileDownload(String, byte[], DownloadCallback)
+     * @see #fileDownload(String, DownloadCallback)
      */
     public void download(@NotNull String name, int offset,
                          @NotNull McuMgrCallback<McuMgrFsDownloadResponse> callback) {
@@ -76,7 +76,7 @@ public class FsManager extends TransferManager {
      * @param name   the file name.
      * @param offset the offset, from which the chunk will be requested.
      * @return The upload response.
-     * @see #fileDownload(String, byte[], DownloadCallback)
+     * @see #fileDownload(String, DownloadCallback)
      */
     @NotNull
     public McuMgrFsDownloadResponse download(@NotNull String name, int offset)
@@ -212,14 +212,32 @@ public class FsManager extends TransferManager {
      * <p>
      * The upload may be controlled using the {@link TransferController} returned by this method.
      *
-     * @param data The file data to upload.
-     * @param callback  Receives callbacks from the upload.
+     * @param callback Receives callbacks from the upload.
      * @return The object used to control this upload.
      * @see TransferController
      */
     @NotNull
-    public TransferController fileDownload(@NotNull String name, @NotNull byte[] data, @NotNull DownloadCallback callback) {
+    public TransferController fileDownload(@NotNull String name, @NotNull DownloadCallback callback) {
         return startDownload(new FileDownload(name, callback));
+    }
+
+    /**
+     * Start image upload.
+     * <p>
+     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
+     * downloads executed from {@link #fileUpload}.
+     * <p>
+     * The upload may be controlled using the {@link TransferController} returned by this method.
+     *
+     * @param callback Receives callbacks from the upload.
+     * @return The object used to control this upload.
+     * @see TransferController
+     * @deprecated Use {@link #fileDownload(String, DownloadCallback)} instead.
+     */
+    @Deprecated
+    @NotNull
+    public TransferController fileDownload(@NotNull String name, @NotNull byte[] data, @NotNull DownloadCallback callback) {
+        return fileDownload(name, callback);
     }
 
     /**
@@ -266,7 +284,7 @@ public class FsManager extends TransferManager {
      *
      * @param name     the file name.
      * @param callback the file download callback.
-     * @deprecated Use {@link #fileDownload(String, byte[], DownloadCallback)} instead.
+     * @deprecated Use {@link #fileDownload(String, DownloadCallback)} instead.
      */
     @Deprecated
     public synchronized void download(@NotNull String name, @NotNull FileDownloadCallback callback) {

@@ -115,7 +115,7 @@
             android:layout_height="4dp"
             android:layout_marginTop="16dp"
             android:max="100"
-            android:progressBackgroundTint="@color/white"
+            android:progressBackgroundTint="?colorSurface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/status"/>
@@ -124,7 +124,7 @@
             android:id="@+id/divider"
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:background="@color/divider"
+            android:background="@color/colorDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/progress"/>
