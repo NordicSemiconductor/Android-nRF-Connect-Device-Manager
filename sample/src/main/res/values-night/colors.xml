@@ -21,4 +21,14 @@
     <color name="colorDestructive">#D00</color>
     <color name="colorDestructiveDisabled">#8800</color>
 
+    <!--
+        Nordic logo on splash screen.
+        When using light/dark top background, consider changing status bar to light/dark
+        in styles-v23.
+    -->
+    <color name="colorNordicLogo">@color/white</color>
+    <color name="colorNordicLogoText">@color/white</color>
+    <color name="colorNordicLogoBottom">@color/black</color>
+    <color name="colorNordicLogoTop">@color/nordicDarkGray</color>
+
 </resources>

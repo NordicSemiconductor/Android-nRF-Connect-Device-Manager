@@ -45,4 +45,7 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light"/>
 
+    <style name="AppTheme.SplashScreen">
+        <item name="colorPrimaryDark">@android:color/transparent</item>
+    </style>
 </resources>
