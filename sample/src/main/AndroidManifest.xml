@@ -31,11 +31,23 @@
 		android:name=".application.Dagger2Application"
 		tools:ignore="GoogleAppIndexingWarning">
 		<activity
-			android:name=".ScannerActivity"
+			android:name=".SplashScreenActivity"
+			android:theme="@style/AppTheme.SplashScreen"
+			android:noHistory="true"
 			android:launchMode="singleTop">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
 				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
+		<activity
+			android:name=".ScannerActivity"
+			android:icon="@drawable/ic_mcumgr_feature"
+			android:label="@string/feature_name"
+			android:launchMode="singleTop">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER"/>
 			</intent-filter>
 		</activity>
 		<activity
