@@ -7,7 +7,7 @@ A transport agnostic implementation of the McuManager protocol. Contains a defau
 ## Gradle Install
 
 #### McuManager BLE (Recommended)
-Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library/tree/develop). 
+Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library). 
 
 ```
 implementation 'io.runtime.mcumgr:mcumgr-ble:0.11.0'
@@ -39,7 +39,7 @@ McuManager are organized by functionality into command groups. In _mcumgr-androi
 
 Firmware upgrade is generally a four step process performed using commands from the `image` and `default` commands groups: `upload`, `test`, `reset`, and `confirm`.
 
-This library provides a `FirmwareUpgradeManager` as a convinience for upgrading the image running on a device. 
+This library provides a `FirmwareUpgradeManager` as a convenience for upgrading the image running on a device. 
 
 ### Example
 ```java
