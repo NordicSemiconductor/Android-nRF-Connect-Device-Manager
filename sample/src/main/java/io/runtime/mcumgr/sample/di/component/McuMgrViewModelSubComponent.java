@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.sample.di.component;
 
 import dagger.Subcomponent;
+import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.EchoViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesDownloadViewModel;
@@ -30,6 +31,8 @@ public interface McuMgrViewModelSubComponent {
     interface Builder {
         McuMgrViewModelSubComponent build();
     }
+
+    MainViewModel mainViewModel();
 
     DeviceStatusViewModel deviceStatusViewModel();
     EchoViewModel echoViewModel();

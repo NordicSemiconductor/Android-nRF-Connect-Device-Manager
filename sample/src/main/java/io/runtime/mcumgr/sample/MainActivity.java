@@ -9,23 +9,27 @@ package io.runtime.mcumgr.sample;
 import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import javax.inject.Inject;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
-import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.fragment.DeviceFragment;
 import io.runtime.mcumgr.sample.fragment.FilesFragment;
 import io.runtime.mcumgr.sample.fragment.ImageFragment;
 import io.runtime.mcumgr.sample.fragment.LogsStatsFragment;
+import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
+import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends AppCompatActivity
@@ -35,7 +39,7 @@ public class MainActivity extends AppCompatActivity
     @Inject
     DispatchingAndroidInjector<Object> mDispatchingAndroidInjector;
     @Inject
-    McuMgrTransport mMcuMgrTransport;
+    McuMgrViewModelFactory mViewModelFactory;
 
     private Fragment mDeviceFragment;
     private Fragment mImageFragment;
@@ -48,7 +52,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(@Nullable final Bundle savedInstanceState) {
         // The target must be set before calling super.onCreate(Bundle).
         // Otherwise, Dagger2 will fail to inflate this Activity.
         final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
@@ -58,6 +62,9 @@ public class MainActivity extends AppCompatActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        new ViewModelProvider(this, mViewModelFactory)
+                .get(MainViewModel.class);
 
         // Configure the view.
         final Toolbar toolbar = findViewById(R.id.toolbar);
@@ -118,16 +125,6 @@ public class MainActivity extends AppCompatActivity
             mImageFragment = getSupportFragmentManager().findFragmentByTag("image");
             mFilesFragment = getSupportFragmentManager().findFragmentByTag("fs");
             mLogsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        if (isFinishing()) {
-            mMcuMgrTransport.release();
-            mMcuMgrTransport = null;
         }
     }
 }
