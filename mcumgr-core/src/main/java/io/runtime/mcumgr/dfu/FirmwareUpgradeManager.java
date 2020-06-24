@@ -388,7 +388,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     private synchronized void cancelled(State state) {
-        LOG.trace("Upgrade cancelled!");
+        LOG.trace("Upgrade cancelled");
         mState = State.NONE;
         mPaused = false;
         mInternalCallback.onUpgradeCanceled(state);
@@ -579,7 +579,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         public void onDisconnected() {
             mDefaultManager.getTransporter().removeObserver(mResetObserver);
 
-            LOG.trace("Device disconnected.");
+            LOG.info("Device disconnected");
             Runnable reconnect = new Runnable() {
                 @Override
                 public void run() {
@@ -610,19 +610,19 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         @Override
         public void onConnected() {
-            LOG.trace("Reconnect successful.");
+            LOG.info("Reconnect successful");
             continueUpgrade();
         }
 
         @Override
         public void onDeferred() {
-            LOG.trace("Reconnect deferred.");
+            LOG.info("Reconnect deferred");
             continueUpgrade();
         }
 
         @Override
         public void onError(@NotNull Throwable t) {
-            LOG.trace("Reconnect failed.");
+            LOG.error("Reconnect failed");
             fail(new McuMgrException(t));
         }
 
@@ -740,7 +740,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             if (e instanceof McuMgrTimeoutException) {
                 if (mAttempts++ < MAX_ATTEMPTS) {
                     // Try again
-                    LOG.info("Connection timeout. Retrying...");
+                    LOG.warn("Connection timeout. Retrying...");
                     verify();
                     return;
                 }

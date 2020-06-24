@@ -32,7 +32,7 @@ import io.runtime.mcumgr.transfer.Upload;
 import io.runtime.mcumgr.transfer.UploadCallback;
 import io.runtime.mcumgr.util.CBOR;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess", "unused", "DeprecatedIsStillUsed", "deprecation"})
 public class FsManager extends TransferManager {
 
     private final static Logger LOG = LoggerFactory.getLogger(FsManager.class);
@@ -291,7 +291,7 @@ public class FsManager extends TransferManager {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_DOWNLOADING;
         } else {
-            LOG.debug("FsManager is not ready");
+            LOG.warn("FsManager is not ready");
             return;
         }
 
@@ -316,7 +316,7 @@ public class FsManager extends TransferManager {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_UPLOADING;
         } else {
-            LOG.debug("FsManager is not ready");
+            LOG.warn("FsManager is not ready");
             return;
         }
 
@@ -347,7 +347,7 @@ public class FsManager extends TransferManager {
         if (mTransferState == STATE_NONE) {
             LOG.debug("File transfer is not in progress");
         } else if (mTransferState == STATE_PAUSED) {
-            LOG.debug("Upload canceled!");
+            LOG.info("Upload canceled");
             resetTransfer();
             if (mUploadCallback != null) {
                 mUploadCallback.onUploadCanceled();
@@ -372,7 +372,7 @@ public class FsManager extends TransferManager {
         if (mTransferState == STATE_NONE) {
             LOG.debug("File transfer is not in progress.");
         } else {
-            LOG.debug("Upload paused.");
+            LOG.info("Upload paused");
             mTransferState = STATE_PAUSED;
         }
     }
@@ -384,7 +384,7 @@ public class FsManager extends TransferManager {
     @Deprecated
     public synchronized void continueTransfer() {
         if (mTransferState == STATE_PAUSED) {
-            LOG.debug("Continuing transfer.");
+            LOG.info("Continuing transfer...");
             if (mDownloadCallback != null) {
                 mTransferState = STATE_DOWNLOADING;
                 requestNext(mOffset);
@@ -432,7 +432,7 @@ public class FsManager extends TransferManager {
     private synchronized void sendNext(int offset) {
         // Check that the state is STATE_UPLOADING
         if (mTransferState != STATE_UPLOADING) {
-            LOG.debug("Fs Manager is not in the UPLOADING state.");
+            LOG.warn("Fs Manager is not in the UPLOADING state.");
             return;
         }
         upload(mFileName, mFileData, offset, mUploadCallbackImpl);
@@ -446,7 +446,7 @@ public class FsManager extends TransferManager {
     private synchronized void requestNext(int offset) {
         // Check that the state is STATE_UPLOADING
         if (mTransferState != STATE_DOWNLOADING) {
-            LOG.debug("Fs Manager is not in the DOWNLOADING state.");
+            LOG.warn("Fs Manager is not in the DOWNLOADING state.");
             return;
         }
         download(mFileName, offset, mDownloadCallbackImpl);
@@ -473,7 +473,7 @@ public class FsManager extends TransferManager {
 
                     // Check if upload hasn't been cancelled.
                     if (mTransferState == STATE_NONE) {
-                        LOG.debug("Upload canceled!");
+                        LOG.info("Upload canceled");
                         resetTransfer();
                         mUploadCallback.onUploadCanceled();
                         mUploadCallback = null;
@@ -489,7 +489,7 @@ public class FsManager extends TransferManager {
 
                     // Check if the upload has finished.
                     if (mOffset == mFileData.length) {
-                        LOG.debug("Upload finished!");
+                        LOG.info("Upload finished");
                         resetTransfer();
                         mUploadCallback.onUploadFinished();
                         mUploadCallback = null;
@@ -542,7 +542,7 @@ public class FsManager extends TransferManager {
 
                     // Check if download hasn't been cancelled.
                     if (mTransferState == STATE_NONE) {
-                        LOG.debug("Download canceled!");
+                        LOG.info("Download canceled");
                         resetTransfer();
                         mDownloadCallback.onDownloadCanceled();
                         mDownloadCallback = null;
@@ -567,7 +567,7 @@ public class FsManager extends TransferManager {
 
                     // Check if the download has finished.
                     if (mOffset == mFileData.length) {
-                        LOG.debug("Download finished!");
+                        LOG.info("Download finished");
                         byte[] data = mFileData;
                         String fileName = mFileName;
                         resetTransfer();

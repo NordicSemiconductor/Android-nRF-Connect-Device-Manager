@@ -6,21 +6,22 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.sample.BuildConfig;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
+import timber.log.Timber;
 
 public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUpgradeCallback {
     public enum State {
@@ -58,13 +59,6 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
         mManager = manager;
-
-        // Enable logging for BLE transport
-        final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof McuMgrBleTransport) {
-            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
-            bleTransporter.setLoggingEnabled(BuildConfig.DEBUG);
-        }
 
         mManager.setEstimatedSwapTime(20000);
         mManager.setFirmwareUpgradeCallback(this);
@@ -110,6 +104,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         if (mManager.isInProgress()) {
             mStateLiveData.postValue(State.PAUSED);
             mManager.pause();
+            Timber.i("Upload paused");
             setReady();
         }
     }
@@ -118,6 +113,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         if (mManager.isPaused()) {
             setBusy();
             mStateLiveData.postValue(State.UPLOADING);
+            Timber.i("Upload resumed");
             mManager.resume();
         }
     }
@@ -134,8 +130,15 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onStateChanged(final FirmwareUpgradeManager.State prevState, final FirmwareUpgradeManager.State newState) {
+        // Enable logging for BLE transport
+        final McuMgrTransport transporter = mManager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.setLoggingEnabled(newState != FirmwareUpgradeManager.State.UPLOAD);
+        }
         switch (newState) {
             case UPLOAD:
+                Timber.i("Uploading firmware...");
                 mStateLiveData.postValue(State.UPLOADING);
                 break;
             case TEST:

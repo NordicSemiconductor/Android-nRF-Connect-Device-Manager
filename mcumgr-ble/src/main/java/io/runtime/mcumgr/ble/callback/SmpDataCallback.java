@@ -25,6 +25,7 @@ public abstract class SmpDataCallback<T extends McuMgrResponse>
     @Override
     public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
         try {
+            //noinspection ConstantConditions
             T response = McuMgrResponse.buildResponse(McuMgrScheme.BLE, data.getValue(), responseType);
             onResponseReceived(device, response);
         } catch (final Exception e) {

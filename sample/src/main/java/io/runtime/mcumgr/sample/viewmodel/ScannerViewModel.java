@@ -19,7 +19,11 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+
+import org.jetbrains.annotations.NotNull;
+
 import io.runtime.mcumgr.sample.utils.FilterUtils;
 import io.runtime.mcumgr.sample.utils.Utils;
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
@@ -47,15 +51,18 @@ public class ScannerViewModel extends AndroidViewModel {
     }
 
     @Inject
-    public ScannerViewModel(final Application application, final SharedPreferences preferences) {
+    public ScannerViewModel(@NonNull final Application application,
+                            @NonNull final SharedPreferences preferences) {
         super(application);
         mPreferences = preferences;
 
         final boolean filterUuidRequired = isUuidFilterEnabled();
         final boolean filerNearbyOnly = isNearbyFilterEnabled();
 
-        mScannerStateLiveData = new ScannerStateLiveData(Utils.isBleEnabled(),
-                Utils.isLocationEnabled(application));
+        mScannerStateLiveData = new ScannerStateLiveData(
+                Utils.isBleEnabled(),
+                Utils.isLocationEnabled(application)
+        );
         mDevicesLiveData = new DevicesLiveData(filterUuidRequired, filerNearbyOnly);
         registerBroadcastReceivers(application);
     }
@@ -150,7 +157,7 @@ public class ScannerViewModel extends AndroidViewModel {
 
     private final ScanCallback scanCallback = new ScanCallback() {
         @Override
-        public void onScanResult(final int callbackType, final ScanResult result) {
+        public void onScanResult(final int callbackType, @NotNull final ScanResult result) {
             // This callback will be called only if the scan report delay is not set or is set to 0.
 
             // If the packet has been obtained while Location was disabled, mark Location as not required
@@ -164,7 +171,7 @@ public class ScannerViewModel extends AndroidViewModel {
         }
 
         @Override
-        public void onBatchScanResults(final List<ScanResult> results) {
+        public void onBatchScanResults(@NotNull final List<ScanResult> results) {
             // This callback will be called only if the report delay set above is greater then 0.
 
             // If the packet has been obtained while Location was disabled, mark Location as not required
@@ -193,7 +200,7 @@ public class ScannerViewModel extends AndroidViewModel {
     /**
      * Register for required broadcast receivers.
      */
-    private void registerBroadcastReceivers(final Application application) {
+    private void registerBroadcastReceivers(@NonNull final Application application) {
         application.registerReceiver(mBluetoothStateBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
         if (Utils.isMarshmallowOrAbove()) {
             application.registerReceiver(mLocationProviderChangedReceiver, new IntentFilter(LocationManager.MODE_CHANGED_ACTION));
@@ -255,7 +262,7 @@ public class ScannerViewModel extends AndroidViewModel {
      * @return true, if the device may be dismissed, false otherwise.
      */
     @SuppressWarnings({"BooleanMethodIsAlwaysInverted", "RedundantIfStatement"})
-    private boolean isNoise(final ScanResult result) {
+    private boolean isNoise(@NonNull final ScanResult result) {
         // Do not show non-connectable devices.
         // Only Android Oreo or newer can say if a device is connectable. On older Android versions
         // the Support Scanner Library assumes all devices are connectable (compatibility mode).

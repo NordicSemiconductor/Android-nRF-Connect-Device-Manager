@@ -51,7 +51,7 @@ import io.runtime.mcumgr.util.CBOR;
  *
  * @see FirmwareUpgradeManager
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess", "deprecation", "DeprecatedIsStillUsed"})
 public class ImageManager extends TransferManager {
 
     private final static Logger LOG = LoggerFactory.getLogger(ImageManager.class);
@@ -506,7 +506,7 @@ public class ImageManager extends TransferManager {
         if (mUploadState == STATE_NONE) {
             LOG.debug("Image upload is not in progress");
         } else if (mUploadState == STATE_PAUSED) {
-            LOG.debug("Upload canceled!");
+            LOG.info("Upload canceled");
             resetUpload();
             mUploadCallback.onUploadCanceled();
             mUploadCallback = null;
@@ -523,7 +523,7 @@ public class ImageManager extends TransferManager {
         if (mUploadState == STATE_NONE) {
             LOG.debug("Upload is not in progress.");
         } else {
-            LOG.debug("Upload paused.");
+            LOG.info("Upload paused");
             mUploadState = STATE_PAUSED;
         }
     }
@@ -535,7 +535,7 @@ public class ImageManager extends TransferManager {
     @Deprecated
     public synchronized void continueUpload() {
         if (mUploadState == STATE_PAUSED) {
-            LOG.debug("Continuing upload.");
+            LOG.info("Continuing upload...");
             mUploadState = STATE_UPLOADING;
             sendNext(mUploadOffset);
         } else {
