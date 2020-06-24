@@ -36,6 +36,11 @@ public class CBOR {
         return mapper.readTree(data).toString();
     }
 
+    public static String toString(byte[] data, int offset) throws IOException {
+        ObjectMapper mapper = new ObjectMapper(sFactory);
+        return mapper.readTree(data, offset, data.length - offset).toString();
+    }
+
     @SuppressWarnings("RedundantThrows")
     public static <T> String toString(T obj) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);

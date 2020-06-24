@@ -11,10 +11,14 @@ import android.app.Application;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+
+import org.jetbrains.annotations.NotNull;
+
 import dagger.android.AndroidInjection;
 import dagger.android.HasAndroidInjector;
 import dagger.android.support.AndroidSupportInjection;
@@ -29,7 +33,7 @@ public class AppInjector {
     private AppInjector() {
     }
 
-    public static void init(final Dagger2Application application) {
+    public static void init(@NonNull final Dagger2Application application) {
         DaggerApplicationComponent.builder()
                 .contextModule(new ContextModule(application))
                 .build()
@@ -37,43 +41,45 @@ public class AppInjector {
 
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
-            public void onActivityCreated(final Activity activity, final Bundle savedInstanceState) {
+            public void onActivityCreated(@NotNull final Activity activity,
+                                          @Nullable final Bundle savedInstanceState) {
                 handleActivity(activity);
             }
 
             @Override
-            public void onActivityStarted(final Activity activity) {
+            public void onActivityStarted(@NotNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivityResumed(final Activity activity) {
+            public void onActivityResumed(@NotNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivityPaused(final Activity activity) {
+            public void onActivityPaused(@NotNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivityStopped(final Activity activity) {
+            public void onActivityStopped(@NotNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivitySaveInstanceState(final Activity activity, final Bundle outState) {
+            public void onActivitySaveInstanceState(@NotNull final Activity activity,
+                                                    @NotNull final Bundle outState) {
                 // empty
             }
 
             @Override
-            public void onActivityDestroyed(final Activity activity) {
+            public void onActivityDestroyed(@NotNull final Activity activity) {
                 // empty
             }
         });
     }
 
-    private static void handleActivity(final Activity activity) {
+    private static void handleActivity(@NonNull final Activity activity) {
         if (activity instanceof Injectable || activity instanceof HasAndroidInjector) {
             AndroidInjection.inject(activity);
         }

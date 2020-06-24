@@ -20,7 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import io.runtime.mcumgr.sample.di.component.ViewModelSubComponent;
 
 public class ViewModelFactory extends ViewModelProvider.AndroidViewModelFactory {
-    private final Map<Class, Callable<? extends ViewModel>> creators;
+    private final Map<Class<? extends ViewModel>, Callable<? extends ViewModel>> creators;
 
     /**
      * Creates a {@code AndroidViewModelFactory}.
@@ -44,7 +44,7 @@ public class ViewModelFactory extends ViewModelProvider.AndroidViewModelFactory 
     public <T extends ViewModel> T create(@NonNull final Class<T> modelClass) {
         Callable<? extends ViewModel> creator = creators.get(modelClass);
         if (creator == null) {
-            for (Map.Entry<Class, Callable<? extends ViewModel>> entry : creators.entrySet()) {
+            for (Map.Entry<Class<? extends ViewModel>, Callable<? extends ViewModel>> entry : creators.entrySet()) {
                 if (modelClass.isAssignableFrom(entry.getKey())) {
                     creator = entry.getValue();
                     break;

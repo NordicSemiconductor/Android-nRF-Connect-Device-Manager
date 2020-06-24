@@ -85,6 +85,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                 mBondingState.setValue(BondingState.NOT_BONDED);
             }
         });
+        setLoggingEnabled(true);
     }
 
     @Nullable
