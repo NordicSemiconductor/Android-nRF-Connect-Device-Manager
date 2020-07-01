@@ -1,9 +1,22 @@
 package com.juul.mcumgr.serialization
 
-data class Message<T>(
-    val header: Header,
-    val payload: T
-)
+
+
+sealed class Message<T> {
+
+    abstract val header: Header
+    abstract val payload: T
+
+    data class Standard<T>(
+        override val header: Header,
+        override val payload: T
+    ) : Message<T>()
+
+    data class Coap<T>(
+        override val header: Header,
+        override val payload: T
+    ) : Message<T>()
+}
 
 data class Header(
     val operation: Int,

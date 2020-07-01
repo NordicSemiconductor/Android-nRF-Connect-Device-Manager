@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
-internal val cbor = CBORMapper().apply {
+/**
+ * CBOR object mapper used my mcumgr serialization.
+ */
+val cbor = CBORMapper().apply {
     registerModule(KotlinModule())
 
     // Do not fail on unknown properties when decoding responses
