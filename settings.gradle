@@ -1,1 +1,1 @@
-include ':sample', ':mcumgr-core', ':mcumgr-ble'
+include ':sample', ':mcumgr-core', ':mcumgr-ble', ':core', ':serialization'
