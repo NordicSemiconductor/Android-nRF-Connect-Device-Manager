@@ -3,10 +3,10 @@
 
 	<style name="TextAppearance" parent="TextAppearance.MaterialComponents.Body1"/>
 	<style name="TextAppearance.Link">
-		<item name="android:textColor">@color/colorPrimary</item>
+		<item name="android:textColor">?colorPrimary</item>
 		<item name="android:textSize">14sp</item>
 		<item name="drawableRightCompat">@drawable/ic_baseline_open_in_new_24</item>
-		<item name="drawableTint">@color/colorPrimary</item>
+		<item name="drawableTint">?colorPrimary</item>
 		<item name="android:drawablePadding">8dp</item>
 		<item name="android:gravity">center_vertical</item>
 	</style>
