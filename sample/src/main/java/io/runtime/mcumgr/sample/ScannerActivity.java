@@ -10,6 +10,7 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -28,6 +29,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,6 +47,7 @@ import io.runtime.mcumgr.sample.viewmodel.ViewModelFactory;
 public class ScannerActivity extends AppCompatActivity
         implements Injectable, DevicesAdapter.OnItemClickListener {
     private static final int REQUEST_ACCESS_FINE_LOCATION = 1022; // random number
+    private static final String PREF_INTRO = "introShown";
 
     @Inject
     ViewModelFactory mViewModelFactory;
@@ -72,6 +75,14 @@ public class ScannerActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scanner);
         ButterKnife.bind(this);
+
+        // Display Intro just once.
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if (!preferences.getBoolean(PREF_INTRO, false)) {
+            preferences.edit().putBoolean(PREF_INTRO, true).apply();
+            final Intent launchIntro = new Intent(this, IntroActivity.class);
+            startActivity(launchIntro);
+        }
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -111,6 +122,7 @@ public class ScannerActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         getMenuInflater().inflate(R.menu.filter, menu);
+        getMenuInflater().inflate(R.menu.about, menu);
         menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
         menu.findItem(R.id.filter_nearby).setChecked(mScannerViewModel.isNearbyFilterEnabled());
         return true;
@@ -126,6 +138,10 @@ public class ScannerActivity extends AppCompatActivity
             case R.id.filter_nearby:
                 item.setChecked(!item.isChecked());
                 mScannerViewModel.filterByDistance(item.isChecked());
+                return true;
+            case R.id.menu_about:
+                final Intent launchIntro = new Intent(this, IntroActivity.class);
+                startActivity(launchIntro);
                 return true;
         }
         return super.onOptionsItemSelected(item);
