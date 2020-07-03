@@ -20,7 +20,7 @@ android {
 
 dependencies {
     // Import the BLE Library
-    api 'no.nordicsemi.android:ble:2.2.1'
+    api 'no.nordicsemi.android:ble:2.2.2'
 
     // Logging
     implementation 'org.slf4j:slf4j-api:1.7.30'
