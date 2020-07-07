@@ -94,8 +94,8 @@ private fun Uploader.getChunkSize(data: ByteArray, offset: Int): Int {
     // The size of the header is based on the scheme. CoAP scheme is larger because there are
     // 4 additional bytes of CBOR.
     val headerSize = when (scheme) {
-        Transport.Scheme.Standard -> 8
-        Transport.Scheme.CoAP -> 8 + 4
+        Transport.Scheme.STANDARD -> 8
+        Transport.Scheme.COAP -> 8 + 4
     }
 
     // Size of the indefinite length map tokens (bf, ff)

@@ -11,13 +11,6 @@ class EncoderException(
     val obj: Message<*>
 ) : Exception(message, cause)
 
-fun Message<*>.encode(): ByteArray =
-    when (this) {
-        is Message.Standard -> encodeStandard()
-        is Message.Coap -> encodeCoap()
-    }
-
-
 fun Message<*>.encodeStandard(): ByteArray = try {
     val payload = Buffer().apply {
         encodePayload(payload ?: Any())
@@ -54,7 +47,6 @@ fun Message<*>.encodeCoap(): ByteArray = try {
 } catch (e: JsonProcessingException) {
     throw EncoderException("Failed to encode message.", e, this)
 }
-
 
 // Helpers
 

@@ -3,8 +3,8 @@ package com.juul.mcumgr
 interface Transport {
 
     enum class Scheme {
-        Standard,
-        CoAP;
+        STANDARD,
+        COAP;
     }
 
     val mtu: Int
