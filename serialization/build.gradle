@@ -19,7 +19,7 @@ compileTestKotlin {
 }
 
 dependencies {
-    // Kotlin
+    implementation project(":core")
     implementation "com.squareup.okio:okio:2.6.0"
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.0'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.11.0'

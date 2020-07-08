@@ -1,60 +1,57 @@
 package com.juul.mcumgr.serialization
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Request
 import okio.Buffer
 import okio.BufferedSink
 
-class EncoderException(
-    message: String,
-    cause: Throwable,
-    val obj: Message<*>
-) : Exception(message, cause)
-
-fun Message<*>.encodeStandard(): ByteArray = try {
-    val payload = Buffer().apply {
-        encodePayload(payload ?: Any())
-    }
-    val header = Buffer().apply {
-        // Set the header's length to the size of the payload.
-        val lengthSetHeader = header.copy(length = payload.size.toInt())
-        encodeHeader(lengthSetHeader)
-    }
-    Buffer().apply {
-        writeAll(header)
-        writeAll(payload)
-    }.readByteArray()
-} catch (e: JsonProcessingException) {
-    throw EncoderException("Failed to encode message.", e, this)
+fun Request.encode(format: Format, sequenceNumber: Int = 0): ByteArray {
+    val header = Header(
+        operation.value,
+        group.value,
+        command.value,
+        0,
+        sequenceNumber,
+        0
+    )
+    val payload: ObjectNode = cbor.valueToTree(this)
+    val message = Message(header, payload)
+    return message.encode(format)
 }
 
-fun Message<*>.encodeCoap(): ByteArray = try {
-    val payloadBuf = Buffer().apply {
-        encodePayload(payload ?: Any())
-    }
-    val headerBuf = Buffer().apply {
-        // Set the header's length to the size of the payload.
-        val lengthSetHeader = header.copy(length = payloadBuf.size.toInt())
-        encodeHeader(lengthSetHeader)
+fun Message.encode(format: Format): ByteArray =
+    when (format) {
+        Format.STANDARD -> encodeStandard()
+        Format.COAP -> encodeCoap()
     }
 
-    // Parse the object as a object tree and insert the header as a field.
-    val objectMapper = cbor
-    val objectNode = objectMapper.valueToTree<ObjectNode>(payload).apply {
-        put("_h", headerBuf.readByteArray())
+private fun Message.encodeStandard(): ByteArray =
+    Buffer().apply {
+        // Set the header's length to the size of the payload.
+        val payloadBytes = encodePayload()
+        val lengthSetHeader = header.copy(length = payloadBytes.size)
+        encodeHeader(lengthSetHeader)
+        write(payloadBytes)
+    }.readByteArray()
+
+private fun Message.encodeCoap(): ByteArray {
+    val payloadBytes = encodePayload()
+    val lengthSetHeader = header.copy(length = payloadBytes.size)
+    val headerBytes = Buffer().apply {
+        // Set the header's length to the size of the payload.
+        encodeHeader(lengthSetHeader)
     }
-    objectMapper.writeValueAsBytes(objectNode)
-} catch (e: JsonProcessingException) {
-    throw EncoderException("Failed to encode message.", e, this)
+    payload.put("_h", headerBytes.readByteArray())
+    return encodePayload()
 }
 
 // Helpers
 
-fun BufferedSink.encodePayload(payload: Any) {
-    write(cbor.writeValueAsBytes(payload))
-}
+private fun Message.encodePayload(): ByteArray =
+    cbor.writeValueAsBytes(payload)
 
-fun BufferedSink.encodeHeader(header: Header) {
+private fun BufferedSink.encodeHeader(header: Header) {
     writeByte(header.operation)
     writeByte(header.flags.toInt())
     writeShort(header.length)

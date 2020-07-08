@@ -1,4 +1,4 @@
-package com.juul.mcumgr
+package com.juul.mcumgr.message
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -54,7 +54,7 @@ sealed class Response {
     val isError: Boolean = code.isError
 }
 
-// // System ////
+// System
 
 data class EchoRequest(
     @JsonProperty("d") val echo: String
@@ -68,7 +68,7 @@ data class EchoResponse(
     @JsonProperty("r") val echo: String
 ) : Response()
 
-// // Image ////
+// Image
 
 data class ImageUploadRequest(
     @JsonProperty("data") val data: ByteArray,
@@ -99,7 +99,7 @@ data class CoreDownloadResponse(
     @JsonProperty("len") val length: Int? = null
 ) : Response()
 
-// // Files ////
+// Files
 
 data class FileUploadRequest(
     @JsonProperty("data") val data: ByteArray,

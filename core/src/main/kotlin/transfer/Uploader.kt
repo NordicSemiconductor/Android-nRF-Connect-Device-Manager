@@ -1,10 +1,8 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
-import com.juul.mcumgr.Transport
-import com.juul.mcumgr.map
-import com.juul.mcumgr.onFailure
+import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.onErrorOrFailure
 import com.juul.mcumgr.onSuccess
 import java.lang.IllegalArgumentException
 import kotlinx.coroutines.flow.channelFlow
@@ -16,7 +14,7 @@ private const val RETRIES = 5
 interface Uploader {
 
     val mtu: Int
-    val scheme: Transport.Scheme
+    val format: Format
 
     suspend fun write(data: ByteArray, offset: Int, length: Int): McuMgrResult<Response>
 
@@ -46,13 +44,13 @@ suspend fun Uploader.flow(
                     val current = transmitOffset + chunkSize
                     send(Uploader.Event(current, data.size))
                 }
-                .onFailure {
+                .onErrorOrFailure {
                     window.fail()
                     // Retry sending the request. Recover the window on success or throw
                     // on failure.
                     retryWrite(data, transmitOffset, chunkSize, RETRIES)
                         .onSuccess { window.recover() }
-                        .onFailure { throw it }
+                        .onErrorOrFailure { throw it }
                 }
         }
 
@@ -93,9 +91,9 @@ private fun Uploader.getChunkSize(data: ByteArray, offset: Int): Int {
 
     // The size of the header is based on the scheme. CoAP scheme is larger because there are
     // 4 additional bytes of CBOR.
-    val headerSize = when (scheme) {
-        Transport.Scheme.STANDARD -> 8
-        Transport.Scheme.COAP -> 8 + 4
+    val headerSize = when (format) {
+        Format.STANDARD -> 8
+        Format.COAP -> 8 + 4
     }
 
     // Size of the indefinite length map tokens (bf, ff)
@@ -138,35 +136,3 @@ private fun cborUIntLen(n: Int): Int =
         n < 4294967296 -> 5 // 2^32
         else -> 9
     }
-
-// Uploader Implementations
-
-class ImageUploader(val manager: McuManager) : Uploader {
-
-    override val mtu: Int = manager.transport.mtu
-    override val scheme: Transport.Scheme = manager.transport.scheme
-
-    override suspend fun write(
-        data: ByteArray,
-        offset: Int,
-        length: Int
-    ): McuMgrResult<Uploader.Response> =
-        manager.imageUpload(data, offset, length).map { response ->
-            Uploader.Response(response.offset)
-        }
-}
-
-class FileUploader(val manager: McuManager) : Uploader {
-
-    override val mtu: Int = manager.transport.mtu
-    override val scheme: Transport.Scheme = manager.transport.scheme
-
-    override suspend fun write(
-        data: ByteArray,
-        offset: Int,
-        length: Int
-    ): McuMgrResult<Uploader.Response> =
-        manager.fileUpload(data, offset, length).map { response ->
-            Uploader.Response(response.offset)
-        }
-}

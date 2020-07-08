@@ -1,15 +1,14 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.getOrElse
 import com.juul.mcumgr.getOrThrow
-import com.juul.mcumgr.map
 import com.juul.mcumgr.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import okio.Buffer
 
 private const val RETRIES = 5
 
@@ -63,15 +62,11 @@ suspend fun Downloader.readAll(capacity: Int): ByteArray =
     flow(capacity).collectBytes()
 
 suspend fun Flow<Downloader.Event>.collectBytes(): ByteArray {
-    var buffer: ByteArray? = null
+    val buffer = Buffer()
     collect { event ->
-        if (buffer == null) {
-            buffer = ByteArray(event.length)
-        }
-        val b = checkNotNull(buffer) { "buffer cannot be null" }
-        event.data.copyInto(b, event.offset)
+        buffer.write(event.data)
     }
-    return checkNotNull(buffer) { "buffer cannot be null" }
+    return buffer.readByteArray()
 }
 
 /**
@@ -103,22 +98,4 @@ private fun assertDataSize(actualSize: Int, expectedSize: Int, offset: Int, tota
     if (actualSize != expectedSize && offset + actualSize != totalSize) {
         throw IllegalStateException("data size does not match expected size")
     }
-}
-
-// Downloader Implementations
-
-class CoreDownloader(val manager: McuManager) : Downloader {
-
-    override suspend fun read(offset: Int): McuMgrResult<Downloader.Response> =
-        manager.coreDownload(offset).map { response ->
-            Downloader.Response(response.data, response.offset, response.length)
-        }
-}
-
-class FileDownloader(val manager: McuManager) : Downloader {
-
-    override suspend fun read(offset: Int): McuMgrResult<Downloader.Response> =
-        manager.fileDownload(offset).map { response ->
-            Downloader.Response(response.data, response.offset, response.length)
-        }
 }

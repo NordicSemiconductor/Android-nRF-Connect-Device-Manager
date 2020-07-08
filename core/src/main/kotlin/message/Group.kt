@@ -1,4 +1,4 @@
-package com.juul.mcumgr
+package com.juul.mcumgr.message
 
 sealed class Group(val value: Int) {
     object System : Group(0)

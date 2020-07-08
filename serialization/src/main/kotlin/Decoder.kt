@@ -1,70 +1,42 @@
 package com.juul.mcumgr.serialization
 
-import com.fasterxml.jackson.core.type.TypeReference
-import java.io.IOException
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Response
 import okio.Buffer
 import okio.BufferedSource
 
-class DecoderException(
-    message: String,
-    cause: Throwable?,
-    val data: ByteArray,
-    val type: String
-) : Exception(message, cause)
-
-fun <R> ByteArray.decodeStandard(type: Class<R>): Message<R> = try {
-    val buffer = Buffer().write(this)
-    val header = buffer.decodeHeader()
-    val payload = buffer.decodePayload(type)
-    Message(header, payload)
-} catch (e: IOException) {
-    throw DecoderException(e.message ?: "Failed to decode standard message.", e, this, type.name)
+fun <T : Response> ByteArray.decode(format: Format, type: Class<T>): McuMgrResult<T> {
+    val message = decode(format)
+    return message.toResult(type)
 }
 
-fun <R> ByteArray.decodeStandard(reference: TypeReference<R>): Message<R> = try {
+fun ByteArray.decode(format: Format): Message =
+    when (format) {
+        Format.STANDARD -> decodeStandard()
+        Format.COAP -> decodeCoap()
+    }
+
+private fun ByteArray.decodeStandard(): Message {
     val buffer = Buffer().write(this)
     val header = buffer.decodeHeader()
-    val payload = buffer.decodePayload(reference)
-    Message(header, payload)
-} catch (e: IOException) {
-    throw DecoderException(e.message ?: "Failed to decode standard message.", e, this, reference.type.typeName)
+    val payload = buffer.readByteArray().decodePayload()
+    return Message(header, payload)
 }
 
-fun <R> ByteArray.decodeCoap(type: Class<R>): Message<R> = try {
+private fun ByteArray.decodeCoap(): Message {
     // Parse the header out of the CBOR map and decode it
     val rawHeader = cbor.readTree(this).get("_h").binaryValue()
     val headerBuffer = Buffer().write(rawHeader)
     val header = headerBuffer.decodeHeader()
-    // Decode the whole payload as the message type
-    val buffer = Buffer().write(this)
-    val payload = buffer.decodePayload(type)
-    Message(header, payload)
-} catch (e: IOException) {
-    throw DecoderException(e.message ?: "Failed to decode coap message.", e, this, type.canonicalName)
+    val payload = decodePayload()
+    return Message(header, payload)
 }
 
-fun <R> ByteArray.decodeCoap(reference: TypeReference<R>): Message<R> = try {
-    // Parse the header out of the CBOR map and decode it
-    val rawHeader = cbor.readTree(this).get("_h").binaryValue()
-    val headerBuffer = Buffer().write(rawHeader)
-    val header = headerBuffer.decodeHeader()
-    // Decode the whole payload as the message type
-    val buffer = Buffer().write(this)
-    val payload = buffer.decodePayload(reference)
-    Message(header, payload)
-} catch (e: IOException) {
-    throw DecoderException(e.message ?: "Failed to decode coap message.", e, this, reference.type.typeName)
-}
+private fun ByteArray.decodePayload(): ObjectNode = cbor.readTree(this) as ObjectNode
 
-// Helpers
-
-fun <T> BufferedSource.decodePayload(type: Class<T>) =
-    cbor.readValue<T>(inputStream(), type)
-
-fun <T> BufferedSource.decodePayload(reference: TypeReference<T>) =
-    cbor.readValue<T>(inputStream(), reference)
-
-fun BufferedSource.decodeHeader(): Header {
+private fun BufferedSource.decodeHeader(): Header {
     val operation = readByte().toUnsignedInteger()
     val flags = readByte()
     val length = readShort().toUnsignedInteger()
@@ -73,6 +45,8 @@ fun BufferedSource.decodeHeader(): Header {
     val command = readByte().toUnsignedInteger()
     return Header(operation, group, command, length, sequenceNumber, flags)
 }
+
+// Helpers
 
 private fun Byte.toUnsignedInteger(): Int = toInt() and 0xff
 

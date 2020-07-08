@@ -1,9 +1,28 @@
 package com.juul.mcumgr.serialization
 
-data class Message<T>(
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.message.Response
+import java.io.IOException
+
+data class Message(
     val header: Header,
-    val payload: T
+    val payload: ObjectNode
 )
+
+fun <T> Message.toResult(type: Class<T>): McuMgrResult<T> {
+    return try {
+        val response = cbor.treeToValue(payload, type)
+        McuMgrResult.Success(response)
+    } catch (e: IOException) {
+        // Failed to parse full response. Try to get code.
+        val rawCode = payload["rc"].asInt(-1)
+        when (val code = Response.Code.create(rawCode)) {
+            Response.Code.Ok, null -> McuMgrResult.Failure(e)
+            else -> McuMgrResult.Error(code)
+        }
+    }
+}
 
 data class Header(
     val operation: Int,
