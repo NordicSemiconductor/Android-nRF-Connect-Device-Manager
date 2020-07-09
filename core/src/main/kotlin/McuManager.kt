@@ -22,21 +22,36 @@ class McuManager(val transport: Transport) {
     suspend fun echo(echo: String): McuMgrResult<EchoResponse> =
         send(EchoRequest(echo))
 
+    fun echo(echo: String, callback: McuMgrCallback<EchoResponse>) =
+        send(EchoRequest(echo), callback)
+
     // Image
 
     suspend fun imageUpload(data: ByteArray, offset: Int, length: Int): McuMgrResult<ImageUploadResponse> =
         send(ImageUploadRequest(data, offset, length))
 
+    fun imageUpload(data: ByteArray, offset: Int, length: Int, callback: McuMgrCallback<ImageUploadResponse>) =
+        send(ImageUploadRequest(data, offset, length), callback)
+
     suspend fun coreDownload(offset: Int): McuMgrResult<CoreDownloadResponse> =
         send(CoreDownloadRequest(offset))
+
+    fun coreDownload(offset: Int, callback: McuMgrCallback<CoreDownloadResponse>) =
+        send(CoreDownloadRequest(offset), callback)
 
     // Files
 
     suspend fun fileUpload(data: ByteArray, offset: Int, length: Int): McuMgrResult<FileUploadResponse> =
         send(ImageUploadRequest(data, offset, length))
 
+    fun fileUpload(data: ByteArray, offset: Int, length: Int, callback: McuMgrCallback<FileUploadResponse>) =
+        send(ImageUploadRequest(data, offset, length), callback)
+
     suspend fun fileDownload(offset: Int): McuMgrResult<FileDownloadResponse> =
         send(FileDownloadRequest(offset))
+
+    fun fileDownload(offset: Int, callback: McuMgrCallback<FileDownloadResponse>) =
+        send(FileDownloadRequest(offset), callback)
 
     // Send
 
