@@ -11,6 +11,9 @@ import com.juul.mcumgr.message.ImageUploadRequest
 import com.juul.mcumgr.message.ImageUploadResponse
 import com.juul.mcumgr.message.Request
 import com.juul.mcumgr.message.Response
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class McuManager(val transport: Transport) {
 
@@ -35,9 +38,21 @@ class McuManager(val transport: Transport) {
     suspend fun fileDownload(offset: Int): McuMgrResult<FileDownloadResponse> =
         send(FileDownloadRequest(offset))
 
+    // Send
+
     suspend inline fun <reified T : Response> send(request: Request): McuMgrResult<T> = try {
         transport.send(request, T::class.java)
     } catch (t: Throwable) {
         McuMgrResult.Failure(t)
+    }
+
+    inline fun <reified T : Response> send(request: Request, callback: McuMgrCallback<T>) {
+        GlobalScope.launch {
+            when (val result: McuMgrResult<T> = send(request)) {
+               is McuMgrResult.Success -> callback.onSuccess(result.value)
+               is McuMgrResult.Error -> callback.onError(result.code)
+               is McuMgrResult.Failure -> callback.onFailure(result.throwable)
+            }
+        }
     }
 }
