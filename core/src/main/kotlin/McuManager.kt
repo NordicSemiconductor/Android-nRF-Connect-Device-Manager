@@ -12,7 +12,6 @@ import com.juul.mcumgr.message.ImageUploadResponse
 import com.juul.mcumgr.message.Request
 import com.juul.mcumgr.message.Response
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class McuManager(val transport: Transport) {
