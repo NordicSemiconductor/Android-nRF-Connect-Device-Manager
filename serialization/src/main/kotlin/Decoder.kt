@@ -14,18 +14,18 @@ fun <T : Response> ByteArray.decode(format: Format, type: Class<T>): McuMgrResul
 
 fun ByteArray.decode(format: Format): Message =
     when (format) {
-        Format.STANDARD -> decodeStandard()
-        Format.COAP -> decodeCoap()
+        Format.SMP -> decodeSmp()
+        Format.OMP -> decodeOmp()
     }
 
-private fun ByteArray.decodeStandard(): Message {
+private fun ByteArray.decodeSmp(): Message {
     val buffer = Buffer().write(this)
     val header = buffer.decodeHeader()
     val payload = buffer.readByteArray().decodePayload()
     return Message(header, payload)
 }
 
-private fun ByteArray.decodeCoap(): Message {
+private fun ByteArray.decodeOmp(): Message {
     // Parse the header out of the CBOR map and decode it
     val rawHeader = cbor.readTree(this).get("_h").binaryValue()
     val headerBuffer = Buffer().write(rawHeader)

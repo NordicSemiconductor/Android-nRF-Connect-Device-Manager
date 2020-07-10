@@ -11,13 +11,14 @@ data class Message(
 )
 
 fun <T> Message.toResult(type: Class<T>): McuMgrResult<T> {
+    val rawCode = payload["rc"].asInt(-1)
+    val code = Response.Code.valueOf(rawCode)
     return try {
         val response = cbor.treeToValue(payload, type)
         McuMgrResult.Success(response)
     } catch (e: IOException) {
         // Failed to parse full response. Try to get code.
-        val rawCode = payload["rc"].asInt(-1)
-        when (val code = Response.Code.create(rawCode)) {
+        when (code) {
             Response.Code.Ok, null -> McuMgrResult.Failure(e)
             else -> McuMgrResult.Error(code)
         }

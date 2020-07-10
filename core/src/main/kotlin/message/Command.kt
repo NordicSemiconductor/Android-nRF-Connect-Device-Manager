@@ -43,17 +43,11 @@ sealed class Command(val value: Int) {
         object Crash : Command(0)
     }
 
-    sealed class Split {
-        // TODO No manager implementation, check w/ chris
-    }
-
     sealed class Run {
-        // TODO No manager implementation, check w/ chris
+        // TODO Look at source
     }
 
     sealed class Files {
         object File : Command(0)
     }
-
-    class Unknown(value: Int) : Command(value)
 }

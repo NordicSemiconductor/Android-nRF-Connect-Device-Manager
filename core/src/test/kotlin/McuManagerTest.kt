@@ -57,8 +57,8 @@ class McuManagerTest(
         @Parameterized.Parameters(name = "{index}: format={0}")
         fun data(): Iterable<Format> {
             return listOf(
-                Format.STANDARD,
-                Format.COAP
+                Format.SMP,
+                Format.OMP
             )
         }
     }

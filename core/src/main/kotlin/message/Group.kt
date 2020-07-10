@@ -7,7 +7,6 @@ sealed class Group(val value: Int) {
     object Config : Group(3)
     object Logs : Group(4)
     object Crash : Group(5)
-    object Split : Group(6) // TODO No implementation, ask chris
-    object Run : Group(7) // TODO No implementation, ask chris
+    object Run : Group(7)
     object Files : Group(8)
 }

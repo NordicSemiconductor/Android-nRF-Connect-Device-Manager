@@ -1,11 +1,5 @@
 package com.juul.mcumgr.message
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonValue
-
-@JsonIgnoreProperties("group", "command", "operation")
 sealed class Request {
     abstract val group: Group
     abstract val command: Command
@@ -14,9 +8,7 @@ sealed class Request {
 
 sealed class Response {
 
-    @JsonProperty("rc") val code: Code = Code.Ok
-
-    sealed class Code(@JsonValue val value: Int) {
+    sealed class Code(val value: Int) {
 
         object Ok : Code(0)
         object Unknown : Code(1)
@@ -28,11 +20,9 @@ sealed class Response {
         object TooLarge : Code(7)
         object NotSupported : Code(8)
 
-        // Primarily used by jackson to decode raw "rc" Int values into a [Code]
         companion object {
             @JvmStatic
-            @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-            fun create(value: Int): Code? = when (value) {
+            fun valueOf(value: Int): Code? = when (value) {
                 0 -> Ok
                 1 -> Unknown
                 2 -> NoMemory
@@ -49,15 +39,12 @@ sealed class Response {
         val isSuccess: Boolean get() = this is Ok
         val isError: Boolean get() = !isSuccess
     }
-
-    val isSuccess: Boolean = code.isSuccess
-    val isError: Boolean = code.isError
 }
 
 // System
 
 data class EchoRequest(
-    @JsonProperty("d") val echo: String
+    val echo: String
 ) : Request() {
     override val operation: Operation = Operation.Write
     override val group: Group = Group.System
@@ -65,16 +52,16 @@ data class EchoRequest(
 }
 
 data class EchoResponse(
-    @JsonProperty("r") val echo: String
+    val echo: String
 ) : Response()
 
 // Image
 
 data class ImageUploadRequest(
-    @JsonProperty("data") val data: ByteArray,
-    @JsonProperty("off") val offset: Int,
-    @JsonProperty("len") val size: Int? = null,
-    @JsonProperty("sha") val hash: ByteArray? = null
+    val data: ByteArray,
+    val offset: Int,
+    val size: Int? = null,
+    val hash: ByteArray? = null
 ) : Request() {
     override val operation: Operation = Operation.Write
     override val group: Group = Group.Image
@@ -82,11 +69,11 @@ data class ImageUploadRequest(
 }
 
 data class ImageUploadResponse(
-    @JsonProperty("off") val offset: Int
+    val offset: Int
 ) : Response()
 
 data class CoreDownloadRequest(
-    @JsonProperty("off") val offset: Int
+    val offset: Int
 ) : Request() {
     override val operation: Operation = Operation.Read
     override val group: Group = Group.Image
@@ -94,17 +81,17 @@ data class CoreDownloadRequest(
 }
 
 data class CoreDownloadResponse(
-    @JsonProperty("data") val data: ByteArray,
-    @JsonProperty("off") val offset: Int,
-    @JsonProperty("len") val length: Int? = null
+    val data: ByteArray,
+    val offset: Int,
+    val length: Int? = null
 ) : Response()
 
 // Files
 
 data class FileUploadRequest(
-    @JsonProperty("data") val data: ByteArray,
-    @JsonProperty("off") val offset: Int,
-    @JsonProperty("len") val length: Int? = null
+    val data: ByteArray,
+    val offset: Int,
+    val length: Int? = null
 ) : Request() {
     override val operation: Operation = Operation.Write
     override val group: Group = Group.Files
@@ -112,11 +99,11 @@ data class FileUploadRequest(
 }
 
 data class FileUploadResponse(
-    @JsonProperty("off") val offset: Int
+    val offset: Int
 ) : Response()
 
 data class FileDownloadRequest(
-    @JsonProperty("off") val offset: Int
+    val offset: Int
 ) : Request() {
     override val operation: Operation = Operation.Read
     override val group: Group = Group.Files
@@ -124,9 +111,9 @@ data class FileDownloadRequest(
 }
 
 data class FileDownloadResponse(
-    @JsonProperty("data") val data: ByteArray,
-    @JsonProperty("off") val offset: Int,
-    @JsonProperty("len") val length: Int? = null
+    val data: ByteArray,
+    val offset: Int,
+    val length: Int? = null
 ) : Response()
 
 // TODO the rest of the request/responses

@@ -7,7 +7,10 @@ import com.juul.mcumgr.message.Response
 
 sealed class McuMgrResult<out T> {
 
-    data class Success<T>(val value: T) : McuMgrResult<T>()
+    data class Success<T>(
+        val value: T,
+        val code: Response.Code = Response.Code.Ok
+    ) : McuMgrResult<T>()
 
     data class Error<T>(val code: Response.Code) : McuMgrResult<T>()
 
@@ -28,8 +31,6 @@ sealed class McuMgrResult<out T> {
             else -> null
         }
 }
-
-// On Blocks
 
 inline fun <T> McuMgrResult<T>.onSuccess(action: (response: T) -> Unit): McuMgrResult<T> {
     when (this) {
@@ -60,8 +61,6 @@ inline fun McuMgrResult<*>.onErrorOrFailure(action: (throwable: Throwable) -> Un
     return this
 }
 
-// Get Or
-
 inline fun <T> McuMgrResult<T>.getOrThrow(): T {
     return when (this) {
         is Success -> value
@@ -78,8 +77,6 @@ inline fun <T> McuMgrResult<T>.getOrElse(action: (exception: Throwable) -> T): T
     }
 }
 
-// Transformations
-
 inline fun <R, T> McuMgrResult<T>.map(transform: (value: T) -> R): McuMgrResult<R> {
     return when (this) {
         is Success -> Success(transform(value))
@@ -88,8 +85,6 @@ inline fun <R, T> McuMgrResult<T>.map(transform: (value: T) -> R): McuMgrResult<
     }
 }
 
-// Exception
-
 class ErrorCodeException(
     val code: Response.Code
-) : Exception("Request resulted in error response $code")
+) : IllegalStateException("Request resulted in error response $code")

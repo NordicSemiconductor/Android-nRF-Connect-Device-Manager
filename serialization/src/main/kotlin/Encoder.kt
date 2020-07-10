@@ -22,11 +22,11 @@ fun Request.encode(format: Format, sequenceNumber: Int = 0): ByteArray {
 
 fun Message.encode(format: Format): ByteArray =
     when (format) {
-        Format.STANDARD -> encodeStandard()
-        Format.COAP -> encodeCoap()
+        Format.SMP -> encodeSmp()
+        Format.OMP -> encodeOmp()
     }
 
-private fun Message.encodeStandard(): ByteArray =
+private fun Message.encodeSmp(): ByteArray =
     Buffer().apply {
         // Set the header's length to the size of the payload.
         val payloadBytes = encodePayload()
@@ -35,7 +35,7 @@ private fun Message.encodeStandard(): ByteArray =
         write(payloadBytes)
     }.readByteArray()
 
-private fun Message.encodeCoap(): ByteArray {
+private fun Message.encodeOmp(): ByteArray {
     val payloadBytes = encodePayload()
     val lengthSetHeader = header.copy(length = payloadBytes.size)
     val headerBytes = Buffer().apply {
