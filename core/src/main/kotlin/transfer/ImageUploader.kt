@@ -3,19 +3,38 @@ package com.juul.mcumgr.transfer
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.map
-import com.juul.mcumgr.message.Format
+import okio.ByteString.Companion.toByteString
 
-class ImageUploader(val manager: McuManager) : Uploader {
+private const val OVERHEAD = 0
 
-    override val mtu: Int = manager.transport.mtu
-    override val format: Format = manager.transport.format
+class ImageUploader(
+    data: ByteArray,
+    val manager: McuManager,
+    windowCapacity: Int = 1
+) : Uploader(
+    data,
+    windowCapacity,
+    manager.transport.mtu,
+    manager.transport.format,
+    OVERHEAD
+) {
+
+    private val truncatedHash =
+        data.toByteString().sha256().toByteArray().copyOfRange(0, TRUNCATED_HASH_LEN)
 
     override suspend fun write(
         data: ByteArray,
         offset: Int,
-        length: Int
-    ): McuMgrResult<Uploader.Response> =
-        manager.imageUpload(data, offset, length).map { response ->
-            Uploader.Response(response.offset)
+        length: Int?
+    ): McuMgrResult<Response> {
+        // Send the truncated hash
+        val hash = if (offset == 0) {
+            truncatedHash
+        } else {
+            null
         }
+        return manager.imageWrite(data, offset, length, hash).map { response ->
+            Response(response.offset)
+        }
+    }
 }

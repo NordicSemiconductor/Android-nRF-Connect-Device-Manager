@@ -1,4 +1,4 @@
-package com.juul.mcumgr.mock.server
+package mock.server
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.node.ObjectNode

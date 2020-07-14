@@ -3,19 +3,26 @@ package com.juul.mcumgr.transfer
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.map
-import com.juul.mcumgr.message.Format
 
-class FileUploader(val manager: McuManager) : Uploader {
-
-    override val mtu: Int = manager.transport.mtu
-    override val format: Format = manager.transport.format
+class FileUploader(
+    data: ByteArray,
+    private val fileName: String,
+    private val manager: McuManager,
+    windowCapacity: Int = 1
+) : Uploader(
+    data,
+    windowCapacity,
+    manager.transport.mtu,
+    manager.transport.format,
+    cborStringLength("name") + cborStringLength(fileName)
+) {
 
     override suspend fun write(
         data: ByteArray,
         offset: Int,
-        length: Int
-    ): McuMgrResult<Uploader.Response> =
-        manager.fileUpload(data, offset, length).map { response ->
-            Uploader.Response(response.offset)
+        length: Int?
+    ): McuMgrResult<Response> =
+        manager.fileWrite(fileName, data, offset, length).map { response ->
+            Response(response.offset)
         }
 }

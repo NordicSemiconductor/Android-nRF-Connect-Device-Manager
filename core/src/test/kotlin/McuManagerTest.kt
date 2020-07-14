@@ -1,25 +1,20 @@
-package com.juul.mcumgr
-
+import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult.Error
 import com.juul.mcumgr.McuMgrResult.Failure
 import com.juul.mcumgr.McuMgrResult.Success
+import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.message.Format
 import com.juul.mcumgr.message.Response
-import com.juul.mcumgr.mock.MockTransport
-import com.juul.mcumgr.mock.server.EchoHandler
-import com.juul.mcumgr.mock.server.Server
-import com.juul.mcumgr.mock.server.toErrorResponseHandler
-import com.juul.mcumgr.mock.server.toThrowHandler
+import mock.MockTransport
+import mock.server.EchoHandler
+import mock.server.Server
+import mock.server.toErrorResponseHandler
+import mock.server.toThrowHandler
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(value = Parameterized::class)
-class McuManagerTest(
-    private val format: Format
-) {
+class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
 
     private val mtu = 512
     private val server = Server(mtu, format)
@@ -50,16 +45,5 @@ class McuManagerTest(
         val echo = "Hello McuManager!"
         val response = mcuManager.echo(echo).getOrThrow()
         assertEquals(echo, response.echo)
-    }
-
-    companion object {
-        @JvmStatic
-        @Parameterized.Parameters(name = "{index}: format={0}")
-        fun data(): Iterable<Format> {
-            return listOf(
-                Format.SMP,
-                Format.OMP
-            )
-        }
     }
 }

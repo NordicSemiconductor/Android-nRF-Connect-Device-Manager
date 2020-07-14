@@ -1,9 +1,11 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.juul.mcumgr.ErrorCodeException
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.message.Response
 import java.io.IOException
+import java.lang.IllegalStateException
 
 data class Message(
     val header: Header,
@@ -12,14 +14,14 @@ data class Message(
 
 fun <T> Message.toResult(type: Class<T>): McuMgrResult<T> {
     val rawCode = payload["rc"].asInt(-1)
-    val code = Response.Code.valueOf(rawCode)
+    val code = Response.Code.valueOf(rawCode) ?: Response.Code.Ok
     return try {
         val response = cbor.treeToValue(payload, type)
-        McuMgrResult.Success(response)
+        McuMgrResult.Success(response, code)
     } catch (e: IOException) {
         // Failed to parse full response. Try to get code.
         when (code) {
-            Response.Code.Ok, null -> McuMgrResult.Failure(e)
+            Response.Code.Ok -> McuMgrResult.Failure(e)
             else -> McuMgrResult.Error(code)
         }
     }

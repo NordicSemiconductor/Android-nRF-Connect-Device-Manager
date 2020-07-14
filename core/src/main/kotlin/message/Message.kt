@@ -57,7 +57,7 @@ data class EchoResponse(
 
 // Image
 
-data class ImageUploadRequest(
+data class ImageWriteRequest(
     val data: ByteArray,
     val offset: Int,
     val size: Int? = null,
@@ -68,11 +68,11 @@ data class ImageUploadRequest(
     override val command: Command = Command.Image.Upload
 }
 
-data class ImageUploadResponse(
+data class ImageWriteResponse(
     val offset: Int
 ) : Response()
 
-data class CoreDownloadRequest(
+data class CoreReadRequest(
     val offset: Int
 ) : Request() {
     override val operation: Operation = Operation.Read
@@ -80,7 +80,7 @@ data class CoreDownloadRequest(
     override val command: Command = Command.Image.CoreLoad
 }
 
-data class CoreDownloadResponse(
+data class CoreReadResponse(
     val data: ByteArray,
     val offset: Int,
     val length: Int? = null
@@ -88,7 +88,8 @@ data class CoreDownloadResponse(
 
 // Files
 
-data class FileUploadRequest(
+data class FileWriteRequest(
+    val fileName: String,
     val data: ByteArray,
     val offset: Int,
     val length: Int? = null
@@ -98,11 +99,12 @@ data class FileUploadRequest(
     override val command: Command = Command.Files.File
 }
 
-data class FileUploadResponse(
+data class FileWriteResponse(
     val offset: Int
 ) : Response()
 
-data class FileDownloadRequest(
+data class FileReadRequest(
+    val fileName: String,
     val offset: Int
 ) : Request() {
     override val operation: Operation = Operation.Read
@@ -110,7 +112,7 @@ data class FileDownloadRequest(
     override val command: Command = Command.Files.File
 }
 
-data class FileDownloadResponse(
+data class FileReadResponse(
     val data: ByteArray,
     val offset: Int,
     val length: Int? = null

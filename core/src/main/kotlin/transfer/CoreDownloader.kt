@@ -4,10 +4,13 @@ import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.map
 
-class CoreDownloader(val manager: McuManager) : Downloader {
+class CoreDownloader(
+    private val manager: McuManager,
+    windowCapacity: Int = 1
+) : Downloader(windowCapacity) {
 
-    override suspend fun read(offset: Int): McuMgrResult<Downloader.Response> =
-        manager.coreDownload(offset).map { response ->
-            Downloader.Response(response.data, response.offset, response.length)
+    override suspend fun read(offset: Int): McuMgrResult<Response> =
+        manager.coreRead(offset).map { response ->
+            Response(response.data, response.offset, response.length)
         }
 }

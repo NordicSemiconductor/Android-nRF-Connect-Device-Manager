@@ -1,6 +1,9 @@
-package com.juul.mcumgr.mock.server
+package mock.server
 
+import com.juul.mcumgr.message.Command
 import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Group
+import com.juul.mcumgr.message.Operation
 import com.juul.mcumgr.message.Response.Code
 import com.juul.mcumgr.serialization.Message
 import com.juul.mcumgr.serialization.decode
@@ -19,7 +22,7 @@ class Server(
     suspend fun handle(requestData: ByteArray): ByteArray {
 
         if (requestData.size > mtu) {
-            error("request data is larger than mtu $mtu")
+            error("request data size ${requestData.size} is larger than mtu $mtu")
         }
 
         val message = requestData.decode(format)
@@ -38,6 +41,27 @@ class Server(
             message.header.group == handler.group.value &&
                 message.header.command == handler.command.value &&
                 handler.supportedOperations.map { it.value }.contains(message.header.operation)
+        }
+    }
+
+    fun findHandler(
+        operation: Operation,
+        group: Group,
+        command: Command
+    ): Handler? {
+        return overrides.findHandler(operation, group, command)
+            ?: handlers.findHandler(operation, group, command)
+    }
+
+    fun List<Handler>.findHandler(
+        operation: Operation,
+        group: Group,
+        command: Command
+    ): Handler? {
+        return find { handler ->
+            group == handler.group &&
+                command == handler.command &&
+                handler.supportedOperations.contains(operation)
         }
     }
 }
