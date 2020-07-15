@@ -1,16 +1,15 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.ErrorCodeException
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.message.Format
 import com.juul.mcumgr.onErrorOrFailure
 import com.juul.mcumgr.onSuccess
+import java.lang.IllegalArgumentException
+import kotlin.math.min
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.lang.IllegalArgumentException
 import kotlinx.coroutines.launch
-import kotlin.math.min
 
 internal const val TRUNCATED_HASH_LEN = 3
 private const val RETRIES = 5
@@ -80,7 +79,7 @@ abstract class Uploader(
         offset: Int,
         chunkSize: Int
     ): McuMgrResult<Response> {
-        val chunk = data.copyOfRange(offset, offset+chunkSize)
+        val chunk = data.copyOfRange(offset, offset + chunkSize)
         val length = if (offset == 0) {
             data.size
         } else {

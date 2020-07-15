@@ -85,6 +85,34 @@ inline fun <R, T> McuMgrResult<T>.map(transform: (value: T) -> R): McuMgrResult<
     }
 }
 
+/**
+ * Calls the specified function [block] and returns its encapsulated result if invocation was successful,
+ * catching any [Throwable] exception that was thrown from the [block] function execution and encapsulating it as a failure.
+ */
+inline fun <R> catchResult(block: () -> R): McuMgrResult<R> {
+    return try {
+        Success(block())
+    } catch (e: ErrorCodeException) {
+        Error(e.code)
+    } catch (e: Throwable) {
+        Failure(e)
+    }
+}
+
+/**
+ * Calls the specified function [block] with `this` value as its receiver and returns its encapsulated result if invocation was successful,
+ * catching any [Throwable] exception that was thrown from the [block] function execution and encapsulating it as a failure.
+ */
+inline fun <T, R> T.catchResult(block: T.() -> R): McuMgrResult<R> {
+    return try {
+        Success(block())
+    } catch (e: ErrorCodeException) {
+        Error(e.code)
+    } catch (e: Throwable) {
+        Failure(e)
+    }
+}
+
 class ErrorCodeException(
     val code: Response.Code
 ) : IllegalStateException("Request resulted in error response $code")

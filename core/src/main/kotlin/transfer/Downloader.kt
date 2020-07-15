@@ -8,11 +8,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okio.Buffer
 
 private const val RETRIES = 5
 
@@ -39,7 +37,8 @@ abstract class Downloader(windowCapacity: Int) {
         val length = checkNotNull(initialResponse.length) { "length missing from initial response" }
         val expectedSize = initialResponse.data.size
 
-        val buffer = Buffer().write(initialResponse.data)
+        val data = ByteArray(length)
+        initialResponse.data.copyInto(data, 0)
         val bufferMutex = Mutex()
 
         while (offset < length) {
@@ -60,7 +59,7 @@ abstract class Downloader(windowCapacity: Int) {
                 // Assert the data size is as expected and send the event
                 assertDataSize(response.data.size, expectedSize, transmitOffset, length)
                 bufferMutex.withLock {
-                    response.data.copyTo(buffer, transmitOffset)
+                    response.data.copyInto(data, transmitOffset)
                 }
                 _progress.value = Progress(transmitOffset + response.data.size, length)
             }
@@ -69,7 +68,7 @@ abstract class Downloader(windowCapacity: Int) {
             offset += expectedSize
         }
 
-        buffer.readByteArray()
+        data
     }
 }
 
@@ -87,7 +86,7 @@ private suspend fun Downloader.retryRead(
         val result = read(offset)
         when {
             result.isSuccess -> return result
-            result.isFailure -> error = result
+            result.isError || result.isFailure -> error = result
         }
     }
     return checkNotNull(error)
@@ -102,8 +101,4 @@ private fun assertDataSize(actualSize: Int, expectedSize: Int, offset: Int, tota
     if (actualSize != expectedSize && offset + actualSize != totalSize) {
         throw IllegalStateException("data size does not match expected size")
     }
-}
-
-private fun ByteArray.copyTo(buffer: Buffer, offset: Int) {
-    Buffer().write(this).copyTo(buffer, offset.toLong())
 }

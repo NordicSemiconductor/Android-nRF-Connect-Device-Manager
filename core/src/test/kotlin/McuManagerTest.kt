@@ -5,14 +5,17 @@ import com.juul.mcumgr.McuMgrResult.Success
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.message.Format
 import com.juul.mcumgr.message.Response
+import kotlin.random.Random
+import kotlin.test.assertEquals
+import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.EchoHandler
 import mock.server.Server
 import mock.server.toErrorResponseHandler
 import mock.server.toThrowHandler
-import kotlin.test.assertEquals
-import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import utils.ExpectedException
+import utils.assertByteArrayEquals
 
 class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
 
@@ -32,18 +35,70 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
 
     @Test
     fun `failure result expected`() = runBlocking {
-        val expectedException = RuntimeException("This should come back in failure result")
-        server.overrides.add(EchoHandler().toThrowHandler(expectedException))
+        server.overrides.add(EchoHandler().toThrowHandler(ExpectedException))
         when (val result = mcuManager.echo("test")) {
-            is Failure -> assertEquals(expectedException, result.throwable)
+            is Failure -> assertEquals(ExpectedException, result.throwable)
             is Success, is Error -> error("expected failure exception, got $result")
         }
     }
+
+    // System
 
     @Test
     fun `echo success`() = runBlocking {
         val echo = "Hello McuManager!"
         val response = mcuManager.echo(echo).getOrThrow()
         assertEquals(echo, response.echo)
+    }
+
+    // Image
+
+    @Test
+    fun `image write success`() = runBlocking {
+        val imageData = Random.Default.nextBytes(200)
+
+        val firstChunk = imageData.copyOfRange(0, 100)
+        var response = mcuManager.imageWrite(
+            firstChunk,
+            0,
+            200
+        ).getOrThrow()
+        assertEquals(100, response.offset)
+
+        val secondChunk = imageData.copyOfRange(100, imageData.size)
+        response = mcuManager.imageWrite(
+            secondChunk,
+            100
+        ).getOrThrow()
+        assertEquals(200, response.offset)
+        assertByteArrayEquals(imageData, server.getImageUploadData())
+    }
+
+    // Files
+
+    @Test
+    fun `file write success`() = runBlocking {
+        val fileData = Random.Default.nextBytes(200)
+
+        val firstChunk = fileData.copyOfRange(0, 100)
+        var response = mcuManager.fileWrite(
+            "my_file",
+            firstChunk,
+            0,
+            200
+        ).getOrThrow()
+        assertEquals(100, response.offset)
+
+        val secondChunk = fileData.copyOfRange(100, fileData.size)
+        response = mcuManager.fileWrite(
+            "my_file",
+            secondChunk,
+            100
+        ).getOrThrow()
+        assertEquals(200, response.offset)
+        assertByteArrayEquals(
+            fileData,
+            server.getFileUploadData("my_file")
+        )
     }
 }

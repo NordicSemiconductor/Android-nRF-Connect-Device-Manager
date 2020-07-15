@@ -5,12 +5,15 @@ import com.juul.mcumgr.message.Group
 import com.juul.mcumgr.message.Operation
 import com.juul.mcumgr.message.Response
 import com.juul.mcumgr.serialization.Message
-import okio.Buffer
+import kotlin.math.min
 
 val readOnly = setOf(Operation.Read)
 val writeOnly = setOf(Operation.Write)
 val readWrite = setOf(Operation.Read, Operation.Write)
 
+/**
+ * Handles a request with a specific group, command, and operation.
+ */
 interface Handler {
 
     val group: Group
@@ -23,7 +26,9 @@ interface Handler {
 val defaultHandlers = listOf<Handler>(
     EchoHandler(),
     ImageWriteHandler(),
-    FileWriteHandler()
+    CoreReadHandler(),
+    FileWriteHandler(),
+    FileReadHandler()
 )
 
 /*
@@ -100,13 +105,39 @@ class ImageWriteHandler : Handler {
         synchronized(this) {
             if (off == 0) {
                 val len: Int = payload.getNotNull("len")
-                val sha: ByteArray = payload.getNotNull("sha")
+                val sha: ByteArray? = payload.getOrNull("sha")
                 imageData = ByteArray(len)
             }
             data.copyInto(imageData, off)
         }
 
         val responsePayload = mapOf("off" to off + data.size)
+        return message.toResponse(payload = responsePayload)
+    }
+}
+
+class CoreReadHandler : Handler {
+
+    override val group = Group.Image
+    override val command = Command.Image.CoreLoad
+    override val supportedOperations = readOnly
+
+    var chunkSize: Int = 512
+    var coreData: ByteArray? = null
+
+    override fun handle(message: Message): Message {
+        val core = coreData ?: return message.toResponse(Response.Code.NoEntry)
+        val payload = message.payloadMap
+        val off: Int = payload.getNotNull("off")
+
+        val size = min(chunkSize, core.size - off)
+        val responsePayload = mutableMapOf(
+            "off" to off,
+            "data" to core.copyOfRange(off, off + size)
+        )
+        if (off == 0) {
+            responsePayload["len"] = core.size
+        }
         return message.toResponse(payload = responsePayload)
     }
 }
@@ -121,7 +152,7 @@ class FileWriteHandler : Handler {
     override val command = Command.Files.File
     override val supportedOperations = writeOnly
 
-    var fileData = ByteArray(0)
+    val files: MutableMap<String, ByteArray> = mutableMapOf()
 
     override fun handle(message: Message): Message {
         val payload = message.payloadMap
@@ -131,9 +162,10 @@ class FileWriteHandler : Handler {
         synchronized(this) {
             if (off == 0) {
                 val len: Int = payload.getNotNull("len")
-                fileData = ByteArray(len)
+                files[fileName] = ByteArray(len)
             }
-            data.copyInto(fileData, off)
+            val file = files[fileName] ?: return message.toResponse(Response.Code.NoEntry)
+            data.copyInto(file, off)
         }
 
         val responsePayload = mapOf("off" to off + data.size)
@@ -141,6 +173,32 @@ class FileWriteHandler : Handler {
     }
 }
 
+class FileReadHandler : Handler {
+
+    override val group = Group.Files
+    override val command = Command.Files.File
+    override val supportedOperations = readOnly
+
+    var chunkSize: Int = 512
+    val files: MutableMap<String, ByteArray> = mutableMapOf()
+
+    override fun handle(message: Message): Message {
+        val payload = message.payloadMap
+        val off: Int = payload.getNotNull("off")
+        val fileName: String = payload.getNotNull("name")
+        val file = files[fileName] ?: return message.toResponse(Response.Code.NoEntry)
+
+        val size = min(chunkSize, file.size - off)
+        val responsePayload = mutableMapOf(
+            "off" to off,
+            "data" to file.copyOfRange(off, off + size)
+        )
+        if (off == 0) {
+            responsePayload["len"] = file.size
+        }
+        return message.toResponse(payload = responsePayload)
+    }
+}
 
 /*
  * Utilities
@@ -151,10 +209,7 @@ inline fun <reified T> Map<String, Any>.getNotNull(key: String): T {
     return field as T
 }
 
-inline fun <reified T> Map<String, Any>.getOrNull(key: String): T {
-    return get(key) as T
-}
-
-private fun ByteArray.copyTo(buffer: Buffer, offset: Int) {
-    Buffer().write(this).copyTo(buffer, offset.toLong())
+inline fun <reified T> Map<String, Any>.getOrNull(key: String): T? {
+    val field = get(key) ?: return null
+    return field as T
 }

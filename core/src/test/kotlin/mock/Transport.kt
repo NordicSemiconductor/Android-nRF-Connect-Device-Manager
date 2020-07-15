@@ -5,9 +5,9 @@ import com.juul.mcumgr.Transport
 import com.juul.mcumgr.message.Format
 import com.juul.mcumgr.message.Request
 import com.juul.mcumgr.message.Response
-import mock.server.Server
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
+import mock.server.Server
 
 class MockTransport(
     override val mtu: Int,

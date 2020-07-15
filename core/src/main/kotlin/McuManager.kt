@@ -31,28 +31,11 @@ class McuManager(val transport: Transport) {
 
     // Image
 
-    suspend fun uploadImage(
-        data: ByteArray,
-        windowCapacity: Int = 1,
-        progressHandler: ((Uploader.Progress) -> Unit)? = null
-    ) {
-        val uploader = ImageUploader(data, this, windowCapacity)
-        upload(uploader, progressHandler)
-    }
-
-    suspend fun downloadCore(
-        windowCapacity: Int = 1,
-        progressHandler: ((Downloader.Progress) -> Unit)? = null
-    ): ByteArray {
-        val downloader = CoreDownloader(this, windowCapacity)
-        return download(downloader, progressHandler)
-    }
-
     suspend fun imageWrite(
         data: ByteArray,
         offset: Int,
-        length: Int?,
-        hash: ByteArray?
+        length: Int? = null,
+        hash: ByteArray? = null
     ): McuMgrResult<ImageWriteResponse> =
         send(ImageWriteRequest(data, offset, length, hash))
 
@@ -61,30 +44,11 @@ class McuManager(val transport: Transport) {
 
     // Files
 
-    suspend fun uploadFile(
-        data: ByteArray,
-        fileName: String,
-        windowCapacity: Int = 1,
-        progressHandler: ((Uploader.Progress) -> Unit)? = null
-    ) {
-        val uploader = FileUploader(data, fileName, this, windowCapacity)
-        upload(uploader, progressHandler)
-    }
-
-    suspend fun downloadFile(
-        fileName: String,
-        windowCapacity: Int = 1,
-        progressHandler: ((Downloader.Progress) -> Unit)? = null
-    ): ByteArray {
-        val downloader = FileDownloader(fileName, this, windowCapacity)
-        return download(downloader, progressHandler)
-    }
-
     suspend fun fileWrite(
         fileName: String,
         data: ByteArray,
         offset: Int,
-        length: Int?
+        length: Int? = null
     ): McuMgrResult<FileWriteResponse> {
         return send(FileWriteRequest(fileName, data, offset, length))
     }
@@ -92,16 +56,32 @@ class McuManager(val transport: Transport) {
     suspend fun fileRead(fileName: String, offset: Int): McuMgrResult<FileReadResponse> =
         send(FileReadRequest(fileName, offset))
 
-    // Send
+    // Upload
 
-    suspend inline fun <reified T : Response> send(request: Request): McuMgrResult<T> = try {
-        transport.send(request, T::class.java)
-    } catch (t: Throwable) {
-        McuMgrResult.Failure(t)
+    suspend fun uploadImage(
+        data: ByteArray,
+        windowCapacity: Int = 1,
+        progressHandler: ((Uploader.Progress) -> Unit)? = null
+    ): McuMgrResult<Unit> {
+        val uploader = ImageUploader(data, this, windowCapacity)
+        return catchResult {
+            upload(uploader, progressHandler)
+        }
     }
 
-    // Transfer
+    suspend fun uploadFile(
+        data: ByteArray,
+        fileName: String,
+        windowCapacity: Int = 1,
+        progressHandler: ((Uploader.Progress) -> Unit)? = null
+    ): McuMgrResult<Unit> {
+        val uploader = FileUploader(data, fileName, this, windowCapacity)
+        return catchResult {
+            upload(uploader, progressHandler)
+        }
+    }
 
+    @Throws
     private suspend fun upload(
         uploader: Uploader,
         progressHandler: ((Uploader.Progress) -> Unit)? = null
@@ -115,6 +95,30 @@ class McuManager(val transport: Transport) {
         }
     }
 
+    // Download
+
+    suspend fun downloadCore(
+        windowCapacity: Int = 1,
+        progressHandler: ((Downloader.Progress) -> Unit)? = null
+    ): McuMgrResult<ByteArray> {
+        val downloader = CoreDownloader(this, windowCapacity)
+        return catchResult {
+            download(downloader, progressHandler)
+        }
+    }
+
+    suspend fun downloadFile(
+        fileName: String,
+        windowCapacity: Int = 1,
+        progressHandler: ((Downloader.Progress) -> Unit)? = null
+    ): McuMgrResult<ByteArray> {
+        val downloader = FileDownloader(fileName, this, windowCapacity)
+        return catchResult {
+            download(downloader, progressHandler)
+        }
+    }
+
+    @Throws
     private suspend fun download(
         downloader: Downloader,
         progressHandler: ((Downloader.Progress) -> Unit)? = null
@@ -128,6 +132,12 @@ class McuManager(val transport: Transport) {
             data
         }
     }
+
+    // Send
+
+    suspend inline fun <reified T : Response> send(request: Request): McuMgrResult<T> = try {
+        transport.send(request, T::class.java)
+    } catch (t: Throwable) {
+        McuMgrResult.Failure(t)
+    }
 }
-
-

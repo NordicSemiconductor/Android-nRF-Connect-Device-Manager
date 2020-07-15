@@ -1,11 +1,9 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.ErrorCodeException
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.message.Response
 import java.io.IOException
-import java.lang.IllegalStateException
 
 data class Message(
     val header: Header,
