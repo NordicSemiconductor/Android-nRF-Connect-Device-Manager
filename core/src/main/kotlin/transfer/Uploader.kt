@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 internal const val TRUNCATED_HASH_LEN = 3
 private const val RETRIES = 5
 
+data class UploadProgress(val offset: Int, val size: Int)
+
 abstract class Uploader(
     private val data: ByteArray,
     windowCapacity: Int,
@@ -23,13 +25,12 @@ abstract class Uploader(
 ) {
 
     private val window = WindowSemaphore(windowCapacity)
-    private val _progress: MutableStateFlow<Progress> =
-        MutableStateFlow(Progress(0, data.size))
+    private val _progress: MutableStateFlow<UploadProgress> =
+        MutableStateFlow(UploadProgress(0, data.size))
 
-    val progress: Flow<Progress> = _progress
+    val progress: Flow<UploadProgress> = _progress
 
     data class Response(val offset: Int)
-    data class Progress(val offset: Int, val size: Int)
 
     abstract suspend fun write(
         data: ByteArray,
@@ -54,7 +55,7 @@ abstract class Uploader(
                     .onSuccess {
                         window.success()
                         val current = transmitOffset + chunkSize
-                        _progress.value = Progress(current, data.size)
+                        _progress.value = UploadProgress(current, data.size)
                     }
                     .onErrorOrFailure {
                         window.fail()

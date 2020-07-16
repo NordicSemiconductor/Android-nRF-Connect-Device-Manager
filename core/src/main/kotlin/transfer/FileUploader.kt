@@ -4,7 +4,7 @@ import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.map
 
-class FileUploader(
+internal class FileUploader(
     data: ByteArray,
     private val fileName: String,
     private val manager: McuManager,

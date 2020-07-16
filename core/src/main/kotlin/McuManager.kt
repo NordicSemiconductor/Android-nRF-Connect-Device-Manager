@@ -13,10 +13,12 @@ import com.juul.mcumgr.message.ImageWriteResponse
 import com.juul.mcumgr.message.Request
 import com.juul.mcumgr.message.Response
 import com.juul.mcumgr.transfer.CoreDownloader
+import com.juul.mcumgr.transfer.DownloadProgress
 import com.juul.mcumgr.transfer.Downloader
 import com.juul.mcumgr.transfer.FileDownloader
 import com.juul.mcumgr.transfer.FileUploader
 import com.juul.mcumgr.transfer.ImageUploader
+import com.juul.mcumgr.transfer.UploadProgress
 import com.juul.mcumgr.transfer.Uploader
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.launchIn
@@ -61,7 +63,7 @@ class McuManager(val transport: Transport) {
     suspend fun uploadImage(
         data: ByteArray,
         windowCapacity: Int = 1,
-        progressHandler: ((Uploader.Progress) -> Unit)? = null
+        progressHandler: ((UploadProgress) -> Unit)? = null
     ): McuMgrResult<Unit> {
         val uploader = ImageUploader(data, this, windowCapacity)
         return catchResult {
@@ -73,7 +75,7 @@ class McuManager(val transport: Transport) {
         data: ByteArray,
         fileName: String,
         windowCapacity: Int = 1,
-        progressHandler: ((Uploader.Progress) -> Unit)? = null
+        progressHandler: ((UploadProgress) -> Unit)? = null
     ): McuMgrResult<Unit> {
         val uploader = FileUploader(data, fileName, this, windowCapacity)
         return catchResult {
@@ -82,24 +84,23 @@ class McuManager(val transport: Transport) {
     }
 
     @Throws
-    private suspend fun upload(
+    suspend fun upload(
         uploader: Uploader,
-        progressHandler: ((Uploader.Progress) -> Unit)? = null
-    ) {
-        coroutineScope {
-            val job = uploader.progress.onEach { progress ->
-                progressHandler?.invoke(progress)
-            }.launchIn(this)
-            uploader.upload()
-            job.cancel()
-        }
+        progressHandler: ((UploadProgress) -> Unit)? = null
+    ) = coroutineScope {
+        val job = uploader.progress.onEach { progress ->
+            progressHandler?.invoke(progress)
+        }.launchIn(this)
+        uploader.upload()
+        job.cancel()
     }
+
 
     // Download
 
     suspend fun downloadCore(
         windowCapacity: Int = 1,
-        progressHandler: ((Downloader.Progress) -> Unit)? = null
+        progressHandler: ((DownloadProgress) -> Unit)? = null
     ): McuMgrResult<ByteArray> {
         val downloader = CoreDownloader(this, windowCapacity)
         return catchResult {
@@ -110,7 +111,7 @@ class McuManager(val transport: Transport) {
     suspend fun downloadFile(
         fileName: String,
         windowCapacity: Int = 1,
-        progressHandler: ((Downloader.Progress) -> Unit)? = null
+        progressHandler: ((DownloadProgress) -> Unit)? = null
     ): McuMgrResult<ByteArray> {
         val downloader = FileDownloader(fileName, this, windowCapacity)
         return catchResult {
@@ -119,18 +120,16 @@ class McuManager(val transport: Transport) {
     }
 
     @Throws
-    private suspend fun download(
+    suspend fun download(
         downloader: Downloader,
-        progressHandler: ((Downloader.Progress) -> Unit)? = null
-    ): ByteArray {
-        return coroutineScope {
-            val job = downloader.progress.onEach { progress ->
-                progressHandler?.invoke(progress)
-            }.launchIn(this)
-            val data = downloader.download()
-            job.cancel()
-            data
-        }
+        progressHandler: ((DownloadProgress) -> Unit)? = null
+    ): ByteArray = coroutineScope {
+        val job = downloader.progress.onEach { progress ->
+            progressHandler?.invoke(progress)
+        }.launchIn(this)
+        val data = downloader.download()
+        job.cancel()
+        data
     }
 
     // Send

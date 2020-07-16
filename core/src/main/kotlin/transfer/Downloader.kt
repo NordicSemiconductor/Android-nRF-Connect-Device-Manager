@@ -14,15 +14,16 @@ import kotlinx.coroutines.sync.withLock
 
 private const val RETRIES = 5
 
+data class DownloadProgress(val offset: Int, val size: Int)
+
 abstract class Downloader(windowCapacity: Int) {
 
     private val window = WindowSemaphore(windowCapacity)
-    private val _progress: MutableStateFlow<Progress?> = MutableStateFlow(null)
+    private val _progress: MutableStateFlow<DownloadProgress?> = MutableStateFlow(null)
 
-    val progress: Flow<Progress> = _progress.filterNotNull()
+    val progress: Flow<DownloadProgress> = _progress.filterNotNull()
 
     data class Response(val data: ByteArray, val offset: Int, val length: Int?)
-    data class Progress(val offset: Int, val size: Int)
 
     abstract suspend fun read(offset: Int): McuMgrResult<Response>
 
@@ -34,8 +35,10 @@ abstract class Downloader(windowCapacity: Int) {
         val initialResponse = read(0)
             .getOrElse { retryRead(0, RETRIES).getOrThrow() }
 
-        val length = checkNotNull(initialResponse.length) { "length missing from initial response" }
         val expectedSize = initialResponse.data.size
+        val length = checkNotNull(initialResponse.length) {
+            "length missing from initial response"
+        }
 
         val data = ByteArray(length)
         initialResponse.data.copyInto(data, 0)
@@ -61,7 +64,7 @@ abstract class Downloader(windowCapacity: Int) {
                 bufferMutex.withLock {
                     response.data.copyInto(data, transmitOffset)
                 }
-                _progress.value = Progress(transmitOffset + response.data.size, length)
+                _progress.value = DownloadProgress(transmitOffset + response.data.size, length)
             }
 
             // Update the offset with the size of the last chunk
@@ -70,35 +73,35 @@ abstract class Downloader(windowCapacity: Int) {
 
         data
     }
-}
 
-/**
- * Retry sending an download read request.
- *
- * Returns the last received error if all attempts fail.
- */
-private suspend fun Downloader.retryRead(
-    offset: Int,
-    times: Int
-): McuMgrResult<Downloader.Response> {
-    var error: McuMgrResult<Downloader.Response>? = null
-    repeat(times) {
-        val result = read(offset)
-        when {
-            result.isSuccess -> return result
-            result.isError || result.isFailure -> error = result
+    /**
+     * Retry sending an download read request.
+     *
+     * Returns the last received error if all attempts fail.
+     */
+    private suspend fun retryRead(
+        offset: Int,
+        times: Int
+    ): McuMgrResult<Response> {
+        var error: McuMgrResult<Response>? = null
+        repeat(times) {
+            val result = read(offset)
+            when {
+                result.isSuccess -> return result
+                result.isError || result.isFailure -> error = result
+            }
         }
+        return checkNotNull(error)
     }
-    return checkNotNull(error)
-}
 
-/**
- * Validate the the data size is as expected.
- *
- * Handles the case of the last data packet usually being smaller than the expected size.
- */
-private fun assertDataSize(actualSize: Int, expectedSize: Int, offset: Int, totalSize: Int) {
-    check(actualSize == expectedSize || offset + actualSize == totalSize) {
-        "actual size $actualSize differs from exepcted size $expectedSize"
+    /**
+     * Validate the the data size is as expected.
+     *
+     * Handles the case of the last data packet usually being smaller than the expected size.
+     */
+    private fun assertDataSize(actualSize: Int, expectedSize: Int, offset: Int, totalSize: Int) {
+        check(actualSize == expectedSize || offset + actualSize == totalSize) {
+            "actual size $actualSize differs from exepcted size $expectedSize"
+        }
     }
 }

@@ -5,8 +5,7 @@ import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.map
 import okio.ByteString.Companion.toByteString
 
-
-class ImageUploader(
+internal class ImageUploader(
     data: ByteArray,
     val manager: McuManager,
     windowCapacity: Int = 1
