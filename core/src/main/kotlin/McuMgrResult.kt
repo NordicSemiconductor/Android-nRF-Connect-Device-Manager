@@ -86,8 +86,10 @@ inline fun <R, T> McuMgrResult<T>.map(transform: (value: T) -> R): McuMgrResult<
 }
 
 /**
- * Calls the specified function [block] and returns its encapsulated result if invocation was successful,
- * catching any [Throwable] exception that was thrown from the [block] function execution and encapsulating it as a failure.
+ * Calls the specified function [block] and returns its encapsulated [McuMgrResult.Success] if
+ * invocation was successful. Thrown [ErrorCodeException]s are caught first and result in a
+ * [McuMgrResult.Error] result. All other [Throwable]s are caught and handled as a
+ * [McuMgrResult.Failure].
  */
 inline fun <R> catchResult(block: () -> R): McuMgrResult<R> {
     return try {
@@ -100,8 +102,10 @@ inline fun <R> catchResult(block: () -> R): McuMgrResult<R> {
 }
 
 /**
- * Calls the specified function [block] with `this` value as its receiver and returns its encapsulated result if invocation was successful,
- * catching any [Throwable] exception that was thrown from the [block] function execution and encapsulating it as a failure.
+ * Calls the specified function [block] and returns its encapsulated [McuMgrResult.Success] if
+ * invocation was successful. Thrown [ErrorCodeException]s are caught first and result in a
+ * [McuMgrResult.Error] result. All other [Throwable]s are caught and handled as a
+ * [McuMgrResult.Failure].
  */
 inline fun <T, R> T.catchResult(block: T.() -> R): McuMgrResult<R> {
     return try {

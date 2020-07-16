@@ -98,7 +98,7 @@ private suspend fun Downloader.retryRead(
  * Handles the case of the last data packet usually being smaller than the expected size.
  */
 private fun assertDataSize(actualSize: Int, expectedSize: Int, offset: Int, totalSize: Int) {
-    if (actualSize != expectedSize && offset + actualSize != totalSize) {
-        throw IllegalStateException("data size does not match expected size")
+    check(actualSize == expectedSize || offset + actualSize == totalSize) {
+        "actual size $actualSize differs from exepcted size $expectedSize"
     }
 }
