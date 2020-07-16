@@ -16,9 +16,8 @@ private const val RETRIES = 5
 
 data class DownloadProgress(val offset: Int, val size: Int)
 
-abstract class Downloader(windowCapacity: Int) {
+abstract class Downloader(private val windowCapacity: Int) {
 
-    private val window = WindowSemaphore(windowCapacity)
     private val _progress: MutableStateFlow<DownloadProgress?> = MutableStateFlow(null)
 
     val progress: Flow<DownloadProgress> = _progress.filterNotNull()
@@ -29,6 +28,7 @@ abstract class Downloader(windowCapacity: Int) {
 
     @Throws
     suspend fun download(): ByteArray = coroutineScope {
+        val window = WindowSemaphore(windowCapacity)
         var offset = 0
 
         // Initial read to initialize output buffer and expected size
@@ -51,11 +51,11 @@ abstract class Downloader(windowCapacity: Int) {
                 val response = read(transmitOffset)
                     .onSuccess { window.success() }
                     .getOrElse {
-                        window.fail()
+                        val recoveryPermit = window.fail()
                         // Retry sending the request. Recover the window on success or throw
                         // on failure.
                         retryRead(transmitOffset, RETRIES)
-                            .onSuccess { window.recover() }
+                            .onSuccess { window.recover(recoveryPermit) }
                             .getOrThrow()
                     }
 

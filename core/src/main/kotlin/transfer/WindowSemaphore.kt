@@ -17,6 +17,8 @@ internal class WindowSemaphore(
     private val capacity: Int
 ) {
 
+    data class RecoveryPermit internal constructor(internal val size: Int)
+
     val currentSize: Int
         get() = size
 
@@ -26,7 +28,7 @@ internal class WindowSemaphore(
     private val semaphore = Semaphore(capacity, capacity - size)
 
     /**
-     * Acquire a permit, reduing the number of available permits by one. If the number of permits
+     * Acquire a permit, reducing the number of available permits by one. If the number of permits
      * is 0, suspend until one is released.
      */
     suspend fun acquire() {
@@ -48,12 +50,17 @@ internal class WindowSemaphore(
      * This function should be followed by a call to [recover] in order to release the semaphore if
      * the retries succeed.
      */
-    suspend fun fail() = reduceSize()
+    suspend fun fail(): RecoveryPermit = reduceSize()
 
     /**
-     * Recover from a [fail]. Does not effect the size of the window, only releases the semaphore.
+     * Recover from a [fail]. Does not effect the size of the window, only releases the semaphore
+     * if the size == 1 in order to avoid deadlock.
      */
-    fun recover() = semaphore.release()
+    suspend fun recover(permit: RecoveryPermit): Unit = mutex.withLock {
+        if (permit.size == 1) {
+            semaphore.release()
+        }
+    }
 
     private suspend fun increaseSize(): Unit = mutex.withLock {
         if (size < capacity && growing) {
@@ -62,10 +69,12 @@ internal class WindowSemaphore(
         }
     }
 
-    private suspend fun reduceSize(): Unit = mutex.withLock {
+    private suspend fun reduceSize(): RecoveryPermit = mutex.withLock {
+        val permit = RecoveryPermit(size)
         growing = false
         if (size > 1) {
             size--
         }
+        permit
     }
 }

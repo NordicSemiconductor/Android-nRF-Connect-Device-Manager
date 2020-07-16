@@ -18,13 +18,12 @@ data class UploadProgress(val offset: Int, val size: Int)
 
 abstract class Uploader(
     private val data: ByteArray,
-    windowCapacity: Int,
+    private val windowCapacity: Int,
     private val mtu: Int,
     private val format: Format,
     private val additionalOverhead: Int
 ) {
 
-    private val window = WindowSemaphore(windowCapacity)
     private val _progress: MutableStateFlow<UploadProgress> =
         MutableStateFlow(UploadProgress(0, data.size))
 
@@ -40,7 +39,7 @@ abstract class Uploader(
 
     @Throws
     suspend fun upload() = coroutineScope {
-
+        val window = WindowSemaphore(windowCapacity)
         var offset = 0
 
         while (offset < data.size) {
@@ -58,11 +57,11 @@ abstract class Uploader(
                         _progress.value = UploadProgress(current, data.size)
                     }
                     .onErrorOrFailure {
-                        window.fail()
+                        val recoveryPermit = window.fail()
                         // Retry sending the request. Recover the window on success or throw
                         // on failure.
                         retryWriteChunk(data, transmitOffset, chunkSize, RETRIES)
-                            .onSuccess { window.recover() }
+                            .onSuccess { window.recover(recoveryPermit) }
                             .onErrorOrFailure { throw it }
                     }
             }
