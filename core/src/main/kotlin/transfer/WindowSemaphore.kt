@@ -17,8 +17,6 @@ internal class WindowSemaphore(
     private val capacity: Int
 ) {
 
-    data class RecoveryPermit internal constructor(internal val size: Int)
-
     val currentSize: Int
         get() = size
 
@@ -40,41 +38,33 @@ internal class WindowSemaphore(
      * and under capacity, increase the size and release another permit.
      */
     suspend fun success() {
-        increaseSize()
+        mutex.withLock {
+            if (size < capacity && growing) {
+                size++
+                semaphore.release()
+            }
+        }
         semaphore.release()
     }
 
     /**
-     * Fail a permit. Reduce the size and stop growing. Does not release the semaphore.
+     * Fail a permit to stop growth. Does not release the semaphore.
      *
-     * This function should be followed by a call to [recover] in order to release the semaphore if
-     * the retries succeed.
+     * This function must be followed by a call to [recover] if a retry succeeds.
      */
-    suspend fun fail(): RecoveryPermit = reduceSize()
-
-    /**
-     * Recover from a [fail]. Does not effect the size of the window, only releases the semaphore
-     * if the size == 1 in order to avoid deadlock.
-     */
-    suspend fun recover(permit: RecoveryPermit): Unit = mutex.withLock {
-        if (permit.size == 1) {
-            semaphore.release()
-        }
-    }
-
-    private suspend fun increaseSize(): Unit = mutex.withLock {
-        if (size < capacity && growing) {
-            size++
-            semaphore.release()
-        }
-    }
-
-    private suspend fun reduceSize(): RecoveryPermit = mutex.withLock {
-        val permit = RecoveryPermit(size)
+    suspend fun fail(): Unit = mutex.withLock {
         growing = false
+    }
+    
+    /**
+     * Recover from a [fail]. If the window is able to shrink, reduce the size, otherwise release
+     * the permit to avoid deadlock.
+     */
+    suspend fun recover(): Unit = mutex.withLock {
         if (size > 1) {
             size--
+        } else {
+            semaphore.release()
         }
-        permit
     }
 }
