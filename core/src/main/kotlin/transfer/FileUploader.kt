@@ -14,6 +14,8 @@ class FileUploader(
     windowCapacity,
     manager.transport.mtu,
     manager.transport.format,
+    // File upload contains an extra field, name, which will mess up chunk size computations unless
+    // we add the value to the packet overhead.
     cborStringLength("name") + cborStringLength(fileName)
 ) {
 

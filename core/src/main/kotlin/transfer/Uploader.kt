@@ -19,7 +19,7 @@ abstract class Uploader(
     windowCapacity: Int,
     private val mtu: Int,
     private val format: Format,
-    private val packetOverhead: Int
+    private val additionalOverhead: Int
 ) {
 
     private val window = WindowSemaphore(windowCapacity)
@@ -152,7 +152,7 @@ abstract class Uploader(
         val dataStringSize = cborStringLength("data")
 
         val combinedSize = headerSize + mapSize + offsetSize + lengthSize + shaSize +
-            dataStringSize + packetOverhead
+            dataStringSize + additionalOverhead
 
         // Now we calculate the max amount of data that we can fit given the MTU.
         val maxDataLength = mtu - combinedSize

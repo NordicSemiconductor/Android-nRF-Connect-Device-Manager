@@ -5,7 +5,6 @@ import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.map
 import okio.ByteString.Companion.toByteString
 
-private const val OVERHEAD = 0
 
 class ImageUploader(
     data: ByteArray,
@@ -16,7 +15,7 @@ class ImageUploader(
     windowCapacity,
     manager.transport.mtu,
     manager.transport.format,
-    OVERHEAD
+    0
 ) {
 
     private val truncatedHash =
