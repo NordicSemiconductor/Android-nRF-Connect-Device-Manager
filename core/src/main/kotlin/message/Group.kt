@@ -8,5 +8,5 @@ sealed class Group(val value: Int) {
     object Logs : Group(4)
     object Crash : Group(5)
     object Run : Group(7)
-    object Files : Group(8)
+    object File : Group(8)
 }

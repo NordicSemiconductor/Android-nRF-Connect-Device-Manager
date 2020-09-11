@@ -10,6 +10,6 @@ class McuManager(val transport: Transport) {
     val logs = LogsManager(transport)
     val crash = CrashManager(transport)
     val run = RunManager(transport)
-    val files = FilesManager(transport)
+    val files = FileManager(transport)
 }
 

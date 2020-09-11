@@ -1,11 +1,7 @@
 package com.juul.mcumgr.serialization
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.juul.mcumgr.McuMgrResult
-import com.juul.mcumgr.message.Command
-import com.juul.mcumgr.message.Group
-import com.juul.mcumgr.message.Operation
 import com.juul.mcumgr.message.Response
 import java.io.IOException
 
@@ -37,18 +33,3 @@ fun <T> Message.toResult(type: Class<T>): McuMgrResult<T> {
         }
     }
 }
-
-/**
- * The serialization object defining a request.
- */
-@JsonIgnoreProperties("operation", "group", "command")
-internal abstract class RequestDefinition {
-    abstract val operation: Operation
-    abstract val group: Group
-    abstract val command: Command
-}
-
-/**
- * The serialization object defining a response.
- */
-internal abstract class ResponseDefinition

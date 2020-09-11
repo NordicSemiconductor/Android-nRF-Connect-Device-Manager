@@ -1,7 +1,6 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.FilesManager
-import com.juul.mcumgr.McuManager
+import com.juul.mcumgr.FileManager
 import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.Transport
 import com.juul.mcumgr.map
@@ -15,13 +14,13 @@ class FileUploader(
     data,
     windowCapacity,
     transport.mtu,
-    transport.format,
+    transport.protocol,
     // File upload contains an extra field, name, which will mess up chunk size computations unless
     // we add the value to the packet overhead.
     cborStringLength("name") + cborStringLength(fileName)
 ) {
 
-    private val fileManager = FilesManager(transport)
+    private val fileManager = FileManager(transport)
 
     override suspend fun write(
         data: ByteArray,

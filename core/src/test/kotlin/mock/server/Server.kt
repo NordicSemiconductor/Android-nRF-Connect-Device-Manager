@@ -1,7 +1,7 @@
 package mock.server
 
 import com.juul.mcumgr.message.Command
-import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Group
 import com.juul.mcumgr.message.Operation
 import com.juul.mcumgr.message.Response.Code
@@ -12,7 +12,7 @@ import kotlinx.coroutines.delay
 
 class Server(
     val mtu: Int,
-    val format: Format,
+    val protocol: Protocol,
     val overrides: MutableList<Handler> = mutableListOf(),
     val delay: Long = 0
 ) {
@@ -25,15 +25,15 @@ class Server(
             error("request data size ${requestData.size} is larger than mtu $mtu")
         }
 
-        val message = requestData.decode(format)
+        val message = requestData.decode(protocol)
 
         // First check the override then default handlers. If none exist, return NotSupported error
         val handler = overrides.findHandler(message) ?: handlers.findHandler(message)
-            ?: return message.toResponse(Code.NotSupported).encode(format)
+            ?: return message.toResponse(Code.NotSupported).encode(protocol)
 
         val response = handler.handle(message)
         delay(delay)
-        return response.encode(format)
+        return response.encode(protocol)
     }
 
     private fun List<Handler>.findHandler(message: Message): Handler? {
@@ -44,6 +44,11 @@ class Server(
         }
     }
 
+    inline fun <reified T: Handler> findHandler(): T =
+        overrides.firstOrNull { it is T } as T? ?:
+            handlers.firstOrNull { it is T } as T? ?: error("handler ${T::class} not found")
+
+
     fun findHandler(
         operation: Operation,
         group: Group,
@@ -53,7 +58,7 @@ class Server(
             ?: handlers.findHandler(operation, group, command)
     }
 
-    fun List<Handler>.findHandler(
+    private fun List<Handler>.findHandler(
         operation: Operation,
         group: Group,
         command: Command

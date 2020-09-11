@@ -1,13 +1,12 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.convertValue
-import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Request
 import okio.Buffer
 import okio.BufferedSink
 
-fun Request.encode(format: Format, sequenceNumber: Int = 0): ByteArray {
+fun Request.encode(protocol: Protocol, sequenceNumber: Int = 0): ByteArray {
     // Convert to the definition to get operation, group, and command for header
     val definition = toDefinition()
     val header = Header(
@@ -20,13 +19,13 @@ fun Request.encode(format: Format, sequenceNumber: Int = 0): ByteArray {
     )
     val payload: ObjectNode = cbor.valueToTree(definition)
     val message = Message(header, payload)
-    return message.encode(format)
+    return message.encode(protocol)
 }
 
-fun Message.encode(format: Format): ByteArray =
-    when (format) {
-        Format.SMP -> encodeSmp()
-        Format.OMP -> encodeOmp()
+fun Message.encode(protocol: Protocol): ByteArray =
+    when (protocol) {
+        Protocol.SMP -> encodeSmp()
+        Protocol.OMP -> encodeOmp()
     }
 
 private fun Message.encodeSmp(): ByteArray =

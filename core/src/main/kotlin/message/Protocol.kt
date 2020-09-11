@@ -1,5 +1,5 @@
 package com.juul.mcumgr.message
 
-enum class Format {
+enum class Protocol {
     SMP, OMP
 }

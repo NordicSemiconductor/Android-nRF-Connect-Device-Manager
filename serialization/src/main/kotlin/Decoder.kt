@@ -2,20 +2,20 @@ package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.juul.mcumgr.McuMgrResult
-import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Response
 import okio.Buffer
 import okio.BufferedSource
 
-fun <T : Response> ByteArray.decode(format: Format, type: Class<T>): McuMgrResult<T> {
-    val message = decode(format)
+fun <T : Response> ByteArray.decode(protocol: Protocol, type: Class<T>): McuMgrResult<T> {
+    val message = decode(protocol)
     return message.toResult(type)
 }
 
-fun ByteArray.decode(format: Format): Message =
-    when (format) {
-        Format.SMP -> decodeSmp()
-        Format.OMP -> decodeOmp()
+fun ByteArray.decode(protocol: Protocol): Message =
+    when (protocol) {
+        Protocol.SMP -> decodeSmp()
+        Protocol.OMP -> decodeOmp()
     }
 
 private fun ByteArray.decodeSmp(): Message {

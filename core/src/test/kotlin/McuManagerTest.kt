@@ -2,8 +2,9 @@ import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult.Error
 import com.juul.mcumgr.McuMgrResult.Failure
 import com.juul.mcumgr.McuMgrResult.Success
+import com.juul.mcumgr.TaskStatsResponse
 import com.juul.mcumgr.getOrThrow
-import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Response
 import kotlin.random.Random
 import kotlin.test.assertEquals
@@ -11,17 +12,18 @@ import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.EchoHandler
 import mock.server.Server
+import mock.server.TaskStatsHandler
 import mock.server.toErrorResponseHandler
 import mock.server.toThrowHandler
 import org.junit.Test
 import utils.ExpectedException
 import utils.assertByteArrayEquals
 
-class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
+class McuManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
     private val mtu = 512
-    private val server = Server(mtu, format)
-    private val transport = MockTransport(mtu, format, server)
+    private val server = Server(mtu, protocol)
+    private val transport = MockTransport(mtu, protocol, server)
     private val mcuManager = McuManager(transport)
 
     @Test
@@ -49,6 +51,16 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
         val echo = "Hello McuManager!"
         val response = mcuManager.system.echo(echo).getOrThrow()
         assertEquals(echo, response.echo)
+    }
+
+    @Test
+    fun `task stats success`() = runBlocking {
+        val handler: TaskStatsHandler = server.findHandler()
+        handler.taskStats = mutableMapOf(
+            "my_task" to TaskStatsResponse.Task(1, 2, 3, 4, 5, 6, 7, 8, 9)
+        )
+        val response = mcuManager.system.taskStats().getOrThrow()
+        assertEquals(response.tasks, handler.taskStats)
     }
 
     // Image

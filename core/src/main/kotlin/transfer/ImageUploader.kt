@@ -14,7 +14,7 @@ class ImageUploader(
     data,
     windowCapacity,
     transport.mtu,
-    transport.format,
+    transport.protocol,
     0
 ) {
 

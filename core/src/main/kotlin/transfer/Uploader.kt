@@ -1,7 +1,7 @@
 package com.juul.mcumgr.transfer
 
 import com.juul.mcumgr.McuMgrResult
-import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.onErrorOrFailure
 import com.juul.mcumgr.onSuccess
 import java.lang.IllegalArgumentException
@@ -20,7 +20,7 @@ abstract class Uploader(
     private val data: ByteArray,
     private val windowCapacity: Int,
     private val mtu: Int,
-    private val format: Format,
+    private val protocol: Protocol,
     private val additionalOverhead: Int
 ) {
 
@@ -123,9 +123,9 @@ abstract class Uploader(
 
         // The size of the header is based on the scheme. CoAP scheme is larger because there are
         // 4 additional bytes of CBOR.
-        val headerSize = when (format) {
-            Format.SMP -> 8
-            Format.OMP -> 8 + 4
+        val headerSize = when (protocol) {
+            Protocol.SMP -> 8
+            Protocol.OMP -> 8 + 4
         }
 
         // Size of the indefinite length map tokens (bf, ff)

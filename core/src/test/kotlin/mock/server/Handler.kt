@@ -1,5 +1,6 @@
 package mock.server
 
+import com.juul.mcumgr.TaskStatsResponse
 import com.juul.mcumgr.message.Command
 import com.juul.mcumgr.message.Group
 import com.juul.mcumgr.message.Operation
@@ -25,6 +26,7 @@ interface Handler {
 
 val defaultHandlers = listOf<Handler>(
     EchoHandler(),
+    TaskStatsHandler(),
     ImageWriteHandler(),
     CoreReadHandler(),
     FileWriteHandler(),
@@ -82,6 +84,19 @@ class EchoHandler : Handler {
         val payload = message.payloadMap
         val echo: String = payload.getNotNull("d")
         val responsePayload = mapOf("r" to echo)
+        return message.toResponse(payload = responsePayload)
+    }
+}
+
+class TaskStatsHandler : Handler {
+    override val group = Group.System
+    override val command = Command.System.TaskStats
+    override val supportedOperations = readOnly
+
+    var taskStats: MutableMap<String, TaskStatsResponse.Task> = mutableMapOf()
+
+    override fun handle(message: Message): Message {
+        val responsePayload = mapOf("tasks" to taskStats)
         return message.toResponse(payload = responsePayload)
     }
 }
@@ -148,7 +163,7 @@ class CoreReadHandler : Handler {
 
 class FileWriteHandler : Handler {
 
-    override val group = Group.Files
+    override val group = Group.File
     override val command = Command.Files.File
     override val supportedOperations = writeOnly
 
@@ -175,7 +190,7 @@ class FileWriteHandler : Handler {
 
 class FileReadHandler : Handler {
 
-    override val group = Group.Files
+    override val group = Group.File
     override val command = Command.Files.File
     override val supportedOperations = readOnly
 

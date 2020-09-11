@@ -1,34 +1,13 @@
 package com.juul.mcumgr
 
-import com.juul.mcumgr.message.Request
-import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.message.FileReadRequest
+import com.juul.mcumgr.message.FileReadResponse
+import com.juul.mcumgr.message.FileWriteRequest
+import com.juul.mcumgr.message.FileWriteResponse
 import com.juul.mcumgr.transfer.FileDownloader
 import com.juul.mcumgr.transfer.FileUploader
 
-
-data class FileWriteRequest(
-    val fileName: String,
-    val data: ByteArray,
-    val offset: Int,
-    val length: Int? = null
-) : Request()
-
-data class FileWriteResponse(
-    val offset: Int
-) : Response()
-
-data class FileReadRequest(
-    val fileName: String,
-    val offset: Int
-) : Request()
-
-data class FileReadResponse(
-    val data: ByteArray,
-    val offset: Int,
-    val length: Int? = null
-) : Response()
-
-class FilesManager(val transport: Transport) {
+class FileManager(val transport: Transport) {
 
     suspend fun fileWrite(
         fileName: String,

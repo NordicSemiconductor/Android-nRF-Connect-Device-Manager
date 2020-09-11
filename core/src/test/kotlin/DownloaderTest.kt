@@ -3,7 +3,7 @@ import com.juul.mcumgr.McuMgrResult
 import com.juul.mcumgr.catchResult
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.message.Command
-import com.juul.mcumgr.message.Format
+import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Group
 import com.juul.mcumgr.message.Operation
 import com.juul.mcumgr.message.Response
@@ -38,7 +38,7 @@ suspend fun McuManager.downloadFile(
     }
 }
 
-class DownloaderTest(format: Format) : FormatParameterizedTest(format) {
+class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
     private val smallData = Random.Default.nextBytes(1)
     private val defaultData = Random.Default.nextBytes(350_000)
@@ -48,8 +48,8 @@ class DownloaderTest(format: Format) : FormatParameterizedTest(format) {
     private val defaultFileName = "my_file"
 
     private val mtu = 512
-    private val server = Server(mtu, format)
-    private val transport = MockTransport(mtu, format, server)
+    private val server = Server(mtu, protocol)
+    private val transport = MockTransport(mtu, protocol, server)
     private val mcuManager = McuManager(transport)
 
     // Capacity tests
@@ -140,7 +140,7 @@ fun Server.setCoreData(data: ByteArray?) {
 
 fun Server.setFileData(fileName: String, data: ByteArray?) {
     val handler =
-        checkNotNull(findHandler(Operation.Read, Group.Files, Command.Files.File))
+        checkNotNull(findHandler(Operation.Read, Group.File, Command.Files.File))
     handler as FileReadHandler
     if (data == null) {
         handler.files.remove(fileName)

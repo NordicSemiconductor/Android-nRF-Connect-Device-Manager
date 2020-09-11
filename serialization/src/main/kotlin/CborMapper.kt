@@ -15,6 +15,8 @@ import com.juul.mcumgr.FileWriteRequest
 import com.juul.mcumgr.FileWriteResponse
 import com.juul.mcumgr.ImageWriteRequest
 import com.juul.mcumgr.ImageWriteResponse
+import com.juul.mcumgr.TaskStatsRequest
+import com.juul.mcumgr.TaskStatsResponse
 import com.juul.mcumgr.message.Request
 import kotlin.reflect.KClass
 
@@ -36,14 +38,19 @@ val cbor = CBORMapper().apply {
     // Fail if a required property is not available
     enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
 
-//    // System
+    // System
     addMixIn(EchoRequest::class.java, System.EchoRequest::class.java)
     addMixIn(EchoResponse::class.java, System.EchoResponse::class.java)
+    addMixIn(TaskStatsRequest::class.java, System.TaskStatsRequest::class.java)
+    addMixIn(TaskStatsResponse::class.java, System.TaskStatsResponse::class.java)
+    addMixIn(TaskStatsResponse.Task::class.java, System.TaskStatsResponse.Task::class.java)
+
     // Image
     addMixIn(ImageWriteRequest::class.java, Image.ImageWriteRequest::class.java)
     addMixIn(ImageWriteResponse::class.java, Image.ImageWriteResponse::class.java)
     addMixIn(CoreReadRequest::class.java, Image.CoreReadRequest::class.java)
     addMixIn(CoreReadResponse::class.java, Image.CoreReadResponse::class.java)
+
     // Files
     addMixIn(FileWriteRequest::class.java, File.WriteRequest::class.java)
     addMixIn(FileWriteResponse::class.java, File.WriteResponse::class.java)

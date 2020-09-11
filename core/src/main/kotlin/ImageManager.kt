@@ -1,34 +1,14 @@
 package com.juul.mcumgr
 
+import com.juul.mcumgr.message.CoreReadRequest
+import com.juul.mcumgr.message.CoreReadResponse
+import com.juul.mcumgr.message.ImageWriteRequest
+import com.juul.mcumgr.message.ImageWriteResponse
 import com.juul.mcumgr.message.Request
 import com.juul.mcumgr.message.Response
 import com.juul.mcumgr.transfer.CoreDownloader
 import com.juul.mcumgr.transfer.ImageUploader
 
-data class ImageWriteRequest(
-    val data: ByteArray,
-    val offset: Int,
-    val size: Int? = null,
-    val hash: ByteArray? = null
-) : Request()
-
-data class ImageWriteResponse(
-    val offset: Int
-) : Response()
-
-data class CoreReadRequest(
-    val offset: Int
-) : Request()
-
-data class CoreReadResponse(
-    val data: ByteArray,
-    val offset: Int,
-    val length: Int? = null
-) : Response()
-
-/**
- * Manager
- */
 class ImageManager(val transport: Transport) {
 
     suspend fun imageWrite(
