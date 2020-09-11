@@ -55,7 +55,7 @@ abstract class Downloader(private val windowCapacity: Int) {
                         // Retry sending the request. Recover the window on success or throw
                         // on failure.
                         retryRead(transmitOffset, RETRIES)
-                            .onSuccess { window.recover(recoveryPermit) }
+                            .onSuccess { window.recover() }
                             .getOrThrow()
                     }
 

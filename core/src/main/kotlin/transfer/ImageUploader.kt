@@ -1,21 +1,24 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.McuManager
+import com.juul.mcumgr.ImageManager
 import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.Transport
 import com.juul.mcumgr.map
 import okio.ByteString.Companion.toByteString
 
-internal class ImageUploader(
+class ImageUploader(
     data: ByteArray,
-    val manager: McuManager,
+    transport: Transport,
     windowCapacity: Int = 1
 ) : Uploader(
     data,
     windowCapacity,
-    manager.transport.mtu,
-    manager.transport.format,
+    transport.mtu,
+    transport.format,
     0
 ) {
+
+    private val imageManager = ImageManager(transport)
 
     private val truncatedHash =
         data.toByteString().sha256().toByteArray().copyOfRange(0, TRUNCATED_HASH_LEN)
@@ -31,7 +34,7 @@ internal class ImageUploader(
         } else {
             null
         }
-        return manager.imageWrite(data, offset, length, hash).map { response ->
+        return imageManager.imageWrite(data, offset, length, hash).map { response ->
             Response(response.offset)
         }
     }

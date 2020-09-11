@@ -1,10 +1,13 @@
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.catchResult
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.message.Command
 import com.juul.mcumgr.message.Format
 import com.juul.mcumgr.message.Group
 import com.juul.mcumgr.message.Operation
+import com.juul.mcumgr.transfer.FileUploader
+import com.juul.mcumgr.transfer.ImageUploader
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -16,6 +19,27 @@ import mock.server.toThrowHandler
 import org.junit.Test
 import utils.ExpectedException
 import utils.assertByteArrayEquals
+
+suspend fun McuManager.uploadImage(
+    data: ByteArray,
+    windowCapacity: Int = 1
+): McuMgrResult<Unit> {
+    val uploader = ImageUploader(data, transport, windowCapacity)
+    return catchResult {
+        uploader.upload()
+    }
+}
+
+suspend fun McuManager.uploadFile(
+    fileName: String,
+    data: ByteArray,
+    windowCapacity: Int = 1
+): McuMgrResult<Unit> {
+    val uploader = FileUploader(fileName, data, transport, windowCapacity)
+    return catchResult {
+        uploader.upload()
+    }
+}
 
 class UploaderTest(format: Format) : FormatParameterizedTest(format) {
 
@@ -94,7 +118,7 @@ class UploaderTest(format: Format) : FormatParameterizedTest(format) {
 
     @Test
     fun `file upload success`() = runBlocking {
-        mcuManager.uploadFile(defaultData, defaultFileName, defaultCapacity).getOrThrow()
+        mcuManager.uploadFile(defaultFileName, defaultData, defaultCapacity).getOrThrow()
         assertByteArrayEquals(
             defaultData,
             server.getFileUploadData(defaultFileName)
@@ -104,7 +128,7 @@ class UploaderTest(format: Format) : FormatParameterizedTest(format) {
     @Test
     fun `file upload failure`() = runBlocking {
         server.overrides.add(FileWriteHandler().toThrowHandler(ExpectedException))
-        val result = mcuManager.uploadFile(defaultData, defaultFileName, defaultCapacity)
+        val result = mcuManager.uploadFile(defaultFileName, defaultData, defaultCapacity)
         result as McuMgrResult.Failure
         assertEquals(ExpectedException, result.throwable)
     }

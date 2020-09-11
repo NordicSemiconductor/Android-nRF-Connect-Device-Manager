@@ -27,7 +27,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
     @Test
     fun `error response result expected`() = runBlocking {
         server.overrides.add(EchoHandler().toErrorResponseHandler(Response.Code.BadState))
-        when (val result = mcuManager.echo("test")) {
+        when (val result = mcuManager.system.echo("test")) {
             is Error -> assertEquals(Response.Code.BadState, result.code)
             is Success, is Failure -> error("expected McuMgrResult.Error, got $result")
         }
@@ -36,7 +36,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
     @Test
     fun `failure result expected`() = runBlocking {
         server.overrides.add(EchoHandler().toThrowHandler(ExpectedException))
-        when (val result = mcuManager.echo("test")) {
+        when (val result = mcuManager.system.echo("test")) {
             is Failure -> assertEquals(ExpectedException, result.throwable)
             is Success, is Error -> error("expected failure exception, got $result")
         }
@@ -47,7 +47,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
     @Test
     fun `echo success`() = runBlocking {
         val echo = "Hello McuManager!"
-        val response = mcuManager.echo(echo).getOrThrow()
+        val response = mcuManager.system.echo(echo).getOrThrow()
         assertEquals(echo, response.echo)
     }
 
@@ -58,7 +58,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
         val imageData = Random.Default.nextBytes(200)
 
         val firstChunk = imageData.copyOfRange(0, 100)
-        var response = mcuManager.imageWrite(
+        var response = mcuManager.image.imageWrite(
             firstChunk,
             0,
             200
@@ -66,7 +66,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
         assertEquals(100, response.offset)
 
         val secondChunk = imageData.copyOfRange(100, imageData.size)
-        response = mcuManager.imageWrite(
+        response = mcuManager.image.imageWrite(
             secondChunk,
             100
         ).getOrThrow()
@@ -81,7 +81,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
         val fileData = Random.Default.nextBytes(200)
 
         val firstChunk = fileData.copyOfRange(0, 100)
-        var response = mcuManager.fileWrite(
+        var response = mcuManager.files.fileWrite(
             "my_file",
             firstChunk,
             0,
@@ -90,7 +90,7 @@ class McuManagerTest(format: Format) : FormatParameterizedTest(format) {
         assertEquals(100, response.offset)
 
         val secondChunk = fileData.copyOfRange(100, fileData.size)
-        response = mcuManager.fileWrite(
+        response = mcuManager.files.fileWrite(
             "my_file",
             secondChunk,
             100

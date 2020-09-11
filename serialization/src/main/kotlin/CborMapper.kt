@@ -5,16 +5,18 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.juul.mcumgr.message.CoreReadRequest
-import com.juul.mcumgr.message.CoreReadResponse
-import com.juul.mcumgr.message.EchoRequest
-import com.juul.mcumgr.message.EchoResponse
-import com.juul.mcumgr.message.FileReadRequest
-import com.juul.mcumgr.message.FileReadResponse
-import com.juul.mcumgr.message.FileWriteRequest
-import com.juul.mcumgr.message.FileWriteResponse
-import com.juul.mcumgr.message.ImageWriteRequest
-import com.juul.mcumgr.message.ImageWriteResponse
+import com.juul.mcumgr.CoreReadRequest
+import com.juul.mcumgr.CoreReadResponse
+import com.juul.mcumgr.EchoRequest
+import com.juul.mcumgr.EchoResponse
+import com.juul.mcumgr.FileReadRequest
+import com.juul.mcumgr.FileReadResponse
+import com.juul.mcumgr.FileWriteRequest
+import com.juul.mcumgr.FileWriteResponse
+import com.juul.mcumgr.ImageWriteRequest
+import com.juul.mcumgr.ImageWriteResponse
+import com.juul.mcumgr.message.Request
+import kotlin.reflect.KClass
 
 /**
  * CBOR object mapper used my mcumgr serialization.
@@ -34,17 +36,17 @@ val cbor = CBORMapper().apply {
     // Fail if a required property is not available
     enable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
 
-    // System
-    addMixIn(EchoRequest::class.java, EchoRequestPayload::class.java)
-    addMixIn(EchoResponse::class.java, EchoResponsePayload::class.java)
+//    // System
+    addMixIn(EchoRequest::class.java, System.EchoRequest::class.java)
+    addMixIn(EchoResponse::class.java, System.EchoResponse::class.java)
     // Image
-    addMixIn(ImageWriteRequest::class.java, ImageWriteRequestPayload::class.java)
-    addMixIn(ImageWriteResponse::class.java, ImageWriteResponsePayload::class.java)
-    addMixIn(CoreReadRequest::class.java, CoreReadRequestPayload::class.java)
-    addMixIn(CoreReadResponse::class.java, CoreReadResponsePayload::class.java)
+    addMixIn(ImageWriteRequest::class.java, Image.ImageWriteRequest::class.java)
+    addMixIn(ImageWriteResponse::class.java, Image.ImageWriteResponse::class.java)
+    addMixIn(CoreReadRequest::class.java, Image.CoreReadRequest::class.java)
+    addMixIn(CoreReadResponse::class.java, Image.CoreReadResponse::class.java)
     // Files
-    addMixIn(FileWriteRequest::class.java, FileWriteRequestPayload::class.java)
-    addMixIn(FileWriteResponse::class.java, FileWriteResponsePayload::class.java)
-    addMixIn(FileReadRequest::class.java, FileReadRequestPayload::class.java)
-    addMixIn(FileReadResponse::class.java, FileReadResponsePayload::class.java)
+    addMixIn(FileWriteRequest::class.java, File.WriteRequest::class.java)
+    addMixIn(FileWriteResponse::class.java, File.WriteResponse::class.java)
+    addMixIn(FileReadRequest::class.java, File.ReadRequest::class.java)
+    addMixIn(FileReadResponse::class.java, File.ReadResponse::class.java)
 }

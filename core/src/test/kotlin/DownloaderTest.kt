@@ -1,11 +1,14 @@
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.catchResult
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.message.Command
 import com.juul.mcumgr.message.Format
 import com.juul.mcumgr.message.Group
 import com.juul.mcumgr.message.Operation
 import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.transfer.CoreDownloader
+import com.juul.mcumgr.transfer.FileDownloader
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -15,6 +18,25 @@ import mock.server.FileReadHandler
 import mock.server.Server
 import org.junit.Test
 import utils.assertByteArrayEquals
+
+suspend fun McuManager.downloadCore(
+    windowCapacity: Int = 1
+): McuMgrResult<ByteArray> {
+    val downloader = CoreDownloader(transport, windowCapacity)
+    return catchResult {
+        downloader.download()
+    }
+}
+
+suspend fun McuManager.downloadFile(
+    fileName: String,
+    windowCapacity: Int = 1
+): McuMgrResult<ByteArray> {
+    val downloader = FileDownloader(fileName, transport, windowCapacity)
+    return catchResult {
+        downloader.download()
+    }
+}
 
 class DownloaderTest(format: Format) : FormatParameterizedTest(format) {
 

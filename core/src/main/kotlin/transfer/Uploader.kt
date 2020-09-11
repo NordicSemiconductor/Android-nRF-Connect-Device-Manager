@@ -61,7 +61,7 @@ abstract class Uploader(
                         // Retry sending the request. Recover the window on success or throw
                         // on failure.
                         retryWriteChunk(data, transmitOffset, chunkSize, RETRIES)
-                            .onSuccess { window.recover(recoveryPermit) }
+                            .onSuccess { window.recover() }
                             .onErrorOrFailure { throw it }
                     }
             }

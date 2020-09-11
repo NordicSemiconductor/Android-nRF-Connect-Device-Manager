@@ -8,16 +8,21 @@ import com.juul.mcumgr.message.Response
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
 import mock.server.Server
+import utils.ExpectedException
 
 class MockTransport(
     override val mtu: Int,
     override val format: Format,
-    val server: Server
+    private val server: Server
 ) : Transport {
 
     override suspend fun <T : Response> send(request: Request, responseType: Class<T>): McuMgrResult<T> {
         val requestData = request.encode(format, SequenceNumber.next)
-        val responseData = server.handle(requestData)
+        val responseData = try {
+             server.handle(requestData)
+        } catch (e: Throwable) {
+            return McuMgrResult.Failure(e)
+        }
         return responseData.decode(format, responseType)
     }
 }
