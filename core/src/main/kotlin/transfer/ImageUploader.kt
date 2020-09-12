@@ -1,9 +1,9 @@
 package com.juul.mcumgr.transfer
 
 import com.juul.mcumgr.ImageManager
-import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.Transport
-import com.juul.mcumgr.map
+import com.juul.mcumgr.mapResponse
 import okio.ByteString.Companion.toByteString
 
 class ImageUploader(
@@ -27,14 +27,14 @@ class ImageUploader(
         data: ByteArray,
         offset: Int,
         length: Int?
-    ): McuMgrResult<Response> {
+    ): SendResult<Response> {
         // Send the truncated hash
         val hash = if (offset == 0) {
             truncatedHash
         } else {
             null
         }
-        return imageManager.imageWrite(data, offset, length, hash).map { response ->
+        return imageManager.imageWrite(data, offset, length, hash).mapResponse { response ->
             Response(response.offset)
         }
     }

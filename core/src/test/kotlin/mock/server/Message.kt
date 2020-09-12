@@ -2,14 +2,15 @@ package mock.server
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.message.Operation
+import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.message.ResponseCode
 import com.juul.mcumgr.serialization.Header
 import com.juul.mcumgr.serialization.Message
 import com.juul.mcumgr.serialization.cbor
 
 fun Message.toResponse(
-    code: Response.Code = Response.Code.Ok,
+    code: ResponseCode = ResponseCode.Ok,
     payload: Map<String, Any> = emptyMap()
 ): Message {
     val responseHeader = header.toResponse()

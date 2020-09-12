@@ -1,12 +1,12 @@
+import com.juul.mcumgr.ErrorCodeException
 import com.juul.mcumgr.McuManager
-import com.juul.mcumgr.McuMgrResult
-import com.juul.mcumgr.catchResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.getOrThrow
-import com.juul.mcumgr.message.Command
+import com.juul.mcumgr.serialization.Command
 import com.juul.mcumgr.message.Protocol
-import com.juul.mcumgr.message.Group
-import com.juul.mcumgr.message.Operation
-import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.serialization.Group
+import com.juul.mcumgr.serialization.Operation
+import com.juul.mcumgr.message.ResponseCode
 import com.juul.mcumgr.transfer.CoreDownloader
 import com.juul.mcumgr.transfer.FileDownloader
 import kotlin.random.Random
@@ -18,25 +18,6 @@ import mock.server.FileReadHandler
 import mock.server.Server
 import org.junit.Test
 import utils.assertByteArrayEquals
-
-suspend fun McuManager.downloadCore(
-    windowCapacity: Int = 1
-): McuMgrResult<ByteArray> {
-    val downloader = CoreDownloader(transport, windowCapacity)
-    return catchResult {
-        downloader.download()
-    }
-}
-
-suspend fun McuManager.downloadFile(
-    fileName: String,
-    windowCapacity: Int = 1
-): McuMgrResult<ByteArray> {
-    val downloader = FileDownloader(fileName, transport, windowCapacity)
-    return catchResult {
-        downloader.download()
-    }
-}
 
 class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -88,16 +69,16 @@ class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     fun `no data, core download error response`() = runBlocking {
         server.setCoreData(null)
         val result = mcuManager.downloadCore(defaultCapacity)
-        result as McuMgrResult.Error
-        assertEquals(Response.Code.NoEntry, result.code)
+        result as SendResult.Response
+        assertEquals(ResponseCode.NoEntry, result.code)
     }
 
     @Test
     fun `no data, file download error response`() = runBlocking {
         server.setFileData(defaultFileName, null)
         val result = mcuManager.downloadFile(defaultFileName, defaultCapacity)
-        result as McuMgrResult.Error
-        assertEquals(Response.Code.NoEntry, result.code)
+        result as SendResult.Response
+        assertEquals(ResponseCode.NoEntry, result.code)
     }
 
     @Test
@@ -131,20 +112,49 @@ class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     }
 }
 
+suspend fun McuManager.downloadCore(
+    windowCapacity: Int = 1
+): SendResult<ByteArray> {
+    val downloader = CoreDownloader(transport, windowCapacity)
+    return catchResult {
+        downloader.download()
+    }
+}
+
+suspend fun McuManager.downloadFile(
+    fileName: String,
+    windowCapacity: Int = 1
+): SendResult<ByteArray> {
+    val downloader = FileDownloader(fileName, transport, windowCapacity)
+    return catchResult {
+        downloader.download()
+    }
+}
+
 fun Server.setCoreData(data: ByteArray?) {
     val handler =
-        checkNotNull(findHandler(Operation.Read, Group.Image, Command.Image.CoreLoad))
+        checkNotNull(findHandler(Operation.Read, Group.Image, Command.Image.CoreDownload))
     handler as CoreReadHandler
     handler.coreData = data
 }
 
 fun Server.setFileData(fileName: String, data: ByteArray?) {
     val handler =
-        checkNotNull(findHandler(Operation.Read, Group.File, Command.Files.File))
+        checkNotNull(findHandler(Operation.Read, Group.File, Command.File.File))
     handler as FileReadHandler
     if (data == null) {
         handler.files.remove(fileName)
     } else {
         handler.files[fileName] = data
+    }
+}
+
+internal inline fun <T, R> T.catchResult(block: T.() -> R): SendResult<R> {
+    return try {
+        SendResult.Response(block(), ResponseCode.Ok)
+    } catch (e: ErrorCodeException) {
+        SendResult.Response(null, e.code)
+    } catch (e: Throwable) {
+        SendResult.Failure(e)
     }
 }

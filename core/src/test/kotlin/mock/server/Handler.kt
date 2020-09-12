@@ -1,10 +1,11 @@
 package mock.server
 
-import com.juul.mcumgr.TaskStatsResponse
-import com.juul.mcumgr.message.Command
-import com.juul.mcumgr.message.Group
-import com.juul.mcumgr.message.Operation
+import com.juul.mcumgr.serialization.Command
+import com.juul.mcumgr.serialization.Group
+import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.message.ResponseCode
+import com.juul.mcumgr.message.TaskStatsResponse
 import com.juul.mcumgr.serialization.Message
 import kotlin.math.min
 
@@ -37,7 +38,7 @@ val defaultHandlers = listOf<Handler>(
  * Error Handlers
  */
 
-fun Handler.toErrorResponseHandler(code: Response.Code): ErrorResponseHandler {
+fun Handler.toErrorResponseHandler(code: ResponseCode): ErrorResponseHandler {
     return ErrorResponseHandler(code, group, command)
 }
 
@@ -46,7 +47,7 @@ fun Handler.toThrowHandler(throwable: Throwable): ThrowHandler {
 }
 
 class ErrorResponseHandler(
-    val code: Response.Code,
+    val code: ResponseCode,
     override val group: Group,
     override val command: Command
 ) : Handler {
@@ -134,14 +135,14 @@ class ImageWriteHandler : Handler {
 class CoreReadHandler : Handler {
 
     override val group = Group.Image
-    override val command = Command.Image.CoreLoad
+    override val command = Command.Image.CoreDownload
     override val supportedOperations = readOnly
 
     var chunkSize: Int = 512
     var coreData: ByteArray? = null
 
     override fun handle(message: Message): Message {
-        val core = coreData ?: return message.toResponse(Response.Code.NoEntry)
+        val core = coreData ?: return message.toResponse(ResponseCode.NoEntry)
         val payload = message.payloadMap
         val off: Int = payload.getNotNull("off")
 
@@ -164,7 +165,7 @@ class CoreReadHandler : Handler {
 class FileWriteHandler : Handler {
 
     override val group = Group.File
-    override val command = Command.Files.File
+    override val command = Command.File.File
     override val supportedOperations = writeOnly
 
     val files: MutableMap<String, ByteArray> = mutableMapOf()
@@ -179,7 +180,7 @@ class FileWriteHandler : Handler {
                 val len: Int = payload.getNotNull("len")
                 files[fileName] = ByteArray(len)
             }
-            val file = files[fileName] ?: return message.toResponse(Response.Code.NoEntry)
+            val file = files[fileName] ?: return message.toResponse(ResponseCode.NoEntry)
             data.copyInto(file, off)
         }
 
@@ -191,7 +192,7 @@ class FileWriteHandler : Handler {
 class FileReadHandler : Handler {
 
     override val group = Group.File
-    override val command = Command.Files.File
+    override val command = Command.File.File
     override val supportedOperations = readOnly
 
     var chunkSize: Int = 512
@@ -201,7 +202,7 @@ class FileReadHandler : Handler {
         val payload = message.payloadMap
         val off: Int = payload.getNotNull("off")
         val fileName: String = payload.getNotNull("name")
-        val file = files[fileName] ?: return message.toResponse(Response.Code.NoEntry)
+        val file = files[fileName] ?: return message.toResponse(ResponseCode.NoEntry)
 
         val size = min(chunkSize, file.size - off)
         val responsePayload = mutableMapOf(

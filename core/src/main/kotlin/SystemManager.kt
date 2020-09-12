@@ -11,17 +11,17 @@ import com.juul.mcumgr.message.TaskStatsResponse
 
 class SystemManager(val transport: Transport) {
 
-    suspend fun echo(echo: String): McuMgrResult<EchoResponse> =
+    suspend fun echo(echo: String): SendResult<EchoResponse> =
         transport.send(EchoRequest(echo))
 
     suspend fun consoleEchoControl(
         enabled: Boolean
-    ): McuMgrResult<ConsoleEchoControlResponse> =
+    ): SendResult<ConsoleEchoControlResponse> =
         transport.send(ConsoleEchoControlRequest(enabled))
 
-    suspend fun taskStats(): McuMgrResult<TaskStatsResponse> =
+    suspend fun taskStats(): SendResult<TaskStatsResponse> =
         transport.send(TaskStatsRequest)
 
-    suspend fun memoryPoolStats(): McuMgrResult<MemoryPoolStatsResponse> =
+    suspend fun memoryPoolStats(): SendResult<MemoryPoolStatsResponse> =
         transport.send(MemoryPoolStatsRequest)
 }

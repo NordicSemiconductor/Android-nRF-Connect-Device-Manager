@@ -1,13 +1,13 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Response
 import okio.Buffer
 import okio.BufferedSource
 
-fun <T : Response> ByteArray.decode(protocol: Protocol, type: Class<T>): McuMgrResult<T> {
+fun <T : Response> ByteArray.decode(protocol: Protocol, type: Class<T>): SendResult<T> {
     val message = decode(protocol)
     return message.toResult(type)
 }

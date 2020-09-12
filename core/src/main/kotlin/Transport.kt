@@ -4,7 +4,7 @@ import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Request
 import com.juul.mcumgr.message.Response
 
-suspend inline fun <reified T : Response> Transport.send(request: Request): McuMgrResult<T> =
+suspend inline fun <reified T : Response> Transport.send(request: Request): SendResult<T> =
     send(request, T::class.java)
 
 interface Transport {
@@ -13,5 +13,6 @@ interface Transport {
     val mtu: Int
     val protocol: Protocol
 
-    suspend fun <T : Response> send(request: Request, responseType: Class<T>): McuMgrResult<T>
+    suspend fun <T : Response> Transport.send(request: Request, responseType: Class<T>): SendResult<T>
+
 }

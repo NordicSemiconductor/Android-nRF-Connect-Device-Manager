@@ -1,11 +1,10 @@
 import com.juul.mcumgr.McuManager
-import com.juul.mcumgr.McuMgrResult
-import com.juul.mcumgr.catchResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.getOrThrow
-import com.juul.mcumgr.message.Command
+import com.juul.mcumgr.serialization.Command
 import com.juul.mcumgr.message.Protocol
-import com.juul.mcumgr.message.Group
-import com.juul.mcumgr.message.Operation
+import com.juul.mcumgr.serialization.Group
+import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.transfer.FileUploader
 import com.juul.mcumgr.transfer.ImageUploader
 import kotlin.random.Random
@@ -19,27 +18,6 @@ import mock.server.toThrowHandler
 import org.junit.Test
 import utils.ExpectedException
 import utils.assertByteArrayEquals
-
-suspend fun McuManager.uploadImage(
-    data: ByteArray,
-    windowCapacity: Int = 1
-): McuMgrResult<Unit> {
-    val uploader = ImageUploader(data, transport, windowCapacity)
-    return catchResult {
-        uploader.upload()
-    }
-}
-
-suspend fun McuManager.uploadFile(
-    fileName: String,
-    data: ByteArray,
-    windowCapacity: Int = 1
-): McuMgrResult<Unit> {
-    val uploader = FileUploader(fileName, data, transport, windowCapacity)
-    return catchResult {
-        uploader.upload()
-    }
-}
 
 class UploaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -112,7 +90,7 @@ class UploaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     fun `image upload failure`() = runBlocking {
         server.overrides.add(ImageWriteHandler().toThrowHandler(ExpectedException))
         val result = mcuManager.uploadImage(defaultData, defaultCapacity)
-        result as McuMgrResult.Failure
+        result as SendResult.Failure
         assertEquals(ExpectedException, result.throwable)
     }
 
@@ -129,10 +107,32 @@ class UploaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     fun `file upload failure`() = runBlocking {
         server.overrides.add(FileWriteHandler().toThrowHandler(ExpectedException))
         val result = mcuManager.uploadFile(defaultFileName, defaultData, defaultCapacity)
-        result as McuMgrResult.Failure
+        result as SendResult.Failure
         assertEquals(ExpectedException, result.throwable)
     }
 }
+
+suspend fun McuManager.uploadImage(
+    data: ByteArray,
+    windowCapacity: Int = 1
+): SendResult<Unit> {
+    val uploader = ImageUploader(data, transport, windowCapacity)
+    return catchResult {
+        uploader.upload()
+    }
+}
+
+suspend fun McuManager.uploadFile(
+    fileName: String,
+    data: ByteArray,
+    windowCapacity: Int = 1
+): SendResult<Unit> {
+    val uploader = FileUploader(fileName, data, transport, windowCapacity)
+    return catchResult {
+        uploader.upload()
+    }
+}
+
 
 fun Server.getImageUploadData(): ByteArray {
     val handler =
@@ -143,7 +143,7 @@ fun Server.getImageUploadData(): ByteArray {
 
 fun Server.getFileUploadData(fileName: String): ByteArray {
     val handler =
-        checkNotNull(findHandler(Operation.Write, Group.File, Command.Files.File))
+        checkNotNull(findHandler(Operation.Write, Group.File, Command.File.File))
     handler as FileWriteHandler
     return checkNotNull(handler.files[fileName]) { "file $fileName does not exist" }
 }

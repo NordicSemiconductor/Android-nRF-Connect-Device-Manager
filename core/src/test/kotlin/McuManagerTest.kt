@@ -1,11 +1,10 @@
 import com.juul.mcumgr.McuManager
-import com.juul.mcumgr.McuMgrResult.Error
-import com.juul.mcumgr.McuMgrResult.Failure
-import com.juul.mcumgr.McuMgrResult.Success
-import com.juul.mcumgr.TaskStatsResponse
+import com.juul.mcumgr.SendResult
+import com.juul.mcumgr.SendResult.Failure
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.message.Protocol
-import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.message.ResponseCode
+import com.juul.mcumgr.message.TaskStatsResponse
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
@@ -27,11 +26,11 @@ class McuManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     private val mcuManager = McuManager(transport)
 
     @Test
-    fun `error response result expected`() = runBlocking {
-        server.overrides.add(EchoHandler().toErrorResponseHandler(Response.Code.BadState))
+    fun `error code response result expected`() = runBlocking {
+        server.overrides.add(EchoHandler().toErrorResponseHandler(ResponseCode.BadState))
         when (val result = mcuManager.system.echo("test")) {
-            is Error -> assertEquals(Response.Code.BadState, result.code)
-            is Success, is Failure -> error("expected McuMgrResult.Error, got $result")
+            is SendResult.Response -> assertEquals(ResponseCode.BadState, result.code)
+            is Failure -> error("expected McuMgrResult.Response, got $result")
         }
     }
 
@@ -40,7 +39,7 @@ class McuManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
         server.overrides.add(EchoHandler().toThrowHandler(ExpectedException))
         when (val result = mcuManager.system.echo("test")) {
             is Failure -> assertEquals(ExpectedException, result.throwable)
-            is Success, is Error -> error("expected failure exception, got $result")
+            is SendResult.Response -> error("expected failure exception, got $result")
         }
     }
 

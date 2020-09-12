@@ -1,10 +1,10 @@
 package mock.server
 
-import com.juul.mcumgr.message.Command
+import com.juul.mcumgr.serialization.Command
 import com.juul.mcumgr.message.Protocol
-import com.juul.mcumgr.message.Group
-import com.juul.mcumgr.message.Operation
-import com.juul.mcumgr.message.Response.Code
+import com.juul.mcumgr.serialization.Group
+import com.juul.mcumgr.serialization.Operation
+import com.juul.mcumgr.message.ResponseCode
 import com.juul.mcumgr.serialization.Message
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
@@ -29,7 +29,7 @@ class Server(
 
         // First check the override then default handlers. If none exist, return NotSupported error
         val handler = overrides.findHandler(message) ?: handlers.findHandler(message)
-            ?: return message.toResponse(Code.NotSupported).encode(protocol)
+            ?: return message.toResponse(ResponseCode.NotSupported).encode(protocol)
 
         val response = handler.handle(message)
         delay(delay)

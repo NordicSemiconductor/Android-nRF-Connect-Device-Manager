@@ -14,11 +14,11 @@ class FileManager(val transport: Transport) {
         data: ByteArray,
         offset: Int,
         length: Int? = null
-    ): McuMgrResult<FileWriteResponse> {
+    ): SendResult<FileWriteResponse> {
         return transport.send(FileWriteRequest(fileName, data, offset, length))
     }
 
-    suspend fun fileRead(fileName: String, offset: Int): McuMgrResult<FileReadResponse> =
+    suspend fun fileRead(fileName: String, offset: Int): SendResult<FileReadResponse> =
         transport.send(FileReadRequest(fileName, offset))
 
     fun fileUploader(

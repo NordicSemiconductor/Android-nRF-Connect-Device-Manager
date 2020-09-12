@@ -1,4 +1,4 @@
-package com.juul.mcumgr.message
+package com.juul.mcumgr.serialization
 
 sealed class Command(val value: Int) {
 
@@ -16,7 +16,7 @@ sealed class Command(val value: Int) {
         object Upload : Command(1)
         object File : Command(2)
         object CoreList : Command(3)
-        object CoreLoad : Command(4)
+        object CoreDownload : Command(4)
         object Erase : Command(5)
         object EraseState : Command(6)
     }
@@ -47,7 +47,7 @@ sealed class Command(val value: Int) {
         // TODO Look at source
     }
 
-    sealed class Files {
+    sealed class File {
         object File : Command(0)
     }
 }

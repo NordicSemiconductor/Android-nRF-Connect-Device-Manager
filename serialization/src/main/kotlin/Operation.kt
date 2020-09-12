@@ -1,4 +1,4 @@
-package com.juul.mcumgr.message
+package com.juul.mcumgr.serialization
 
 sealed class Operation(val value: Int) {
     object Read : Operation(0)

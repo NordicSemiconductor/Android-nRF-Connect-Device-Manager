@@ -1,6 +1,6 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.onErrorOrFailure
 import com.juul.mcumgr.onSuccess
@@ -35,7 +35,7 @@ abstract class Uploader(
         data: ByteArray,
         offset: Int,
         length: Int?
-    ): McuMgrResult<Response>
+    ): SendResult<Response>
 
     @Throws
     suspend fun upload() = coroutineScope {
@@ -57,7 +57,7 @@ abstract class Uploader(
                         _progress.value = UploadProgress(current, data.size)
                     }
                     .onErrorOrFailure {
-                        val recoveryPermit = window.fail()
+                        window.fail()
                         // Retry sending the request. Recover the window on success or throw
                         // on failure.
                         retryWriteChunk(data, transmitOffset, chunkSize, RETRIES)
@@ -78,7 +78,7 @@ abstract class Uploader(
         data: ByteArray,
         offset: Int,
         chunkSize: Int
-    ): McuMgrResult<Response> {
+    ): SendResult<Response> {
         val chunk = data.copyOfRange(offset, offset + chunkSize)
         val length = if (offset == 0) {
             data.size
@@ -98,8 +98,8 @@ abstract class Uploader(
         offset: Int,
         chunkSize: Int,
         times: Int
-    ): McuMgrResult<Response> {
-        var error: McuMgrResult<Response>? = null
+    ): SendResult<Response> {
+        var error: SendResult<Response>? = null
         repeat(times) {
             val result = writeChunk(data, offset, chunkSize)
             when {

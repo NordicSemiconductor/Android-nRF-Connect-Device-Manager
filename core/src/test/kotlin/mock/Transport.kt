@@ -1,6 +1,6 @@
 package mock
 
-import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.Transport
 import com.juul.mcumgr.message.Protocol
 import com.juul.mcumgr.message.Request
@@ -11,16 +11,18 @@ import mock.server.Server
 
 class MockTransport(
     override val mtu: Int,
-    val protocol: Protocol,
+    override val protocol: Protocol,
     private val server: Server
 ) : Transport {
 
-    override suspend fun <T : Response> send(request: Request, responseType: Class<T>): McuMgrResult<T> {
+    override suspend fun <T : Response> Transport.send(
+        request: Request, responseType: Class<T>
+    ): SendResult<T> {
         val requestData = request.encode(protocol, SequenceNumber.next)
         val responseData = try {
              server.handle(requestData)
         } catch (e: Throwable) {
-            return McuMgrResult.Failure(e)
+            return SendResult.Failure(e)
         }
         return responseData.decode(protocol, responseType)
     }

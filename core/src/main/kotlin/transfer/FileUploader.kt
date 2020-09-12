@@ -1,9 +1,9 @@
 package com.juul.mcumgr.transfer
 
 import com.juul.mcumgr.FileManager
-import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.Transport
-import com.juul.mcumgr.map
+import com.juul.mcumgr.mapResponse
 
 class FileUploader(
     private val fileName: String,
@@ -26,8 +26,8 @@ class FileUploader(
         data: ByteArray,
         offset: Int,
         length: Int?
-    ): McuMgrResult<Response> =
-        fileManager.fileWrite(fileName, data, offset, length).map { response ->
+    ): SendResult<Response> =
+        fileManager.fileWrite(fileName, data, offset, length).mapResponse { response ->
             Response(response.offset)
         }
 }

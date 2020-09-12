@@ -1,6 +1,6 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.McuMgrResult
+import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.getOrElse
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.onSuccess
@@ -24,7 +24,7 @@ abstract class Downloader(private val windowCapacity: Int) {
 
     data class Response(val data: ByteArray, val offset: Int, val length: Int?)
 
-    abstract suspend fun read(offset: Int): McuMgrResult<Response>
+    abstract suspend fun read(offset: Int): SendResult<Response>
 
     @Throws
     suspend fun download(): ByteArray = coroutineScope {
@@ -51,7 +51,7 @@ abstract class Downloader(private val windowCapacity: Int) {
                 val response = read(transmitOffset)
                     .onSuccess { window.success() }
                     .getOrElse {
-                        val recoveryPermit = window.fail()
+                        window.fail()
                         // Retry sending the request. Recover the window on success or throw
                         // on failure.
                         retryRead(transmitOffset, RETRIES)
@@ -82,8 +82,8 @@ abstract class Downloader(private val windowCapacity: Int) {
     private suspend fun retryRead(
         offset: Int,
         times: Int
-    ): McuMgrResult<Response> {
-        var error: McuMgrResult<Response>? = null
+    ): SendResult<Response> {
+        var error: SendResult<Response>? = null
         repeat(times) {
             val result = read(offset)
             when {

@@ -4,8 +4,6 @@ import com.juul.mcumgr.message.CoreReadRequest
 import com.juul.mcumgr.message.CoreReadResponse
 import com.juul.mcumgr.message.ImageWriteRequest
 import com.juul.mcumgr.message.ImageWriteResponse
-import com.juul.mcumgr.message.Request
-import com.juul.mcumgr.message.Response
 import com.juul.mcumgr.transfer.CoreDownloader
 import com.juul.mcumgr.transfer.ImageUploader
 
@@ -16,10 +14,10 @@ class ImageManager(val transport: Transport) {
         offset: Int,
         length: Int? = null,
         hash: ByteArray? = null
-    ): McuMgrResult<ImageWriteResponse> =
+    ): SendResult<ImageWriteResponse> =
         transport.send(ImageWriteRequest(data, offset, length, hash))
 
-    suspend fun coreRead(offset: Int): McuMgrResult<CoreReadResponse> =
+    suspend fun coreRead(offset: Int): SendResult<CoreReadResponse> =
         transport.send(CoreReadRequest(offset))
 
     fun imageUploader(
