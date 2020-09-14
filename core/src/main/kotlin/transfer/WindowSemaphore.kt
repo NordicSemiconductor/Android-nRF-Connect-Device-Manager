@@ -55,7 +55,7 @@ internal class WindowSemaphore(
     suspend fun fail(): Unit = mutex.withLock {
         growing = false
     }
-    
+
     /**
      * Recover from a [fail]. If the window is able to shrink, reduce the size, otherwise release
      * the permit to avoid deadlock.

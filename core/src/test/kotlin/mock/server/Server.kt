@@ -1,11 +1,11 @@
 package mock.server
 
-import com.juul.mcumgr.serialization.Command
 import com.juul.mcumgr.command.Protocol
-import com.juul.mcumgr.serialization.Group
-import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.command.ResponseCode
+import com.juul.mcumgr.serialization.Command
+import com.juul.mcumgr.serialization.Group
 import com.juul.mcumgr.serialization.Message
+import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
 import kotlinx.coroutines.delay
@@ -44,10 +44,9 @@ class Server(
         }
     }
 
-    inline fun <reified T: Handler> findHandler(): T =
-        overrides.firstOrNull { it is T } as T? ?:
-            handlers.firstOrNull { it is T } as T? ?: error("handler ${T::class} not found")
-
+    inline fun <reified T : Handler> findHandler(): T =
+        overrides.firstOrNull { it is T } as T?
+            ?: handlers.firstOrNull { it is T } as T? ?: error("handler ${T::class} not found")
 
     fun findHandler(
         operation: Operation,

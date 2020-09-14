@@ -16,7 +16,8 @@ class MockTransport(
 ) : Transport {
 
     override suspend fun <T : Response> Transport.send(
-        request: Request, responseType: Class<T>
+        request: Request,
+        responseType: Class<T>
     ): SendResult<T> {
         val requestData = request.encode(protocol, SequenceNumber.next)
         val responseData = try {

@@ -14,5 +14,4 @@ interface Transport {
     val protocol: Protocol
 
     suspend fun <T : Response> Transport.send(request: Request, responseType: Class<T>): SendResult<T>
-
 }

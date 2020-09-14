@@ -1,5 +1,3 @@
 package com.juul.mcumgr
 
-class StatsManager(val transport: Transport) {
-
-}
+class StatsManager(val transport: Transport)

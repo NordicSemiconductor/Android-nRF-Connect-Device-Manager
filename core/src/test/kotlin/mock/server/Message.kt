@@ -2,10 +2,10 @@ package mock.server
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.command.ResponseCode
 import com.juul.mcumgr.serialization.Header
 import com.juul.mcumgr.serialization.Message
+import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.serialization.cbor
 
 fun Message.toResponse(

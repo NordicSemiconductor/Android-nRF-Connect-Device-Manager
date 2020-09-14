@@ -1,23 +1,18 @@
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.SendResult.Failure
-import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.command.Protocol
 import com.juul.mcumgr.command.ResponseCode
-import com.juul.mcumgr.command.TaskStatsResponse
-import kotlin.random.Random
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.EchoHandler
 import mock.server.Server
-import mock.server.TaskStatsHandler
 import mock.server.toErrorResponseHandler
 import mock.server.toThrowHandler
 import org.junit.Test
 import utils.ExpectedException
-import utils.assertByteArrayEquals
-import kotlin.test.assertNull
 
 class McuManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 

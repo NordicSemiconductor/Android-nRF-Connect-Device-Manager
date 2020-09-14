@@ -1,6 +1,3 @@
 package com.juul.mcumgr
 
-
-class RunManager(val transport: Transport) {
-
-}
+class RunManager(val transport: Transport)

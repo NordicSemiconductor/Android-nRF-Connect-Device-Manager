@@ -3,6 +3,9 @@ import com.juul.mcumgr.command.MemoryPoolStatsResponse
 import com.juul.mcumgr.command.Protocol
 import com.juul.mcumgr.command.TaskStatsResponse
 import com.juul.mcumgr.getOrThrow
+import java.util.Date
+import java.util.TimeZone
+import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.ConsoleEchoControlHandler
@@ -12,9 +15,6 @@ import mock.server.Server
 import mock.server.TaskStatsHandler
 import mock.server.WriteDatetimeHandler
 import org.junit.Test
-import java.util.Date
-import java.util.TimeZone
-import kotlin.test.assertEquals
 
 class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 

@@ -1,14 +1,13 @@
 import com.juul.mcumgr.ImageManager
-import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.command.Protocol
 import com.juul.mcumgr.getOrThrow
+import kotlin.random.Random
+import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.Server
 import org.junit.Test
 import utils.assertByteArrayEquals
-import kotlin.random.Random
-import kotlin.test.assertEquals
 
 class ImageManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 

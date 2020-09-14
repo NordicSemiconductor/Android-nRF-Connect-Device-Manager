@@ -1,13 +1,13 @@
 package mock.server
 
 import com.juul.mcumgr.command.MemoryPoolStatsResponse
-import com.juul.mcumgr.serialization.Command
-import com.juul.mcumgr.serialization.Group
-import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.command.ResponseCode
 import com.juul.mcumgr.command.TaskStatsResponse
 import com.juul.mcumgr.dateToString
+import com.juul.mcumgr.serialization.Command
+import com.juul.mcumgr.serialization.Group
 import com.juul.mcumgr.serialization.Message
+import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.stringToDate
 import java.util.Date
 import java.util.TimeZone

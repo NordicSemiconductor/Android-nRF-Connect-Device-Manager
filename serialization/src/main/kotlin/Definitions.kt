@@ -222,7 +222,6 @@ internal sealed class Image {
         override val command: Command = Command.Image.Upload
     }
 
-
     /*
      * Core Read
      */
@@ -246,7 +245,6 @@ internal sealed class Image {
         override val group: Group = Group.Image
         override val command: Command = Command.Image.CoreDownload
     }
-
 }
 
 /**
@@ -304,6 +302,3 @@ internal sealed class File {
         override val command: Command = Command.File.File
     }
 }
-
-
-

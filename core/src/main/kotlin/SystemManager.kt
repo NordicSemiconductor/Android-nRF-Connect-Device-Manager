@@ -49,7 +49,6 @@ class SystemManager(val transport: Transport) {
         transport.send(ResetRequest)
 }
 
-
 /**
  * Format a Date and a TimeZone into a String which McuManager will accept.
  *
