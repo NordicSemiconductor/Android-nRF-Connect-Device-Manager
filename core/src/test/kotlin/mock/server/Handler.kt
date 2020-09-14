@@ -1,17 +1,21 @@
 package mock.server
 
+import com.juul.mcumgr.command.MemoryPoolStatsResponse
 import com.juul.mcumgr.serialization.Command
 import com.juul.mcumgr.serialization.Group
 import com.juul.mcumgr.serialization.Operation
-import com.juul.mcumgr.message.Response
-import com.juul.mcumgr.message.ResponseCode
-import com.juul.mcumgr.message.TaskStatsResponse
+import com.juul.mcumgr.command.ResponseCode
+import com.juul.mcumgr.command.TaskStatsResponse
+import com.juul.mcumgr.dateToString
 import com.juul.mcumgr.serialization.Message
+import com.juul.mcumgr.stringToDate
+import java.util.Date
+import java.util.TimeZone
 import kotlin.math.min
 
-val readOnly = setOf(Operation.Read)
-val writeOnly = setOf(Operation.Write)
-val readWrite = setOf(Operation.Read, Operation.Write)
+private val readOnly: Set<Operation> = setOf(Operation.Read)
+private val writeOnly: Set<Operation> = setOf(Operation.Write)
+private val readWrite: Set<Operation> = setOf(Operation.Read, Operation.Write)
 
 /**
  * Handles a request with a specific group, command, and operation.
@@ -20,16 +24,24 @@ interface Handler {
 
     val group: Group
     val command: Command
-    val supportedOperations: Set<Operation>
+    val accept: Set<Operation>
 
     fun handle(message: Message): Message
 }
 
-val defaultHandlers = listOf<Handler>(
+val defaultHandlers: List<Handler> = listOf(
+    // System
     EchoHandler(),
+    ConsoleEchoControlHandler(),
     TaskStatsHandler(),
+    MemoryPoolStatsHandler(),
+    ReadDatetimeHandler(),
+    WriteDatetimeHandler(),
+    ResetHandler(),
+    // Image
     ImageWriteHandler(),
     CoreReadHandler(),
+    // File
     FileWriteHandler(),
     FileReadHandler()
 )
@@ -51,7 +63,7 @@ class ErrorResponseHandler(
     override val group: Group,
     override val command: Command
 ) : Handler {
-    override val supportedOperations = readWrite
+    override val accept = readWrite
 
     override fun handle(message: Message): Message {
         return message.toResponse(code)
@@ -64,7 +76,7 @@ class ThrowHandler(
     override val command: Command
 ) : Handler {
 
-    override val supportedOperations = readWrite
+    override val accept = readWrite
 
     override fun handle(message: Message): Message {
         throw throwable
@@ -79,7 +91,7 @@ class EchoHandler : Handler {
 
     override val group = Group.System
     override val command = Command.System.Echo
-    override val supportedOperations = readWrite
+    override val accept = readWrite
 
     override fun handle(message: Message): Message {
         val payload = message.payloadMap
@@ -89,16 +101,87 @@ class EchoHandler : Handler {
     }
 }
 
+class ConsoleEchoControlHandler : Handler {
+
+    override val group = Group.System
+    override val command = Command.System.ConsoleEchoControl
+    override val accept = writeOnly
+
+    var enabled: Boolean = false
+
+    override fun handle(message: Message): Message {
+        val payload = message.payloadMap
+        enabled = payload.getNotNull("echo")
+        return message.toResponse()
+    }
+}
+
 class TaskStatsHandler : Handler {
+
     override val group = Group.System
     override val command = Command.System.TaskStats
-    override val supportedOperations = readOnly
+    override val accept = readOnly
 
     var taskStats: MutableMap<String, TaskStatsResponse.Task> = mutableMapOf()
 
     override fun handle(message: Message): Message {
         val responsePayload = mapOf("tasks" to taskStats)
         return message.toResponse(payload = responsePayload)
+    }
+}
+
+class MemoryPoolStatsHandler : Handler {
+
+    override val group = Group.System
+    override val command = Command.System.MemoryPoolStats
+    override val accept = readOnly
+
+    var memoryPoolStats: MutableMap<String, MemoryPoolStatsResponse.MemoryPool> = mutableMapOf()
+
+    override fun handle(message: Message): Message {
+        val responsePayload = mapOf("mpools" to memoryPoolStats)
+        return message.toResponse(payload = responsePayload)
+    }
+}
+
+class ReadDatetimeHandler : Handler {
+
+    override val group = Group.System
+    override val command = Command.System.Datetime
+    override val accept = readOnly
+
+    var date: Date = Date()
+
+    override fun handle(message: Message): Message {
+        val responsePayload =
+            mapOf("datetime" to dateToString(date, TimeZone.getTimeZone("UTC")))
+        return message.toResponse(payload = responsePayload)
+    }
+}
+
+class WriteDatetimeHandler : Handler {
+
+    override val group = Group.System
+    override val command = Command.System.Datetime
+    override val accept = writeOnly
+
+    var date: Date = Date()
+
+    override fun handle(message: Message): Message {
+        val payload = message.payloadMap
+        date = stringToDate(payload.getNotNull("datetime"))
+        return message.toResponse()
+    }
+}
+
+class ResetHandler : Handler {
+
+    override val group = Group.System
+    override val command = Command.System.Reset
+    override val accept = writeOnly
+
+    override fun handle(message: Message): Message {
+        return message.toResponse()
     }
 }
 
@@ -110,7 +193,7 @@ class ImageWriteHandler : Handler {
 
     override val group = Group.Image
     override val command = Command.Image.Upload
-    override val supportedOperations = writeOnly
+    override val accept = writeOnly
 
     var imageData = ByteArray(0)
 
@@ -136,7 +219,7 @@ class CoreReadHandler : Handler {
 
     override val group = Group.Image
     override val command = Command.Image.CoreDownload
-    override val supportedOperations = readOnly
+    override val accept = readOnly
 
     var chunkSize: Int = 512
     var coreData: ByteArray? = null
@@ -166,7 +249,7 @@ class FileWriteHandler : Handler {
 
     override val group = Group.File
     override val command = Command.File.File
-    override val supportedOperations = writeOnly
+    override val accept = writeOnly
 
     val files: MutableMap<String, ByteArray> = mutableMapOf()
 
@@ -193,7 +276,7 @@ class FileReadHandler : Handler {
 
     override val group = Group.File
     override val command = Command.File.File
-    override val supportedOperations = readOnly
+    override val accept = readOnly
 
     var chunkSize: Int = 512
     val files: MutableMap<String, ByteArray> = mutableMapOf()

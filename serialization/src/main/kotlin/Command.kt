@@ -7,7 +7,7 @@ sealed class Command(val value: Int) {
         object ConsoleEchoControl : Command(1)
         object TaskStats : Command(2)
         object MemoryPoolStats : Command(3)
-        object DateTime : Command(4)
+        object Datetime : Command(4)
         object Reset : Command(5)
     }
 

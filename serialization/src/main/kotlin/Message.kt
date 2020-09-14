@@ -2,7 +2,7 @@ package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.juul.mcumgr.SendResult
-import com.juul.mcumgr.message.ResponseCode
+import com.juul.mcumgr.command.ResponseCode
 import java.io.IOException
 
 data class Message(
@@ -27,9 +27,10 @@ fun <T> Message.toResult(type: Class<T>): SendResult<T> {
         val response = cbor.treeToValue(payload, type)
         SendResult.Response(response, code)
     } catch (e: IOException) {
-        // Failed to parse full response. Try to get code.
+        // Failed to parse full response. If rc is not present or indicates success, then we know
+        // something went wrong (i.e. this is not a normal error response).
         when (rawCode) {
-            -1 -> SendResult.Failure(e)
+            -1, 0 -> SendResult.Failure(e)
             else -> SendResult.Response(null, code)
         }
     }

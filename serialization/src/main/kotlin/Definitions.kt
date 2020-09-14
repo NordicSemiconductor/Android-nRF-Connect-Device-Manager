@@ -3,9 +3,9 @@ package com.juul.mcumgr.serialization
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
-val readOnly: Set<Operation> = setOf(Operation.Read)
-val writeOnly: Set<Operation> = setOf(Operation.Write)
-val readWrite: Set<Operation> = setOf(Operation.Read, Operation.Write)
+private val readOnly: Set<Operation> = setOf(Operation.Read)
+private val writeOnly: Set<Operation> = setOf(Operation.Write)
+private val readWrite: Set<Operation> = setOf(Operation.Read, Operation.Write)
 
 /**
  * The serialization object defining a request.
@@ -58,7 +58,21 @@ internal sealed class System {
      * Console Echo Control
      */
 
-    // TODO
+    data class ConsoleEchoControlRequest(
+        @JsonProperty("echo") val enabled: Boolean
+    ) : RequestDefinition() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.System
+        override val command: Command = Command.System.ConsoleEchoControl
+    }
+
+    object ConsoleEchoControlResponse : ResponseDefinition() {
+
+        override val accept: Set<Operation> = writeOnly
+        override val group: Group = Group.System
+        override val command: Command = Command.System.ConsoleEchoControl
+    }
 
     /*
      * Task Stats
@@ -96,25 +110,98 @@ internal sealed class System {
      * Memory Pool Stats
      */
 
-    // TODO
+    object MemoryPoolStatsRequest : RequestDefinition() {
+
+        override val operation: Operation = Operation.Read
+        override val group: Group = Group.System
+        override val command: Command = Command.System.MemoryPoolStats
+    }
+
+    data class MemoryPoolStatsResponse(
+        @JsonProperty("mpools") val memoryPools: Map<String, MemoryPool>
+    ) : ResponseDefinition() {
+
+        override val accept: Set<Operation> = readOnly
+        override val group: Group = Group.System
+        override val command: Command = Command.System.MemoryPoolStats
+
+        data class MemoryPool(
+            @JsonProperty("blksiz") val blockSize: Int,
+            @JsonProperty("nblks") val blocks: Int,
+            @JsonProperty("nfree") val freeBlocks: Int,
+            @JsonProperty("min") val freeMinimum: Int
+        )
+    }
+
+    /*
+     * Read Datetime
+     */
+
+    object ReadDatetimeRequest : RequestDefinition() {
+
+        override val operation: Operation = Operation.Read
+        override val group: Group = Group.System
+        override val command: Command = Command.System.Datetime
+    }
+
+    data class ReadDatetimeResponse(
+        @JsonProperty("datetime") val datetime: String
+    ) : ResponseDefinition() {
+
+        override val accept: Set<Operation> = readOnly
+        override val group: Group = Group.System
+        override val command: Command = Command.System.Datetime
+    }
+
+    /*
+     * Write Datetime
+     */
+
+    data class WriteDatetimeRequest(
+        @JsonProperty("datetime") val datetime: String
+    ) : RequestDefinition() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.System
+        override val command: Command = Command.System.Datetime
+    }
+
+    object WriteDatetimeResponse : ResponseDefinition() {
+
+        override val accept: Set<Operation> = writeOnly
+        override val group: Group = Group.System
+        override val command: Command = Command.System.Datetime
+    }
 
     /*
      * Reset
      */
 
-    // TODO
+    object ResetRequest : RequestDefinition() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.System
+        override val command: Command = Command.System.Reset
+    }
+
+    object ResetResponse : ResponseDefinition() {
+
+        override val accept: Set<Operation> = writeOnly
+        override val group: Group = Group.System
+        override val command: Command = Command.System.Reset
+    }
 }
 
 /**
  * Image group request and response definitions.
  */
-sealed class Image {
+internal sealed class Image {
 
     /*
      * Image Write
      */
 
-    internal data class ImageWriteRequest(
+    data class ImageWriteRequest(
         @JsonProperty("data") val data: ByteArray,
         @JsonProperty("off") val offset: Int,
         @JsonProperty("len") val size: Int? = null,
@@ -126,7 +213,7 @@ sealed class Image {
         override val command: Command = Command.Image.Upload
     }
 
-    internal data class ImageWriteResponse(
+    data class ImageWriteResponse(
         @JsonProperty("off") val offset: Int
     ) : ResponseDefinition() {
 
@@ -140,7 +227,7 @@ sealed class Image {
      * Core Read
      */
 
-    internal data class CoreReadRequest(
+    data class CoreReadRequest(
         @JsonProperty("off") val offset: Int
     ) : RequestDefinition() {
 
@@ -149,7 +236,7 @@ sealed class Image {
         override val command: Command = Command.Image.CoreDownload
     }
 
-    internal data class CoreReadResponse(
+    data class CoreReadResponse(
         @JsonProperty("data") val data: ByteArray,
         @JsonProperty("off") val offset: Int,
         @JsonProperty("len") val length: Int? = null
@@ -167,12 +254,11 @@ sealed class Image {
  */
 internal sealed class File {
 
-
     /*
      * File Write
      */
 
-    internal data class WriteRequest(
+    data class WriteRequest(
         @JsonProperty("name") val fileName: String,
         @JsonProperty("data") val data: ByteArray,
         @JsonProperty("off") val offset: Int,
@@ -184,7 +270,7 @@ internal sealed class File {
         override val command: Command = Command.File.File
     }
 
-    internal data class WriteResponse(
+    data class WriteResponse(
         @JsonProperty("off") val offset: Int
     ) : ResponseDefinition() {
 
@@ -197,7 +283,7 @@ internal sealed class File {
      * File Read
      */
 
-    internal data class ReadRequest(
+    data class ReadRequest(
         @JsonProperty("name") val fileName: String,
         @JsonProperty("off") val offset: Int
     ) : RequestDefinition() {
@@ -207,7 +293,7 @@ internal sealed class File {
         override val command: Command = Command.File.File
     }
 
-    internal data class ReadResponse(
+    data class ReadResponse(
         @JsonProperty("data") val data: ByteArray,
         @JsonProperty("off") val offset: Int,
         @JsonProperty("len") val length: Int? = null

@@ -1,10 +1,10 @@
 package mock.server
 
 import com.juul.mcumgr.serialization.Command
-import com.juul.mcumgr.message.Protocol
+import com.juul.mcumgr.command.Protocol
 import com.juul.mcumgr.serialization.Group
 import com.juul.mcumgr.serialization.Operation
-import com.juul.mcumgr.message.ResponseCode
+import com.juul.mcumgr.command.ResponseCode
 import com.juul.mcumgr.serialization.Message
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
@@ -40,7 +40,7 @@ class Server(
         return find { handler ->
             message.header.group == handler.group.value &&
                 message.header.command == handler.command.value &&
-                handler.supportedOperations.map { it.value }.contains(message.header.operation)
+                handler.accept.map { it.value }.contains(message.header.operation)
         }
     }
 
@@ -66,7 +66,7 @@ class Server(
         return find { handler ->
             group == handler.group &&
                 command == handler.command &&
-                handler.supportedOperations.contains(operation)
+                handler.accept.contains(operation)
         }
     }
 }

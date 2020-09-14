@@ -1,7 +1,7 @@
 package com.juul.mcumgr
 
 import com.juul.mcumgr.SendResult.Failure
-import com.juul.mcumgr.message.ResponseCode
+import com.juul.mcumgr.command.ResponseCode
 
 class ErrorResponseException(
     val code: ResponseCode

@@ -1,9 +1,9 @@
 package com.juul.mcumgr
 
-import com.juul.mcumgr.message.CoreReadRequest
-import com.juul.mcumgr.message.CoreReadResponse
-import com.juul.mcumgr.message.ImageWriteRequest
-import com.juul.mcumgr.message.ImageWriteResponse
+import com.juul.mcumgr.command.CoreReadRequest
+import com.juul.mcumgr.command.CoreReadResponse
+import com.juul.mcumgr.command.ImageWriteRequest
+import com.juul.mcumgr.command.ImageWriteResponse
 import com.juul.mcumgr.transfer.CoreDownloader
 import com.juul.mcumgr.transfer.ImageUploader
 

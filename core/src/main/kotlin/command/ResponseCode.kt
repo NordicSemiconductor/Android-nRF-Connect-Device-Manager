@@ -1,4 +1,4 @@
-package com.juul.mcumgr.message
+package com.juul.mcumgr.command
 
 sealed class ResponseCode(val value: Int) {
 

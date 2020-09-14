@@ -1,4 +1,7 @@
-package com.juul.mcumgr.message
+package com.juul.mcumgr.command
+
+import com.juul.mcumgr.stringToDate
+import java.util.Date
 
 sealed class Request
 
@@ -25,18 +28,34 @@ object ConsoleEchoControlResponse : Response()
 object TaskStatsRequest : Request()
 
 data class TaskStatsResponse(
+    /** Map of task names to task stats. */
     val tasks: Map<String, Task>
 ) : Response() {
 
+    /**
+     * Contains information about a task running on the device.
+     */
     data class Task(
-        val priority: Int,
+        /** Priority of the task. */
+        val priority: Int, // TODO create constants for mynewt & zephyr task priorities
+        /** ID of the task. */
         val taskId: Int,
+        /**
+         * The task state, value meaning differes between Mynewt and Zephyr. See [MynewtState] or
+         * [ZephyrState] for parsing and details.
+         */
         val state: Int,
+        /** Stack usage, in bytes. */
         val stackUse: Int,
+        /** Size of this task's stack. */
         val stackSize: Int,
+        /** Total number of times this task has been context switched during execution. */
         val contextSwitchCount: Int,
+        /** Total task run time. */
         val runtime: Int,
+        /** Last check-in time. */
         val lastCheckIn: Int,
+        /** Next check-in time. */
         val nextCheckIn: Int
     ) {
 
@@ -96,6 +115,25 @@ data class MemoryPoolStatsResponse(
         val freeMinimum: Int
     )
 }
+
+object ReadDatetimeRequest : Request()
+
+data class ReadDatetimeResponse(
+    val datetime: String
+) : Response() {
+    /** The datetime from the response parsed to a [Date]. */
+    val date: Date = stringToDate(datetime)
+}
+
+data class WriteDatetimeRequest(
+    val datetime: String
+) : Request()
+
+object WriteDatetimeResponse : Response()
+
+object ResetRequest : Request()
+
+object ResetResponse : Response()
 
 //==========================
 // Image

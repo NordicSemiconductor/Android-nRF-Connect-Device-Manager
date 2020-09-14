@@ -1,8 +1,8 @@
 package com.juul.mcumgr
 
-import com.juul.mcumgr.message.Protocol
-import com.juul.mcumgr.message.Request
-import com.juul.mcumgr.message.Response
+import com.juul.mcumgr.command.Protocol
+import com.juul.mcumgr.command.Request
+import com.juul.mcumgr.command.Response
 
 suspend inline fun <reified T : Response> Transport.send(request: Request): SendResult<T> =
     send(request, T::class.java)

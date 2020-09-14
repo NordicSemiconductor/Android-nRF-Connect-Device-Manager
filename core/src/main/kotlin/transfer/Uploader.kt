@@ -1,7 +1,7 @@
 package com.juul.mcumgr.transfer
 
 import com.juul.mcumgr.SendResult
-import com.juul.mcumgr.message.Protocol
+import com.juul.mcumgr.command.Protocol
 import com.juul.mcumgr.onErrorOrFailure
 import com.juul.mcumgr.onSuccess
 import java.lang.IllegalArgumentException

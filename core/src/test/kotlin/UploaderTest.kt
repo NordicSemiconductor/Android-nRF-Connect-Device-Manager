@@ -2,7 +2,7 @@ import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.serialization.Command
-import com.juul.mcumgr.message.Protocol
+import com.juul.mcumgr.command.Protocol
 import com.juul.mcumgr.serialization.Group
 import com.juul.mcumgr.serialization.Operation
 import com.juul.mcumgr.transfer.FileUploader

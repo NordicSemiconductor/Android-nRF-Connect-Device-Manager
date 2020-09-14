@@ -1,4 +1,4 @@
-import com.juul.mcumgr.message.Protocol
+import com.juul.mcumgr.command.Protocol
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized

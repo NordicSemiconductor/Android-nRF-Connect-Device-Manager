@@ -1,9 +1,9 @@
 package com.juul.mcumgr
 
-import com.juul.mcumgr.message.FileReadRequest
-import com.juul.mcumgr.message.FileReadResponse
-import com.juul.mcumgr.message.FileWriteRequest
-import com.juul.mcumgr.message.FileWriteResponse
+import com.juul.mcumgr.command.FileReadRequest
+import com.juul.mcumgr.command.FileReadResponse
+import com.juul.mcumgr.command.FileWriteRequest
+import com.juul.mcumgr.command.FileWriteResponse
 import com.juul.mcumgr.transfer.FileDownloader
 import com.juul.mcumgr.transfer.FileUploader
 

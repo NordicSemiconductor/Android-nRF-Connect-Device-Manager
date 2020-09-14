@@ -19,8 +19,8 @@ compileTestKotlin {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7"
-    implementation "com.squareup.okio:okio:2.6.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8"
+    implementation "com.squareup.okio:okio:2.7.0"
 
     // We use ObjectMapper directly in test's mock server
     testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.0'
