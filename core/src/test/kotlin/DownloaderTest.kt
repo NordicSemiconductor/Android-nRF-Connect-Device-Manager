@@ -1,4 +1,4 @@
-import com.juul.mcumgr.ErrorCodeException
+import com.juul.mcumgr.ErrorResponseException
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.SendResult
 import com.juul.mcumgr.getOrThrow
@@ -152,7 +152,7 @@ fun Server.setFileData(fileName: String, data: ByteArray?) {
 internal inline fun <T, R> T.catchResult(block: T.() -> R): SendResult<R> {
     return try {
         SendResult.Response(block(), ResponseCode.Ok)
-    } catch (e: ErrorCodeException) {
+    } catch (e: ErrorResponseException) {
         SendResult.Response(null, e.code)
     } catch (e: Throwable) {
         SendResult.Failure(e)
