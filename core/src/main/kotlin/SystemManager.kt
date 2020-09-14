@@ -50,26 +50,19 @@ class SystemManager(val transport: Transport) {
 }
 
 /**
- * Format a Date and a TimeZone into a String which McuManager will accept.
- *
- * @param date     the date to format. If null, the current date on the device will be used.
- * @param timeZone the timezone of the given date. If null, the timezone on the device will be used.
- * @return A formatted string of the provided date and timezone.
+ * Format a [Date] and a [TimeZone] into a mcumgr formatted datetime.
  */
-fun dateToString(date: Date, timeZone: TimeZone): String {
+internal fun dateToString(date: Date, timeZone: TimeZone): String {
     val mcumgrFormat = SimpleDateFormat(MCUMGR_DATE_FORMAT, Locale("US"))
     mcumgrFormat.timeZone = timeZone
     return mcumgrFormat.format(date)
 }
 
 /**
- * Parse a date string returned by a mcumgr response to a unix timestamp.
- *
- * @param dateString the string to parse.
- * @return The Date of the string, null on error.
+ * Parse an mcumgr datetime string into a [Date]
  */
 @Throws(ParseException::class)
-fun stringToDate(dateString: String): Date {
+internal fun stringToDate(dateString: String): Date {
     val format = SimpleDateFormat(MCUMGR_DATE_FORMAT, Locale("US"))
     return format.parse(dateString)
 }
