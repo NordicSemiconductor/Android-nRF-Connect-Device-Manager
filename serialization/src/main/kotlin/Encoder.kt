@@ -1,23 +1,22 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.command.Protocol
-import com.juul.mcumgr.command.Request
+import com.juul.mcumgr.Protocol
+import com.juul.mcumgr.Request
 import okio.Buffer
 import okio.BufferedSink
 
 fun Request.encode(protocol: Protocol, sequenceNumber: Int = 0): ByteArray {
     // Convert to the definition to get operation, group, and command for header
-    val definition = toDefinition()
     val header = Header(
-        definition.operation.value,
-        definition.group.value,
-        definition.command.value,
+        operation.value,
+        group.value,
+        command.value,
         0,
         sequenceNumber,
         0
     )
-    val payload: ObjectNode = cbor.valueToTree(definition)
+    val payload: ObjectNode = cbor.valueToTree(this)
     val message = Message(header, payload)
     return message.encode(protocol)
 }
@@ -60,9 +59,4 @@ private fun BufferedSink.encodeHeader(header: Header) {
     writeShort(header.group)
     writeByte(header.sequenceNumber)
     writeByte(header.command)
-}
-
-private fun Request.toDefinition(): RequestDefinition {
-    val clazz = cbor.findMixInClassFor(this::class.java)
-    return cbor.convertValue(this, clazz) as RequestDefinition
 }

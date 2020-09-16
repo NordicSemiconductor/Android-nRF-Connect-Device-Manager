@@ -1,1 +1,3 @@
+include ':command'
+include ':api'
 include ':sample', ':mcumgr-core', ':mcumgr-ble', ':core', ':serialization'

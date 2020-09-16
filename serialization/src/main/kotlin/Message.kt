@@ -1,8 +1,9 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.SendResult
-import com.juul.mcumgr.command.ResponseCode
+import com.juul.mcumgr.CommandResult
+import com.juul.mcumgr.Operation
+import com.juul.mcumgr.ResponseCode
 import java.io.IOException
 
 data class Message(
@@ -19,19 +20,19 @@ data class Header(
     val flags: Byte
 )
 
-fun <T> Message.toResult(type: Class<T>): SendResult<T> {
+fun <T> Message.toResult(type: Class<T>): CommandResult<T> {
     check(isResponse) { "cannot transform request to result" }
     val rawCode = payload["rc"].asInt(-1)
     val code = ResponseCode.valueOf(rawCode) ?: ResponseCode.Ok
     return try {
         val response = cbor.treeToValue(payload, type)
-        SendResult.Response(response, code)
+        CommandResult.Response(response, code)
     } catch (e: IOException) {
         // Failed to parse full response. If rc is not present or indicates success, then we know
         // something went wrong (i.e. this is not a normal error response).
         when (rawCode) {
-            -1, 0 -> SendResult.Failure(e)
-            else -> SendResult.Response(null, code)
+            -1, 0 -> CommandResult.Failure(e)
+            else -> CommandResult.Response(null, code)
         }
     }
 }
