@@ -1,5 +1,8 @@
 package com.juul.mcumgr
 
+import com.juul.mcumgr.command.CommandResult
+import com.juul.mcumgr.command.Request
+import com.juul.mcumgr.command.Response
 import kotlin.reflect.KClass
 
 interface Transport {

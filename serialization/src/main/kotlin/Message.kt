@@ -1,9 +1,9 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.CommandResult
-import com.juul.mcumgr.Operation
-import com.juul.mcumgr.ResponseCode
+import com.juul.mcumgr.command.CommandResult
+import com.juul.mcumgr.command.Operation
+import com.juul.mcumgr.command.ResponseCode
 import java.io.IOException
 
 data class Message(

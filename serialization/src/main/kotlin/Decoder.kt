@@ -1,9 +1,9 @@
 package com.juul.mcumgr.serialization
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.juul.mcumgr.CommandResult
+import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.Protocol
-import com.juul.mcumgr.Response
+import com.juul.mcumgr.command.Response
 import okio.Buffer
 import okio.BufferedSource
 
