@@ -8,6 +8,7 @@ import com.juul.mcumgr.Transport
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
 import mock.server.Server
+import kotlin.reflect.KClass
 
 class MockTransport(
     override val mtu: Int,
@@ -17,7 +18,7 @@ class MockTransport(
 
     override suspend fun <T : Response> send(
         request: Request,
-        responseType: Class<T>
+        responseType: KClass<T>
     ): CommandResult<T> {
         val requestData = request.encode(protocol, SequenceNumber.next)
         val responseData = try {
@@ -25,7 +26,7 @@ class MockTransport(
         } catch (e: Throwable) {
             return CommandResult.Failure(e)
         }
-        return responseData.decode(protocol, responseType)
+        return responseData.decode(protocol, responseType.java)
     }
 }
 

@@ -26,7 +26,7 @@ class FileManager(val transport: Transport) {
         val request = File.WriteRequest(fileName, data, offset, length)
         return transport.send(
             request,
-            File.WriteResponse::class.java
+            File.WriteResponse::class
         ).mapResponse { response ->
             FileWriteResponse(response.offset)
         }
@@ -36,7 +36,7 @@ class FileManager(val transport: Transport) {
         val request = File.ReadRequest(fileName, offset)
         return transport.send(
             request,
-            File.ReadResponse::class.java
+            File.ReadResponse::class
         ).mapResponse { response ->
             FileReadResponse(response.data, response.offset, response.length)
         }

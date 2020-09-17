@@ -1,4 +1,5 @@
 import com.juul.mcumgr.Protocol
+import mock.server.Server
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized

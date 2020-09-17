@@ -18,7 +18,7 @@ class SystemManager(val transport: Transport) {
         val request = System.EchoRequest(echo)
         return transport.send(
             request,
-            System.EchoResponse::class.java
+            System.EchoResponse::class
         ).mapResponse { response ->
             EchoResponse(response.echo)
         }
@@ -30,7 +30,7 @@ class SystemManager(val transport: Transport) {
         val request = System.ConsoleEchoControlRequest(enabled)
         return transport.send(
             request,
-            System.ConsoleEchoControlResponse::class.java
+            System.ConsoleEchoControlResponse::class
         ).toUnitResult()
     }
 
@@ -38,7 +38,7 @@ class SystemManager(val transport: Transport) {
         val request = System.TaskStatsRequest
         return transport.send(
             request,
-            System.TaskStatsResponse::class.java
+            System.TaskStatsResponse::class
         ).mapResponse { response ->
             val tasks = response.tasks.mapValues { (_, task) ->
                 TaskStatsResponse.Task(
@@ -61,7 +61,7 @@ class SystemManager(val transport: Transport) {
         val request = System.MemoryPoolStatsRequest
         return transport.send(
             request,
-            System.MemoryPoolStatsResponse::class.java
+            System.MemoryPoolStatsResponse::class
         ).mapResponse { response ->
             val memoryPools = response.memoryPools.mapValues { (_, memoryPool) ->
                 MemoryPoolStatsResponse.MemoryPool(
@@ -79,7 +79,7 @@ class SystemManager(val transport: Transport) {
         val request = System.ReadDatetimeRequest
         return transport.send(
             request,
-            System.ReadDatetimeResponse::class.java
+            System.ReadDatetimeResponse::class
         ).mapResponse { response ->
             ReadDatetimeResponse(response.datetime)
         }
@@ -89,7 +89,7 @@ class SystemManager(val transport: Transport) {
         val request = System.WriteDatetimeRequest(dateToString(date, timeZone))
         return transport.send(
             request,
-            System.WriteDatetimeResponse::class.java
+            System.WriteDatetimeResponse::class
         ).toUnitResult()
     }
 
@@ -97,7 +97,7 @@ class SystemManager(val transport: Transport) {
         val request = System.ResetRequest
         return transport.send(
             request,
-            System.ResetResponse::class.java
+            System.ResetResponse::class
         ).toUnitResult()
     }
 }

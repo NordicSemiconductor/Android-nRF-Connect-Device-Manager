@@ -16,7 +16,7 @@ sealed class Command(val value: Int) {
         object Upload : Command(1)
         object File : Command(2)
         object CoreList : Command(3)
-        object CoreDownload : Command(4)
+        object CoreLoad : Command(4)
         object Erase : Command(5)
         object EraseState : Command(6)
     }

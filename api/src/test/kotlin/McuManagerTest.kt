@@ -7,12 +7,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
-import mock.server.EchoHandler
+import mock.server.handler.EchoHandler
 import mock.server.Server
-import mock.server.toErrorResponseHandler
-import mock.server.toThrowHandler
+import mock.server.handler.toErrorResponseHandler
+import mock.server.handler.toThrowHandler
 import org.junit.Test
-import utils.ExpectedException
+import util.ExpectedException
+import util.assertResponseCode
 
 class McuManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -23,14 +24,10 @@ class McuManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
     @Test
     fun `error code response result expected`() = runBlocking {
-        server.overrides.add(EchoHandler().toErrorResponseHandler(ResponseCode.BadState))
-        when (val result = mcuManager.system.echo("test")) {
-            is CommandResult.Response -> {
-                assertEquals(ResponseCode.BadState, result.code)
-                assertNull(result.body)
-            }
-            is Failure -> error("expected McuMgrResult.Response, got $result")
-        }
+        val code = ResponseCode.BadState
+        server.overrides.add(EchoHandler().toErrorResponseHandler(code))
+        mcuManager.system.echo("test").assertResponseCode(code)
+        Unit
     }
 
     @Test

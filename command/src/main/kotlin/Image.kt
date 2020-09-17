@@ -11,6 +11,80 @@ import com.juul.mcumgr.Operation
 sealed class Image {
 
     /*
+     * Read/Write Image State
+     */
+
+    object ReadStateRequest : Request() {
+
+        override val operation: Operation = Operation.Read
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.State
+    }
+
+    data class WriteStateRequest(
+        @JsonProperty("hash") val hash: ByteArray?,
+        @JsonProperty("confirm") val confirm: Boolean
+    ) : Request() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.State
+    }
+
+    data class StateResponse(
+        @JsonProperty("images") val images: List<ImageState>
+    ) : Response() {
+
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.State
+
+        data class ImageState(
+            @JsonProperty("slot") val slot: Int,
+            @JsonProperty("version") val version: String,
+            @JsonProperty("hash") val hash: ByteArray,
+            @JsonProperty("bootable") val bootable: Boolean,
+            @JsonProperty("pending") val pending: Boolean,
+            @JsonProperty("confirmed") val confirmed: Boolean,
+            @JsonProperty("active") val active: Boolean,
+            @JsonProperty("permanent") val permanent: Boolean
+        )
+    }
+
+    /*
+     * Image Erase
+     */
+
+    object EraseRequest : Request() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.Erase
+    }
+
+    object EraseResponse : Response() {
+
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.Erase
+    }
+
+    /*
+     * Image Erase State
+     */
+
+    object EraseStateRequest : Request() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.EraseState
+    }
+
+    object EraseStateResponse : Response() {
+
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.EraseState
+    }
+
+    /*
      * Image Write
      */
 
@@ -35,6 +109,23 @@ sealed class Image {
     }
 
     /*
+     * Core List
+     */
+
+    object CoreListRequest : Request() {
+
+        override val operation: Operation = Operation.Read
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.CoreList
+    }
+
+    object CoreListResponse : Response() {
+
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.CoreList
+    }
+
+    /*
      * Core Read
      */
 
@@ -44,7 +135,7 @@ sealed class Image {
 
         override val operation: Operation = Operation.Read
         override val group: Group = Group.Image
-        override val command: Command = Command.Image.CoreDownload
+        override val command: Command = Command.Image.CoreLoad
     }
 
     data class CoreReadResponse(
@@ -54,6 +145,23 @@ sealed class Image {
     ) : Response() {
 
         override val group: Group = Group.Image
-        override val command: Command = Command.Image.CoreDownload
+        override val command: Command = Command.Image.CoreLoad
+    }
+
+    /*
+     * Core Erase
+     */
+
+    object CoreEraseRequest : Request() {
+
+        override val operation: Operation = Operation.Write
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.CoreLoad
+    }
+
+    object CoreEraseResponse : Response() {
+
+        override val group: Group = Group.Image
+        override val command: Command = Command.Image.CoreLoad
     }
 }

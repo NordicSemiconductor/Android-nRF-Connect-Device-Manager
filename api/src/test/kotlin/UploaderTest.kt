@@ -8,13 +8,13 @@ import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
-import mock.server.FileWriteHandler
-import mock.server.ImageWriteHandler
+import mock.server.handler.FileWriteHandler
+import mock.server.handler.ImageWriteHandler
 import mock.server.Server
-import mock.server.toThrowHandler
+import mock.server.handler.toThrowHandler
 import org.junit.Test
-import utils.ExpectedException
-import utils.assertByteArrayEquals
+import util.ExpectedException
+import util.assertByteArrayEquals
 
 class UploaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 

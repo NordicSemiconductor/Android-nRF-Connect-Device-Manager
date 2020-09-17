@@ -1,13 +1,13 @@
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.Protocol
-import com.juul.mcumgr.getOrThrow
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.Server
 import org.junit.Test
-import utils.assertByteArrayEquals
+import util.assertByteArrayEquals
+import util.getOrAssert
 
 class FileManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -26,7 +26,7 @@ class FileManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) 
             firstChunk,
             0,
             200
-        ).getOrThrow()
+        ).getOrAssert()
         assertEquals(100, response.offset)
 
         val secondChunk = fileData.copyOfRange(100, fileData.size)
@@ -34,7 +34,7 @@ class FileManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) 
             "my_file",
             secondChunk,
             100
-        ).getOrThrow()
+        ).getOrAssert()
         assertEquals(200, response.offset)
         assertByteArrayEquals(
             fileData,

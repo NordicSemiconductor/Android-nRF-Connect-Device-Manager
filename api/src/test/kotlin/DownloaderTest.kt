@@ -3,18 +3,18 @@ import com.juul.mcumgr.ErrorResponseException
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.Protocol
 import com.juul.mcumgr.ResponseCode
-import com.juul.mcumgr.getOrThrow
 import com.juul.mcumgr.transfer.CoreDownloader
 import com.juul.mcumgr.transfer.FileDownloader
 import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
-import mock.server.CoreReadHandler
-import mock.server.FileReadHandler
+import mock.server.handler.CoreReadHandler
+import mock.server.handler.FileReadHandler
 import mock.server.Server
 import org.junit.Test
-import utils.assertByteArrayEquals
+import util.assertByteArrayEquals
+import util.getOrAssert
 
 class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -35,28 +35,28 @@ class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     @Test
     fun `capacity 1 download success`() = runBlocking {
         server.setCoreData(defaultData)
-        val data = mcuManager.downloadCore(1).getOrThrow()
+        val data = mcuManager.downloadCore(1).getOrAssert()
         assertByteArrayEquals(defaultData, data)
     }
 
     @Test
     fun `capacity 4 download success`() = runBlocking {
         server.setCoreData(defaultData)
-        val data = mcuManager.downloadCore(4).getOrThrow()
+        val data = mcuManager.downloadCore(4).getOrAssert()
         assertByteArrayEquals(defaultData, data)
     }
 
     @Test
     fun `capacity 16 download success`() = runBlocking {
         server.setCoreData(defaultData)
-        val data = mcuManager.downloadCore(16).getOrThrow()
+        val data = mcuManager.downloadCore(16).getOrAssert()
         assertByteArrayEquals(defaultData, data)
     }
 
     @Test
     fun `capacity 100 download success`() = runBlocking {
         server.setCoreData(defaultData)
-        val data = mcuManager.downloadCore(100).getOrThrow()
+        val data = mcuManager.downloadCore(100).getOrAssert()
         assertByteArrayEquals(defaultData, data)
     }
 
@@ -81,14 +81,14 @@ class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     @Test
     fun `small data size download success`() = runBlocking {
         server.setCoreData(smallData)
-        val data = mcuManager.downloadCore(defaultCapacity).getOrThrow()
+        val data = mcuManager.downloadCore(defaultCapacity).getOrAssert()
         assertByteArrayEquals(smallData, data)
     }
 
     @Test
     fun `large data size download success`() = runBlocking {
         server.setCoreData(largeData)
-        val data = mcuManager.downloadCore(defaultCapacity).getOrThrow()
+        val data = mcuManager.downloadCore(defaultCapacity).getOrAssert()
         assertByteArrayEquals(largeData, data)
     }
 
@@ -97,14 +97,14 @@ class DownloaderTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
     @Test
     fun `core download success`() = runBlocking {
         server.setCoreData(defaultData)
-        val data = mcuManager.downloadCore(defaultCapacity).getOrThrow()
+        val data = mcuManager.downloadCore(defaultCapacity).getOrAssert()
         assertByteArrayEquals(defaultData, data)
     }
 
     @Test
     fun `file download success`() = runBlocking {
         server.setFileData(defaultFileName, defaultData)
-        val data = mcuManager.downloadFile(defaultFileName, defaultCapacity).getOrThrow()
+        val data = mcuManager.downloadFile(defaultFileName, defaultCapacity).getOrAssert()
         assertByteArrayEquals(defaultData, data)
     }
 }

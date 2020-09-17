@@ -1,20 +1,20 @@
 import com.juul.mcumgr.Protocol
 import com.juul.mcumgr.SystemManager
 import com.juul.mcumgr.command.System
-import com.juul.mcumgr.getOrThrow
 import java.util.Date
 import java.util.TimeZone
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
-import mock.server.ConsoleEchoControlHandler
-import mock.server.MemoryPoolStatsHandler
-import mock.server.ReadDatetimeHandler
+import mock.server.handler.ConsoleEchoControlHandler
+import mock.server.handler.MemoryPoolStatsHandler
+import mock.server.handler.ReadDatetimeHandler
 import mock.server.Server
-import mock.server.TaskStatsHandler
-import mock.server.WriteDatetimeHandler
+import mock.server.handler.TaskStatsHandler
+import mock.server.handler.WriteDatetimeHandler
 import org.junit.Test
+import util.getOrAssert
 
 class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -26,7 +26,7 @@ class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol
     @Test
     fun `echo, success`() = runBlocking {
         val echo = "Hello McuManager!"
-        val response = manager.echo(echo).getOrThrow()
+        val response = manager.echo(echo).getOrAssert()
         assertEquals(echo, response.echo)
     }
 
@@ -34,7 +34,7 @@ class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol
     fun `console echo control, success`() = runBlocking {
         val enabled = true
         val handler: ConsoleEchoControlHandler = server.findHandler()
-        manager.consoleEchoControl(enabled).getOrThrow()
+        manager.consoleEchoControl(enabled).getOrAssert()
         assertEquals(enabled, handler.enabled)
     }
 
@@ -44,7 +44,7 @@ class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol
         handler.taskStats = mutableMapOf(
             "my_task" to System.TaskStatsResponse.Task(1, 2, 3, 4, 5, 6, 7, 8, 9)
         )
-        val response = manager.taskStats().getOrThrow()
+        val response = manager.taskStats().getOrAssert()
         assertEquals(handler.taskStats.keys, response.tasks.keys)
         handler.taskStats.forEach { (name, handlerStats) ->
             val responseStats = response.tasks[name]
@@ -67,7 +67,7 @@ class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol
         handler.memoryPoolStats = mutableMapOf(
             "memory_pool" to System.MemoryPoolStatsResponse.MemoryPool(1, 2, 3, 4)
         )
-        val response = manager.memoryPoolStats().getOrThrow()
+        val response = manager.memoryPoolStats().getOrAssert()
         assertEquals(handler.memoryPoolStats.keys, response.memoryPools.keys)
         handler.memoryPoolStats.forEach { (name, handlerPool) ->
             val responsePool = response.memoryPools[name]
@@ -83,7 +83,7 @@ class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol
         val now = Date()
         val handler: ReadDatetimeHandler = server.findHandler()
         handler.date = now
-        val response = manager.readDatetime().getOrThrow()
+        val response = manager.readDatetime().getOrAssert()
         assertEquals(handler.date, response.date)
     }
 
@@ -93,13 +93,12 @@ class SystemManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol
         val now = Date()
         val handler: WriteDatetimeHandler = server.findHandler()
         handler.date = notNow
-        manager.writeDatetime(now, TimeZone.getTimeZone("UTC")).getOrThrow()
+        manager.writeDatetime(now, TimeZone.getTimeZone("UTC")).getOrAssert()
         assertEquals(now, handler.date)
     }
 
     @Test
     fun `reset, success`() = runBlocking {
-        manager.reset().getOrThrow()
-        Unit
+        manager.reset().getOrAssert()
     }
 }
