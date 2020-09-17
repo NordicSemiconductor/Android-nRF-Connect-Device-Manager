@@ -1,6 +1,6 @@
-import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.Protocol
+import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.command.getOrThrow
 import com.juul.mcumgr.transfer.FileUploader
 import com.juul.mcumgr.transfer.ImageUploader
@@ -8,9 +8,9 @@ import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
+import mock.server.Server
 import mock.server.handler.FileWriteHandler
 import mock.server.handler.ImageWriteHandler
-import mock.server.Server
 import mock.server.handler.toThrowHandler
 import org.junit.Test
 import util.ExpectedException

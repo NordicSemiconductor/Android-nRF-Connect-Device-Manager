@@ -16,8 +16,8 @@ sealed class CommandResult<out T> {
 
     /**
      * Indicates that the request produced an mcumgr response, which itself may be an
-     * error. Generally, a non-zero [ResponseCode] indicates that the response is an error. If the
-     * response body failed to be decoded, but the response contained a valid "rc" field (code),
+     * error. Generally, a non-zero [code] indicates that the response is an error. If the
+     * response body failed to be decoded, but the response contained a valid "rc" field (code)
      * then the [Response.body] field will be null.
      */
     data class Response<out T>(
@@ -134,9 +134,6 @@ internal inline fun CommandResult<*>.onErrorOrFailure(action: (throwable: Throwa
 internal inline fun <T, R> CommandResult<T>.mapResponse(transform: (response: T) -> R): CommandResult<R> {
     return when (this) {
         is CommandResult.Response -> {
-            // Smart cast to 'T' is impossible, because 'body' is a public API
-            // property declared in different module
-            val body = body
             if (body != null) {
                 CommandResult.Response(transform(body), code)
             } else {

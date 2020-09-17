@@ -12,5 +12,3 @@ abstract class Response {
  */
 @JsonIgnoreProperties("group", "command")
 internal abstract class ResponseObject : Response()
-
-

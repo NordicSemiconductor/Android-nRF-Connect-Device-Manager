@@ -1,13 +1,13 @@
-import com.juul.mcumgr.command.CommandResult
-import com.juul.mcumgr.command.CommandResult.Failure
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.Protocol
+import com.juul.mcumgr.command.CommandResult
+import com.juul.mcumgr.command.CommandResult.Failure
 import com.juul.mcumgr.command.ResponseCode
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
-import mock.server.handler.EchoHandler
 import mock.server.Server
+import mock.server.handler.EchoHandler
 import mock.server.handler.toErrorResponseHandler
 import mock.server.handler.toThrowHandler
 import org.junit.Test

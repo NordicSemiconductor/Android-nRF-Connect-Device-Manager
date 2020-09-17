@@ -7,10 +7,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
+import mock.server.Server
 import mock.server.handler.ConsoleEchoControlHandler
 import mock.server.handler.MemoryPoolStatsHandler
 import mock.server.handler.ReadDatetimeHandler
-import mock.server.Server
 import mock.server.handler.TaskStatsHandler
 import mock.server.handler.WriteDatetimeHandler
 import org.junit.Test

@@ -12,7 +12,6 @@ inline fun <T> CommandResult<T>.getOrAssert(): T {
     }
 }
 
-
 inline fun <T> CommandResult<T>.assertResponseCode(code: ResponseCode): CommandResult<T> {
     return when (this) {
         is CommandResult.Response -> {

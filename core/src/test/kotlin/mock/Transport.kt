@@ -1,14 +1,14 @@
 package mock
 
-import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.Protocol
+import com.juul.mcumgr.Transport
+import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.command.Request
 import com.juul.mcumgr.command.Response
-import com.juul.mcumgr.Transport
 import com.juul.mcumgr.serialization.decode
 import com.juul.mcumgr.serialization.encode
-import mock.server.Server
 import kotlin.reflect.KClass
+import mock.server.Server
 
 class MockTransport(
     override val mtu: Int,

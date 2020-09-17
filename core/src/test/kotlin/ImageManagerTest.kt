@@ -1,9 +1,11 @@
 import com.juul.mcumgr.ImageManager
 import com.juul.mcumgr.Protocol
-import com.juul.mcumgr.command.ResponseCode
 import com.juul.mcumgr.command.Image
+import com.juul.mcumgr.command.ResponseCode
 import kotlin.random.Random
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
 import mock.server.Server
@@ -18,8 +20,6 @@ import org.junit.Test
 import util.assertByteArrayEquals
 import util.assertResponseCode
 import util.getOrAssert
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class ImageManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol) {
 
@@ -89,7 +89,6 @@ class ImageManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol)
                 assertEquals(true, responseState.pending)
             } else {
                 assertEquals(expectedState.pending, responseState.pending)
-
             }
             assertEquals(expectedState.confirmed, responseState.confirmed)
             assertEquals(expectedState.active, responseState.active)
@@ -178,7 +177,7 @@ class ImageManagerTest(protocol: Protocol) : ProtocolParameterizedTest(protocol)
         while (offset < coreData.size) {
             val response = manager.coreRead(offset).getOrAssert()
             assertByteArrayEquals(
-                coreData.copyOfRange(offset, offset+chunkSize),
+                coreData.copyOfRange(offset, offset + chunkSize),
                 response.data
             )
             offset += response.data.size

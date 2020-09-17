@@ -1,8 +1,8 @@
 package com.juul.mcumgr.transfer
 
-import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.FileManager
 import com.juul.mcumgr.Transport
+import com.juul.mcumgr.command.CommandResult
 import com.juul.mcumgr.command.mapResponse
 
 class FileUploader(

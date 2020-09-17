@@ -6,11 +6,11 @@ import com.juul.mcumgr.command.System
 import com.juul.mcumgr.dateToString
 import com.juul.mcumgr.serialization.Message
 import com.juul.mcumgr.stringToDate
+import java.util.Date
+import java.util.TimeZone
 import mock.server.payloadMap
 import mock.server.toResponse
 import util.getNotNull
-import java.util.Date
-import java.util.TimeZone
 
 class EchoHandler : Handler {
 

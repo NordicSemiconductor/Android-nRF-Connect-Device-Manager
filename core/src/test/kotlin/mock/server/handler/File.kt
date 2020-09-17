@@ -4,10 +4,10 @@ import com.juul.mcumgr.command.Command
 import com.juul.mcumgr.command.Group
 import com.juul.mcumgr.command.ResponseCode
 import com.juul.mcumgr.serialization.Message
+import kotlin.math.min
 import mock.server.payloadMap
 import mock.server.toResponse
 import util.getNotNull
-import kotlin.math.min
 
 class FileWriteHandler : Handler {
 

@@ -1,7 +1,7 @@
-import com.juul.mcumgr.command.CommandResult
-import com.juul.mcumgr.command.ErrorResponseException
 import com.juul.mcumgr.McuManager
 import com.juul.mcumgr.Protocol
+import com.juul.mcumgr.command.CommandResult
+import com.juul.mcumgr.command.ErrorResponseException
 import com.juul.mcumgr.command.ResponseCode
 import com.juul.mcumgr.transfer.CoreDownloader
 import com.juul.mcumgr.transfer.FileDownloader
@@ -9,9 +9,9 @@ import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import mock.MockTransport
+import mock.server.Server
 import mock.server.handler.CoreReadHandler
 import mock.server.handler.FileReadHandler
-import mock.server.Server
 import org.junit.Test
 import util.assertByteArrayEquals
 import util.getOrAssert
