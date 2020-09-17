@@ -8,7 +8,7 @@ abstract class Response {
 }
 
 /**
- * Redeclaration of [com.juul.mcumgr.Response] for serialization annotations.
+ * Redeclaration of [Response] for serialization annotations.
  */
 @JsonIgnoreProperties("group", "command")
 internal abstract class ResponseObject : Response()

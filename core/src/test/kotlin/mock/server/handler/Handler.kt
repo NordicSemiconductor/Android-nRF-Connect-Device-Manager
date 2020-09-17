@@ -40,5 +40,7 @@ val defaultHandlers: List<Handler> get() = listOf(
     CoreEraseHandler(),
     // File
     FileWriteHandler(),
-    FileReadHandler()
+    FileReadHandler(),
+    // Config
+    ConfigHandler()
 )
