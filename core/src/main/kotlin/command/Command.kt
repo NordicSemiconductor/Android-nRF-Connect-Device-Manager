@@ -23,7 +23,7 @@ sealed class Command(val value: Int) {
 
     sealed class Stats {
         object Read : Command(0)
-        object List : Command(0)
+        object List : Command(1)
     }
 
     sealed class Config {

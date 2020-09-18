@@ -38,6 +38,9 @@ val defaultHandlers: List<Handler> get() = listOf(
     CoreListHandler(),
     CoreReadHandler(),
     CoreEraseHandler(),
+    // Stats
+    StatsReadHandler(),
+    StatsListHandler(),
     // File
     FileWriteHandler(),
     FileReadHandler(),

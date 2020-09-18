@@ -8,7 +8,7 @@ import com.juul.mcumgr.command.toUnitResult
 class ConfigManager internal constructor(val transport: Transport) {
 
     suspend fun read(name: String): CommandResult<ConfigReadResponse> {
-        val request = Config.ReadReqeust(name)
+        val request = Config.ReadRequest(name)
         return transport.send(
             request,
             Config.ReadResponse::class

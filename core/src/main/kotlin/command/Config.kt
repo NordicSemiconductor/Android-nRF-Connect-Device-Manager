@@ -2,9 +2,16 @@ package com.juul.mcumgr.command
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
+/**
+ * Config group request and response definitions.
+ */
 internal sealed class Config {
 
-    data class ReadReqeust(
+    /*
+     * Config Read
+     */
+
+    data class ReadRequest(
         @JsonProperty("name") val name: String
     ) : RequestObject() {
 
@@ -21,6 +28,10 @@ internal sealed class Config {
         override val group: Group = Group.Config
         override val command: Command = Command.Config.Config
     }
+
+    /*
+     * Config Write
+     */
 
     data class WriteRequest(
         @JsonProperty("name") val name: String,

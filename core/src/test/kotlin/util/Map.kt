@@ -1,7 +1,7 @@
 package util
 
 inline fun <reified T> Map<String, Any>.getNotNull(key: String): T {
-    val field = checkNotNull(get(key)) { "$key cannot be null" }
+    val field = checkNotNull(get(key)) { "\"$key\" cannot be null" }
     return field as T
 }
 
