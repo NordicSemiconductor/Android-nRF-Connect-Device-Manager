@@ -6,6 +6,8 @@ A transport agnostic implementation of the McuManager protocol. Contains a defau
 
 ## Gradle Install
 
+**Note:** For the faster firmware upgrade implementation, use version `0.12.0-beta1`
+
 #### McuManager BLE (Recommended)
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library). 
 
