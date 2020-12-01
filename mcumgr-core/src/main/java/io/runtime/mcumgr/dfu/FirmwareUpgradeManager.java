@@ -25,6 +25,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.UploadCallback;
+import static io.runtime.mcumgr.transfer.ImageUploaderKt.windowUpload;
 
 // TODO Add retries for each step
 
@@ -144,6 +145,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private long mResetResponseTime;
 
     /**
+     * The upload window capacity for faster image uploads. A capacity greater than 1 will enable
+     * using the faster window upload implementation.
+     */
+    private int mWindowCapacity = 1;
+
+    /**
      * Construct a firmware upgrade manager. If using this constructor, the callback must be set
      * using {@link #setFirmwareUpgradeCallback(FirmwareUpgradeCallback)} before calling
      * {@link FirmwareUpgradeManager#start}.
@@ -253,6 +260,19 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     /**
+     * A window capacity > 1 enables a faster image upload implementation which allows
+     * {@code windowCapacity} concurrent upload requests.
+     *
+     * @param windowCapacity the maximum number of concurrent upload requests at any time.
+     */
+    public void setWindowUploadCapacity(int windowCapacity) {
+        if (windowCapacity <= 0) {
+            throw new IllegalArgumentException("window capacity must be > 0");
+        }
+        mWindowCapacity = windowCapacity;
+    }
+
+    /**
      * Start the upgrade.
      * <p>
      * The specified image file will be sent to the target using the
@@ -341,7 +361,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private synchronized void upload() {
         setState(State.UPLOAD);
         if (!mPaused) {
-            mUploadController = mImageManager.imageUpload(mImageData, mImageUploadCallback);
+            if (mWindowCapacity > 1) {
+                mUploadController = windowUpload(mImageManager, mImageData, mWindowCapacity,
+                        mImageUploadCallback);
+            } else {
+                mUploadController = mImageManager.imageUpload(mImageData, mImageUploadCallback);
+            }
         }
     }
 
