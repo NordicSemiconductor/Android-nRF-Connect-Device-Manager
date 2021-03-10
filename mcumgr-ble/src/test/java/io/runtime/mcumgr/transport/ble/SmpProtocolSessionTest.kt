@@ -5,7 +5,6 @@ import io.runtime.mcumgr.McuMgrHeader
 import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.ble.callback.SmpProtocolSession
 import io.runtime.mcumgr.ble.callback.SmpTransaction
-import io.runtime.mcumgr.ble.callback.TransactionSkippedException
 import io.runtime.mcumgr.ble.callback.TransactionTimeoutException
 import io.runtime.mcumgr.response.McuMgrResponse
 import io.runtime.mcumgr.response.dflt.McuMgrEchoResponse
@@ -68,6 +67,25 @@ class SmpProtocolSessionTest {
             McuMgrEchoResponse::class.java
         )
         assertEquals(echo, response.r)
+    }
+
+    @Test
+    fun `send and receive, success, no timeout`() = runBlocking {
+        val echo = "Hello!"
+        val request = McuManager.buildPacket(
+            McuMgrScheme.BLE,
+            0, 0, 0, 0, 0,
+            mapOf("d" to echo)
+        )
+        session.send(request, echoTransaction)
+        val responseData = echoTransaction.result.receive()
+        val response = McuMgrResponse.buildResponse(
+            McuMgrScheme.BLE,
+            responseData,
+            McuMgrEchoResponse::class.java
+        )
+        assertEquals(echo, response.r)
+        delay(11_000) // 10 sec timeout in smp session
     }
 
     @Test

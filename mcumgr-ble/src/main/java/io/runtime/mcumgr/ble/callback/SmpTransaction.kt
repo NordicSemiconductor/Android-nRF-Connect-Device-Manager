@@ -10,10 +10,6 @@ class TransactionOverwriteException internal constructor(
     val id: Int
 ) : Exception("Transaction $id has been overwritten")
 
-class TransactionSkippedException internal constructor(
-    val id: Int
-) : Exception("Transaction $id has been skipped")
-
 internal interface SmpTransaction {
     fun send(data: ByteArray)
     fun onResponse(data: ByteArray)

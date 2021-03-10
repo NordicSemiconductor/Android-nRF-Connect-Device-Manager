@@ -36,8 +36,8 @@ internal class SmpProtocolSession(
             // When the session is closed, fail all remaining transactions.
             // Exception is propagated from close through the channels.
             CoroutineExceptionHandler { _, throwable ->
-                for (i in transactions.indices) {
-                    fail(i, throwable)
+                for (transaction in transactions) {
+                    transaction?.onFailure(handler, throwable)
                 }
             }
         ) {
@@ -59,26 +59,33 @@ internal class SmpProtocolSession(
         }
     }
 
+    fun close(e: Exception) {
+        txChannel.close(e)
+        rxChannel.close(e)
+    }
+
     /**
      * Consumes messages off the tx channel until the channel is closed.
      */
     private suspend fun writer() {
+
         txChannel.consumeEach { outgoing ->
+
             // Set sequence number in outgoing data
             val sequenceNumber = sequenceCounter.getAndRotate()
             outgoing.data.setSequenceNumber(sequenceNumber)
 
             // Add transaction to store. Fail an existing transaction on overwrite
-            transactionsMutex.withLock {
-                fail(sequenceNumber, TransactionOverwriteException(sequenceNumber))
-                transactions[sequenceNumber] = outgoing.transaction
-            }
+            val oldTransaction = getAndSetTransaction(sequenceNumber, outgoing.transaction)
+            oldTransaction?.onFailure(handler, TransactionOverwriteException(sequenceNumber))
 
             // Send the transaction and launch timeout coroutine
             outgoing.transaction.send(handler, outgoing.data)
+
             scope.launch {
                 delay(10000)
-                fail(sequenceNumber, TransactionTimeoutException(sequenceNumber))
+                val transaction = getAndSetTransaction(sequenceNumber, null)
+                transaction?.onFailure(handler, TransactionTimeoutException(sequenceNumber))
             }
         }
     }
@@ -92,24 +99,20 @@ internal class SmpProtocolSession(
             val header = McuMgrHeader.fromBytes(data)
             val sequenceNumber = header.sequenceNum
 
-            // Get the transaction from the store and call the callback
-            val transaction = transactionsMutex.withLock {
-                transactions[sequenceNumber]
-            }
+            // Get the transaction from the store, clear the entry, and call
+            // the callback
+            val transaction = getAndSetTransaction(sequenceNumber, null)
             transaction?.onResponse(handler, data)
         }
     }
 
-    fun close(e: Exception) {
-        txChannel.close(e)
-        rxChannel.close(e)
-    }
-
-    private fun fail(id: Int, e: Throwable) {
-        transactions[id]?.let { transaction ->
-            transactions[id] = null
-            transaction.onFailure(handler, e)
-        }
+    private suspend fun getAndSetTransaction(
+        id: Int,
+        transaction: SmpTransaction?
+    ): SmpTransaction? = transactionsMutex.withLock {
+        val oldTransaction = transactions[id]
+        transactions[id] = transaction
+        return oldTransaction
     }
 
     private fun ByteArray.setSequenceNumber(value: Int) {
