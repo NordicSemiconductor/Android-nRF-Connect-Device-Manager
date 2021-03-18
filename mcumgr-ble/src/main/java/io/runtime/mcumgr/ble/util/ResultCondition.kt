@@ -43,6 +43,7 @@ internal class ResultCondition<T>(state: Boolean) {
 
     fun openExceptionally(exception: McuMgrException) {
         this.exception = exception
+        lock.open()
     }
 
 }
