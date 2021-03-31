@@ -1,19 +1,31 @@
 package io.runtime.mcumgr.transfer
 
 import io.runtime.mcumgr.McuMgrScheme
-import kotlinx.coroutines.channels.ReceiveChannel
+import io.runtime.mcumgr.exception.InsufficientMtuException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import java.lang.IllegalArgumentException
 import kotlin.math.min
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
 
-private const val RETRIES = 5
+const val MAX_CHUNK_FAILURES = 5
 
 data class UploadProgress(val offset: Int, val size: Int)
+
+private data class Chunk(val data: ByteArray, val offset: Int) {
+    override fun toString(): String {
+        return "Chunk(offset=$offset, size=${data.size})"
+    }
+}
 
 abstract class Uploader(
     private val data: ByteArray,
@@ -30,112 +42,143 @@ abstract class Uploader(
     val progress: Flow<UploadProgress> = _progress
 
     @Throws
-    internal abstract fun writeAsync(
+    internal abstract fun write(
         data: ByteArray,
         offset: Int,
-        length: Int?
-    ): ReceiveChannel<UploadResult>
+        callback: (UploadResult) -> Unit
+    )
 
     @Throws
     suspend fun upload() = coroutineScope {
-        val window = WindowSemaphore(windowCapacity)
-        var offset = 0
-        while (offset < data.size) {
 
-            val transmitOffset = offset
-            val chunkSize = getChunkSize(data, offset)
+        // Tracks the number of failures experienced for any given chunk,
+        // identified by the offset.
+        val failureDirectory = mutableMapOf<Int, Int>()
+        val failureDirectoryMutex = Mutex()
+
+        // Bounds number of in-progress requests within window capacity
+        val window = Semaphore(windowCapacity)
+
+        val next: Channel<Chunk> = Channel(CONFLATED)
+        val failures: Channel<Chunk> = Channel(CONFLATED)
+        val close: Channel<Unit> = Channel(CONFLATED)
+
+        next.send(newChunk(0))
+
+        while (true) {
+
             window.acquire()
 
-            log.trace("uploader write: offset=$transmitOffset")
+            // Select the next chunk to send, prioritizing failed chunks.
+            val (chunk, resend) = select<Pair<Chunk, Boolean>?> {
+                failures.onReceive { it to true }
+                next.onReceive { it to false }
+                close.onReceive { null }
+            } ?: break
 
-            // Write the chunk asynchronously and launch a coroutine which
-            // suspends until the response is received on the result channel.
-            val resultChannel = writeChunkAsync(data, transmitOffset, chunkSize)
-            launch {
-                resultChannel.receive()
-                    .mapResponse { response ->
-                        // An unexpected offset means that the device did not
-                        // accept the chunk. We need to resend the chunk.
-                        // Map the response to a failure to be handled by the
-                        // onErrorOrFailure block.
-                        val responseOffset = response.body.off
-                        if (responseOffset != transmitOffset + chunkSize) {
-                            val e = IllegalStateException(
-                                "Unexpected offset: expected=${transmitOffset + chunkSize}, " +
-                                    "actual=${responseOffset}"
-                            )
-                            UploadResult.Failure(e)
-                        } else {
-                            response
+            log.info("uploader write: chunk=$chunk, resend=$resend")
+
+            val nextChunk = writeInternal(chunk, resend, this) { result ->
+
+                log.info("uploader result: chunk=$chunk, result=$result")
+
+                result.onSuccess { response ->
+                    if (!resend && response.off != chunk.offset + chunk.data.size) {
+                        // An unexpected offset means that the message was
+                        // somehow lost or the device could not accept the
+                        // chunk. We need to resend the chunk at the offset
+                        // requested by the device.
+                        log.info("uploader write error: offset=${chunk.offset}, requested=${response.off}")
+                        failures.send(newChunk(response.off))
+                    } else {
+                        // Success, update the progress
+                        val current = chunk.offset + chunk.data.size
+                        _progress.value = UploadProgress(current, data.size)
+                        if (current == data.size) {
+                            log.info("uploader complete!")
+                            close.send(Unit)
                         }
                     }
-                    .onSuccess {
-                        window.success()
-                        val current = transmitOffset + chunkSize
-                        _progress.value = UploadProgress(current, data.size)
+                }.onErrorOrFailure { failure ->
+                    // Request failure, resend failed chunk
+                    log.info("uploader write failure: offset=${chunk.offset}, failure=$failure")
+                    // Track the number of times a chunk has failed. If the
+                    // chunk has failed more times than the threshold,
+                    // throw the exception to fail the upload entirely
+                    val fails = failureDirectoryMutex.withLock {
+                        val fails = (failureDirectory[chunk.offset] ?: 0) + 1
+                        failureDirectory[chunk.offset] = fails
+                        fails
                     }
-                    .onErrorOrFailure {
-                        log.info("uploader write failure: offset=$transmitOffset")
-                        window.fail()
-                        // Retry sending the request. Recover the window on success or throw
-                        // on failure.
-                        retryWriteChunk(data, transmitOffset, chunkSize, RETRIES)
-                            .onSuccess {
-                                log.info("uploader write recovered: offset=$transmitOffset")
-                                window.recover()
-                            }
-                            .onErrorOrFailure {
-                                log.info("uploader write failed: offset=$transmitOffset")
-                                throw it
-                            }
+                    if (fails >= MAX_CHUNK_FAILURES || failure is InsufficientMtuException) {
+                        throw failure
                     }
-                log.trace("uploader write complete: offset=$transmitOffset")
+                    failures.send(newChunk(chunk.offset))
+                }
+
+                // Release the semaphore
+                window.release()
             }
 
-            // Update the offset with the size of the last chunk
-            offset += chunkSize
+            // Only send the next chunk if the we still have more data to upload
+            if (nextChunk.offset != data.size) {
+                next.send(nextChunk)
+            }
         }
     }
 
-    /**
-     * Copy a chunk of data from the offset and send the write request.
-     */
-    private fun writeChunkAsync(
-        data: ByteArray,
-        offset: Int,
-        chunkSize: Int
-    ): ReceiveChannel<UploadResult> {
-        val chunk = data.copyOfRange(offset, offset + chunkSize)
-        val length = if (offset == 0) {
-            data.size
+    private suspend fun writeInternal(
+        chunk: Chunk,
+        resend: Boolean,
+        scope: CoroutineScope,
+        callback: suspend (UploadResult) -> Unit
+    ): Chunk {
+
+        val resultChannel: Channel<UploadResult> = Channel(1)
+        write(chunk.data, chunk.offset) {
+            resultChannel.offer(it)
+        }
+
+        return if (resend) {
+
+            // Failed and resent chunks should suspend the current coroutine
+            // and await the result.
+            val result = resultChannel.receive()
+
+            callback(result)
+
+            // When the result is successful response with an offset, return
+            // a new chunk with the requested offset.
+            when (result) {
+                is UploadResult.Response -> {
+                    newChunk(result.body.off)
+                }
+                else -> nextChunk(chunk)
+            }
         } else {
-            null
-        }
-        return writeAsync(chunk, offset, length)
-    }
 
-    /**
-     * Retry sending an upload write request.
-     *
-     * Returns the last received error if all attempts fail.
-     */
-    private suspend fun retryWriteChunk(
-        data: ByteArray,
-        offset: Int,
-        chunkSize: Int,
-        times: Int
-    ): UploadResult {
-        var error: UploadResult? = null
-        repeat(times) {
-            val result = writeChunkAsync(data, offset, chunkSize).receive()
-            when {
-                result.isSuccess -> return result
-                result.isError || result.isFailure -> error = result
+            // Regular send should launch the result handling on a child coroutine
+            scope.launch {
+                val result = resultChannel.receive()
+                callback(result)
             }
+
+            // Return the next logical chunk
+            nextChunk(chunk)
         }
-        return checkNotNull(error)
     }
 
+    private fun newChunk(offset: Int): Chunk {
+        val chunkSize = getChunkSize(data, offset)
+        val chunkData = data.copyOfRange(offset, offset + chunkSize)
+        return Chunk(chunkData, offset)
+    }
+
+    private fun nextChunk(chunk: Chunk): Chunk {
+        return newChunk(chunk.offset + chunk.data.size)
+    }
+
+    // TODO interface this function for alternative implementations (e.g. sha for mynewt devices)
     /**
      * Returns the maximum amount of upload data which can fit into an upload request with the given
      * data and offset.

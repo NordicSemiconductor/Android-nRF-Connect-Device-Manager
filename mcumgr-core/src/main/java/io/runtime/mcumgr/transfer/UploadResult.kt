@@ -18,15 +18,6 @@ internal sealed class UploadResult {
     data class Failure(
         val throwable: Throwable
     ) : UploadResult()
-
-    val isSuccess: Boolean
-        get() = this is Response && code.isSuccess
-
-    val isError: Boolean
-        get() = this is Response && code.isError
-
-    val isFailure: Boolean
-        get() = this is Failure
 }
 
 internal inline fun UploadResult.onSuccess(
@@ -52,13 +43,6 @@ internal inline fun UploadResult.onErrorOrFailure(action: (throwable: Throwable)
         is UploadResult.Failure -> action(throwable)
     }
     return this
-}
-
-internal inline fun UploadResult.mapResponse(transform: (result: UploadResult.Response) -> UploadResult): UploadResult {
-    return when (this) {
-        is UploadResult.Response -> transform(this)
-        else -> this
-    }
 }
 
 internal val McuMgrErrorCode.isSuccess: Boolean

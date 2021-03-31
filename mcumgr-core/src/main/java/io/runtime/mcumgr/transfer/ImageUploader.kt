@@ -8,8 +8,6 @@ import io.runtime.mcumgr.response.UploadResponse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -24,9 +22,10 @@ fun ImageManager.windowUpload(
     windowCapacity: Int,
     callback: UploadCallback
 ): TransferController {
-    val log = LoggerFactory.getLogger("ImageUploader")
 
+    val log = LoggerFactory.getLogger("ImageUploader")
     val uploader = ImageUploader(data, this, windowCapacity)
+
     val job = GlobalScope.launch(CoroutineExceptionHandler { _, t ->
         log.error("window image upload failed", t)
     }) {
@@ -82,12 +81,7 @@ internal class ImageUploader(
     imageManager.scheme
 ) {
 
-    @Throws
-    override fun writeAsync(
-        data: ByteArray,
-        offset: Int,
-        length: Int?
-    ): ReceiveChannel<UploadResult> {
+    override fun write(data: ByteArray, offset: Int, callback: (UploadResult) -> Unit) {
         val requestMap: MutableMap<String, Any> = mutableMapOf(
             "data" to data,
             "off" to offset
@@ -95,28 +89,21 @@ internal class ImageUploader(
         if (offset == 0) {
             requestMap["len"] = imageData.size
         }
-        return imageManager.uploadAsync(requestMap)
+        imageManager.uploadAsync(requestMap, callback)
     }
 }
 
 private fun ImageManager.uploadAsync(
-    requestMap: Map<String, Any>
-): ReceiveChannel<UploadResult> {
-    val receiveChannel = Channel<UploadResult>(1)
-    send(
-        OP_WRITE,
-        ID_UPLOAD,
-        requestMap,
-        UploadResponse::class.java,
-        object : McuMgrCallback<UploadResponse> {
-            override fun onResponse(response: UploadResponse) {
-                receiveChannel.offer(UploadResult.Response(response, response.returnCode))
-            }
-
-            override fun onError(error: McuMgrException) {
-                receiveChannel.offer(UploadResult.Failure(error))
-            }
+    requestMap: Map<String, Any>,
+    callback: (UploadResult) -> Unit
+) = send(OP_WRITE, ID_UPLOAD, requestMap, UploadResponse::class.java,
+    object : McuMgrCallback<UploadResponse> {
+        override fun onResponse(response: UploadResponse) {
+            callback(UploadResult.Response(response, response.returnCode))
         }
-    )
-    return receiveChannel
-}
+
+        override fun onError(error: McuMgrException) {
+            callback(UploadResult.Failure(error))
+        }
+    }
+)
