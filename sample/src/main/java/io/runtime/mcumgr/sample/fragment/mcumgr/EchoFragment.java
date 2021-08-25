@@ -72,11 +72,6 @@ public class EchoFragment extends Fragment implements Injectable {
         ButterKnife.bind(this, view);
 
         mValue.setSelection(mValue.getText().length());
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mSendAction.setEnabled(!busy));
         mViewModel.getRequest().observe(getViewLifecycleOwner(), text -> {

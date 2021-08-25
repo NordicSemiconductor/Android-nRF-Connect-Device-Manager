@@ -89,25 +89,6 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         final Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.help);
         toolbar.setOnMenuItemClickListener(this);
-    }
-
-    @Override
-    public boolean onMenuItemClick(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_help:
-                final DialogFragment dialog = HelpDialogFragment.getInstance(
-                        R.string.image_upload_dialog_help_title,
-                        R.string.image_upload_dialog_help_message);
-                dialog.show(getChildFragmentManager(), null);
-                return true;
-        }
-        return false;
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             mUploadAction.setEnabled(isFileLoaded());
@@ -178,6 +159,19 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                 mViewModel.resume();
             }
         });
+    }
+
+    @Override
+    public boolean onMenuItemClick(final MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_help:
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.image_upload_dialog_help_title,
+                        R.string.image_upload_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+        }
+        return false;
     }
 
     @Override

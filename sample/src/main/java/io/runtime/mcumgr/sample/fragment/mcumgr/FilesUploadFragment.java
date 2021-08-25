@@ -84,11 +84,6 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mFsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
             if (isFileLoaded()) {

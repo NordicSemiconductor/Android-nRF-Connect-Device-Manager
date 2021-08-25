@@ -57,11 +57,6 @@ public class ResetFragment extends Fragment implements Injectable {
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getError().observe(getViewLifecycleOwner(), s -> mErrorView.setText(s));
         mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mResetAction.setEnabled(!busy));

@@ -88,24 +88,6 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
         // By default it animates only on hiding./showing views.
         // The view must have android:animateLayoutChanges(true) attribute set in the XML.
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
-    }
-
-    @Override
-    public boolean onMenuItemClick(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_help:
-                final DialogFragment dialog = HelpDialogFragment.getInstance(
-                        R.string.image_control_dialog_help_title,
-                        R.string.image_control_dialog_help_message);
-                dialog.show(getChildFragmentManager(), null);
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printImageSlotInfo);
         mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
@@ -130,6 +112,19 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
         mTestAction.setOnClickListener(v -> mViewModel.test());
         mConfirmAction.setOnClickListener(v -> mViewModel.confirm());
         mEraseAction.setOnClickListener(v -> mViewModel.erase());
+    }
+
+    @Override
+    public boolean onMenuItemClick(final MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_help:
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.image_control_dialog_help_title,
+                        R.string.image_control_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+        }
+        return false;
     }
 
     private void printImageSlotInfo(@Nullable final McuMgrImageStateResponse response) {

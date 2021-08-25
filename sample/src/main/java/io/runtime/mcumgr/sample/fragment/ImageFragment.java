@@ -110,10 +110,9 @@ public class ImageFragment extends Fragment implements Injectable {
         return inflater.inflate(R.layout.fragment_image, container, false);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         final FragmentManager fm = getChildFragmentManager();
         mImageUpgradeFragment = fm.findFragmentById(R.id.fragment_image_upgrade);
@@ -130,7 +129,7 @@ public class ImageFragment extends Fragment implements Injectable {
                     .commit();
         }
 
-        mViewModel.getBusyState().observe(this, busy -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             mOperationInProgress = busy;
             requireActivity().invalidateOptionsMenu();
         });

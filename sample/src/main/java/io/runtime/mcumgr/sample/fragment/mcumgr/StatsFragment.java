@@ -77,11 +77,6 @@ public class StatsFragment extends Fragment implements Injectable {
         // By default it animates only on hiding./showing views.
         // The view must have android:animateLayoutChanges(true) attribute set in the XML.
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printStats);
         mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);

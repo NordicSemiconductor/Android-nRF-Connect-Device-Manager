@@ -83,11 +83,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             mStartAction.setEnabled(isFileLoaded());
@@ -172,7 +167,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             }
         });
     }
-
     /**
      * Starts the Firmware Upgrade using a selected mode.
      */

@@ -59,11 +59,6 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mViewModel.getConnectionState().observe(getViewLifecycleOwner(), state -> {
             switch (state) {

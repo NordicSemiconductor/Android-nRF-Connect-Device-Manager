@@ -103,11 +103,6 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                 mFilePath.setText(getString(R.string.files_file_path, mPartition, s));
             }
         });
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
 
         mFsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
             mPartition = partition;
