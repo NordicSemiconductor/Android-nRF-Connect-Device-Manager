@@ -12,9 +12,6 @@ import javax.inject.Named;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
@@ -129,7 +126,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     }
 
     @Override
-    public void onDownloadCompleted(@NotNull final byte[] data) {
+    public void onDownloadCompleted(@NonNull final byte[] data) {
         mController = null;
         mProgressLiveData.postValue(0);
         mResponseLiveData.postValue(data);
