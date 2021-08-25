@@ -21,6 +21,14 @@
 	 -->
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
+	<queries>
+		<intent>
+			<action android:name="android.intent.action.GET_CONTENT"/>
+			<category android:name="android.intent.category.OPENABLE"/>
+			<data android:mimeType="*/*" />
+		</intent>
+	</queries>
+
 	<application
 		android:allowBackup="false"
 		android:icon="@mipmap/ic_launcher"
@@ -32,7 +40,8 @@
 		tools:ignore="GoogleAppIndexingWarning">
 		<activity
 			android:name=".ScannerActivity"
-			android:launchMode="singleTop">
+			android:launchMode="singleTop"
+			android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
 				<category android:name="android.intent.category.LAUNCHER"/>
