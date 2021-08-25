@@ -136,7 +136,7 @@ abstract class Uploader(
 
         val resultChannel: Channel<UploadResult> = Channel(1)
         write(chunk.data, chunk.offset) {
-            resultChannel.offer(it)
+            resultChannel.trySend(it)
         }
 
         return if (resend) {
