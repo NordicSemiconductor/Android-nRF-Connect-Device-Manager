@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModel;
