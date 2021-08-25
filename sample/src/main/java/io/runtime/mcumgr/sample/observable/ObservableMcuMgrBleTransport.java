@@ -18,8 +18,8 @@ import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import no.nordicsemi.android.ble.observer.BondingObserver;
 
 public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
-    private MutableLiveData<ConnectionState> mConnectionState = new MutableLiveData<>(ConnectionState.DISCONNECTED);
-    private MutableLiveData<BondingState> mBondingState = new MutableLiveData<>(BondingState.NOT_BONDED);
+    private final MutableLiveData<ConnectionState> mConnectionState = new MutableLiveData<>(ConnectionState.DISCONNECTED);
+    private final MutableLiveData<BondingState> mBondingState = new MutableLiveData<>(BondingState.NOT_BONDED);
 
     /**
      * Construct a McuMgrBleTransport object.
