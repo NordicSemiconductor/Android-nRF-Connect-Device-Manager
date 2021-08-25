@@ -18,8 +18,8 @@ import io.runtime.mcumgr.sample.observable.ConnectionState;
 import io.runtime.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 
 public class DeviceStatusViewModel extends McuMgrViewModel {
-    private LiveData<ConnectionState> mConnectionStateLiveData;
-    private LiveData<BondingState> mBondStateLiveData;
+    private final LiveData<ConnectionState> mConnectionStateLiveData;
+    private final LiveData<BondingState> mBondStateLiveData;
 
     @Inject
     DeviceStatusViewModel(final McuMgrTransport transport,
