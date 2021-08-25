@@ -22,16 +22,6 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
-import java.util.Arrays;
-import java.util.Set;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,9 +29,14 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import java.util.Arrays;
+import java.util.Set;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.FragmentCardFilesDownloadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.FsUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesDownloadViewModel;
@@ -54,22 +49,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     @Inject
     FsUtils mFsUtils;
 
-    @BindView(R.id.file_name)
-    EditText mFileName;
-    @BindView(R.id.file_path)
-    TextView mFilePath;
-    @BindView(R.id.action_history)
-    View mHistoryAction;
-    @BindView(R.id.action_download)
-    Button mDownloadAction;
-    @BindView(R.id.progress)
-    ProgressBar mProgress;
-    @BindView(R.id.divider)
-    View mDivider;
-    @BindView(R.id.file_result)
-    TextView mResult;
-    @BindView(R.id.image)
-    ImageView mImage;
+    private FragmentCardFilesDownloadBinding mBinding;
 
     private FilesDownloadViewModel mViewModel;
     private InputMethodManager mImm;
@@ -88,32 +68,32 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_card_files_download, container, false);
+        mBinding = FragmentCardFilesDownloadBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
 
-        mFileName.addTextChangedListener(new SimpleTextWatcher() {
+        mBinding.fileName.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void onTextChanged(final CharSequence s,
                                       final int start, final int before, final int count) {
-                mFilePath.setText(getString(R.string.files_file_path, mPartition, s));
+                mBinding.filePath.setText(getString(R.string.files_file_path, mPartition, s));
             }
         });
 
         mFsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
             mPartition = partition;
-            final String fileName = mFileName.getText().toString();
-            mFilePath.setText(getString(R.string.files_file_path, partition, fileName));
+            final String fileName = mBinding.fileName.getText().toString();
+            mBinding.filePath.setText(getString(R.string.files_file_path, partition, fileName));
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mProgress.setProgress(progress));
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
         mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printContent);
         mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mDownloadAction.setEnabled(!busy));
-        mHistoryAction.setOnClickListener(v -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionDownload.setEnabled(!busy));
+        mBinding.actionHistory.setOnClickListener(v -> {
             final PopupMenu popupMenu = new PopupMenu(requireContext(), v);
             final Menu menu = popupMenu.getMenu();
             final Set<String> recents = mFsUtils.getRecents();
@@ -127,64 +107,70 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                 }
             }
             popupMenu.setOnMenuItemClickListener(item -> {
-                mFileName.setError(null);
-                mFileName.setText(item.getTitle());
+                mBinding.fileName.setError(null);
+                mBinding.fileName.setText(item.getTitle());
                 return true;
             });
             popupMenu.show();
         });
-        mDownloadAction.setOnClickListener(v -> {
-            final String fileName = mFileName.getText().toString();
+        mBinding.actionDownload.setOnClickListener(v -> {
+            final String fileName = mBinding.fileName.getText().toString();
             if (TextUtils.isEmpty(fileName)) {
-                mFileName.setError(getString(R.string.files_download_empty));
+                mBinding.fileName.setError(getString(R.string.files_download_empty));
             } else {
                 hideKeyboard();
                 mFsUtils.addRecent(fileName);
-                mViewModel.download(mFilePath.getText().toString());
+                mViewModel.download(mBinding.filePath.getText().toString());
             }
         });
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
+    }
+
     private void hideKeyboard() {
-        mImm.hideSoftInputFromWindow(mFileName.getWindowToken(), 0);
+        mImm.hideSoftInputFromWindow(mBinding.fileName.getWindowToken(), 0);
     }
 
     private void printContent(@Nullable final byte[] data) {
-        mDivider.setVisibility(View.VISIBLE);
-        mResult.setVisibility(View.VISIBLE);
-        mImage.setVisibility(View.VISIBLE);
-        mImage.setImageDrawable(null);
+        mBinding.divider.setVisibility(View.VISIBLE);
+        mBinding.fileResult.setVisibility(View.VISIBLE);
+        mBinding.image.setVisibility(View.VISIBLE);
+        mBinding.image.setImageDrawable(null);
 
         if (data == null) {
-            mResult.setText(R.string.files_download_error_file_not_found);
+            mBinding.fileResult.setText(R.string.files_download_error_file_not_found);
         } else {
             if (data.length == 0) {
-                mResult.setText(R.string.files_download_file_empty);
+                mBinding.fileResult.setText(R.string.files_download_file_empty);
             } else {
-                final String path = mFilePath.getText().toString();
+                final String path = mBinding.filePath.getText().toString();
                 final Bitmap bitmap = FsUtils.toBitmap(getResources(), data);
                 if (bitmap != null) {
                     final SpannableString spannable = new SpannableString(
                             getString(R.string.files_download_image, path, data.length));
                     spannable.setSpan(new StyleSpan(Typeface.BOLD),
                             0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                    mResult.setText(spannable);
-                    mImage.setImageBitmap(bitmap);
+                    mBinding.fileResult.setText(spannable);
+                    mBinding.image.setImageBitmap(bitmap);
                 } else {
                     final String content = new String(data);
                     final SpannableString spannable = new SpannableString(
                             getString(R.string.files_download_file, path, data.length, content));
                     spannable.setSpan(new StyleSpan(Typeface.BOLD),
                             0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                    mResult.setText(spannable);
+                    mBinding.fileResult.setText(spannable);
                 }
             }
         }
     }
 
     private void printError(@Nullable final String error) {
-        mDivider.setVisibility(View.VISIBLE);
-        mResult.setVisibility(View.VISIBLE);
+        mBinding.divider.setVisibility(View.VISIBLE);
+        mBinding.fileResult.setVisibility(View.VISIBLE);
 
         if (error != null) {
             final SpannableString spannable = new SpannableString(error);
@@ -193,9 +179,9 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             spannable.setSpan(new StyleSpan(Typeface.BOLD),
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            mResult.setText(spannable);
+            mBinding.fileResult.setText(spannable);
         } else {
-            mResult.setText(null);
+            mBinding.fileResult.setText(null);
         }
     }
 

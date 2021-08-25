@@ -18,10 +18,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,10 +26,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.FragmentCardImageControlBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
@@ -44,19 +42,8 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
 
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
-
-    @BindView(R.id.image_control_value)
-    TextView mValue;
-    @BindView(R.id.image_control_error)
-    TextView mError;
-    @BindView(R.id.action_read)
-    Button mReadAction;
-    @BindView(R.id.action_test)
-    Button mTestAction;
-    @BindView(R.id.action_confirm)
-    Button mConfirmAction;
-    @BindView(R.id.action_erase)
-    Button mEraseAction;
+    
+    private FragmentCardImageControlBinding mBinding;
 
     private ImageControlViewModel mViewModel;
 
@@ -72,13 +59,13 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_card_image_control, container, false);
+        mBinding = FragmentCardImageControlBinding.inflate(inflater, container, false);
+        return  mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
 
         final Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.help);
@@ -92,26 +79,32 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
         mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printImageSlotInfo);
         mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
         mViewModel.getTestOperationAvailability().observe(getViewLifecycleOwner(),
-                enabled -> mTestAction.setEnabled(enabled));
+                enabled -> mBinding.actionTest.setEnabled(enabled));
         mViewModel.getConfirmOperationAvailability().observe(getViewLifecycleOwner(),
-                enabled -> mConfirmAction.setEnabled(enabled));
+                enabled -> mBinding.actionConfirm.setEnabled(enabled));
         mViewModel.getEraseOperationAvailability().observe(getViewLifecycleOwner(),
-                enabled -> mEraseAction.setEnabled(enabled));
+                enabled -> mBinding.actionErase.setEnabled(enabled));
         mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             if (busy) {
-                mReadAction.setEnabled(false);
-                mTestAction.setEnabled(false);
-                mConfirmAction.setEnabled(false);
-                mEraseAction.setEnabled(false);
+                mBinding.actionRead.setEnabled(false);
+                mBinding.actionTest.setEnabled(false);
+                mBinding.actionConfirm.setEnabled(false);
+                mBinding.actionErase.setEnabled(false);
             } else {
-                mReadAction.setEnabled(true);
+                mBinding.actionRead.setEnabled(true);
                 // Other actions will be optionally enabled by other observers
             }
         });
-        mReadAction.setOnClickListener(v -> mViewModel.read());
-        mTestAction.setOnClickListener(v -> mViewModel.test());
-        mConfirmAction.setOnClickListener(v -> mViewModel.confirm());
-        mEraseAction.setOnClickListener(v -> mViewModel.erase());
+        mBinding.actionRead.setOnClickListener(v -> mViewModel.read());
+        mBinding.actionTest.setOnClickListener(v -> mViewModel.test());
+        mBinding.actionConfirm.setOnClickListener(v -> mViewModel.confirm());
+        mBinding.actionErase.setOnClickListener(v -> mViewModel.erase());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     @Override
@@ -143,10 +136,10 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
                 builder.setSpan(new StyleSpan(Typeface.BOLD),
                         index, index + 8, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             }
-            mValue.setText(builder);
-            mError.setVisibility(View.GONE);
+            mBinding.imageControlValue.setText(builder);
+            mBinding.imageControlError.setVisibility(View.GONE);
         } else {
-            mValue.setText(null);
+            mBinding.imageControlValue.setText(null);
         }
     }
 
@@ -158,10 +151,10 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             spannable.setSpan(new StyleSpan(Typeface.BOLD),
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            mError.setText(spannable);
-            mError.setVisibility(View.VISIBLE);
+            mBinding.imageControlError.setText(spannable);
+            mBinding.imageControlError.setVisibility(View.VISIBLE);
         } else {
-            mError.setText(null);
+            mBinding.imageControlError.setText(null);
         }
     }
 }

@@ -22,6 +22,10 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding true
+    }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -38,10 +42,6 @@ dependencies {
 
     // Lifecycle extensions
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-
-    // Butter Knife
-    implementation 'com.jakewharton:butterknife:10.2.3'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
 
     // Dagger 2
     implementation 'com.google.dagger:dagger:2.35.1'

@@ -10,18 +10,15 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import io.runtime.mcumgr.sample.R;
+
+import javax.inject.Inject;
+
+import io.runtime.mcumgr.sample.databinding.FragmentCardResetBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
@@ -30,11 +27,8 @@ public class ResetFragment extends Fragment implements Injectable {
 
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
-
-    @BindView(R.id.action_reset)
-    Button mResetAction;
-    @BindView(R.id.reset_error)
-    TextView mErrorView;
+    
+    private FragmentCardResetBinding mBinding;
 
     private ResetViewModel mViewModel;
 
@@ -50,16 +44,22 @@ public class ResetFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_card_reset, container, false);
+        mBinding = FragmentCardResetBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
 
-        mViewModel.getError().observe(getViewLifecycleOwner(), s -> mErrorView.setText(s));
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mResetAction.setEnabled(!busy));
-        mResetAction.setOnClickListener(v -> mViewModel.reset());
+        mViewModel.getError().observe(getViewLifecycleOwner(), s -> mBinding.resetError.setText(s));
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionReset.setEnabled(!busy));
+        mBinding.actionReset.setOnClickListener(v -> mViewModel.reset());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 }

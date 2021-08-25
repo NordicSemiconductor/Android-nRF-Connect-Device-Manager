@@ -14,27 +14,24 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
-
-import java.util.List;
-import java.util.Map;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.response.stat.McuMgrStatResponse;
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.FragmentCardStatsBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.StatsViewModel;
@@ -44,12 +41,7 @@ public class StatsFragment extends Fragment implements Injectable {
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
-    @BindView(R.id.stats_value)
-    TextView mStatsValue;
-    @BindView(R.id.image_control_error)
-    TextView mError;
-    @BindView(R.id.action_refresh)
-    Button mActionRefresh;
+    private FragmentCardStatsBinding mBinding;
 
     private StatsViewModel mViewModel;
 
@@ -65,13 +57,13 @@ public class StatsFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_card_stats, container, false);
+        mBinding = FragmentCardStatsBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
 
         // This makes the layout animate when the TextView value changes.
         // By default it animates only on hiding./showing views.
@@ -80,8 +72,14 @@ public class StatsFragment extends Fragment implements Injectable {
 
         mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printStats);
         mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mActionRefresh.setEnabled(!busy));
-        mActionRefresh.setOnClickListener(v -> mViewModel.readStats());
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionRefresh.setEnabled(!busy));
+        mBinding.actionRefresh.setOnClickListener(v -> mViewModel.readStats());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     private void printStats(@NonNull final List<McuMgrStatResponse> responses) {
@@ -97,22 +95,21 @@ public class StatsFragment extends Fragment implements Injectable {
                         entry.getKey(), entry.getValue())).append("\n");
             }
         }
-        mStatsValue.setText(builder);
+        mBinding.statsValue.setText(builder);
     }
 
     private void printError(@Nullable final String error) {
         if (error != null) {
             final SpannableString spannable = new SpannableString(error);
-            TypedValue typedValue = new TypedValue();
             spannable.setSpan(new ForegroundColorSpan(
                             ContextCompat.getColor(requireContext(), R.color.colorError)),
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             spannable.setSpan(new StyleSpan(Typeface.BOLD),
                     0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            mError.setText(spannable);
-            mError.setVisibility(View.VISIBLE);
+            mBinding.imageControlError.setText(spannable);
+            mBinding.imageControlError.setVisibility(View.VISIBLE);
         } else {
-            mError.setText(null);
+            mBinding.imageControlError.setText(null);
         }
     }
 }
