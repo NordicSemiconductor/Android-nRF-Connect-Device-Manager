@@ -38,6 +38,7 @@ import io.runtime.mcumgr.ble.callback.SmpProtocolSession;
 import io.runtime.mcumgr.ble.callback.SmpTransaction;
 import io.runtime.mcumgr.ble.util.ResultCondition;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.McuMgrResponse;
@@ -302,7 +303,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     mSmpProtocol.send(payload, new SmpTransaction() {
                         @Override
                         public void send(@NonNull byte[] data) {
-
                             if (mLoggingEnabled) {
                                 try {
                                     log(Log.VERBOSE, "Sending (" + payload.length + " bytes) "
@@ -337,7 +337,11 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         public void onResponse(@NonNull byte[] data) {
                             try {
                                 T response = McuMgrResponse.buildResponse(McuMgrScheme.BLE, data, responseType);
-                                callback.onResponse(response);
+                                if (response.isSuccess()) {
+                                    callback.onResponse(response);
+                                } else {
+                                    callback.onError(new McuMgrErrorException(response));
+                                }
                             } catch (final Exception e) {
                                 callback.onError(new McuMgrException(e));
                             }
