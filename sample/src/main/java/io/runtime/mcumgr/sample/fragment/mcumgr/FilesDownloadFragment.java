@@ -35,6 +35,10 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
+import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardFilesDownloadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -168,21 +172,31 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         }
     }
 
-    private void printError(@Nullable final String error) {
+    private void printError(@Nullable final McuMgrException error) {
         mBinding.divider.setVisibility(View.VISIBLE);
         mBinding.fileResult.setVisibility(View.VISIBLE);
 
-        if (error != null) {
-            final SpannableString spannable = new SpannableString(error);
-            spannable.setSpan(new ForegroundColorSpan(
-                            ContextCompat.getColor(requireContext(), R.color.colorError)),
-                    0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                    0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            mBinding.fileResult.setText(spannable);
-        } else {
-            mBinding.fileResult.setText(null);
+        String message = error != null ? error.getMessage() : null;
+        if (error instanceof McuMgrErrorException) {
+            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
+            if (code == McuMgrErrorCode.UNKNOWN) {
+                message = getString(R.string.files_download_error_file_not_found);
+            }
         }
+        if (error instanceof McuMgrTimeoutException) {
+            message = getString(R.string.status_connection_timeout);
+        }
+        if (message == null) {
+            mBinding.fileResult.setText(null);
+            return;
+        }
+        final SpannableString spannable = new SpannableString(message);
+        spannable.setSpan(new ForegroundColorSpan(
+                        ContextCompat.getColor(requireContext(), R.color.colorError)),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new StyleSpan(Typeface.BOLD),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mBinding.fileResult.setText(spannable);
     }
 
     private abstract static class SimpleTextWatcher implements TextWatcher {

@@ -22,7 +22,7 @@ public class EchoViewModel extends McuMgrViewModel {
 
     private final MutableLiveData<String> mRequestLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> mResponseLiveData = new MutableLiveData<>();
-    private final MutableLiveData<String> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
 
     @Inject
     EchoViewModel(final DefaultManager manager,
@@ -42,7 +42,7 @@ public class EchoViewModel extends McuMgrViewModel {
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -58,7 +58,7 @@ public class EchoViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady();
             }
         });

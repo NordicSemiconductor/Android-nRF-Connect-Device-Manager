@@ -29,6 +29,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.stat.McuMgrStatResponse;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardStatsBinding;
@@ -98,18 +100,22 @@ public class StatsFragment extends Fragment implements Injectable {
         mBinding.statsValue.setText(builder);
     }
 
-    private void printError(@Nullable final String error) {
-        if (error != null) {
-            final SpannableString spannable = new SpannableString(error);
-            spannable.setSpan(new ForegroundColorSpan(
-                            ContextCompat.getColor(requireContext(), R.color.colorError)),
-                    0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                    0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            mBinding.imageControlError.setText(spannable);
-            mBinding.imageControlError.setVisibility(View.VISIBLE);
-        } else {
-            mBinding.imageControlError.setText(null);
+    private void printError(@Nullable final McuMgrException error) {
+        String message = error != null ? error.getMessage() : null;
+        if (error instanceof McuMgrTimeoutException) {
+            message = getString(R.string.status_connection_timeout);
         }
+        if (message == null) {
+            mBinding.imageControlError.setText(null);
+            return;
+        }
+        final SpannableString spannable = new SpannableString(message);
+        spannable.setSpan(new ForegroundColorSpan(
+                        ContextCompat.getColor(requireContext(), R.color.colorError)),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new StyleSpan(Typeface.BOLD),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mBinding.imageControlError.setText(spannable);
+        mBinding.imageControlError.setVisibility(View.VISIBLE);
     }
 }

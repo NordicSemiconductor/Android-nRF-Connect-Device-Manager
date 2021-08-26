@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModelProvider;
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageUploadBinding;
@@ -189,13 +190,21 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         mBinding.status.setText(error);
     }
 
-    private void printError(@NonNull final String error) {
-        final SpannableString spannable = new SpannableString(error);
+    private void printError(@Nullable final McuMgrException error) {
+        String message = error != null ? error.getMessage() : null;
+        if (error instanceof McuMgrTimeoutException) {
+            message = getString(R.string.status_connection_timeout);
+        }
+        if (message == null) {
+            mBinding.status.setText(null);
+            return;
+        }
+        final SpannableString spannable = new SpannableString(message);
         spannable.setSpan(new ForegroundColorSpan(
                         ContextCompat.getColor(requireContext(), R.color.colorError)),
-                0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         mBinding.status.setText(spannable);
     }
 }

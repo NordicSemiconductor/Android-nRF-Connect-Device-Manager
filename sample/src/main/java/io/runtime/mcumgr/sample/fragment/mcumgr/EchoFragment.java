@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
 
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardEchoBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -77,7 +78,11 @@ public class EchoFragment extends Fragment implements Injectable {
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mBinding.echoResponse.setVisibility(View.VISIBLE);
             mBinding.echoResponse.setBackgroundResource(R.drawable.echo_error);
-            mBinding.echoResponse.setText(error);
+            if (error instanceof McuMgrTimeoutException) {
+                mBinding.echoResponse.setText(R.string.status_connection_timeout);
+            } else {
+                mBinding.echoResponse.setText(error.getMessage());
+            }
         });
         mBinding.actionSend.setOnClickListener(v -> {
             mBinding.echoRequest.setText(null);

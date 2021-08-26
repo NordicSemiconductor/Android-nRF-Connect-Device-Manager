@@ -46,7 +46,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
-    private final MutableLiveData<String> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
 
     @Inject
@@ -68,7 +68,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -125,7 +125,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
     public void onUploadFailed(@NonNull final McuMgrException error) {
         mController = null;
         mProgressLiveData.postValue(0);
-        mErrorLiveData.postValue(error.getMessage());
+        mErrorLiveData.postValue(error);
         postReady();
     }
 

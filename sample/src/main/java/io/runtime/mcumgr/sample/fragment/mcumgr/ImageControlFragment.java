@@ -29,6 +29,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
 
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
+import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageControlBinding;
@@ -143,18 +147,31 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
         }
     }
 
-    private void printError(@Nullable final String error) {
-        if (error != null) {
-            final SpannableString spannable = new SpannableString(error);
-            spannable.setSpan(new ForegroundColorSpan(
-                            ContextCompat.getColor(requireContext(), R.color.colorError)),
-                    0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                    0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            mBinding.imageControlError.setText(spannable);
-            mBinding.imageControlError.setVisibility(View.VISIBLE);
-        } else {
-            mBinding.imageControlError.setText(null);
+    private void printError(@Nullable final McuMgrException error) {
+        String message = error != null ? error.getMessage() : null;
+        if (error instanceof McuMgrErrorException) {
+            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
+            if (code == McuMgrErrorCode.UNKNOWN) {
+                // User tried to test a firmware with hash equal to the hash of the
+                // active firmware. This would result in changing the permanent flag
+                // of the slot 0 to false, which is not possible.
+                message = getString(R.string.image_control_already_flashed);
+            }
         }
+        if (error instanceof McuMgrTimeoutException) {
+            message = getString(R.string.status_connection_timeout);
+        }
+        if (message == null) {
+            mBinding.imageControlError.setText(null);
+            return;
+        }
+        final SpannableString spannable = new SpannableString(message);
+        spannable.setSpan(new ForegroundColorSpan(
+                        ContextCompat.getColor(requireContext(), R.color.colorError)),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new StyleSpan(Typeface.BOLD),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mBinding.imageControlError.setText(spannable);
+        mBinding.imageControlError.setVisibility(View.VISIBLE);
     }
 }

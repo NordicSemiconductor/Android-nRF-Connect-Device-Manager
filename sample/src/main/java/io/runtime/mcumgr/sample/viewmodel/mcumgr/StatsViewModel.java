@@ -25,7 +25,7 @@ public class StatsViewModel extends McuMgrViewModel {
     private final StatsManager mManager;
 
     private final MutableLiveData<List<McuMgrStatResponse>> mResponseLiveData = new MutableLiveData<>();
-    private final MutableLiveData<String> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
 
     @Inject
     StatsViewModel(final StatsManager manager,
@@ -39,7 +39,7 @@ public class StatsViewModel extends McuMgrViewModel {
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -63,7 +63,7 @@ public class StatsViewModel extends McuMgrViewModel {
 
                         @Override
                         public void onError(@NonNull final McuMgrException error) {
-                            mErrorLiveData.postValue(error.getMessage());
+                            mErrorLiveData.postValue(error);
                             postReady();
                         }
                     });
@@ -72,7 +72,7 @@ public class StatsViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady();
             }
         });

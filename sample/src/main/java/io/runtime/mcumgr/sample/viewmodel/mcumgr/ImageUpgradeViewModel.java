@@ -50,7 +50,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
-    private final SingleLiveEvent<String> mErrorLiveData = new SingleLiveEvent<>();
+    private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
 
     @Inject
@@ -77,7 +77,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -96,7 +96,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             mManager.start(data);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
-            mErrorLiveData.setValue("Invalid image file.");
+            mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
         }
     }
 
@@ -177,7 +177,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     @Override
     public void onUpgradeFailed(final FirmwareUpgradeManager.State state, final McuMgrException error) {
         mProgressLiveData.postValue(0);
-        mErrorLiveData.postValue(error.getMessage());
+        mErrorLiveData.postValue(error);
         postReady();
     }
 }
