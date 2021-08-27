@@ -6,13 +6,12 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
@@ -62,6 +61,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
         mManager.setEstimatedSwapTime(20000);
         mManager.setFirmwareUpgradeCallback(this);
+        mManager.setWindowUploadCapacity(32);
         mStateLiveData.setValue(State.IDLE);
         mProgressLiveData.setValue(0);
     }
