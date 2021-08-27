@@ -17,6 +17,7 @@ import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
 import io.runtime.mcumgr.sample.di.AppInjector;
 import io.runtime.mcumgr.sample.di.component.McuMgrSubComponent;
+import no.nordicsemi.android.log.timber.nRFLoggerTree;
 import timber.log.Timber;
 
 public class Dagger2Application extends Application implements HasAndroidInjector {
@@ -25,6 +26,8 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
     DispatchingAndroidInjector<Object> dispatchingAndroidInjector;
     @Inject
     McuMgrSubComponent.Builder mBuilder;
+
+    private Timber.Tree logger;
 
     @Override
     public void onCreate() {
@@ -49,6 +52,11 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
      * @param device the target device.
      */
     public void setTarget(@NonNull final BluetoothDevice device) {
+        if (logger != null) {
+            Timber.uproot(logger);
+            logger = null;
+        }
+        Timber.plant(logger = new nRFLoggerTree(this, "Device Manager", device.getName()));
         mBuilder.target(device).build().update(this);
     }
 }
