@@ -6,33 +6,38 @@
 
 package io.runtime.mcumgr.ble;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrHeader;
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.McuMgrTransport;
-import io.runtime.mcumgr.ble.callback.SmpDataCallback;
 import io.runtime.mcumgr.ble.callback.SmpMerger;
-import io.runtime.mcumgr.ble.callback.SmpResponse;
+import io.runtime.mcumgr.ble.callback.SmpProtocolSession;
+import io.runtime.mcumgr.ble.callback.SmpTransaction;
+import io.runtime.mcumgr.ble.util.ResultCondition;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
-import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.McuMgrResponse;
@@ -40,16 +45,14 @@ import io.runtime.mcumgr.util.CBOR;
 import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.ble.Request;
 import no.nordicsemi.android.ble.annotation.ConnectionPriority;
+import no.nordicsemi.android.ble.callback.DataReceivedCallback;
 import no.nordicsemi.android.ble.callback.FailCallback;
 import no.nordicsemi.android.ble.callback.MtuCallback;
 import no.nordicsemi.android.ble.callback.SuccessCallback;
 import no.nordicsemi.android.ble.data.Data;
 import no.nordicsemi.android.ble.data.DataMerger;
 import no.nordicsemi.android.ble.error.GattError;
-import no.nordicsemi.android.ble.exception.BluetoothDisabledException;
 import no.nordicsemi.android.ble.exception.DeviceDisconnectedException;
-import no.nordicsemi.android.ble.exception.InvalidRequestException;
-import no.nordicsemi.android.ble.exception.RequestFailedException;
 
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.
@@ -68,15 +71,37 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     private final static UUID SMP_CHAR_UUID =
             UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
 
+    final static UUID CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID =
+            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
     /**
      * Simple Management Protocol service.
      */
     private BluetoothGattService mSmpService;
 
+    // Use a separate characteristic object for writes vs notifications.
+    //
+    // We must clone the characteristic object in order to ensure no race
+    // conditions with BluetoothGattCharacteristic's getValue() function when
+    // asynchronously writing to and receiving notifications from the same
+    // characteristic.
+    //
+    // Me must write to the clone and receive from the original in order to
+    // ensure that the OS selects the correct characteristic object from the
+    // service's list.
+    //
+    // More info:
+    // https://stackoverflow.com/questions/38922639/how-could-i-achieve-maximum-thread-safety-with-a-read-write-ble-gatt-characteris
+
     /**
-     * Simple Management Protocol characteristic.
+     * Simple Management Protocol write characteristic.
      */
-    private BluetoothGattCharacteristic mSmpCharacteristic;
+    private BluetoothGattCharacteristic mSmpCharacteristicWrite;
+
+    /**
+     * Simple Management Protocol notify characteristic.
+     */
+    private BluetoothGattCharacteristic mSmpCharacteristicNotify;
 
     /**
      * The Bluetooth device for this transporter.
@@ -104,13 +129,44 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     private boolean mLoggingEnabled;
 
     /**
+     * The protocol layer session allows for asynchronous requests and responses
+     * by using the sequence number to match transactions.
+     * The session object is set when the device connects and the SMP service is
+     * initialized. When the device disconnects, the protocol session is closed
+     * and this variable is set to null.
+     */
+    private SmpProtocolSession mSmpProtocol;
+
+    /**
+     * The handler used to initialize {@link BleManager} and
+     * {@link SmpProtocolSession}. The protocol session will call callbacks on
+     * the handler.
+     */
+    private Handler mHandler;
+
+    /**
      * Construct a McuMgrBleTransport object.
+     *
+     * Uses the main thread for callbacks.
      *
      * @param context the context used to connect to the device.
      * @param device  the device to connect to and communicate with.
      */
     public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice device) {
-        super(context);
+        this(context, device, new Handler(Looper.getMainLooper()));
+    }
+
+    /**
+     * Construct a McuMgrBleTransport object with a handler to run the
+     * {@link BleManager} and asynchronous callbacks.
+     *
+     * @param context the context used to connect to the device.
+     * @param device  the device to connect to and communicate with.
+     * @param handler the handler to run the {@link BleManager} and {@link McuMgrCallback}s.
+     */
+    public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice device, @NonNull Handler handler) {
+        super(context, handler);
+        mHandler = handler;
         mDevice = device;
     }
 
@@ -208,111 +264,31 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     public <T extends McuMgrResponse> T send(@NonNull final byte[] payload,
                                              @NonNull final Class<T> responseType)
             throws McuMgrException {
-        // If device is not connected, connect
-        final boolean wasConnected = isConnected();
-        try {
-            // Await will wait until the device is ready (that is initialization is complete)
-            connect(mDevice)
-                    .retry(3, 100)
-                    .timeout(25 * 1000)
-                    .await();
-            if (!wasConnected) {
-                notifyConnected();
+        final ResultCondition<T> condition = new ResultCondition<>(false);
+        send(payload, responseType, new McuMgrCallback<T>() {
+            @Override
+            public void onResponse(@NotNull T response) {
+                condition.open(response);
             }
-        } catch (RequestFailedException e) {
-            switch (e.getStatus()) {
-                case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
-                    throw new McuMgrException("Device does not support SMP Service");
-                case FailCallback.REASON_REQUEST_FAILED:
-                    // This could be thrown only if the manager was requested to connect for
-                    // a second time and to a different device than the one that's already
-                    // connected. This may not happen here.
-                    throw new McuMgrException("Other device already connected");
-                case FailCallback.REASON_TIMEOUT:
-                    // Called after receiving error 133 after 30 seconds.
-                    throw new McuMgrTimeoutException();
-                default:
-                    // Other errors are currently never thrown for the connect request.
-                    throw new McuMgrException("Unknown error");
-            }
-        } catch (InterruptedException e) {
-            // On timeout, fail the request
-            throw new McuMgrException("Connection routine timed out.");
-        } catch (DeviceDisconnectedException e) {
-            // When connection failed, fail the request
-            throw new McuMgrException("Device has disconnected");
-        } catch (BluetoothDisabledException e) {
-            // When Bluetooth was disabled, fail the request
-            throw new McuMgrException("Bluetooth adapter disabled");
-        } catch (InvalidRequestException e) {
-            // Ignore. This exception won't be thrown
-            throw new RuntimeException("Invalid request");
-        }
 
-        // Ensure the MTU is sufficient.
-        if (mMaxPacketLength < payload.length) {
-            throw new InsufficientMtuException(payload.length, mMaxPacketLength);
-        }
-
-        // Send the request and wait for a notification in a synchronous way
-        try {
-            if (mLoggingEnabled) {
-                try {
-                    log(Log.VERBOSE, "Sending "
-                            + McuMgrHeader.fromBytes(payload).toString() + " CBOR "
-                            + CBOR.toString(payload, McuMgrHeader.HEADER_LENGTH));
-                } catch (Exception e) {
-                    // Ignore
-                }
+            @Override
+            public void onError(@NotNull McuMgrException error) {
+                condition.openExceptionally(error);
             }
-            final SmpResponse<T> smpResponse = waitForNotification(mSmpCharacteristic)
-                    .merge(mSMPMerger)
-                    .trigger(writeCharacteristic(mSmpCharacteristic, payload).split())
-                    .timeout(30000)
-                    .await(new SmpResponse<>(responseType));
-            if (smpResponse.isValid()) {
-                if (mLoggingEnabled) {
-                    try {
-                        byte[] response = smpResponse.getRawData().getValue();
-                        //noinspection ConstantConditions
-                        log(Log.INFO, "Received "
-                                + McuMgrHeader.fromBytes(response).toString() + " CBOR "
-                                + CBOR.toString(response, McuMgrHeader.HEADER_LENGTH));
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-                }
-                //noinspection ConstantConditions
-                return smpResponse.getResponse();
-            } else {
-                throw new McuMgrException("Error building " +
-                        "McuMgrResponse from response data: " + smpResponse.getRawData());
-            }
-        } catch (RequestFailedException e) {
-            throw new McuMgrException(GattError.parse(e.getStatus()));
-        } catch (InterruptedException e) {
-            // Device must have disconnected moment before the request was made
-            throw new McuMgrException("Request timed out");
-        } catch (DeviceDisconnectedException e) {
-            // When connection failed, fail the request
-            throw new McuMgrException("Device has disconnected");
-        } catch (BluetoothDisabledException e) {
-            // When Bluetooth was disabled, fail the request
-            throw new McuMgrException("Bluetooth adapter disabled");
-        } catch (InvalidRequestException e) {
-            // Ignore. This exception won't be thrown
-            throw new RuntimeException("Invalid request");
-        }
+        });
+        return condition.block();
     }
 
     @Override
     public <T extends McuMgrResponse> void send(@NonNull final byte[] payload,
                                                 @NonNull final Class<T> responseType,
                                                 @NonNull final McuMgrCallback<T> callback) {
+
         // If device is not connected, connect.
         // If the device was already connected, the completion callback will be called immediately.
         final boolean wasConnected = isConnected();
-        connect(mDevice).done(new SuccessCallback() {
+        connect(mDevice)
+                .done(new SuccessCallback() {
             @Override
             public void onRequestCompleted(@NonNull final BluetoothDevice device) {
                 if (!wasConnected) {
@@ -326,75 +302,64 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     return;
                 }
 
-                if (mLoggingEnabled) {
-                    try {
-                        log(Log.VERBOSE, "Sending "
-                                + McuMgrHeader.fromBytes(payload).toString() + " CBOR "
-                                + CBOR.toString(payload, McuMgrHeader.HEADER_LENGTH));
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-                }
-                waitForNotification(mSmpCharacteristic)
-                        .merge(mSMPMerger)
-                        .with(new SmpDataCallback<T>(responseType) {
-                            @Override
-                            public void onDataReceived(@NonNull BluetoothDevice device,
-                                                       @NonNull Data data) {
-                                if (mLoggingEnabled) {
-                                    try {
-                                        byte[] response = data.getValue();
-                                        //noinspection ConstantConditions
-                                        log(Log.INFO, "Received "
-                                                + McuMgrHeader.fromBytes(response).toString() + " CBOR "
-                                                + CBOR.toString(response, McuMgrHeader.HEADER_LENGTH));
-                                    } catch (Exception e) {
-                                        // Ignore
+                // Send a new transaction to the protocol layer
+                mSmpProtocol.send(payload, new SmpTransaction() {
+                    @Override
+                    public void send(@NotNull byte[] data) {
+
+                        if (mLoggingEnabled) {
+                            try {
+                                log(Log.VERBOSE, "Sending (" + payload.length + " bytes) "
+                                        + McuMgrHeader.fromBytes(payload).toString() + " CBOR "
+                                        + CBOR.toString(payload, McuMgrHeader.HEADER_LENGTH));
+                            } catch (Exception e) {
+                                // Ignore
+                            }
+                        }
+
+                        writeCharacteristic(mSmpCharacteristicWrite, payload).split()
+                                .fail(new FailCallback() {
+                                    @Override
+                                    public void onRequestFailed(@NonNull BluetoothDevice device,
+                                                                int status) {
+                                        switch (status) {
+                                            case REASON_TIMEOUT:
+                                                callback.onError(new McuMgrException("Request timed out"));
+                                                break;
+                                            case REASON_DEVICE_DISCONNECTED:
+                                                callback.onError(new McuMgrException("Device has disconnected"));
+                                                break;
+                                            case REASON_BLUETOOTH_DISABLED:
+                                                callback.onError(new McuMgrException("Bluetooth adapter disabled"));
+                                                break;
+                                            default:
+                                                callback.onError(new McuMgrException(GattError.parse(status)));
+                                                break;
+                                        }
                                     }
-                                }
-                                super.onDataReceived(device, data);
-                            }
+                                })
+                                .enqueue();
+                    }
 
-                            @Override
-                            public void onResponseReceived(@NonNull BluetoothDevice device,
-                                                           @NonNull T response) {
-                                if (response.isSuccess()) {
-                                    callback.onResponse(response);
-                                } else {
-                                    callback.onError(new McuMgrErrorException(response));
-                                }
-                            }
+                    @Override
+                    public void onResponse(@NotNull byte[] data) {
+                        try {
+                            T response = McuMgrResponse.buildResponse(McuMgrScheme.BLE, data, responseType);
+                            callback.onResponse(response);
+                        } catch (final Exception e) {
+                            callback.onError(new McuMgrException(e));
+                        }
+                    }
 
-                            @Override
-                            public void onInvalidDataReceived(@NonNull BluetoothDevice device,
-                                                              @NonNull Data data) {
-                                callback.onError(new McuMgrException("Error building " +
-                                        "McuMgrResponse from response data: " + data));
-                            }
-                        })
-                        .trigger(writeCharacteristic(mSmpCharacteristic, payload).split())
-                        .fail(new FailCallback() {
-                            @Override
-                            public void onRequestFailed(@NonNull BluetoothDevice device,
-                                                        int status) {
-                                switch (status) {
-                                    case REASON_TIMEOUT:
-                                        callback.onError(new McuMgrException("Request timed out"));
-                                        break;
-                                    case REASON_DEVICE_DISCONNECTED:
-                                        callback.onError(new McuMgrException("Device has disconnected"));
-                                        break;
-                                    case REASON_BLUETOOTH_DISABLED:
-                                        callback.onError(new McuMgrException("Bluetooth adapter disabled"));
-                                        break;
-                                    default:
-                                        callback.onError(new McuMgrException(GattError.parse(status)));
-                                        break;
-                                }
-                            }
-                        })
-                        .timeout(30000)
-                        .enqueue();
+                    @Override
+                    public void onFailure(@NotNull Throwable e) {
+                        if (e instanceof McuMgrException) {
+                            callback.onError((McuMgrException) e);
+                        } else {
+                            callback.onError(new McuMgrException(e));
+                        }
+                    }
+                });
             }
         }).fail(new FailCallback() {
             @Override
@@ -534,12 +499,12 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                 LOG.error("Device does not support SMP service");
                 return false;
             }
-            mSmpCharacteristic = mSmpService.getCharacteristic(SMP_CHAR_UUID);
-            if (mSmpCharacteristic == null) {
+            mSmpCharacteristicNotify = mSmpService.getCharacteristic(SMP_CHAR_UUID);
+            if (mSmpCharacteristicNotify == null) {
                 LOG.error("Device does not support SMP characteristic");
                 return false;
             } else {
-                final int rxProperties = mSmpCharacteristic.getProperties();
+                final int rxProperties = mSmpCharacteristicNotify.getProperties();
                 boolean write = (rxProperties &
                         BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0;
                 boolean notify = (rxProperties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0;
@@ -548,6 +513,17 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     return false;
                 }
             }
+
+            // We must clone the characteristic in order to ensure no race conditions with
+            // BluetoothGattCharacteristic's getValue() function when writing to and receiving
+            // notifications from the same characteristic. Me must write to the clone and
+            // receive from the original in order to ensure that the OS selects the correct
+            // characteristic object from the service's list.
+            //
+            // More info:
+            // https://stackoverflow.com/questions/38922639/how-could-i-achieve-maximum-thread-safety-with-a-read-write-ble-gatt-characteris
+            mSmpCharacteristicWrite = cloneCharacteristic(mSmpCharacteristicNotify);
+            mSmpService.addCharacteristic(mSmpCharacteristicWrite);
             return true;
         }
 
@@ -567,19 +543,53 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     .fail(new FailCallback() {
                         @Override
                         public void onRequestFailed(@NonNull final BluetoothDevice device, final int status) {
-                            mMaxPacketLength = Math.max(getMtu() - 3, mMaxPacketLength);
+                            log(Log.INFO, "Failed to negotiate MTU, disconnecting,");
+                            disconnect().enqueue();
                         }
                     }).enqueue();
-            enableNotifications(mSmpCharacteristic).enqueue();
+            enableNotifications(mSmpCharacteristicNotify).enqueue();
+            mSmpProtocol = new SmpProtocolSession(mHandler);
+            setNotificationCallback(mSmpCharacteristicNotify)
+                    .merge(mSMPMerger)
+                    .with(mAsyncNotificationCallback);
         }
+
+        // Registered as a callback for all notifications from the SMP characteristic.
+        // Forwards the merged data packets to the protocol layer to be matched to a request.
+        private DataReceivedCallback mAsyncNotificationCallback = new DataReceivedCallback() {
+
+            @Override
+            public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
+                byte[] bytes = data.getValue();
+                if (bytes == null) {
+                    return;
+                }
+                if (mLoggingEnabled) {
+                    try {
+                        log(Log.INFO, "Received "
+                                + McuMgrHeader.fromBytes(bytes).toString() + " CBOR "
+                                + CBOR.toString(bytes, McuMgrHeader.HEADER_LENGTH));
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                }
+                mSmpProtocol.receive(bytes);
+            }
+        };
 
         // Called when the device has disconnected. This method nulls the services and
         // characteristic variables.
         @Override
         protected void onDeviceDisconnected() {
+            removeNotificationCallback(mSmpCharacteristicNotify);
+            if (mSmpProtocol != null) {
+                mSmpProtocol.close(new DeviceDisconnectedException());
+            }
+            mSmpProtocol = null;
             mSmpService = null;
-            mSmpCharacteristic = null;
-
+            mSmpCharacteristicWrite = null;
+            mSmpCharacteristicNotify = null;
+            McuMgrBleTransport.this.overrideMtu(23); // TODO remove with new version of BLE-Library
             runOnCallbackThread(new Runnable() {
                 @Override
                 public void run() {
@@ -615,5 +625,46 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         for (ConnectionObserver o : mConnectionObservers) {
             o.onDisconnected();
         }
+    }
+
+    private static BluetoothGattDescriptor getNotifyCccd(@NonNull final BluetoothGattCharacteristic characteristic) {
+        // Check characteristic property
+        final int properties = characteristic.getProperties();
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
+            return null;
+        }
+        return characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID);
+    }
+
+    @NonNull
+    @SuppressLint("DiscouragedPrivateApi")
+    private static BluetoothGattCharacteristic cloneCharacteristic(@NonNull BluetoothGattCharacteristic characteristic) {
+        BluetoothGattCharacteristic clone;
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
+            // On older versions of android we have to use reflection in order
+            // to set the instance ID and the service.
+            clone = new BluetoothGattCharacteristic(
+                    characteristic.getUuid(),
+                    characteristic.getProperties(),
+                    characteristic.getPermissions());
+            clone.addDescriptor(getNotifyCccd(characteristic));
+            try {
+                Method setInstanceId = characteristic.getClass()
+                        .getDeclaredMethod("setInstanceId", int.class);
+                Method setService = characteristic.getClass()
+                        .getDeclaredMethod("setService", BluetoothGattService.class);
+                setService.setAccessible(true);
+                setInstanceId.invoke(clone, characteristic.getInstanceId());
+                setService.invoke(clone, characteristic.getService());
+            } catch (Exception e) {
+                LOG.error("SMP characteristic clone failed", e);
+                clone = characteristic;
+            }
+        } else {
+            // Newer versions of android have this bug fixed as long as a
+            // handler is used in connectGatt().
+            clone = characteristic;
+        }
+        return clone;
     }
 }

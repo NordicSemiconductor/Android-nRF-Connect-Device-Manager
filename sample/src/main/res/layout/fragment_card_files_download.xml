@@ -72,7 +72,7 @@
             android:layout_marginStart="8dp"
             app:layout_constraintStart_toStartOf="@+id/file_name_layout"
             app:layout_constraintTop_toBottomOf="@+id/file_name_layout"
-            tools:text="/nffs/file"/>
+            tools:text="/lfs/file"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_download"

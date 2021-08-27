@@ -22,7 +22,7 @@ import androidx.lifecycle.MutableLiveData;
 public class FsUtils {
     private static final String PREFS_RECENTS = "recents";
     private static final String PREFS_PARTITION = "partition";
-    private static final String PARTITION_DEFAULT = "nffs";
+    private static final String PARTITION_DEFAULT = "lfs";
 
     private final SharedPreferences mPreferences;
     private final MutableLiveData<String> mPartitionLiveData = new MutableLiveData<>();
