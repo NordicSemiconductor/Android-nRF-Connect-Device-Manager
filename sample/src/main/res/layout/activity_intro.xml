@@ -74,15 +74,6 @@
 				android:text="@string/intro_link_source_code"
 				style="@style/TextAppearance.Link" />
 
-			<com.google.android.material.textview.MaterialTextView
-				android:id="@+id/intro_link_mcu_manager"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginStart="16dp"
-				android:layout_marginTop="16dp"
-				android:layout_marginEnd="16dp"
-				android:text="@string/intro_link_mcu_manager"
-				style="@style/TextAppearance.Link" />
 		</LinearLayout>
 	</ScrollView>
 
