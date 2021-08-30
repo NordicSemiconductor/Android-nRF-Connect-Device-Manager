@@ -9,26 +9,22 @@ package io.runtime.mcumgr.sample.adapter;
 import android.bluetooth.BluetoothDevice;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import java.util.List;
-import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import java.util.List;
+import java.util.Locale;
+
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.ScannerActivity;
+import io.runtime.mcumgr.sample.databinding.DeviceItemBinding;
 import io.runtime.mcumgr.sample.viewmodel.DevicesLiveData;
 
 @SuppressWarnings("unused")
 public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
-    private final ScannerActivity mContext;
     private List<DiscoveredBluetoothDevice> mDevices;
     private OnItemClickListener mOnItemClickListener;
 
@@ -51,9 +47,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         mOnItemClickListener = listener;
     }
 
-    @SuppressWarnings("ConstantConditions")
     public DevicesAdapter(final ScannerActivity activity, final DevicesLiveData devicesLiveData) {
-        mContext = activity;
         setHasStableIds(true);
         devicesLiveData.observe(activity, devices -> {
             DiffUtil.DiffResult result = DiffUtil.calculateDiff(
@@ -66,9 +60,9 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
-        final View layoutView = LayoutInflater.from(mContext)
-                .inflate(R.layout.device_item, parent, false);
-        return new ViewHolder(layoutView);
+        final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        final DeviceItemBinding binding = DeviceItemBinding.inflate(inflater, parent, false);
+        return new ViewHolder(binding);
     }
 
     @Override
@@ -77,21 +71,21 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         final String deviceName = device.getName();
 
         if (!TextUtils.isEmpty(deviceName)) {
-            holder.deviceName.setText(deviceName);
+            holder.mBinding.deviceName.setText(deviceName);
             // Set device icon. This is just guessing, based on the device name.
             if (deviceName.toLowerCase(Locale.US).contains("zephyr"))
-                holder.icon.setImageResource(R.drawable.ic_device_zephyr);
+                holder.mBinding.icon.setImageResource(R.drawable.ic_device_zephyr);
             else if (deviceName.toLowerCase(Locale.US).contains("nimble"))
-                holder.icon.setImageResource(R.drawable.ic_device_mynewt);
+                holder.mBinding.icon.setImageResource(R.drawable.ic_device_mynewt);
             else
-                holder.icon.setImageResource(R.drawable.ic_device_other);
+                holder.mBinding.icon.setImageResource(R.drawable.ic_device_other);
         } else {
-            holder.deviceName.setText(R.string.unknown_device);
-            holder.icon.setImageResource(R.drawable.ic_device_other);
+            holder.mBinding.deviceName.setText(R.string.unknown_device);
+            holder.mBinding.icon.setImageResource(R.drawable.ic_device_other);
         }
-        holder.deviceAddress.setText(device.getAddress());
+        holder.mBinding.deviceAddress.setText(device.getAddress());
         final int rssiPercent = (int) (100.0f * (127.0f + device.getRssi()) / (127.0f + 20.0f));
-        holder.rssi.setImageLevel(rssiPercent);
+        holder.mBinding.rssi.setImageLevel(rssiPercent);
     }
 
     @Override
@@ -105,22 +99,15 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
     }
 
     final class ViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.icon)
-        ImageView icon;
-        @BindView(R.id.device_address)
-        TextView deviceAddress;
-        @BindView(R.id.device_name)
-        TextView deviceName;
-        @BindView(R.id.rssi)
-        ImageView rssi;
+        private final DeviceItemBinding mBinding;
 
-        private ViewHolder(final View view) {
-            super(view);
-            ButterKnife.bind(this, view);
+        private ViewHolder(final DeviceItemBinding binding) {
+            super(binding.getRoot());
+            mBinding = binding;
 
-            view.findViewById(R.id.device_container).setOnClickListener(v -> {
+            binding.deviceContainer.setOnClickListener(v -> {
                 if (mOnItemClickListener != null) {
-                    mOnItemClickListener.onItemClick(mDevices.get(getAdapterPosition()).getDevice());
+                    mOnItemClickListener.onItemClick(mDevices.get(getBindingAdapterPosition()).getDevice());
                 }
             });
         }

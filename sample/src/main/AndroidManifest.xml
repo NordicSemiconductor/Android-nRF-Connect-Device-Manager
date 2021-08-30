@@ -42,7 +42,8 @@
 			android:name=".ScannerActivity"
 			android:icon="@drawable/ic_mcumgr_feature"
 			android:label="@string/feature_name"
-			android:launchMode="singleTop">
+			android:launchMode="singleTop"
+			android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 

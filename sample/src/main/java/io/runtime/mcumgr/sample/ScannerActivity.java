@@ -17,10 +17,6 @@ import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ProgressBar;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,16 +24,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SimpleItemAnimator;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.sample.adapter.DevicesAdapter;
+import io.runtime.mcumgr.sample.databinding.ActivityScannerBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.Utils;
 import io.runtime.mcumgr.sample.viewmodel.ScannerStateLiveData;
@@ -52,20 +48,7 @@ public class ScannerActivity extends AppCompatActivity
     @Inject
     ViewModelFactory mViewModelFactory;
 
-    @BindView(R.id.progress_bar)
-    ProgressBar mScanningProgressBar;
-    @BindView(R.id.no_devices)
-    View mEmptyView;
-    @BindView(R.id.no_location_permission)
-    View mNoLocationPermissionView;
-    @BindView(R.id.action_grant_location_permission)
-    Button mGrantPermissionButton;
-    @BindView(R.id.action_permission_settings)
-    Button mPermissionSettingsButton;
-    @BindView(R.id.no_location)
-    View mNoLocationView;
-    @BindView(R.id.bluetooth_off)
-    View mNoBluetoothView;
+    private ActivityScannerBinding mBinding;
 
     private ScannerViewModel mScannerViewModel;
 
@@ -73,8 +56,8 @@ public class ScannerActivity extends AppCompatActivity
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_scanner);
-        ButterKnife.bind(this);
+        mBinding = ActivityScannerBinding.inflate(getLayoutInflater());
+        setContentView(mBinding.getRoot());
 
         // Display Intro just once.
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -104,6 +87,28 @@ public class ScannerActivity extends AppCompatActivity
                 new DevicesAdapter(this, mScannerViewModel.getDevices());
         adapter.setOnItemClickListener(this);
         recyclerView.setAdapter(adapter);
+
+        // Configure views
+        mBinding.noDevices.actionEnableLocation.setOnClickListener(v -> {
+            final Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        });
+        mBinding.bluetoothOff.actionEnableBluetooth.setOnClickListener(v -> {
+            final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivity(enableIntent);
+        });
+        mBinding.noLocationPermission.actionGrantLocationPermission.setOnClickListener(v -> {
+            Utils.markLocationPermissionRequested(this);
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_FINE_LOCATION
+            );
+        });
+        mBinding.noLocationPermission.actionPermissionSettings.setOnClickListener(v -> {
+            final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", getPackageName(), null));
+            startActivity(intent);
+        });
     }
 
     @Override
@@ -166,34 +171,6 @@ public class ScannerActivity extends AppCompatActivity
         }
     }
 
-    @OnClick(R.id.action_enable_location)
-    public void onEnableLocationClicked() {
-        final Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-        startActivity(intent);
-    }
-
-    @OnClick(R.id.action_enable_bluetooth)
-    public void onEnableBluetoothClicked() {
-        final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        startActivity(enableIntent);
-    }
-
-    @OnClick(R.id.action_grant_location_permission)
-    public void onGrantLocationPermissionClicked() {
-        Utils.markLocationPermissionRequested(this);
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                REQUEST_ACCESS_FINE_LOCATION
-        );
-    }
-
-    @OnClick(R.id.action_permission_settings)
-    public void onPermissionSettingsClicked() {
-        final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.fromParts("package", getPackageName(), null));
-        startActivity(intent);
-    }
-
     /**
      * Start scanning for Bluetooth devices or displays a message based on the scanner state.
      */
@@ -201,42 +178,42 @@ public class ScannerActivity extends AppCompatActivity
         // First, check the Location permission.
         // This is required on Marshmallow onwards in order to scan for Bluetooth LE devices.
         if (Utils.isLocationPermissionsGranted(this)) {
-            mNoLocationPermissionView.setVisibility(View.GONE);
+            mBinding.noLocationPermission.getRoot().setVisibility(View.GONE);
 
             // Bluetooth must be enabled
             if (state.isBluetoothEnabled()) {
-                mNoBluetoothView.setVisibility(View.GONE);
+                mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
 
                 // We are now OK to start scanning
                 mScannerViewModel.startScan();
-                mScanningProgressBar.setVisibility(View.VISIBLE);
+                mBinding.progressBar.setVisibility(View.VISIBLE);
 
                 if (!state.hasRecords()) {
-                    mEmptyView.setVisibility(View.VISIBLE);
+                    mBinding.noDevices.getRoot().setVisibility(View.VISIBLE);
 
                     if (!Utils.isLocationRequired(this) ||
                             Utils.isLocationEnabled(this)) {
-                        mNoLocationView.setVisibility(View.INVISIBLE);
+                        mBinding.noLocationPermission.getRoot().setVisibility(View.INVISIBLE);
                     } else {
-                        mNoLocationView.setVisibility(View.VISIBLE);
+                        mBinding.noLocationPermission.getRoot().setVisibility(View.VISIBLE);
                     }
                 } else {
-                    mEmptyView.setVisibility(View.GONE);
+                    mBinding.noDevices.getRoot().setVisibility(View.GONE);
                 }
             } else {
-                mNoBluetoothView.setVisibility(View.VISIBLE);
-                mScanningProgressBar.setVisibility(View.INVISIBLE);
-                mEmptyView.setVisibility(View.GONE);
+                mBinding.bluetoothOff.getRoot().setVisibility(View.VISIBLE);
+                mBinding.progressBar.setVisibility(View.INVISIBLE);
+                mBinding.noDevices.getRoot().setVisibility(View.GONE);
             }
         } else {
-            mNoLocationPermissionView.setVisibility(View.VISIBLE);
-            mNoBluetoothView.setVisibility(View.GONE);
-            mScanningProgressBar.setVisibility(View.INVISIBLE);
-            mEmptyView.setVisibility(View.GONE);
+            mBinding.noLocationPermission.getRoot().setVisibility(View.VISIBLE);
+            mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
+            mBinding.progressBar.setVisibility(View.INVISIBLE);
+            mBinding.noDevices.getRoot().setVisibility(View.GONE);
 
             final boolean deniedForever = Utils.isLocationPermissionDeniedForever(this);
-            mGrantPermissionButton.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
-            mPermissionSettingsButton.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
+            mBinding.noLocationPermission.actionGrantLocationPermission.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
+            mBinding.noLocationPermission.actionPermissionSettings.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
         }
     }
 

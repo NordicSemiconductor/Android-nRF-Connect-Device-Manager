@@ -28,7 +28,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
     private final MutableLiveData<Boolean> mTestAvailableLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mConfirmAvailableLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mEraseAvailableLiveData = new MutableLiveData<>();
-    private final MutableLiveData<String> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
 
     private byte[] mHash;
 
@@ -60,7 +60,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -86,7 +86,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady(null);
             }
         });
@@ -103,20 +103,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                if (error instanceof McuMgrErrorException) {
-                    final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
-                    if (code == McuMgrErrorCode.UNKNOWN) {
-                        // TODO Verify
-                        // User tried to test a firmware with hash equal to the hash of the
-                        // active firmware. This would result in changing the permanent flag
-                        // of the slot 0 to false, which is not possible.
-                        // TODO Externalize the text
-                        mErrorLiveData.postValue("Image in slot 1 is identical to the active one.");
-                        postReady(null);
-                        return;
-                    }
-                }
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady(null);
             }
         });
@@ -133,7 +120,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady(null);
             }
         });
@@ -150,7 +137,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady(null);
             }
         });

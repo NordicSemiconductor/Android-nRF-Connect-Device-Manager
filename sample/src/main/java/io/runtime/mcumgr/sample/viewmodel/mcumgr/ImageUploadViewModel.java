@@ -17,6 +17,7 @@ import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
@@ -52,7 +53,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
-    private final SingleLiveEvent<String> mErrorLiveData = new SingleLiveEvent<>();
+    private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
 
     @Inject
@@ -75,7 +76,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -95,8 +96,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         try {
             hash = McuMgrImage.getHash(data);
         } catch (final McuMgrException e) {
-            // TODO Externalize the text
-            mErrorLiveData.setValue("Invalid image file.");
+            mErrorLiveData.setValue(e);
             return;
         }
 
@@ -110,7 +110,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                 // Check if the new firmware is different than the active one.
                 if (response.images.length > 0 && Arrays.equals(hash, response.images[0].hash)) {
                     // TODO Externalize the text
-                    mErrorLiveData.setValue("Firmware already active.");
+                    mErrorLiveData.setValue(new McuMgrException("Firmware already active."));
                     postReady();
                     return;
                 }
@@ -130,7 +130,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                mErrorLiveData.postValue(error);
                 postReady();
             }
         });
@@ -171,7 +171,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
     public void onUploadFailed(@NonNull final McuMgrException error) {
         mController = null;
         mProgressLiveData.postValue(0);
-        mErrorLiveData.postValue(error.getMessage());
+        mErrorLiveData.postValue(error);
         postReady();
     }
 

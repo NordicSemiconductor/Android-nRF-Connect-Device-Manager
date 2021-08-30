@@ -14,19 +14,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import javax.inject.Inject;
+
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.FragmentCardEchoBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.EchoViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
@@ -36,16 +35,7 @@ public class EchoFragment extends Fragment implements Injectable {
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
-    @BindView(R.id.action_send)
-    Button mSendAction;
-    @BindView(R.id.echo_value)
-    EditText mValue;
-    @BindView(R.id.echo_content)
-    View mContent;
-    @BindView(R.id.echo_request)
-    TextView mRequest;
-    @BindView(R.id.echo_response)
-    TextView mResponse;
+    private FragmentCardEchoBinding mBinding;
 
     private EchoViewModel mViewModel;
     private InputMethodManager mImm;
@@ -63,52 +53,57 @@ public class EchoFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_card_echo, container, false);
+        mBinding = FragmentCardEchoBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
 
-        mValue.setSelection(mValue.getText().length());
-    }
+        mBinding.echoValue.setSelection(mBinding.echoValue.getText().length());
 
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mSendAction.setEnabled(!busy));
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionSend.setEnabled(!busy));
         mViewModel.getRequest().observe(getViewLifecycleOwner(), text -> {
-            mContent.setVisibility(View.VISIBLE);
-            print(mRequest, text);
-            if (mResponse.getVisibility() == View.VISIBLE) {
-                mResponse.setVisibility(View.INVISIBLE);
+            mBinding.echoContent.setVisibility(View.VISIBLE);
+            print(mBinding.echoResponse, text);
+            if (mBinding.echoResponse.getVisibility() == View.VISIBLE) {
+                mBinding.echoResponse.setVisibility(View.INVISIBLE);
             }
         });
         mViewModel.getResponse().observe(getViewLifecycleOwner(), response -> {
-            mResponse.setBackgroundResource(R.drawable.echo_response);
-            print(mResponse, response);
+            mBinding.echoResponse.setBackgroundResource(R.drawable.echo_response);
+            print(mBinding.echoResponse, response);
         });
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            mResponse.setVisibility(View.VISIBLE);
-            mResponse.setBackgroundResource(R.drawable.echo_error);
-            mResponse.setText(error);
+            mBinding.echoResponse.setVisibility(View.VISIBLE);
+            mBinding.echoResponse.setBackgroundResource(R.drawable.echo_error);
+            if (error instanceof McuMgrTimeoutException) {
+                mBinding.echoResponse.setText(R.string.status_connection_timeout);
+            } else {
+                mBinding.echoResponse.setText(error.getMessage());
+            }
         });
-        mSendAction.setOnClickListener(v -> {
-            mRequest.setText(null);
-            mResponse.setText(null);
+        mBinding.actionSend.setOnClickListener(v -> {
+            mBinding.echoRequest.setText(null);
+            mBinding.echoResponse.setText(null);
 
             hideKeyboard();
 
-            final String text = mValue.getText().toString();
-            mValue.setText(null);
+            final String text = mBinding.echoValue.getText().toString();
+            mBinding.echoValue.setText(null);
             mViewModel.echo(text);
         });
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
+    }
+
     private void hideKeyboard() {
-        mImm.hideSoftInputFromWindow(mValue.getWindowToken(), 0);
+        mImm.hideSoftInputFromWindow(mBinding.echoValue.getWindowToken(), 0);
     }
 
     private void print(final TextView view, final String text) {

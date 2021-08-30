@@ -22,8 +22,6 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 
-import org.jetbrains.annotations.NotNull;
-
 import io.runtime.mcumgr.sample.utils.FilterUtils;
 import io.runtime.mcumgr.sample.utils.Utils;
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
@@ -157,7 +155,7 @@ public class ScannerViewModel extends AndroidViewModel {
 
     private final ScanCallback scanCallback = new ScanCallback() {
         @Override
-        public void onScanResult(final int callbackType, @NotNull final ScanResult result) {
+        public void onScanResult(final int callbackType, @NonNull final ScanResult result) {
             // This callback will be called only if the scan report delay is not set or is set to 0.
 
             // If the packet has been obtained while Location was disabled, mark Location as not required
@@ -171,7 +169,7 @@ public class ScannerViewModel extends AndroidViewModel {
         }
 
         @Override
-        public void onBatchScanResults(@NotNull final List<ScanResult> results) {
+        public void onBatchScanResults(@NonNull final List<ScanResult> results) {
             // This callback will be called only if the report delay set above is greater then 0.
 
             // If the packet has been obtained while Location was disabled, mark Location as not required
