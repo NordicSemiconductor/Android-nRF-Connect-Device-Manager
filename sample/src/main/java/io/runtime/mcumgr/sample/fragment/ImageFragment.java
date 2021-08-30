@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModel;
@@ -50,7 +50,7 @@ public class ImageFragment extends Fragment implements Injectable {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        mViewModel = ViewModelProviders.of(this, mViewModelFactory)
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
                 .get(McuMgrViewModel.class);
 
         mModeAdvanced = savedInstanceState != null &&
@@ -110,10 +110,9 @@ public class ImageFragment extends Fragment implements Injectable {
         return inflater.inflate(R.layout.fragment_image, container, false);
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         final FragmentManager fm = getChildFragmentManager();
         mImageUpgradeFragment = fm.findFragmentById(R.id.fragment_image_upgrade);
@@ -130,7 +129,7 @@ public class ImageFragment extends Fragment implements Injectable {
                     .commit();
         }
 
-        mViewModel.getBusyState().observe(this, busy -> {
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             mOperationInProgress = busy;
             requireActivity().invalidateOptionsMenu();
         });

@@ -12,13 +12,8 @@ import javax.inject.Named;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
-import org.jetbrains.annotations.NotNull;
-
-import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
-import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
@@ -33,7 +28,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
 
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
     private final MutableLiveData<byte[]> mResponseLiveData = new MutableLiveData<>();
-    private final MutableLiveData<String> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
 
     @Inject
@@ -54,7 +49,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
     }
 
@@ -108,15 +103,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     public void onDownloadFailed(@NonNull final McuMgrException error) {
         mController = null;
         mProgressLiveData.postValue(0);
-        if (error instanceof McuMgrErrorException) {
-            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
-            if (code == McuMgrErrorCode.UNKNOWN) {
-                mResponseLiveData.postValue(null); // File not found
-                postReady();
-                return;
-            }
-        }
-        mErrorLiveData.postValue(error.getMessage());
+        mErrorLiveData.postValue(error);
         postReady();
     }
 
@@ -129,7 +116,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     }
 
     @Override
-    public void onDownloadCompleted(@NotNull final byte[] data) {
+    public void onDownloadCompleted(@NonNull final byte[] data) {
         mController = null;
         mProgressLiveData.postValue(0);
         mResponseLiveData.postValue(data);

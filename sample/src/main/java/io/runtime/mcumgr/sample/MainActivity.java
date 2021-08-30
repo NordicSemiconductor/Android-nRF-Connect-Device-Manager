@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity
 
         final BottomNavigationView navMenu = findViewById(R.id.nav_menu);
         navMenu.setSelectedItemId(R.id.nav_default);
-        navMenu.setOnNavigationItemSelectedListener(item -> {
+        navMenu.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.nav_default:
                     getSupportFragmentManager().beginTransaction()

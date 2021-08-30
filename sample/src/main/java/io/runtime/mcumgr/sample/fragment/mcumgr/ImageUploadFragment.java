@@ -16,11 +16,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
-import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,11 +23,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.FragmentCardImageUploadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
@@ -45,24 +43,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
 
-    @BindView(R.id.file_name)
-    TextView mFileName;
-    @BindView(R.id.file_hash)
-    TextView mFileHash;
-    @BindView(R.id.file_size)
-    TextView mFileSize;
-    @BindView(R.id.status)
-    TextView mStatus;
-    @BindView(R.id.progress)
-    ProgressBar mProgress;
-    @BindView(R.id.action_select_file)
-    Button mSelectFileAction;
-    @BindView(R.id.action_upload)
-    Button mUploadAction;
-    @BindView(R.id.action_cancel)
-    Button mCancelAction;
-    @BindView(R.id.action_pause_resume)
-    Button mPauseResumeAction;
+    private FragmentCardImageUploadBinding mBinding;
 
     private ImageUploadViewModel mViewModel;
 
@@ -78,17 +59,93 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_card_image_upload, container, false);
+        mBinding = FragmentCardImageUploadBinding.inflate(inflater, container, false);
+        return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
 
         final Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.help);
         toolbar.setOnMenuItemClickListener(this);
+
+        mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            mBinding.actionUpload.setEnabled(isFileLoaded());
+            mBinding.actionCancel.setEnabled(state.canCancel());
+            mBinding.actionPauseResume.setEnabled(state.canPauseOrResume());
+            mBinding.actionPauseResume.setText(state == ImageUploadViewModel.State.PAUSED ?
+                    R.string.image_action_resume : R.string.image_action_pause);
+
+            mBinding.actionSelectFile.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
+            mBinding.actionUpload.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
+            mBinding.actionCancel.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
+            mBinding.actionPauseResume.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
+            // Update status
+            switch (state) {
+                case VALIDATING:
+                    mBinding.status.setText(R.string.image_upload_status_validating);
+                    break;
+                case UPLOADING:
+                    mBinding.status.setText(R.string.image_upload_status_uploading);
+                    break;
+                case PAUSED:
+                    mBinding.status.setText(R.string.image_upload_status_paused);
+                    break;
+                case COMPLETE:
+                    clearFileContent();
+                    mBinding.status.setText(R.string.image_upload_status_completed);
+                    break;
+            }
+        });
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
+        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            mBinding.actionSelectFile.setVisibility(View.VISIBLE);
+            mBinding.actionUpload.setVisibility(View.VISIBLE);
+            mBinding.actionCancel.setVisibility(View.GONE);
+            mBinding.actionPauseResume.setVisibility(View.GONE);
+            printError(error);
+        });
+        mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
+            clearFileContent();
+            mBinding.fileName.setText(null);
+            mBinding.fileSize.setText(null);
+            mBinding.fileHash.setText(null);
+            mBinding.status.setText(null);
+            mBinding.actionSelectFile.setVisibility(View.VISIBLE);
+            mBinding.actionUpload.setVisibility(View.VISIBLE);
+            mBinding.actionUpload.setEnabled(false);
+            mBinding.actionCancel.setVisibility(View.GONE);
+            mBinding.actionPauseResume.setVisibility(View.GONE);
+        });
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+            mBinding.actionSelectFile.setEnabled(!busy);
+            mBinding.actionUpload.setEnabled(isFileLoaded() && !busy);
+        });
+
+        // Configure SELECT FILE action
+        mBinding.actionSelectFile.setOnClickListener(v -> selectFile("application/*"));
+
+        // Restore UPLOAD action state after rotation
+        mBinding.actionUpload.setEnabled(isFileLoaded());
+        mBinding.actionUpload.setOnClickListener(v -> mViewModel.upload(getFileContent()));
+
+        // Cancel and Pause/Resume buttons
+        mBinding.actionCancel.setOnClickListener(v -> mViewModel.cancel());
+        mBinding.actionPauseResume.setOnClickListener(v -> {
+            if (mViewModel.getState().getValue() == ImageUploadViewModel.State.UPLOADING) {
+                mViewModel.pause();
+            } else {
+                mViewModel.resume();
+            }
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
     }
 
     @Override
@@ -104,100 +161,24 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         return false;
     }
 
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
-            mUploadAction.setEnabled(isFileLoaded());
-            mCancelAction.setEnabled(state.canCancel());
-            mPauseResumeAction.setEnabled(state.canPauseOrResume());
-            mPauseResumeAction.setText(state == ImageUploadViewModel.State.PAUSED ?
-                    R.string.image_action_resume : R.string.image_action_pause);
-
-            mSelectFileAction.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
-            mUploadAction.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
-            mCancelAction.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
-            mPauseResumeAction.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
-            // Update status
-            switch (state) {
-                case VALIDATING:
-                    mStatus.setText(R.string.image_upload_status_validating);
-                    break;
-                case UPLOADING:
-                    mStatus.setText(R.string.image_upload_status_uploading);
-                    break;
-                case PAUSED:
-                    mStatus.setText(R.string.image_upload_status_paused);
-                    break;
-                case COMPLETE:
-                    clearFileContent();
-                    mStatus.setText(R.string.image_upload_status_completed);
-                    break;
-            }
-        });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mProgress.setProgress(progress));
-        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            mSelectFileAction.setVisibility(View.VISIBLE);
-            mUploadAction.setVisibility(View.VISIBLE);
-            mCancelAction.setVisibility(View.GONE);
-            mPauseResumeAction.setVisibility(View.GONE);
-            printError(error);
-        });
-        mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
-            clearFileContent();
-            mFileName.setText(null);
-            mFileSize.setText(null);
-            mFileHash.setText(null);
-            mStatus.setText(null);
-            mSelectFileAction.setVisibility(View.VISIBLE);
-            mUploadAction.setVisibility(View.VISIBLE);
-            mUploadAction.setEnabled(false);
-            mCancelAction.setVisibility(View.GONE);
-            mPauseResumeAction.setVisibility(View.GONE);
-        });
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
-            mSelectFileAction.setEnabled(!busy);
-            mUploadAction.setEnabled(isFileLoaded() && !busy);
-        });
-
-        // Configure SELECT FILE action
-        mSelectFileAction.setOnClickListener(v -> selectFile("application/*"));
-
-        // Restore UPLOAD action state after rotation
-        mUploadAction.setEnabled(isFileLoaded());
-        mUploadAction.setOnClickListener(v -> mViewModel.upload(getFileContent()));
-
-        // Cancel and Pause/Resume buttons
-        mCancelAction.setOnClickListener(v -> mViewModel.cancel());
-        mPauseResumeAction.setOnClickListener(v -> {
-            if (mViewModel.getState().getValue() == ImageUploadViewModel.State.UPLOADING) {
-                mViewModel.pause();
-            } else {
-                mViewModel.resume();
-            }
-        });
-    }
-
     @Override
     protected void onFileCleared() {
-        mUploadAction.setEnabled(false);
+        mBinding.actionUpload.setEnabled(false);
     }
 
     @Override
     protected void onFileSelected(@NonNull final String fileName, final int fileSize) {
-        mFileName.setText(fileName);
-        mFileSize.setText(getString(R.string.image_upgrade_size_value, fileSize));
+        mBinding.fileName.setText(fileName);
+        mBinding.fileSize.setText(getString(R.string.image_upgrade_size_value, fileSize));
     }
 
     @Override
     protected void onFileLoaded(@NonNull final byte[] data) {
         try {
             final byte[] hash = McuMgrImage.getHash(data);
-            mFileHash.setText(StringUtils.toHex(hash));
-            mUploadAction.setEnabled(true);
-            mStatus.setText(R.string.image_upgrade_status_ready);
+            mBinding.fileHash.setText(StringUtils.toHex(hash));
+            mBinding.actionUpload.setEnabled(true);
+            mBinding.status.setText(R.string.image_upgrade_status_ready);
         } catch (final McuMgrException e) {
             clearFileContent();
             onFileLoadingFailed(R.string.image_error_file_not_valid);
@@ -206,16 +187,24 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
 
     @Override
     protected void onFileLoadingFailed(final int error) {
-        mStatus.setText(error);
+        mBinding.status.setText(error);
     }
 
-    private void printError(@NonNull final String error) {
-        final SpannableString spannable = new SpannableString(error);
+    private void printError(@Nullable final McuMgrException error) {
+        String message = error != null ? error.getMessage() : null;
+        if (error instanceof McuMgrTimeoutException) {
+            message = getString(R.string.status_connection_timeout);
+        }
+        if (message == null) {
+            mBinding.status.setText(null);
+            return;
+        }
+        final SpannableString spannable = new SpannableString(message);
         spannable.setSpan(new ForegroundColorSpan(
                         ContextCompat.getColor(requireContext(), R.color.colorError)),
-                0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                0, error.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        mStatus.setText(spannable);
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mBinding.status.setText(spannable);
     }
 }

@@ -13,6 +13,7 @@
     <string name="image_control_action_confirm">Confirm</string>
     <string name="image_control_action_erase">Erase</string>
 
+	<string name="image_control_already_flashed">Image is identical to the active one</string>
     <string name="image_control_split_status">Split Status: %d</string>
     <string name="image_control_slot"><b>Slot: %d</b>\n
 		• Version: %s\n

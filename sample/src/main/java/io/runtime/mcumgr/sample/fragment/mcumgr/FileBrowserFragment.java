@@ -6,25 +6,14 @@
 
 package io.runtime.mcumgr.sample.fragment.mcumgr;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
-import com.google.android.material.snackbar.Snackbar;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -32,15 +21,19 @@ import androidx.fragment.app.Fragment;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
+
+import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
 import io.runtime.mcumgr.sample.R;
-import io.runtime.mcumgr.sample.utils.Utils;
 import timber.log.Timber;
 
 public abstract class FileBrowserFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     @SuppressWarnings("unused")
     private static final String TAG = FileBrowserFragment.class.getSimpleName();
 
-    private static final int SELECT_FILE_REQ = 1;
     private static final int LOAD_FILE_LOADER_REQ = 2;
     private static final String EXTRA_FILE_URI = "uri";
 
@@ -50,6 +43,8 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     private byte[] mFileContent;
     private Uri mFileUri;
 
+    private ActivityResultLauncher<String> mFileBrowserLauncher;
+
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +53,27 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
             mFileContent = savedInstanceState.getByteArray(SIS_DATA);
             mFileUri = savedInstanceState.getParcelable(SIS_URI);
         }
+
+        mFileBrowserLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    clearFileContent();
+
+                    if (uri == null) {
+                        Toast.makeText(requireContext(), R.string.file_loader_error_no_uri,
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    final String scheme = uri.getScheme();
+                    if (scheme != null && scheme.equals("content")) {
+                        // File name and size must be obtained from Content Provider
+                        final Bundle bundle = new Bundle();
+                        bundle.putParcelable(EXTRA_FILE_URI, uri);
+                        LoaderManager.getInstance(this).restartLoader(LOAD_FILE_LOADER_REQ, bundle, this);
+                    }
+                }
+        );
     }
 
     @Override
@@ -124,36 +140,6 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      * @param error the error text resource ID.
      */
     protected abstract void onFileLoadingFailed(@StringRes final int error);
-
-
-    @Override
-    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == Activity.RESULT_OK) {
-            switch (requestCode) {
-                case SELECT_FILE_REQ:
-                    clearFileContent();
-
-                    final Uri uri = data.getData();
-
-                    if (uri == null) {
-                        Toast.makeText(requireContext(), R.string.file_loader_error_no_uri,
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    final String scheme = uri.getScheme();
-                    if (scheme != null && scheme.equals("content")) {
-                        // File name and size must be obtained from Content Provider
-                        final Bundle bundle = new Bundle();
-                        bundle.putParcelable(EXTRA_FILE_URI, uri);
-                        LoaderManager.getInstance(this).restartLoader(LOAD_FILE_LOADER_REQ, bundle, this);
-                    }
-                    break;
-            }
-        }
-    }
 
     @SuppressWarnings("ConstantConditions")
     @NonNull
@@ -229,16 +215,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      * @param mimeType required MIME TYPE of a file.
      */
     void selectFile(@Nullable final String mimeType) {
-        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType(mimeType);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
-            // file browser has been found on the device
-            startActivityForResult(intent, SELECT_FILE_REQ);
-        } else {
-            Toast.makeText(requireContext(), R.string.file_loader_error_no_file_browser,
-                    Toast.LENGTH_SHORT).show();
-        }
+        mFileBrowserLauncher.launch(mimeType);
     }
 
     /**

@@ -62,6 +62,7 @@ public class FsUtils {
      */
     @NonNull
     public String getPartitionString() {
+        //noinspection ConstantConditions
         return mPreferences.getString(PREFS_PARTITION, PARTITION_DEFAULT);
     }
 

@@ -19,7 +19,22 @@ internal class SmpProtocolSession(
     private val handler: Handler? = null
 ) {
 
-    private data class Outgoing(val data: ByteArray, val transaction: SmpTransaction)
+    private data class Outgoing(val data: ByteArray, val transaction: SmpTransaction) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Outgoing
+
+            if (!data.contentEquals(other.data)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            return data.contentHashCode()
+        }
+    }
 
     private val scope = CoroutineScope(EmptyCoroutineContext)
     private val txChannel: Channel<Outgoing> = Channel(SMP_SEQ_NUM_MAX + 1)
@@ -48,13 +63,13 @@ internal class SmpProtocolSession(
     }
 
     fun send(data: ByteArray, transaction: SmpTransaction) {
-        check(txChannel.offer(Outgoing(data, transaction))) {
+        check(txChannel.trySend(Outgoing(data, transaction)).isSuccess) {
             "Cannot send request, transmit channel buffer is full."
         }
     }
 
     fun receive(data: ByteArray) {
-        check(rxChannel.offer(data)) {
+        check(rxChannel.trySend(data).isSuccess) {
             "Cannot receive response, receive channel buffer is full."
         }
     }

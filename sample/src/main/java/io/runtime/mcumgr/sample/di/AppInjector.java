@@ -17,8 +17,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
-import org.jetbrains.annotations.NotNull;
-
 import dagger.android.AndroidInjection;
 import dagger.android.HasAndroidInjector;
 import dagger.android.support.AndroidSupportInjection;
@@ -41,39 +39,39 @@ public class AppInjector {
 
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
-            public void onActivityCreated(@NotNull final Activity activity,
+            public void onActivityCreated(@NonNull final Activity activity,
                                           @Nullable final Bundle savedInstanceState) {
                 handleActivity(activity);
             }
 
             @Override
-            public void onActivityStarted(@NotNull final Activity activity) {
+            public void onActivityStarted(@NonNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivityResumed(@NotNull final Activity activity) {
+            public void onActivityResumed(@NonNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivityPaused(@NotNull final Activity activity) {
+            public void onActivityPaused(@NonNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivityStopped(@NotNull final Activity activity) {
+            public void onActivityStopped(@NonNull final Activity activity) {
                 // empty
             }
 
             @Override
-            public void onActivitySaveInstanceState(@NotNull final Activity activity,
-                                                    @NotNull final Bundle outState) {
+            public void onActivitySaveInstanceState(@NonNull final Activity activity,
+                                                    @NonNull final Bundle outState) {
                 // empty
             }
 
             @Override
-            public void onActivityDestroyed(@NotNull final Activity activity) {
+            public void onActivityDestroyed(@NonNull final Activity activity) {
                 // empty
             }
         });
