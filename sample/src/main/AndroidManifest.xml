@@ -1,48 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="io.runtime.mcumgr.sample"
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools">
-
-	<!--
-	 Bluetooth permission is required in order to communicate with Bluetooth LE devices.
-	-->
-	<uses-permission android:name="android.permission.BLUETOOTH"/>
-
-	<!--
-	 Bluetooth Admin permission is required in order to scan for Bluetooth LE devices.
-	-->
-	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	package="io.runtime.mcumgr.sample">
+	<!-- 	 Bluetooth permission is required in order to communicate with Bluetooth LE devices. -->
+	<uses-permission android:name="android.permission.BLUETOOTH" />
+	<!-- 	 Bluetooth Admin permission is required in order to scan for Bluetooth LE devices. -->
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 	<!--
 	 Location permission is required from Android 6 to be able to scan for advertising
 	 Bluetooth LE devices. Some BLE devices, called beacons, may be used to position the phone.
 	 This is to ensure that the user agrees to do so.
 	 This app does not use this location information in any way.
 	 Since Android 10 ACCESS_FINE_LOCATION is required.
-	 -->
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    -->
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
 	<application
+		android:name=".application.Dagger2Application"
 		android:allowBackup="false"
 		android:icon="@mipmap/ic_launcher"
 		android:label="@string/app_name"
 		android:roundIcon="@mipmap/ic_launcher_round"
 		android:supportsRtl="false"
 		android:theme="@style/AppTheme"
-		android:name=".application.Dagger2Application"
 		tools:ignore="GoogleAppIndexingWarning">
 		<activity
+			android:name=".SplashScreenActivity"
+			android:launchMode="singleTop"
+			android:noHistory="true"
+			android:theme="@style/AppTheme.SplashScreen">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+		<activity android:name=".IntroActivity"
+			android:theme="@style/AppTheme.SplashScreen"
+			android:launchMode="singleTop"/>
+		<activity
 			android:name=".ScannerActivity"
+			android:icon="@drawable/ic_mcumgr_feature"
+			android:label="@string/feature_name"
 			android:launchMode="singleTop"
 			android:exported="true">
 			<intent-filter>
-				<action android:name="android.intent.action.MAIN"/>
-				<category android:name="android.intent.category.LAUNCHER"/>
+				<action android:name="android.intent.action.MAIN" />
+
+				<category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER" />
 			</intent-filter>
 		</activity>
 		<activity
 			android:name=".MainActivity"
-			android:windowSoftInputMode="adjustPan"
-			android:parentActivityName=".ScannerActivity"/>
+			android:parentActivityName=".ScannerActivity"
+			android:windowSoftInputMode="adjustPan" />
 	</application>
 
 </manifest>

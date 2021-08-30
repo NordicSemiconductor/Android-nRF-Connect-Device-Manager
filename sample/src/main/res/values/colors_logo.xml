@@ -32,11 +32,14 @@
 
 <resources>
 
-    <!-- Nordic colors -->
-    <color name="nordicBlue">#FF00A9CE</color>
-    <color name="nordicBlueDark">#FF0090B0</color>
-    <color name="nordicLake">#FF0077C8</color>
-    <color name="nordicLightGray">#FFD9E1E2</color>
-    <color name="nordicDarkGray">#FF333F48</color>
+	<!--
+		Nordic logo on splash screen.
+		When using light/dark top background, consider changing status bar to light/dark
+		in styles-v23.
+	-->
+	<color name="colorNordicLogo">@color/nordicBlue</color>
+	<color name="colorNordicLogoText">@color/black</color>
+	<color name="colorNordicLogoBottom">@color/white</color>
+	<color name="colorNordicLogoTop">@color/nordicLightGray</color>
 
 </resources>
