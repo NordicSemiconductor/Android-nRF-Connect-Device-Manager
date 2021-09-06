@@ -282,7 +282,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * The manager will try to connect to the SMP server on the new firmware and confirm
      * the upload.
      */
-    public synchronized void start(@NotNull byte[] imageData) throws McuMgrException {
+    public synchronized void start(byte @NotNull [] imageData) throws McuMgrException {
         if (mState != State.NONE) {
             LOG.info("Firmware upgrade is already in progress");
             return;

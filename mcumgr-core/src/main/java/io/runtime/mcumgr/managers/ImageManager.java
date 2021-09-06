@@ -118,7 +118,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      * @see #imageUpload(byte[], UploadCallback)
      */
-    public void upload(@NotNull byte[] data, int offset,
+    public void upload(byte @NotNull [] data, int offset,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
         upload(data, offset, 0, callback);
     }
@@ -142,7 +142,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      * @see #imageUpload(byte[], UploadCallback)
      */
-    public void upload(@NotNull byte[] data, int offset, int image,
+    public void upload(byte @NotNull [] data, int offset, int image,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
         send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class, callback);
@@ -165,7 +165,7 @@ public class ImageManager extends TransferManager {
      * @see #imageUpload(byte[], UploadCallback)
      */
     @NotNull
-    public McuMgrImageUploadResponse upload(@NotNull byte[] data, int offset) throws McuMgrException {
+    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset) throws McuMgrException {
         return upload(data, offset, 0);
     }
 
@@ -188,7 +188,7 @@ public class ImageManager extends TransferManager {
      * @see #imageUpload(byte[], UploadCallback)
      */
     @NotNull
-    public McuMgrImageUploadResponse upload(@NotNull byte[] data, int offset, int image)
+    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset, int image)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
         return send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class);
@@ -198,7 +198,7 @@ public class ImageManager extends TransferManager {
      * Build the upload payload.
      */
     @NotNull
-    private HashMap<String, Object> buildUploadPayload(@NotNull byte[] data, int offset, int image) {
+    private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, int offset, int image) {
         // Get chunk of image data to send
         int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset, image), data.length - offset);
         byte[] sendBuffer = new byte[dataLength];
@@ -244,7 +244,7 @@ public class ImageManager extends TransferManager {
      * @param hash     the hash of the image to test.
      * @param callback the asynchronous callback.
      */
-    public void test(@NotNull byte[] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+    public void test(byte @NotNull [] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
@@ -262,7 +262,7 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrImageStateResponse test(@NotNull byte[] hash) throws McuMgrException {
+    public McuMgrImageStateResponse test(byte @NotNull [] hash) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
@@ -279,7 +279,7 @@ public class ImageManager extends TransferManager {
      *                 permanent.
      * @param callback the asynchronous callback.
      */
-    public void confirm(@Nullable byte[] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+    public void confirm(byte @Nullable [] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
         if (hash != null) {
@@ -300,7 +300,7 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrImageStateResponse confirm(@Nullable byte[] hash) throws McuMgrException {
+    public McuMgrImageStateResponse confirm(byte @Nullable [] hash) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
         if (hash != null) {
@@ -541,7 +541,7 @@ public class ImageManager extends TransferManager {
      * @see TransferController
      */
     @NotNull
-    public TransferController imageUpload(@NotNull byte[] imageData,
+    public TransferController imageUpload(byte @NotNull [] imageData,
                                           @NotNull UploadCallback callback) {
         return imageUpload(imageData, 0, callback);
     }
@@ -561,7 +561,7 @@ public class ImageManager extends TransferManager {
      * @see TransferController
      */
     @NotNull
-    public TransferController imageUpload(@NotNull byte[] imageData, int image,
+    public TransferController imageUpload(byte @NotNull [] imageData, int image,
                                           @NotNull UploadCallback callback) {
         return startUpload(new ImageUpload(imageData, image, callback));
     }
@@ -572,13 +572,13 @@ public class ImageManager extends TransferManager {
     public class ImageUpload extends Upload {
         private final int mImage;
 
-        protected ImageUpload(@NotNull byte[] imageData, int image, @NotNull UploadCallback callback) {
+        protected ImageUpload(byte @NotNull [] imageData, int image, @NotNull UploadCallback callback) {
             super(imageData, callback);
             mImage = image;
         }
 
         @Override
-        protected UploadResponse write(@NotNull byte[] data, int offset) throws McuMgrException {
+        protected UploadResponse write(byte @NotNull [] data, int offset) throws McuMgrException {
             return upload(data, offset, mImage);
         }
     }
@@ -610,7 +610,7 @@ public class ImageManager extends TransferManager {
      * @deprecated Use the new transfer implementation's imageUpload(...) method
      */
     @Deprecated
-    public synchronized boolean upload(@NotNull byte[] data, @NotNull ImageUploadCallback callback) {
+    public synchronized boolean upload(byte @NotNull [] data, @NotNull ImageUploadCallback callback) {
         if (mUploadState == STATE_NONE) {
             mUploadState = STATE_UPLOADING;
         } else {
@@ -793,7 +793,7 @@ public class ImageManager extends TransferManager {
             };
 
     // TODO more precise overhead calculations
-    private int calculatePacketOverhead(@NotNull byte[] data, int offset, int image) {
+    private int calculatePacketOverhead(byte @NotNull [] data, int offset, int image) {
         HashMap<String, Object> overheadTestMap = new HashMap<>();
         overheadTestMap.put("data", new byte[0]);
         overheadTestMap.put("off", offset);

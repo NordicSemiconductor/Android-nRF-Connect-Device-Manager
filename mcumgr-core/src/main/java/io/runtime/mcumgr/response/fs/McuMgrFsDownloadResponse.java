@@ -8,10 +8,8 @@
 package io.runtime.mcumgr.response.fs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.runtime.mcumgr.response.DownloadResponse;
-import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrFsDownloadResponse extends DownloadResponse {
     @JsonCreator

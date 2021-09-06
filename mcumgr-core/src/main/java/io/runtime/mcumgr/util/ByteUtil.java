@@ -41,7 +41,7 @@ public class ByteUtil {
      * @param data the byte array.
      * @return The unsigned integer.
      */
-    public static int byteArrayToUnsignedInt(@NotNull byte[] data) {
+    public static int byteArrayToUnsignedInt(byte @NotNull [] data) {
         return byteArrayToUnsignedInt(data, 0, Endian.BIG, INT_WIDTH);
     }
 
@@ -54,7 +54,7 @@ public class ByteUtil {
      * @param offset the offset to start parsing the int.
      * @return The unsigned integer.
      */
-    public static int byteArrayToUnsignedInt(@NotNull byte[] data, int offset) {
+    public static int byteArrayToUnsignedInt(byte @NotNull [] data, int offset) {
         return byteArrayToUnsignedInt(data, offset, Endian.BIG, INT_WIDTH);
     }
 
@@ -70,7 +70,7 @@ public class ByteUtil {
      *               If null, {@link Endian#BIG} is assumed
      * @return The unsigned integer.
      */
-    public static int byteArrayToUnsignedInt(@NotNull byte[] data,
+    public static int byteArrayToUnsignedInt(byte @NotNull [] data,
                                              int offset,
                                              @Nullable Endian endian) {
         return byteArrayToUnsignedInt(data, offset, endian, INT_WIDTH);
@@ -86,7 +86,7 @@ public class ByteUtil {
      * @param length the number of bytes to convert to an int. This number must be between 0 and 4.
      * @return The unsigned integer.
      */
-    public static int byteArrayToUnsignedInt(@NotNull byte[] data,
+    public static int byteArrayToUnsignedInt(byte @NotNull [] data,
                                              int offset,
                                              @Nullable Endian endian,
                                              int length) {
@@ -128,7 +128,7 @@ public class ByteUtil {
      * @param data the byte array.
      * @return The unsigned long.
      */
-    public static long byteArrayToUnsignedLong(@NotNull byte[] data) {
+    public static long byteArrayToUnsignedLong(byte @NotNull [] data) {
         return byteArrayToUnsignedLong(data, 0, Endian.BIG, LONG_WIDTH);
     }
 
@@ -141,7 +141,7 @@ public class ByteUtil {
      * @param offset the offset to start parsing the long.
      * @return The unsigned long.
      */
-    public static long byteArrayToUnsignedLong(@NotNull byte[] data, int offset) {
+    public static long byteArrayToUnsignedLong(byte @NotNull [] data, int offset) {
         return byteArrayToUnsignedLong(data, offset, Endian.BIG, LONG_WIDTH);
     }
 
@@ -157,7 +157,7 @@ public class ByteUtil {
      *               If null, {@link Endian#BIG} is assumed
      * @return The unsigned long.
      */
-    public static long byteArrayToUnsignedLong(@NotNull byte[] data,
+    public static long byteArrayToUnsignedLong(byte @NotNull [] data,
                                              int offset,
                                              @Nullable Endian endian) {
         return byteArrayToUnsignedLong(data, offset, endian, LONG_WIDTH);
@@ -173,7 +173,7 @@ public class ByteUtil {
      * @param length the number of bytes to convert to a long. This number must be between 0 and 4.
      * @return The unsigned long.
      */
-    public static long byteArrayToUnsignedLong(@NotNull byte[] data,
+    public static long byteArrayToUnsignedLong(byte @NotNull [] data,
                                              int offset,
                                              @Nullable Endian endian,
                                              int length) {
@@ -199,17 +199,17 @@ public class ByteUtil {
     //******************************************************************
 
     @NotNull
-    public static String byteArrayToHex(@NotNull byte[] a) {
+    public static String byteArrayToHex(byte @NotNull [] a) {
         return byteArrayToHex(a, 0, a.length, "%02x ");
     }
 
     @NotNull
-    public static String byteArrayToHex(@NotNull byte[] a, String format) {
+    public static String byteArrayToHex(byte @NotNull [] a, String format) {
         return byteArrayToHex(a, 0, a.length, format);
     }
 
     @NotNull
-    public static String byteArrayToHex(@NotNull byte[] a, int offset, int length, String format) {
+    public static String byteArrayToHex(byte @NotNull [] a, int offset, int length, String format) {
         StringBuilder sb = new StringBuilder(a.length * 2);
         for (int i = offset; i < length; i++) {
             sb.append(String.format(format, a[i]));

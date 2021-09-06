@@ -24,11 +24,9 @@ public class CoreDumpTlvEntry {
     private final int mType;      // uint8_t
     private final int mLength;    // uint16_t
     private final long mOff;      // uint32_t
+    private final byte @NotNull [] mValue;
 
-    @NotNull
-    private final byte[] mValue;
-
-    public CoreDumpTlvEntry(int type, int length, long off, @NotNull byte[] value) {
+    public CoreDumpTlvEntry(int type, int length, long off, byte @NotNull [] value) {
         mType = type;
         mLength = length;
         mOff = off;
@@ -47,8 +45,7 @@ public class CoreDumpTlvEntry {
         return mOff;
     }
 
-    @NotNull
-    public byte[] getValue() {
+    public byte @NotNull [] getValue() {
         return mValue;
     }
 
@@ -57,7 +54,7 @@ public class CoreDumpTlvEntry {
     }
 
     @NotNull
-    public static CoreDumpTlvEntry fromBytes(@NotNull byte[] data, int offset) throws IOException {
+    public static CoreDumpTlvEntry fromBytes(byte @NotNull [] data, int offset) throws IOException {
         if (offset + MIN_SIZE > data.length) {
             throw new IOException("Insufficient data. TLV entry requires at least 8 bytes. " +
                     "(length=" + data.length +

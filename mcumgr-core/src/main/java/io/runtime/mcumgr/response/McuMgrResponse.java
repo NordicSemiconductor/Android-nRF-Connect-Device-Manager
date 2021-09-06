@@ -142,8 +142,7 @@ public class McuMgrResponse {
      *
      * @return The payload bytes.
      */
-    @Nullable
-    public byte[] getPayload() {
+    public byte @Nullable [] getPayload() {
         return mPayload;
     }
 
@@ -185,8 +184,8 @@ public class McuMgrResponse {
      * @param header  McuMgrHeader.
      * @param payload McuMgr CBOR payload.
      */
-    void initFields(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes,
-                    @NotNull McuMgrHeader header, @NotNull byte[] payload) {
+    void initFields(@NotNull McuMgrScheme scheme, byte @NotNull [] bytes,
+                    @NotNull McuMgrHeader header, byte @NotNull [] payload) {
         mScheme = scheme;
         mBytes = bytes;
         mHeader = header;
@@ -206,7 +205,7 @@ public class McuMgrResponse {
      */
     @NotNull
     public static <T extends McuMgrResponse> T buildResponse(@NotNull McuMgrScheme scheme,
-                                                             @NotNull byte[] bytes,
+                                                             byte @NotNull [] bytes,
                                                              @NotNull Class<T> type)
             throws IOException {
         if (scheme.isCoap()) {
@@ -241,9 +240,9 @@ public class McuMgrResponse {
      */
     @NotNull
     public static <T extends McuMgrResponse> T buildCoapResponse(@NotNull McuMgrScheme scheme,
-                                                                 @NotNull byte[] bytes,
-                                                                 @NotNull byte[] header,
-                                                                 @NotNull byte[] payload,
+                                                                 byte @NotNull [] bytes,
+                                                                 byte @NotNull [] header,
+                                                                 byte @NotNull [] payload,
                                                                  int codeClass, int codeDetail,
                                                                  Class<T> type)
             throws IOException, McuMgrCoapException {
@@ -272,7 +271,7 @@ public class McuMgrResponse {
      * @throws IOException                   thrown when the header could not be parsed.
      * @throws UnsupportedOperationException when scheme is not equal to {@link McuMgrScheme#BLE}.
      */
-    public static int getExpectedLength(@NotNull McuMgrScheme scheme, @NotNull byte[] bytes)
+    public static int getExpectedLength(@NotNull McuMgrScheme scheme, byte @NotNull [] bytes)
             throws IOException {
         if (scheme.isCoap()) {
             throw new UnsupportedOperationException("Method not implemented for CoAP");

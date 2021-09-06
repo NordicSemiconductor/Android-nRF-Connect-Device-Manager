@@ -35,12 +35,12 @@ public class McuMgrImageVersion {
     }
 
     @NotNull
-    public static McuMgrImageVersion fromBytes(@NotNull byte[] b) throws McuMgrException {
+    public static McuMgrImageVersion fromBytes(byte @NotNull [] b) throws McuMgrException {
         return fromBytes(b, 0);
     }
 
     @NotNull
-    public static McuMgrImageVersion fromBytes(@NotNull byte[] b, int offset) throws McuMgrException {
+    public static McuMgrImageVersion fromBytes(byte @NotNull [] b, int offset) throws McuMgrException {
         if (b.length - offset < getSize()) {
             throw new McuMgrException("The byte array is too short to be a McuMgrImageVersion");
         }

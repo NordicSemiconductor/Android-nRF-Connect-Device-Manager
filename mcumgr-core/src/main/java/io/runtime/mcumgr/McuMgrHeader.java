@@ -39,8 +39,7 @@ public class McuMgrHeader {
         mCommandId = commandId;
     }
 
-    @NotNull
-    public byte[] toBytes() {
+    public byte @NotNull [] toBytes() {
         return build(mOp, mFlags, mLen, mGroupId, mSequenceNum, mCommandId);
     }
 
@@ -108,7 +107,7 @@ public class McuMgrHeader {
      * @throws IllegalArgumentException when the byte array length is less than 8 bytes
      */
     @NotNull
-    public static McuMgrHeader fromBytes(@NotNull byte[] header) {
+    public static McuMgrHeader fromBytes(byte @NotNull [] header) {
         if (header.length < HEADER_LENGTH) {
             throw new IllegalArgumentException("Failed to parse mcumgr header from bytes; too short - length=" + header.length);
         }
@@ -135,8 +134,7 @@ public class McuMgrHeader {
      * @param id       the sub-command ID for certain groups.
      * @return The built newt manager header.
      */
-    @NotNull
-    public static byte[] build(int op, int flags, int len, int group, int sequence, int id) {
+    public static byte @NotNull [] build(int op, int flags, int len, int group, int sequence, int id) {
         return new byte[]{
                 (byte) op,
                 (byte) flags,

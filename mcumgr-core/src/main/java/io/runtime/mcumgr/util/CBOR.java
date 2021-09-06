@@ -41,7 +41,6 @@ public class CBOR {
         return mapper.readTree(data, offset, data.length - offset).toString();
     }
 
-    @SuppressWarnings("RedundantThrows")
     public static <T> String toString(T obj) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
         return mapper.valueToTree(obj).toString();
@@ -64,13 +63,13 @@ public class CBOR {
         return mapper.readValue(inputStream, typeRef);
     }
 
-    public static <T> T getObject(@NotNull byte[] data, @NotNull String key, @NotNull Class<T> type) throws IOException {
+    public static <T> T getObject(byte @NotNull [] data, @NotNull String key, @NotNull Class<T> type) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
         return mapper.convertValue(mapper.readTree(data).get(key), type);
     }
 
     @NotNull
-    public static String getString(@NotNull byte[] data, @NotNull String key) throws IOException {
+    public static String getString(byte @NotNull [] data, @NotNull String key) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
         return mapper.readTree(data).get(key).asText();
     }

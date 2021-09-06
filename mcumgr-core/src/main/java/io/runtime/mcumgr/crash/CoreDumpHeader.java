@@ -16,8 +16,8 @@ public class CoreDumpHeader {
 
     private static final int OFFSET = 0;
 
-    private int mMagic;
-    private int mSize;
+    private final int mMagic;
+    private final int mSize;
 
     public CoreDumpHeader(int magic, int size) {
         mMagic = magic;
@@ -31,7 +31,7 @@ public class CoreDumpHeader {
      * @throws IOException If the magic number was invalid.
      */
     @NotNull
-    public static CoreDumpHeader fromBytes(@NotNull byte[] data) throws IOException {
+    public static CoreDumpHeader fromBytes(byte @NotNull [] data) throws IOException {
         return fromBytes(data, OFFSET);
     }
 
@@ -43,7 +43,7 @@ public class CoreDumpHeader {
      * @throws IOException If the magic number was invalid.
      */
     @NotNull
-    public static CoreDumpHeader fromBytes(@NotNull byte[] data, int offset) throws IOException {
+    public static CoreDumpHeader fromBytes(byte @NotNull [] data, int offset) throws IOException {
         int magic = ByteUtil.byteArrayToUnsignedInt(data, offset, Endian.LITTLE, 4);
         if (magic != CoreDump.MAGIC) {
             throw new IOException("Illegal magic number: actual=" +

@@ -103,8 +103,7 @@ public class McuMgrImageTlv {
         return mTlvInfo.isProtected();
     }
 
-    @Nullable
-    public byte[] getHash() {
+    public byte @Nullable [] getHash() {
         for (McuMgrImageTlvTrailerEntry entry : getTrailerEntries()) {
             if (mIsLegacy && entry.type == IMG_TLV_SHA256_V1 ||
                     !mIsLegacy && entry.type == IMG_TLV_SHA256) {

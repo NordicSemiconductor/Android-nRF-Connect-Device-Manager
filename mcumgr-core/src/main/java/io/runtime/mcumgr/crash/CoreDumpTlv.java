@@ -29,7 +29,7 @@ public class CoreDumpTlv {
      * @throws IOException If parsing TLV entries encountered an error.
      */
     @NotNull
-    public static CoreDumpTlv fromBytes(@NotNull byte[] data) throws IOException {
+    public static CoreDumpTlv fromBytes(byte @NotNull [] data) throws IOException {
         return fromBytes(data, OFFSET);
     }
 
@@ -41,7 +41,7 @@ public class CoreDumpTlv {
      * @throws IOException If parsing TLV entries encountered an error.
      */
     @NotNull
-    public static CoreDumpTlv fromBytes(@NotNull byte[] data, int offset) throws IOException {
+    public static CoreDumpTlv fromBytes(byte @NotNull [] data, int offset) throws IOException {
         List<CoreDumpTlvEntry> entries = new ArrayList<>();
         while (offset < data.length) {
             CoreDumpTlvEntry entry = CoreDumpTlvEntry.fromBytes(data, offset);
