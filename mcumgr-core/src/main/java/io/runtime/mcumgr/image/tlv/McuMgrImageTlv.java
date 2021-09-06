@@ -54,11 +54,11 @@ public class McuMgrImageTlv {
     public final static int IMG_TLV_PROTECTED_INFO_MAGIC = 0x6908;
 
     @Nullable
-    private McuMgrImageTlvInfo mTlvInfo;
+    private final McuMgrImageTlvInfo mTlvInfo;
     @NotNull
-    private List<McuMgrImageTlvTrailerEntry> mTrailerEntries;
-    private boolean mIsLegacy;
-    private int mSize;
+    private final List<McuMgrImageTlvTrailerEntry> mTrailerEntries;
+    private final boolean mIsLegacy;
+    private final int mSize;
 
     private McuMgrImageTlv(@NotNull McuMgrImageTlvInfo tlvInfo,
                            @NotNull ArrayList<McuMgrImageTlvTrailerEntry> entries) {

@@ -21,12 +21,12 @@ public class CoreDumpTlvEntry {
 
     private static final int MIN_SIZE = 8;
 
-    private int mType;      // uint8_t
-    private int mLength;    // uint16_t
-    private long mOff;      // uint32_t
+    private final int mType;      // uint8_t
+    private final int mLength;    // uint16_t
+    private final long mOff;      // uint32_t
 
     @NotNull
-    private byte[] mValue;
+    private final byte[] mValue;
 
     public CoreDumpTlvEntry(int type, int length, long off, @NotNull byte[] value) {
         mType = type;

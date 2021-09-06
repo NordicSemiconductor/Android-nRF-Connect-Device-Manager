@@ -16,7 +16,7 @@ public class CoreDumpTlv {
     private static final int OFFSET = 8;
 
     @NotNull
-    private List<CoreDumpTlvEntry> mEntries;
+    private final List<CoreDumpTlvEntry> mEntries;
 
     public CoreDumpTlv(@NotNull List<CoreDumpTlvEntry> entries) {
         mEntries = entries;

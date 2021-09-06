@@ -13,9 +13,9 @@ import io.runtime.mcumgr.McuMgrCallback;
  */
 @SuppressWarnings("unused")
 public class McuMgrCoapException extends McuMgrException {
-    private byte[] mBytes;
-    private int mCodeClass;
-    private int mCodeDetail;
+    private final byte[] mBytes;
+    private final int mCodeClass;
+    private final int mCodeDetail;
 
     public McuMgrCoapException(byte[] bytes, int codeClass, int codeDetail) {
         super("McuManager CoAP request resulted in an error response: "  + codeClass + ".0" + codeDetail);

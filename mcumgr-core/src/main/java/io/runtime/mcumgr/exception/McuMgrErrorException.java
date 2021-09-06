@@ -20,7 +20,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 @SuppressWarnings("unused")
 public class McuMgrErrorException extends McuMgrException {
     @NotNull
-    private McuMgrErrorCode mCode;
+    private final McuMgrErrorCode mCode;
 
     public McuMgrErrorException(@NotNull McuMgrErrorCode code) {
         super("Mcu Mgr Error: " + code);

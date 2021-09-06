@@ -18,8 +18,8 @@ public class CoreDump {
     protected static final int TLV_TYPE_MEM   = 2;
     protected static final int TLV_TYPE_REG   = 3;
 
-    private CoreDumpHeader mHeader;
-    private CoreDumpTlv mTlv;
+    private final CoreDumpHeader mHeader;
+    private final CoreDumpTlv mTlv;
 
     public CoreDump(@NotNull CoreDumpHeader header, @NotNull CoreDumpTlv tlv) {
         mHeader = header;

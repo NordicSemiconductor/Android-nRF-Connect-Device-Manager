@@ -14,7 +14,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 public abstract class Download extends Transfer {
 
     @Nullable
-    private DownloadCallback mCallback;
+    private final DownloadCallback mCallback;
 
     protected Download() {
         this(null);

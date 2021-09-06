@@ -335,12 +335,12 @@ public class LogManager extends McuManager {
         /**
          * The name of the log.
          */
-        private String mName;
+        private final String mName;
 
         /**
          * The next index to use to get new logs.
          */
-        private long mNextIndex = 0;
+        private long mNextIndex;
 
         /**
          * The list of entries pulled from the log.

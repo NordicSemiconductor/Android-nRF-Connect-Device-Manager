@@ -58,7 +58,7 @@ public enum McuMgrErrorCode {
     NOT_SUPPORTED(8),
     PER_USER(256);
 
-    private int mCode;
+    private final int mCode;
 
     McuMgrErrorCode(int code) {
         mCode = code;

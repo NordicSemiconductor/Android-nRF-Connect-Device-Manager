@@ -12,7 +12,7 @@ import io.runtime.mcumgr.response.UploadResponse;
 @SuppressWarnings("unused")
 public abstract class Upload extends Transfer {
 
-    private UploadCallback mCallback;
+    private final UploadCallback mCallback;
 
     protected Upload(@NotNull byte[] data) {
         this(data, null);

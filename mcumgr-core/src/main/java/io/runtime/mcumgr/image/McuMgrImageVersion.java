@@ -22,10 +22,10 @@ import io.runtime.mcumgr.util.Endian;
 @SuppressWarnings("unused")
 public class McuMgrImageVersion {
 
-    private byte mMajor;
-    private byte mMinor;
-    private short mRevision;
-    private int mBuildNum;
+    private final byte mMajor;
+    private final byte mMinor;
+    private final short mRevision;
+    private final int mBuildNum;
 
     private McuMgrImageVersion(byte major, byte minor, short revision, int buildNum) {
         mMajor = major;

@@ -25,6 +25,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.UploadCallback;
+
 import static io.runtime.mcumgr.transfer.ImageUploaderKt.windowUpload;
 
 // TODO Add retries for each step
@@ -82,12 +83,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     /**
      * Performs the image upload, test, and confirmation steps.
      */
-    private ImageManager mImageManager;
+    private final ImageManager mImageManager;
 
     /**
      * Performs the reset command.
      */
-    private DefaultManager mDefaultManager;
+    private final DefaultManager mDefaultManager;
 
     /**
      * Upload controller used to pause, resume, and cancel upload. Set when the upload is started.
@@ -427,7 +428,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: VALIDATE.
      * Callback for the list command.
      */
-    private McuMgrCallback<McuMgrImageStateResponse> mImageValidateCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
+    private final McuMgrCallback<McuMgrImageStateResponse> mImageValidateCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
         @Override
         public void onResponse(@NotNull final McuMgrImageStateResponse response) {
             LOG.trace("Validation response: {}", response.toString());
@@ -563,7 +564,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: TEST.
      * Callback for the test command.
      */
-    private McuMgrCallback<McuMgrImageStateResponse> mTestCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
+    private final McuMgrCallback<McuMgrImageStateResponse> mTestCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
         @Override
         public void onResponse(@NotNull McuMgrImageStateResponse response) {
             LOG.trace("Test response: {}", response.toString());
@@ -594,7 +595,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: RESET.
      * Observer for the transport disconnection.
      */
-    private McuMgrTransport.ConnectionObserver mResetObserver = new McuMgrTransport.ConnectionObserver() {
+    private final McuMgrTransport.ConnectionObserver mResetObserver = new McuMgrTransport.ConnectionObserver() {
         @Override
         public void onConnected() {
             // Do nothing
@@ -605,12 +606,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             mDefaultManager.getTransporter().removeObserver(mResetObserver);
 
             LOG.info("Device disconnected");
-            Runnable reconnect = new Runnable() {
-                @Override
-                public void run() {
-                    mDefaultManager.getTransporter().connect(mReconnectCallback);
-                }
-            };
+            Runnable reconnect = () -> mDefaultManager.getTransporter().connect(mReconnectCallback);
             // Calculate the delay needed before verification.
             // It may have taken 20 sec before the phone realized that it's
             // disconnected. No need to wait more, perhaps?
@@ -631,7 +627,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: RESET.
      * Callback for reconnecting to the device.
      */
-    private McuMgrTransport.ConnectionCallback mReconnectCallback = new McuMgrTransport.ConnectionCallback() {
+    private final McuMgrTransport.ConnectionCallback mReconnectCallback = new McuMgrTransport.ConnectionCallback() {
 
         @Override
         public void onConnected() {
@@ -682,7 +678,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: RESET.
      * Callback for the reset command.
      */
-    private McuMgrCallback<McuMgrResponse> mResetCallback = new McuMgrCallback<McuMgrResponse>() {
+    private final McuMgrCallback<McuMgrResponse> mResetCallback = new McuMgrCallback<McuMgrResponse>() {
         @Override
         public void onResponse(@NotNull McuMgrResponse response) {
             // Check for an error return code
@@ -704,7 +700,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * State: CONFIRM.
      * Callback for the confirm command.
      */
-    private McuMgrCallback<McuMgrImageStateResponse> mConfirmCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
+    private final McuMgrCallback<McuMgrImageStateResponse> mConfirmCallback = new McuMgrCallback<McuMgrImageStateResponse>() {
         private final static int MAX_ATTEMPTS = 2;
         private int mAttempts = 0;
 
@@ -832,7 +828,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * Image upload callback. Forwards upload callbacks to the FirmwareUpgradeCallback.
      */
 
-    private UploadCallback mImageUploadCallback = new UploadCallback() {
+    private final UploadCallback mImageUploadCallback = new UploadCallback() {
 
         @Override
         public void onUploadProgressChanged(int current, int total, long timestamp) {
@@ -871,7 +867,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     /**
      * Internal callback to route callbacks to the UI thread if the flag has been set.
      */
-    private FirmwareUpgradeCallback mInternalCallback = new FirmwareUpgradeCallback() {
+    private final FirmwareUpgradeCallback mInternalCallback = new FirmwareUpgradeCallback() {
         private MainThreadExecutor mMainThreadExecutor;
 
         private MainThreadExecutor getMainThreadExecutor() {
@@ -887,12 +883,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (mUiThreadCallbacks) {
-                getMainThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onUpgradeStarted(controller);
-                    }
-                });
+                getMainThreadExecutor().execute(() -> mCallback.onUpgradeStarted(controller));
             } else {
                 mCallback.onUpgradeStarted(controller);
             }
@@ -904,12 +895,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (mUiThreadCallbacks) {
-                getMainThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onStateChanged(prevState, newState);
-                    }
-                });
+                getMainThreadExecutor().execute(() -> mCallback.onStateChanged(prevState, newState));
             } else {
                 mCallback.onStateChanged(prevState, newState);
             }
@@ -921,12 +907,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (mUiThreadCallbacks) {
-                getMainThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onUpgradeCompleted();
-                    }
-                });
+                getMainThreadExecutor().execute(() -> mCallback.onUpgradeCompleted());
             } else {
                 mCallback.onUpgradeCompleted();
             }
@@ -938,12 +919,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (mUiThreadCallbacks) {
-                getMainThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onUpgradeFailed(state, error);
-                    }
-                });
+                getMainThreadExecutor().execute(() -> mCallback.onUpgradeFailed(state, error));
             } else {
                 mCallback.onUpgradeFailed(state, error);
             }
@@ -955,12 +931,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (mUiThreadCallbacks) {
-                getMainThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onUpgradeCanceled(state);
-                    }
-                });
+                getMainThreadExecutor().execute(() -> mCallback.onUpgradeCanceled(state));
             } else {
                 mCallback.onUpgradeCanceled(state);
             }
@@ -972,12 +943,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 return;
             }
             if (mUiThreadCallbacks) {
-                getMainThreadExecutor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        mCallback.onUploadProgressChanged(bytesSent, imageSize, timestamp);
-                    }
-                });
+                getMainThreadExecutor().execute(() -> mCallback.onUploadProgressChanged(bytesSent, imageSize, timestamp));
             } else {
                 mCallback.onUploadProgressChanged(bytesSent, imageSize, timestamp);
             }
@@ -992,7 +958,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * Used to execute callbacks on the main UI thread.
      */
     private static class MainThreadExecutor implements Executor {
-        private Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+        private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
         @Override
         public void execute(@NotNull Runnable command) {
