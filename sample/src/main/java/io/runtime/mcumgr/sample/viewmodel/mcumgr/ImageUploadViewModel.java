@@ -17,7 +17,6 @@ import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
-import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
@@ -85,7 +84,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         return mCancelledEvent;
     }
 
-    public void upload(@NonNull final byte[] data) {
+    public void upload(@NonNull final byte[] data, final int image) {
         if (mController != null) {
             return;
         }
@@ -122,10 +121,10 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                     postReady();
                     return;
                 }
-
+                // TODO: Validate net core as well.
                 // Send the firmware.
                 mStateLiveData.postValue(State.UPLOADING);
-                mController = mManager.imageUpload(data, ImageUploadViewModel.this);
+                mController = mManager.imageUpload(data, image,ImageUploadViewModel.this);
             }
 
             @Override

@@ -19,6 +19,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import javax.inject.Inject;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -26,9 +28,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-
-import javax.inject.Inject;
-
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -38,11 +37,16 @@ import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageControlBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
+import io.runtime.mcumgr.sample.dialog.SelectImageDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageControlViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
-public class ImageControlFragment extends Fragment implements Injectable, Toolbar.OnMenuItemClickListener {
+public class ImageControlFragment extends Fragment implements Injectable,
+        Toolbar.OnMenuItemClickListener, SelectImageDialogFragment.OnImageSelectedListener {
+    private static final int REQUEST_TEST    = 1;
+    private static final int REQUEST_CONFIRM = 2;
+    private static final int REQUEST_ERASE   = 3;
 
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
@@ -64,16 +68,14 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
         mBinding = FragmentCardImageControlBinding.inflate(inflater, container, false);
+        mBinding.toolbar.inflateMenu(R.menu.help);
+        mBinding.toolbar.setOnMenuItemClickListener(this);
         return  mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        final Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.inflateMenu(R.menu.help);
-        toolbar.setOnMenuItemClickListener(this);
 
         // This makes the layout animate when the TextView value changes.
         // By default it animates only on hiding./showing views.
@@ -100,9 +102,9 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
             }
         });
         mBinding.actionRead.setOnClickListener(v -> mViewModel.read());
-        mBinding.actionTest.setOnClickListener(v -> mViewModel.test());
-        mBinding.actionConfirm.setOnClickListener(v -> mViewModel.confirm());
-        mBinding.actionErase.setOnClickListener(v -> mViewModel.erase());
+        mBinding.actionTest.setOnClickListener(v -> onActionClick(REQUEST_TEST));
+        mBinding.actionConfirm.setOnClickListener(v -> onActionClick(REQUEST_CONFIRM));
+        mBinding.actionErase.setOnClickListener(v -> onActionClick(REQUEST_ERASE));
     }
 
     @Override
@@ -124,6 +126,31 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
         return false;
     }
 
+    @Override
+    public void onImageSelected(final int requestId, final int image) {
+        switch (requestId) {
+            case REQUEST_TEST:
+                mViewModel.test(image);
+                break;
+            case REQUEST_CONFIRM:
+                mViewModel.confirm(image);
+                break;
+            case REQUEST_ERASE:
+                mViewModel.erase(image);
+                break;
+        }
+    }
+
+    private void onActionClick(final int requestId) {
+        final int[] images = mViewModel.getValidImages();
+        if (images.length > 1) {
+            final DialogFragment dialog = SelectImageDialogFragment.getInstance(requestId);
+            dialog.show(getChildFragmentManager(), null);
+        } else {
+            onImageSelected(requestId, images[0]);
+        }
+    }
+
     private void printImageSlotInfo(@Nullable final McuMgrImageStateResponse response) {
         if (response != null) {
             final SpannableStringBuilder builder = new SpannableStringBuilder();
@@ -131,14 +158,20 @@ public class ImageControlFragment extends Fragment implements Injectable, Toolba
             builder.setSpan(new StyleSpan(Typeface.BOLD),
                     0, builder.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             for (final McuMgrImageStateResponse.ImageSlot slot : response.images) {
-                final int index = builder.length();
                 builder.append("\n");
-                builder.append(getString(R.string.image_control_slot,
-                        slot.slot, slot.version, StringUtils.toHex(slot.hash),
+                final int index = builder.length();
+                final String imageSlot = getString(R.string.image_control_image_slot,
+                        slot.image, slot.slot);
+                builder.append(imageSlot);
+                builder.setSpan(new StyleSpan(Typeface.BOLD),
+                        index, index + imageSlot.length(),
+                        Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                builder.append("\n");
+                builder.append(getString(R.string.image_control_flags,
+                        slot.version,
+                        StringUtils.toHex(slot.hash),
                         slot.bootable, slot.pending, slot.confirmed,
                         slot.active, slot.permanent));
-                builder.setSpan(new StyleSpan(Typeface.BOLD),
-                        index, index + 8, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
             }
             mBinding.imageControlValue.setText(builder);
             mBinding.imageControlError.setVisibility(View.GONE);

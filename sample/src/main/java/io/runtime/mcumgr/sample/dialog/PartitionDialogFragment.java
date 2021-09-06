@@ -45,7 +45,7 @@ public class PartitionDialogFragment extends DialogFragment implements Injectabl
 
     @NonNull
     @Override
-    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+    public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final LayoutInflater inflater = requireActivity().getLayoutInflater();
         final View view = inflater.inflate(R.layout.dialog_files_settings, null);
         final EditText partition = view.findViewById(R.id.partition);

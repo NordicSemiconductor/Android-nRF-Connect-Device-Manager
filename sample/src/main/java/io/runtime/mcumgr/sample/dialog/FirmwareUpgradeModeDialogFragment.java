@@ -10,6 +10,7 @@ import android.app.Dialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
@@ -28,7 +29,7 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
     @SuppressWarnings("ConstantConditions")
     @NonNull
     @Override
-    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+    public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             mSelectedItem = savedInstanceState.getInt(SIS_ITEM);
         } else {
