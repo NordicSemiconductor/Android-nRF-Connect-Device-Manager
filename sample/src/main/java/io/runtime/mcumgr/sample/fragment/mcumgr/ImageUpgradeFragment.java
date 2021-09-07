@@ -12,9 +12,18 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,6 +42,7 @@ import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
+import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUpgradeViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
@@ -177,13 +187,49 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     protected void onFileLoaded(@NonNull final byte[] data) {
         try {
+            // Try parsing BIN file for single/main core (core0) update.
             final byte[] hash = McuMgrImage.getHash(data);
             mBinding.fileHash.setText(StringUtils.toHex(hash));
             mBinding.actionStart.setEnabled(true);
             mBinding.status.setText(R.string.image_upgrade_status_ready);
         } catch (final McuMgrException e) {
-            clearFileContent();
-            onFileLoadingFailed(R.string.image_error_file_not_valid);
+            // For multi-core devices images are bundled in a ZIP file.
+            try {
+                final ZipPackage zip = new ZipPackage(data);
+                final StringBuilder sizeBuilder = new StringBuilder();
+                final StringBuilder hashBuilder = new StringBuilder();
+                for (final Pair<Integer, byte[]> binary: zip.getBinaries()) {
+                    final byte[] hash = McuMgrImage.getHash(binary.second);
+                    hashBuilder
+                            .append(StringUtils.toHex(hash));
+                    sizeBuilder
+                            .append(getString(R.string.image_upgrade_size_value, binary.second.length));
+                    switch (binary.first) {
+                        case 0:
+                            hashBuilder.append(" (app core)");
+                            sizeBuilder.append(" (app core)");
+                            break;
+                        case 1:
+                            hashBuilder.append(" (net core)");
+                            sizeBuilder.append(" (net core)");
+                            break;
+                        default:
+                            hashBuilder.append(" (unknown core (").append(binary.first).append(")");
+                            sizeBuilder.append(" (unknown core (").append(binary.first).append(")");
+                    }
+                    hashBuilder.append("\n");
+                    sizeBuilder.append("\n");
+                }
+                hashBuilder.setLength(hashBuilder.length() - 1);
+                sizeBuilder.setLength(sizeBuilder.length() - 1);
+                mBinding.fileHash.setText(hashBuilder.toString());
+                mBinding.fileSize.setText(sizeBuilder.toString());
+                mBinding.actionStart.setEnabled(true);
+                mBinding.status.setText(R.string.image_upgrade_status_ready);
+            } catch (final Exception e1) {
+                clearFileContent();
+                onFileLoadingFailed(R.string.image_error_file_not_valid);
+            }
         }
     }
 
