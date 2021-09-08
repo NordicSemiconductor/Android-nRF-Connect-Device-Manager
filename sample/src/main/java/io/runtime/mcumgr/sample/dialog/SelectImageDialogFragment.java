@@ -45,7 +45,7 @@ public class SelectImageDialogFragment extends DialogFragment {
 				.setView(binding.getRoot())
 				// Setting the positive button listener here would cause the dialog to dismiss.
 				// We have to validate the value before.
-				.setPositiveButton(R.string.image_upload_action_start, (dialog1, which) -> {
+				.setPositiveButton(android.R.string.ok, (dialog, which) -> {
 					final Bundle args = requireArguments();
 					final int requestId = args.getInt(ARG_REQUEST_ID);
 
