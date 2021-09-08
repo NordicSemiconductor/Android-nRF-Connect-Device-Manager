@@ -57,13 +57,9 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
         mFileBrowserLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    clearFileContent();
-
-                    if (uri == null) {
-                        Toast.makeText(requireContext(), R.string.file_loader_error_no_uri,
-                                Toast.LENGTH_SHORT).show();
+                    if (uri == null)
                         return;
-                    }
+                    clearFileContent();
 
                     final String scheme = uri.getScheme();
                     if (scheme != null && scheme.equals("content")) {
