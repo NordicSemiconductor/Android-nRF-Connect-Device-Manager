@@ -44,26 +44,26 @@ platform :android do
 
   desc "Deploy build to Alpha channel."
   lane :deployAlpha do
-    gradle(task: "clean assembleRelease")
+    gradle(task: "clean bundleRelease")
     upload_to_play_store(
       track: 'alpha',
-      apk: 'sample/build/outputs/apk/release/sample-release.apk'
+      aab: 'sample/build/outputs/bundle/release/sample-release.aab'
     )
   end
 
   desc "Deploy build to Beta channel."
     lane :deployBeta do
-      gradle(task: "clean assembleRelease")
+      gradle(task: "clean bundleRelease")
       upload_to_play_store(
         track: 'beta',
-        apk: 'sample/build/outputs/apk/release/sample-release.apk'
+        aab: 'sample/build/outputs/bundle/release/sample-release.aab'
       )
     end
 
   desc "Generate internal Play Store link to the apk"
   lane :deployInternal do
-    gradle(task: "clean assembleRelease")
-    upload_to_play_store_internal_app_sharing(apk: 'sample/build/outputs/apk/release/sample-release.apk')
+    gradle(task: "clean bundleRelease")
+    upload_to_play_store_internal_app_sharing(aab: 'sample/build/outputs/bundle/release/sample-release.aab')
   end
 
 end

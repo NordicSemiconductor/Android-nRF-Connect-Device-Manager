@@ -5,7 +5,7 @@ ext.getVersionCodeFromTags = { ->
             commandLine 'git', 'tag', '--list'
             standardOutput = code
         }
-        return 3 + code.toString().split("\n").size()
+        return 12 + code.toString().split("\n").size()
     }
     catch (ignored) {
         return -1
@@ -19,7 +19,7 @@ ext.getVersionNameFromTags = { ->
             commandLine 'git', 'describe', '--tags', '--dirty'
             standardOutput = stdout
         }
-        return stdout.toString().trim().split("-")[0]
+        return stdout.toString().trim().split("%")[0]
     }
     catch (ignored) {
         return null
