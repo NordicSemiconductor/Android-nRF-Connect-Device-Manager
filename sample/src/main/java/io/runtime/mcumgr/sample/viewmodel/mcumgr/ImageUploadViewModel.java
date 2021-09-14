@@ -106,23 +106,27 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         mManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
-                // Check if the new firmware is different than the active one.
-                if (response.images.length > 0 && Arrays.equals(hash, response.images[0].hash)) {
-                    // TODO Externalize the text
-                    mErrorLiveData.setValue(new McuMgrException("Firmware already active."));
+                // Check if the fw has already been sent before.
+                McuMgrImageStateResponse.ImageSlot theSameImage = null;
+                for (final McuMgrImageStateResponse.ImageSlot image: response.images) {
+                    if (Arrays.equals(hash, image.hash)) {
+                        theSameImage = image;
+                        break;
+                    }
+                }
+                // If yes, no need to send again.
+                if (theSameImage != null) {
+                    if (theSameImage.slot == 0) {
+                        mErrorLiveData.setValue(new McuMgrException("Firmware already active."));
+                    } else {
+                        // Firmware is identical to one on slot 1. No need to send anything.
+                        mStateLiveData.setValue(State.COMPLETE);
+                    }
                     postReady();
                     return;
                 }
-
-                // Check if the new firmware was already sent.
-                if (response.images.length > 1 && Arrays.equals(hash, response.images[1].hash)) {
-                    // Firmware is identical to one on slot 1. No need to send anything.
-                    mStateLiveData.setValue(State.COMPLETE);
-                    postReady();
-                    return;
-                }
-                // TODO: Validate net core as well.
-                // Send the firmware.
+                // Otherwise, send the firmware. This may return NO MEMORY error if slot 1 is
+                // filled with an image with pending or confirmed flags set.
                 mStateLiveData.postValue(State.UPLOADING);
                 mController = mManager.imageUpload(data, image,ImageUploadViewModel.this);
             }

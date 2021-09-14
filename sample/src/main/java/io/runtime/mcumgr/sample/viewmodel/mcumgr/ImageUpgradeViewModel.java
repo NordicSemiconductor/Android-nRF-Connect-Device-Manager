@@ -6,6 +6,11 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
+import android.util.Pair;
+
+import java.util.Collections;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,6 +23,8 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 import timber.log.Timber;
@@ -87,13 +94,27 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     }
 
     public void upgrade(@NonNull final byte[] data, @NonNull final FirmwareUpgradeManager.Mode mode) {
+        List<Pair<Integer, byte[]>> images;
+        try {
+            // Check if the BIN file is valid.
+            McuMgrImage.getHash(data);
+            images = Collections.singletonList(new Pair<>(0, data));
+        } catch (final Exception e) {
+            try {
+                final ZipPackage zip = new ZipPackage(data);
+                images = zip.getBinaries();
+            } catch (final Exception e1) {
+                mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
+                return;
+            }
+        }
         try {
             final McuMgrTransport transport = mManager.getTransporter();
             if (transport instanceof McuMgrBleTransport) {
                 ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
             }
             mManager.setMode(mode);
-            mManager.start(data);
+            mManager.start(images);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
             mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
