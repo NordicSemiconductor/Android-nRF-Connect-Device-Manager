@@ -1,0 +1,15 @@
+package io.runtime.mcumgr.dfu.task;
+
+import org.jetbrains.annotations.NotNull;
+
+class ConfirmAfterReset extends Confirm {
+
+	ConfirmAfterReset(final byte @NotNull [] hash) {
+		super(hash);
+	}
+
+	@Override
+	public int getPriority() {
+		return PRIORITY_CONFIRM_AFTER_RESET;
+	}
+}
