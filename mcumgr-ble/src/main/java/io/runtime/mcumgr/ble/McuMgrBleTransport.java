@@ -305,7 +305,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         public void send(@NonNull byte[] data) {
                             if (mLoggingEnabled) {
                                 try {
-                                    log(Log.VERBOSE, "Sending (" + payload.length + " bytes) "
+                                    log(Log.INFO, "Sending (" + payload.length + " bytes) "
                                             + McuMgrHeader.fromBytes(payload).toString() + " CBOR "
                                             + CBOR.toString(payload, McuMgrHeader.HEADER_LENGTH));
                                 } catch (Exception e) {
@@ -544,7 +544,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Registered as a callback for all notifications from the SMP characteristic.
         // Forwards the merged data packets to the protocol layer to be matched to a request.
         private final DataReceivedCallback mAsyncNotificationCallback = new DataReceivedCallback() {
-
             @Override
             public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
                 byte[] bytes = data.getValue();
