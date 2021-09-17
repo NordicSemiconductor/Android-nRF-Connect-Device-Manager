@@ -1,6 +1,13 @@
+/*
+ * Copyright (c) 2017-2018 Runtime Inc.
+ * Copyright (c) Intellinium SAS, 2014-2021
+ * Copyright (c) 2021, Nordic Semiconductor
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply from: rootProject.file('gradle/jacoco-android.gradle')
 
 android {
     compileSdkVersion 30
@@ -36,4 +43,19 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 }
 
-apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
+// === Maven Central configuration ===
+// The following file exists only when Android BLE Library project is opened, but not
+// when the module is loaded to a different project.
+if (rootProject.file('gradle/publish-module.gradle').exists()) {
+    ext {
+        POM_ARTIFACT_ID = 'mcumgr-ble'
+        POM_NAME = 'Mcu Manager BLE Transport'
+        POM_PACKAGING = 'aar'
+    }
+    apply from: rootProject.file('gradle/publish-module.gradle')
+}
+// === JaCoCo configuration ===
+// https://www.eclemma.org/jacoco/
+if (rootProject.file('gradle/jacoco-android.gradle').exists()) {
+    apply from: rootProject.file('gradle/jacoco-android.gradle')
+}
