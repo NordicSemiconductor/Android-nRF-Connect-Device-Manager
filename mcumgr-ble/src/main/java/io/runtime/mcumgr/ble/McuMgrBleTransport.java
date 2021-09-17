@@ -391,7 +391,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             break;
                     }
                 })
-        .retry(3, 100)
+        .retry(3, 500)
         .enqueue();
     }
 
@@ -404,7 +404,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             return;
         }
         connect(mDevice)
-                .retry(3, 100)
+                .retry(3, 500)
                 .done(device -> {
                     notifyConnected();
                     if (callback == null) {
@@ -476,7 +476,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                 McuMgrBleTransport.super.requestConnectionPriority(priority).enqueue();
             } // else ignore... :(
         })
-        .retry(3, 100)
+        .retry(3, 500)
         .enqueue();
     }
 
