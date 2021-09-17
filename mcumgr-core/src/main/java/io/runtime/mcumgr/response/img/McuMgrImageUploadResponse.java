@@ -7,9 +7,7 @@
 package io.runtime.mcumgr.response.img;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.UploadResponse;
 
 public class McuMgrImageUploadResponse extends UploadResponse {

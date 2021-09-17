@@ -18,8 +18,8 @@ public class CoreDump {
     protected static final int TLV_TYPE_MEM   = 2;
     protected static final int TLV_TYPE_REG   = 3;
 
-    private CoreDumpHeader mHeader;
-    private CoreDumpTlv mTlv;
+    private final CoreDumpHeader mHeader;
+    private final CoreDumpTlv mTlv;
 
     public CoreDump(@NotNull CoreDumpHeader header, @NotNull CoreDumpTlv tlv) {
         mHeader = header;
@@ -34,7 +34,7 @@ public class CoreDump {
      * @throws IOException if the core dump is invalid.
      */
     @NotNull
-    public static CoreDump fromBytes(@NotNull byte[] data) throws IOException {
+    public static CoreDump fromBytes(byte @NotNull [] data) throws IOException {
         CoreDumpHeader header = CoreDumpHeader.fromBytes(data);
         CoreDumpTlv tlv = CoreDumpTlv.fromBytes(data);
         return new CoreDump(header, tlv);
@@ -45,8 +45,7 @@ public class CoreDump {
      *
      * @return the image hash, or null if not found in the TLV.
      */
-    @Nullable
-    public byte[] getImageHash() {
+    public byte @Nullable [] getImageHash() {
         CoreDumpTlvEntry entry = mTlv.getEntryOfType(TLV_TYPE_IMAGE);
         if (entry == null) {
             return null;
@@ -59,8 +58,7 @@ public class CoreDump {
      *
      * @return the registers, or null if not found in the TLV.
      */
-    @Nullable
-    public byte[] getRegisters() {
+    public byte @Nullable [] getRegisters() {
         CoreDumpTlvEntry entry = mTlv.getEntryOfType(TLV_TYPE_REG);
         if (entry == null) {
             return null;

@@ -305,7 +305,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         public void send(@NonNull byte[] data) {
                             if (mLoggingEnabled) {
                                 try {
-                                    log(Log.VERBOSE, "Sending (" + payload.length + " bytes) "
+                                    log(Log.INFO, "Sending (" + payload.length + " bytes) "
                                             + McuMgrHeader.fromBytes(payload).toString() + " CBOR "
                                             + CBOR.toString(payload, McuMgrHeader.HEADER_LENGTH));
                                 } catch (Exception e) {
@@ -391,7 +391,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             break;
                     }
                 })
-        .retry(3, 100)
+        .retry(3, 500)
         .enqueue();
     }
 
@@ -404,7 +404,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             return;
         }
         connect(mDevice)
-                .retry(3, 100)
+                .retry(3, 500)
                 .done(device -> {
                     notifyConnected();
                     if (callback == null) {
@@ -476,7 +476,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                 McuMgrBleTransport.super.requestConnectionPriority(priority).enqueue();
             } // else ignore... :(
         })
-        .retry(3, 100)
+        .retry(3, 500)
         .enqueue();
     }
 
@@ -528,7 +528,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // called.
         @Override
         protected void initialize() {
-            requestMtu(515)
+            requestMtu(498)
                     .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
                     .fail((device, status) -> {
                         log(Log.INFO, "Failed to negotiate MTU, disconnecting,");
@@ -544,7 +544,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Registered as a callback for all notifications from the SMP characteristic.
         // Forwards the merged data packets to the protocol layer to be matched to a request.
         private final DataReceivedCallback mAsyncNotificationCallback = new DataReceivedCallback() {
-
             @Override
             public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
                 byte[] bytes = data.getValue();

@@ -8,6 +8,7 @@ package io.runtime.mcumgr.sample;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
+import android.os.HandlerThread;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity
     DispatchingAndroidInjector<Object> mDispatchingAndroidInjector;
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
+    @Inject
+    HandlerThread mHandlerThread;
 
     private Fragment mDeviceFragment;
     private Fragment mImageFragment;
@@ -126,5 +129,12 @@ public class MainActivity extends AppCompatActivity
             mFilesFragment = getSupportFragmentManager().findFragmentByTag("fs");
             mLogsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // This will stop the handler thread that is used by transport object.
+        mHandlerThread.quitSafely();
     }
 }

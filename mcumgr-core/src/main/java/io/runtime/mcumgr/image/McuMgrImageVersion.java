@@ -22,10 +22,10 @@ import io.runtime.mcumgr.util.Endian;
 @SuppressWarnings("unused")
 public class McuMgrImageVersion {
 
-    private byte mMajor;
-    private byte mMinor;
-    private short mRevision;
-    private int mBuildNum;
+    private final byte mMajor;
+    private final byte mMinor;
+    private final short mRevision;
+    private final int mBuildNum;
 
     private McuMgrImageVersion(byte major, byte minor, short revision, int buildNum) {
         mMajor = major;
@@ -35,12 +35,12 @@ public class McuMgrImageVersion {
     }
 
     @NotNull
-    public static McuMgrImageVersion fromBytes(@NotNull byte[] b) throws McuMgrException {
+    public static McuMgrImageVersion fromBytes(byte @NotNull [] b) throws McuMgrException {
         return fromBytes(b, 0);
     }
 
     @NotNull
-    public static McuMgrImageVersion fromBytes(@NotNull byte[] b, int offset) throws McuMgrException {
+    public static McuMgrImageVersion fromBytes(byte @NotNull [] b, int offset) throws McuMgrException {
         if (b.length - offset < getSize()) {
             throw new McuMgrException("The byte array is too short to be a McuMgrImageVersion");
         }

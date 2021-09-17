@@ -12,6 +12,7 @@
     <string name="files_upload_size">File Size:</string>
     <string name="files_upload_size_value">%d bytes</string>
     <string name="files_upload_status">State:</string>
+    <string name="files_upload_speed">%.1f KB/s</string>
     <string name="files_upload_action_start">Upload</string>
 
     <string name="files_upload_status_ready">READY</string>

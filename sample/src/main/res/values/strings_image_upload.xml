@@ -12,7 +12,14 @@
     <string name="image_upload_size_value">%d bytes</string>
     <string name="image_upload_hash">File Hash:</string>
     <string name="image_upload_status">State:</string>
+    <string name="image_upload_speed">%.1f KB/s</string>
     <string name="image_upload_action_start">Upload</string>
+
+    <string name="image_select_image">Select Image</string>
+    <string-array name="image_select_images">
+        <item>Application Core (0)</item>
+        <item>Network Core (1)</item>
+    </string-array>
 
     <string name="image_upload_status_ready">READY</string>
     <string name="image_upload_status_validating">VALIDATING…</string>

@@ -8,12 +8,13 @@ package io.runtime.mcumgr.sample.di.module;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.MutableLiveData;
+import android.os.Handler;
+import android.os.HandlerThread;
 
 import javax.inject.Named;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
 import dagger.Module;
 import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
@@ -35,7 +36,24 @@ public class McuMgrTransportModule {
     @McuMgrScope
     @NonNull
     static McuMgrTransport provideMcuMgrTransport(@NonNull final Context context,
-                                                  @NonNull final BluetoothDevice device) {
-        return new ObservableMcuMgrBleTransport(context, device);
+                                                  @NonNull final BluetoothDevice device,
+                                                  @NonNull final Handler handler) {
+        return new ObservableMcuMgrBleTransport(context, device, handler);
+    }
+
+    @Provides
+    @McuMgrScope
+    @NonNull
+    static HandlerThread provideTransportHandlerThread() {
+        final HandlerThread handlerThread = new HandlerThread("McuMgrTransport");
+        handlerThread.start(); // The handler thread is stopped in MainActivity#onDestroy().
+        return handlerThread;
+    }
+
+    @Provides
+    @McuMgrScope
+    @NonNull
+    static Handler provideTransportHandler(@NonNull final HandlerThread handlerThread) {
+        return new Handler(handlerThread.getLooper());
     }
 }

@@ -92,11 +92,17 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
                     break;
                 case COMPLETE:
                     clearFileContent();
-                    mBinding.status.setText(R.string.image_upgrade_status_completed);
+                    mBinding.status.setText(R.string.files_upload_status_completed);
+                    mBinding.speed.setText(null);
                     break;
             }
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
+        mViewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
+                mBinding.speed.setText(getString(R.string.files_upload_speed, speed))
+        );
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
+                mBinding.progress.setProgress(progress)
+        );
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mBinding.actionGenerate.setVisibility(View.VISIBLE);
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
@@ -111,6 +117,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
             mBinding.filePath.setText(null);
             mBinding.fileSize.setText(null);
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             mBinding.actionGenerate.setVisibility(View.VISIBLE);
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setVisibility(View.VISIBLE);
@@ -195,6 +202,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
         }
         if (message == null) {
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -204,5 +212,6 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         mBinding.status.setText(spannable);
+        mBinding.speed.setText(null);
     }
 }

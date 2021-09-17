@@ -28,10 +28,14 @@ public class CrashManager extends McuManager {
         REF_0("ref0"),
         ASSERT("assert"),
         WDOG("wdog");
+
         private final String value;
-        Test(String value) {
+
+        Test(@NotNull String value) {
             this.value = value;
         }
+
+        @NotNull
         @Override
         public String toString() {
             return value;

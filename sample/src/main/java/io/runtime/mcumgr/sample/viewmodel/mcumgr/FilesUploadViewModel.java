@@ -46,8 +46,12 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
     private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+
+    private long mUploadStartTimestamp;
+    private int mInitialBytes;
 
     @Inject
     FilesUploadViewModel(final FsManager manager,
@@ -65,6 +69,14 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
     @NonNull
     public LiveData<Integer> getProgress() {
         return mProgressLiveData;
+    }
+
+    /**
+     * Returns current transfer speed in KB/s.
+     */
+    @NonNull
+    public LiveData<Float> getTransferSpeed() {
+        return mTransferSpeedLiveData;
     }
 
     @NonNull
@@ -87,6 +99,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         if (transport instanceof McuMgrBleTransport) {
             ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
+        mInitialBytes = 0;
         mController = mManager.fileUpload(path, data, this);
     }
 
@@ -104,6 +117,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         if (controller != null) {
             mStateLiveData.setValue(State.UPLOADING);
             setBusy();
+            mInitialBytes = 0;
             controller.resume();
         }
     }
@@ -116,9 +130,18 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
     }
 
     @Override
-    public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
+    public void onUploadProgressChanged(final int bytesSent, final int fileSize, final long timestamp) {
+        if (mInitialBytes == 0) {
+            mUploadStartTimestamp = timestamp;
+            mInitialBytes = bytesSent;
+        } else {
+            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
+            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            // bytes / ms = KB/s
+            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+        }
         // Convert to percent
-        mProgressLiveData.postValue((int) (current * 100.f / total));
+        mProgressLiveData.postValue((int) (bytesSent * 100.f / fileSize));
     }
 
     @Override

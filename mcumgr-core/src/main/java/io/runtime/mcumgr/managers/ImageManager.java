@@ -118,9 +118,33 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      * @see #imageUpload(byte[], UploadCallback)
      */
-    public void upload(@NotNull byte[] data, int offset,
+    public void upload(byte @NotNull [] data, int offset,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
-        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset);
+        upload(data, offset, 0, callback);
+    }
+
+    /**
+     * Send a packet of given data from the specified offset to the given core (image) on the
+     * device (asynchronous).
+     * <p>
+     * The chunk size is limited by the current MTU. If the current MTU set by
+     * {@link #setUploadMtu(int)} is too large, the {@link McuMgrCallback#onError(McuMgrException)}
+     * with {@link InsufficientMtuException} error will be returned.
+     * Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
+     * pass it to {@link #setUploadMtu(int)} and try again.
+     * <p>
+     * Use {@link #imageUpload(byte[], UploadCallback)} to send the whole file asynchronously
+     * using one command.
+     *
+     * @param data     image data.
+     * @param offset   the offset, from which the chunk will be sent.
+     * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @param callback the asynchronous callback.
+     * @see #imageUpload(byte[], UploadCallback)
+     */
+    public void upload(byte @NotNull [] data, int offset, int image,
+                       @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
+        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
         send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class, callback);
     }
 
@@ -141,8 +165,32 @@ public class ImageManager extends TransferManager {
      * @see #imageUpload(byte[], UploadCallback)
      */
     @NotNull
-    public McuMgrImageUploadResponse upload(@NotNull byte[] data, int offset) throws McuMgrException {
-        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset);
+    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset) throws McuMgrException {
+        return upload(data, offset, 0);
+    }
+
+    /**
+     * Send a packet of given data from the specified offset to the given core (image) on the
+     * device (synchronous).
+     * <p>
+     * The chunk size is limited by the current MTU. If the current MTU set by
+     * {@link #setUploadMtu(int)} is too large, the {@link InsufficientMtuException} error will be
+     * thrown. Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
+     * pass it to {@link #setUploadMtu(int)} and try again.
+     * <p>
+     * Use {@link #imageUpload(byte[], UploadCallback)} to send the whole file asynchronously
+     * using one command.
+     *
+     * @param data   image data.
+     * @param offset the offset, from which the chunk will be sent.
+     * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @return The upload response.
+     * @see #imageUpload(byte[], UploadCallback)
+     */
+    @NotNull
+    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset, int image)
+            throws McuMgrException {
+        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
         return send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class);
     }
 
@@ -150,9 +198,9 @@ public class ImageManager extends TransferManager {
      * Build the upload payload.
      */
     @NotNull
-    private HashMap<String, Object> buildUploadPayload(@NotNull byte[] data, int offset) {
+    private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, int offset, int image) {
         // Get chunk of image data to send
-        int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset), data.length - offset);
+        int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset, image), data.length - offset);
         byte[] sendBuffer = new byte[dataLength];
         System.arraycopy(data, offset, sendBuffer, 0, dataLength);
 
@@ -161,7 +209,11 @@ public class ImageManager extends TransferManager {
         payloadMap.put("data", sendBuffer);
         payloadMap.put("off", offset);
         if (offset == 0) {
-            // Only send the length of the image in the first packet of the upload
+            // Only send the length and image of the image in the first packet of the upload
+            if (image > 0) {
+                // Image 0 does not need to be sent, as it's default.
+                payloadMap.put("image", image);
+            }
             payloadMap.put("len", data.length);
 
             /*
@@ -192,7 +244,7 @@ public class ImageManager extends TransferManager {
      * @param hash     the hash of the image to test.
      * @param callback the asynchronous callback.
      */
-    public void test(@NotNull byte[] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+    public void test(byte @NotNull [] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
@@ -210,7 +262,7 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrImageStateResponse test(@NotNull byte[] hash) throws McuMgrException {
+    public McuMgrImageStateResponse test(byte @NotNull [] hash) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
@@ -227,7 +279,7 @@ public class ImageManager extends TransferManager {
      *                 permanent.
      * @param callback the asynchronous callback.
      */
-    public void confirm(@Nullable byte[] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+    public void confirm(byte @Nullable [] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
         if (hash != null) {
@@ -248,7 +300,7 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrImageStateResponse confirm(@Nullable byte[] hash) throws McuMgrException {
+    public McuMgrImageStateResponse confirm(byte @Nullable [] hash) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
         if (hash != null) {
@@ -258,43 +310,107 @@ public class ImageManager extends TransferManager {
     }
 
     /**
-     * Erase the image in slot 1 (asynchronous).
+     * Erase the secondary slot of the main image (asynchronous).
      *
      * @param callback the asynchronous callback.
      */
     public void erase(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_ERASE, null, McuMgrResponse.class, callback);
+        erase(0, callback);
     }
 
     /**
-     * Erase the image in slot 1 (synchronous).
+     * Erase the secondary slot of the given image (asynchronous).
+     *
+     * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @param callback the asynchronous callback.
+     */
+    public void erase(int image, @NotNull McuMgrCallback<McuMgrResponse> callback) {
+        HashMap<String, Object> payloadMap = null;
+        if (image > 0) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("image", image);
+        }
+        send(OP_WRITE, ID_ERASE, payloadMap, McuMgrResponse.class, callback);
+    }
+
+    /**
+     * Erase the secondary slot of the main image (synchronous).
      *
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
     public McuMgrResponse erase() throws McuMgrException {
-        return send(OP_WRITE, ID_ERASE, null, McuMgrResponse.class);
+        return erase(0);
     }
 
     /**
-     * Erase the state of image in slot 1 (asynchronous).
+     * Erase the secondary slot of the given image (synchronous).
+     *
+     * @param image the image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     */
+    @NotNull
+    public McuMgrResponse erase(int image) throws McuMgrException {
+        HashMap<String, Object> payloadMap = null;
+        if (image > 0) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("image", image);
+        }
+        return send(OP_WRITE, ID_ERASE, payloadMap, McuMgrResponse.class);
+    }
+
+    /**
+     * Erase the state of secondary slot of main image (asynchronous).
      *
      * @param callback the asynchronous callback.
      */
     public void eraseState(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_ERASE_STATE, null, McuMgrResponse.class, callback);
+        eraseState(0, callback);
     }
 
     /**
-     * Erase the state of image in slot 1 (synchronous).
+     * Erase the state of secondary slot of the main image (asynchronous).
+     *
+     * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @param callback the asynchronous callback.
+     */
+    public void eraseState(int image, @NotNull McuMgrCallback<McuMgrResponse> callback) {
+        HashMap<String, Object> payloadMap = null;
+        if (image > 0) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("image", image);
+        }
+        send(OP_WRITE, ID_ERASE_STATE, payloadMap, McuMgrResponse.class, callback);
+    }
+
+    /**
+     * Erase the state of secondary slot of the main image (synchronous).
      *
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
     public McuMgrResponse eraseState() throws McuMgrException {
-        return send(OP_WRITE, ID_ERASE_STATE, null, McuMgrResponse.class);
+        return eraseState(0);
+    }
+
+    /**
+     * Erase the state of secondary slot of given image (synchronous).
+     *
+     * @param image the image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     */
+    @NotNull
+    public McuMgrResponse eraseState(int image) throws McuMgrException {
+        HashMap<String, Object> payloadMap = null;
+        if (image > 0) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("image", image);
+        }
+        return send(OP_WRITE, ID_ERASE_STATE, payloadMap, McuMgrResponse.class);
     }
 
     /**
@@ -425,21 +541,45 @@ public class ImageManager extends TransferManager {
      * @see TransferController
      */
     @NotNull
-    public TransferController imageUpload(@NotNull byte[] imageData, @NotNull UploadCallback callback) {
-        return startUpload(new ImageUpload(imageData, callback));
+    public TransferController imageUpload(byte @NotNull [] imageData,
+                                          @NotNull UploadCallback callback) {
+        return imageUpload(imageData, 0, callback);
+    }
+
+    /**
+     * Start image upload.
+     * <p>
+     * Multiple calls will queue multiple uploads, executed sequentially. This includes core
+     * downloads executed from {@link #coreDownload}.
+     * <p>
+     * The upload may be controlled using the {@link TransferController} returned by this method.
+     *
+     * @param imageData The image data to upload.
+     * @param image     The image number, default is 0. Use 0 for core0, 1 for core1, etc.
+     * @param callback  Receives callbacks from the upload.
+     * @return The object used to control this upload.
+     * @see TransferController
+     */
+    @NotNull
+    public TransferController imageUpload(byte @NotNull [] imageData, int image,
+                                          @NotNull UploadCallback callback) {
+        return startUpload(new ImageUpload(imageData, image, callback));
     }
 
     /**
      * Image Upload Implementation
      */
     public class ImageUpload extends Upload {
-        protected ImageUpload(@NotNull byte[] imageData, @NotNull UploadCallback callback) {
+        private final int mImage;
+
+        protected ImageUpload(byte @NotNull [] imageData, int image, @NotNull UploadCallback callback) {
             super(imageData, callback);
+            mImage = image;
         }
 
         @Override
-        protected UploadResponse write(@NotNull byte[] data, int offset) throws McuMgrException {
-            return upload(data, offset);
+        protected UploadResponse write(byte @NotNull [] data, int offset) throws McuMgrException {
+            return upload(data, offset, mImage);
         }
     }
 
@@ -470,7 +610,7 @@ public class ImageManager extends TransferManager {
      * @deprecated Use the new transfer implementation's imageUpload(...) method
      */
     @Deprecated
-    public synchronized boolean upload(@NotNull byte[] data, @NotNull ImageUploadCallback callback) {
+    public synchronized boolean upload(byte @NotNull [] data, @NotNull ImageUploadCallback callback) {
         if (mUploadState == STATE_NONE) {
             mUploadState = STATE_UPLOADING;
         } else {
@@ -653,11 +793,14 @@ public class ImageManager extends TransferManager {
             };
 
     // TODO more precise overhead calculations
-    private int calculatePacketOverhead(@NotNull byte[] data, int offset) {
+    private int calculatePacketOverhead(byte @NotNull [] data, int offset, int image) {
         HashMap<String, Object> overheadTestMap = new HashMap<>();
         overheadTestMap.put("data", new byte[0]);
         overheadTestMap.put("off", offset);
         if (offset == 0) {
+            if (image > 0) {
+                overheadTestMap.put("image", image);
+            }
             overheadTestMap.put("len", data.length);
             overheadTestMap.put("sha", new byte[TRUNCATED_HASH_LEN]);
         }

@@ -31,16 +31,15 @@ public class McuMgrImage {
     private final McuMgrImageTlv mProtectedTlv;
     @NotNull
     private final McuMgrImageTlv mTlv;
-    @NotNull
-    private final byte[] mHash;
-    @NotNull
-    private final byte[] mData;
+
+    private final byte @NotNull [] mHash;
+    private final byte @NotNull [] mData;
 
     public McuMgrImage(@NotNull McuMgrImageHeader header,
                        @Nullable McuMgrImageTlv protectedTlv,
                        @NotNull McuMgrImageTlv tlv,
-                       @NotNull byte[] hash,
-                       @NotNull byte[] data) {
+                       byte @NotNull [] hash,
+                       byte @NotNull [] data) {
         mHeader = header;
         mProtectedTlv = protectedTlv;
         mTlv = tlv;
@@ -49,7 +48,7 @@ public class McuMgrImage {
     }
 
     @Deprecated
-    public McuMgrImage(@NotNull byte[] data) throws McuMgrException {
+    public McuMgrImage(byte @NotNull [] data) throws McuMgrException {
         McuMgrImage image = fromBytes(data);
         mHeader = image.mHeader;
         mProtectedTlv = image.mProtectedTlv;
@@ -58,8 +57,7 @@ public class McuMgrImage {
         mData = image.mData;
     }
 
-    @NotNull
-    public byte[] getData() {
+    public byte @NotNull [] getData() {
         return mData;
     }
 
@@ -78,18 +76,16 @@ public class McuMgrImage {
         return mTlv;
     }
 
-    @NotNull
-    public byte[] getHash() {
+    public byte @NotNull [] getHash() {
         return mHash;
     }
 
-    @NotNull
-    public static byte[] getHash(@NotNull byte[] data) throws McuMgrException {
+    public static byte @NotNull [] getHash(byte @NotNull [] data) throws McuMgrException {
         return fromBytes(data).getHash();
     }
 
     @NotNull
-    public static McuMgrImage fromBytes(@NotNull byte[] data) throws McuMgrException {
+    public static McuMgrImage fromBytes(byte @NotNull [] data) throws McuMgrException {
         McuMgrImageHeader header = McuMgrImageHeader.fromBytes(data);
         int tlvOffset = header.getHdrSize() + header.getImgSize();
         McuMgrImageTlv tlv = McuMgrImageTlv.fromBytes(data, tlvOffset, header.isLegacy());

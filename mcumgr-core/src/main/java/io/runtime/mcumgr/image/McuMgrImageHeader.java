@@ -27,13 +27,13 @@ public class McuMgrImageHeader {
     private static final int IMG_HEADER_MAGIC_V1   = 0x96f3b83c;
 
     private static final int HEADER_LENGTH = 24;
-    private int mMagic;
-    private int mLoadAddr;
-    private short mHdrSize;
-    private int mImgSize;
-    private int mFlags;
+    private final int mMagic;
+    private final int mLoadAddr;
+    private final short mHdrSize;
+    private final int mImgSize;
+    private final int mFlags;
     @NotNull
-    private McuMgrImageVersion mVersion;
+    private final McuMgrImageVersion mVersion;
 
     private McuMgrImageHeader(int magic,
                               int loadAddr,
@@ -50,12 +50,12 @@ public class McuMgrImageHeader {
     }
 
     @NotNull
-    public static McuMgrImageHeader fromBytes(@NotNull byte[] b) throws McuMgrException {
+    public static McuMgrImageHeader fromBytes(byte @NotNull [] b) throws McuMgrException {
         return fromBytes(b, 0);
     }
 
     @NotNull
-    public static McuMgrImageHeader fromBytes(@NotNull byte[] b, int offset) throws McuMgrException {
+    public static McuMgrImageHeader fromBytes(byte @NotNull [] b, int offset) throws McuMgrException {
         if (b.length - offset < getSize()) {
             throw new McuMgrException("The byte array is too short to be a McuMgrImageHeader");
         }

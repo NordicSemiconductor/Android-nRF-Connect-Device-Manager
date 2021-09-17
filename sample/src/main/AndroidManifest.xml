@@ -21,6 +21,7 @@
 			<category android:name="android.intent.category.DEFAULT" />
 			<data android:scheme="https" />
 		</intent>
+		<package android:name="no.nordicsemi.android.log" />
 	</queries>
 
 	<application

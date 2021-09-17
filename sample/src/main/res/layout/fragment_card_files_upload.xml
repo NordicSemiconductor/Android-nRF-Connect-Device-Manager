@@ -103,10 +103,19 @@
             android:layout_height="wrap_content"
             android:freezesText="true"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintEnd_toStartOf="@+id/speed"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
             tools:text="@string/files_upload_status_uploading"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/speed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:freezesText="true"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintTop_toTopOf="@+id/status_label"
+            tools:text="2.3 KB/s"/>
 
         <ProgressBar
             android:id="@+id/progress"
@@ -160,7 +169,8 @@
             android:text="@string/files_upload_action_start"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/action_cancel"
-            app:layout_constraintTop_toBottomOf="@+id/divider"/>
+            app:layout_constraintTop_toBottomOf="@+id/divider"
+            tools:ignore="DuplicateSpeakableTextCheck" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_cancel"

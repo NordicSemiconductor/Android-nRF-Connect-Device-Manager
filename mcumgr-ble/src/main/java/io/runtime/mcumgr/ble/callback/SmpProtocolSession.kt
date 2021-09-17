@@ -83,9 +83,7 @@ internal class SmpProtocolSession(
      * Consumes messages off the tx channel until the channel is closed.
      */
     private suspend fun writer() {
-
         txChannel.consumeEach { outgoing ->
-
             // Set sequence number in outgoing data
             val sequenceNumber = sequenceCounter.getAndRotate()
             outgoing.data.setSequenceNumber(sequenceNumber)
@@ -98,7 +96,7 @@ internal class SmpProtocolSession(
             outgoing.transaction.send(handler, outgoing.data)
 
             scope.launch {
-                delay(10000)
+                delay(30000)
                 val transaction = getAndSetTransaction(sequenceNumber, null)
                 transaction?.onFailure(handler, TransactionTimeoutException(sequenceNumber))
             }

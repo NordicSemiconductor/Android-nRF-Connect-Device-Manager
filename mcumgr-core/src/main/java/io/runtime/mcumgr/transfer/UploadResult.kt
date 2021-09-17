@@ -1,7 +1,6 @@
 package io.runtime.mcumgr.transfer
 
 import io.runtime.mcumgr.McuMgrErrorCode
-import io.runtime.mcumgr.R
 import io.runtime.mcumgr.response.UploadResponse
 
 class ErrorResponseException internal constructor(

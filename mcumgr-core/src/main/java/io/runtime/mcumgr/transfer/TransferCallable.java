@@ -15,7 +15,7 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
         NONE, TRANSFER, PAUSED, CLOSED
     }
 
-    private Transfer mTransfer;
+    private final Transfer mTransfer;
     private State mState;
     private final ConditionVariable mPauseLock = new ConditionVariable(true);
 

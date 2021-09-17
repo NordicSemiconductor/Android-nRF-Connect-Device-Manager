@@ -100,10 +100,19 @@
             android:layout_height="wrap_content"
             android:freezesText="true"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintEnd_toStartOf="@+id/speed"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
             tools:text="@string/image_upload_status_uploading"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/speed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:freezesText="true"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintTop_toTopOf="@+id/status_label"
+            tools:text="2.3 KB/s"/>
 
         <ProgressBar
             android:id="@+id/progress"

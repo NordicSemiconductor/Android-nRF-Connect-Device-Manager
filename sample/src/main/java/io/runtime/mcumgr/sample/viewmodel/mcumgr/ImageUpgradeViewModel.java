@@ -6,6 +6,11 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
+import android.util.Pair;
+
+import java.util.Collections;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -18,6 +23,8 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 import timber.log.Timber;
@@ -50,18 +57,32 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+
+    private long mUploadStartTimestamp;
+    private int mInitialBytes;
 
     @Inject
     ImageUpgradeViewModel(final FirmwareUpgradeManager manager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
         mManager = manager;
-
-        mManager.setEstimatedSwapTime(20000);
         mManager.setFirmwareUpgradeCallback(this);
-        mManager.setWindowUploadCapacity(32);
+
+        // mRF52840, due to how the flash memory works, requires ~20 sec to erase images.
+        mManager.setEstimatedSwapTime(10000);
+
+        // Window upload is experimental and seems not to work well.
+        // Each packets sent gets SEQ number assigned. Each response has the same sequence number.
+        // It should be possible to send multiple packets quickly, which should be processed and
+        // acknowledged when done. However, on Zephyr implementation the requests are not buffered,
+        // so all replies get offset set to number of bytes processed, making the library to resend
+        // a lot of packets. Also, with window upload pause and resume throw an exception.
+
+        // mManager.setWindowUploadCapacity(32);
+
         mStateLiveData.setValue(State.IDLE);
         mProgressLiveData.setValue(0);
     }
@@ -76,6 +97,14 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         return mProgressLiveData;
     }
 
+    /**
+     * Returns current transfer speed in KB/s.
+     */
+    @NonNull
+    public LiveData<Float> getTransferSpeed() {
+        return mTransferSpeedLiveData;
+    }
+
     @NonNull
     public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
@@ -87,13 +116,27 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     }
 
     public void upgrade(@NonNull final byte[] data, @NonNull final FirmwareUpgradeManager.Mode mode) {
+        List<Pair<Integer, byte[]>> images;
+        try {
+            // Check if the BIN file is valid.
+            McuMgrImage.getHash(data);
+            images = Collections.singletonList(new Pair<>(0, data));
+        } catch (final Exception e) {
+            try {
+                final ZipPackage zip = new ZipPackage(data);
+                images = zip.getBinaries();
+            } catch (final Exception e1) {
+                mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
+                return;
+            }
+        }
         try {
             final McuMgrTransport transport = mManager.getTransporter();
             if (transport instanceof McuMgrBleTransport) {
                 ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
             }
             mManager.setMode(mode);
-            mManager.start(data);
+            mManager.start(images);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
             mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
@@ -114,6 +157,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             setBusy();
             mStateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
+            mInitialBytes = 0;
             mManager.resume();
         }
     }
@@ -139,6 +183,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         switch (newState) {
             case UPLOAD:
                 Timber.i("Uploading firmware...");
+                mInitialBytes = 0;
                 mStateLiveData.postValue(State.UPLOADING);
                 break;
             case TEST:
@@ -155,6 +200,19 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+        if (mInitialBytes == 0) {
+            mUploadStartTimestamp = timestamp;
+            mInitialBytes = bytesSent;
+        } else {
+            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
+            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            // bytes / ms = KB/s
+            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+        }
+        // When done, reset the counter.
+        if (bytesSent == imageSize) {
+            mInitialBytes = 0;
+        }
         // Convert to percent
         mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }

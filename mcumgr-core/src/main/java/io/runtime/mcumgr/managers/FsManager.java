@@ -103,7 +103,7 @@ public class FsManager extends TransferManager {
      * @param callback the asynchronous callback.
      * @see #fileUpload(String, byte[], UploadCallback)
      */
-    public void upload(@NotNull String name, @NotNull byte[] data, int offset,
+    public void upload(@NotNull String name, byte @NotNull [] data, int offset,
                        @NotNull McuMgrCallback<McuMgrFsUploadResponse> callback) {
         HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset);
         send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class, callback);
@@ -126,7 +126,7 @@ public class FsManager extends TransferManager {
      * @see #fileUpload(String, byte[], UploadCallback)
      */
     @NotNull
-    public McuMgrFsUploadResponse upload(@NotNull String name, @NotNull byte[] data, int offset)
+    public McuMgrFsUploadResponse upload(@NotNull String name, byte @NotNull [] data, int offset)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset);
         return send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class);
@@ -136,7 +136,7 @@ public class FsManager extends TransferManager {
      * Build the upload payload map.
      */
     @NotNull
-    private HashMap<String, Object> buildUploadPayload(@NotNull String name, @NotNull byte[] data, int offset) {
+    private HashMap<String, Object> buildUploadPayload(@NotNull String name, byte @NotNull [] data, int offset) {
         // Get the length of data (in bytes) to put into the upload packet. This calculated as:
         // min(MTU - packetOverhead, imageLength - uploadOffset)
         int dataLength = Math.min(mMtu - calculatePacketOverhead(name, data, offset),
@@ -177,7 +177,7 @@ public class FsManager extends TransferManager {
      * @see TransferController
      */
     @NotNull
-    public TransferController fileUpload(@NotNull String name, @NotNull byte[] data, @NotNull UploadCallback callback) {
+    public TransferController fileUpload(@NotNull String name, byte @NotNull [] data, @NotNull UploadCallback callback) {
         return startUpload(new FileUpload(name, data, callback));
     }
 
@@ -187,15 +187,15 @@ public class FsManager extends TransferManager {
     public class FileUpload extends Upload {
 
         @NotNull
-        private String mName;
+        private final String mName;
 
-        protected FileUpload(@NotNull String name, @NotNull byte[] data, @NotNull UploadCallback callback) {
+        protected FileUpload(@NotNull String name, byte @NotNull [] data, @NotNull UploadCallback callback) {
             super(data, callback);
             mName = name;
         }
 
         @Override
-        protected UploadResponse write(@NotNull byte[] data, int offset) throws McuMgrException {
+        protected UploadResponse write(byte @NotNull [] data, int offset) throws McuMgrException {
             return upload(mName, data, offset);
         }
     }
@@ -236,7 +236,7 @@ public class FsManager extends TransferManager {
      */
     @Deprecated
     @NotNull
-    public TransferController fileDownload(@NotNull String name, @NotNull byte[] data, @NotNull DownloadCallback callback) {
+    public TransferController fileDownload(@NotNull String name, byte @NotNull [] data, @NotNull DownloadCallback callback) {
         return fileDownload(name, callback);
     }
 
@@ -246,7 +246,7 @@ public class FsManager extends TransferManager {
     public class FileDownload extends Download {
 
         @NotNull
-        private String mName;
+        private final String mName;
 
         protected FileDownload(@NotNull String name, @NotNull DownloadCallback callback) {
             super(callback);
@@ -311,7 +311,7 @@ public class FsManager extends TransferManager {
      * @deprecated Use {@link #fileUpload(String, byte[], UploadCallback)} instead.
      */
     @Deprecated
-    public synchronized void upload(@NotNull String name, @NotNull byte[] data,
+    public synchronized void upload(@NotNull String name, byte @NotNull [] data,
                                     @NotNull FileUploadCallback callback) {
         if (mTransferState == STATE_NONE) {
             mTransferState = STATE_UPLOADING;
@@ -604,7 +604,7 @@ public class FsManager extends TransferManager {
             };
 
     // TODO more precise overhead calculations
-    private int calculatePacketOverhead(@NotNull String name, @NotNull byte[] data, int offset) {
+    private int calculatePacketOverhead(@NotNull String name, byte @NotNull [] data, int offset) {
         HashMap<String, Object> overheadTestMap = new HashMap<>();
         overheadTestMap.put("name", name);
         overheadTestMap.put("data", new byte[0]);
@@ -708,6 +708,6 @@ public class FsManager extends TransferManager {
          * @param data file data.
          * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
-        void onDownloadFinished(@NotNull String name, @NotNull byte[] data);
+        void onDownloadFinished(@NotNull String name, byte @NotNull [] data);
     }
 }

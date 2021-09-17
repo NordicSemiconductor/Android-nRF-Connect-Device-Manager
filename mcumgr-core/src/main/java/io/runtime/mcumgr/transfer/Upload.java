@@ -12,18 +12,18 @@ import io.runtime.mcumgr.response.UploadResponse;
 @SuppressWarnings("unused")
 public abstract class Upload extends Transfer {
 
-    private UploadCallback mCallback;
+    private final UploadCallback mCallback;
 
-    protected Upload(@NotNull byte[] data) {
+    protected Upload(byte @NotNull [] data) {
         this(data, null);
     }
 
-    protected Upload(@NotNull byte[] data, @Nullable UploadCallback callback) {
+    protected Upload(byte @NotNull [] data, @Nullable UploadCallback callback) {
         super(data);
         mCallback = callback;
     }
 
-    protected abstract UploadResponse write(@NotNull byte[] data, int offset) throws McuMgrException;
+    protected abstract UploadResponse write(byte @NotNull [] data, int offset) throws McuMgrException;
 
     @Override
     public McuMgrResponse send(int offset) throws McuMgrException {

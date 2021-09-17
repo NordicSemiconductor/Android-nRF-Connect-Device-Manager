@@ -35,6 +35,14 @@ public class McuMgrImageStateResponse extends McuMgrResponse {
      * The single image slot data structure.
      */
     public static class ImageSlot {
+        /**
+         * The image number used for multi-core devices.
+         * The main core image has index 0, second core image is 1, etc.
+         * E.g. nRF5340 has 2 cores: application core (0) and network core (1).
+         * For single core devices the value is 0 (default).
+         */
+        @JsonProperty("image")
+        public int image;
         /** The slot number: 0 or 1. */
         @JsonProperty("slot")
         public int slot;

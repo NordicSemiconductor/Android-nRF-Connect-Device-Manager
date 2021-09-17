@@ -66,7 +66,7 @@ public class EchoFragment extends Fragment implements Injectable {
         mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionSend.setEnabled(!busy));
         mViewModel.getRequest().observe(getViewLifecycleOwner(), text -> {
             mBinding.echoContent.setVisibility(View.VISIBLE);
-            print(mBinding.echoResponse, text);
+            print(mBinding.echoRequest, text);
             if (mBinding.echoResponse.getVisibility() == View.VISIBLE) {
                 mBinding.echoResponse.setVisibility(View.INVISIBLE);
             }
@@ -76,12 +76,11 @@ public class EchoFragment extends Fragment implements Injectable {
             print(mBinding.echoResponse, response);
         });
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            mBinding.echoResponse.setVisibility(View.VISIBLE);
             mBinding.echoResponse.setBackgroundResource(R.drawable.echo_error);
             if (error instanceof McuMgrTimeoutException) {
-                mBinding.echoResponse.setText(R.string.status_connection_timeout);
+                print(mBinding.echoResponse, getString(R.string.status_connection_timeout));
             } else {
-                mBinding.echoResponse.setText(error.getMessage());
+                print(mBinding.echoResponse, error.getMessage());
             }
         });
         mBinding.actionSend.setOnClickListener(v -> {

@@ -33,12 +33,14 @@ import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageUploadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
+import io.runtime.mcumgr.sample.dialog.SelectImageDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class ImageUploadFragment extends FileBrowserFragment implements Injectable,
-        Toolbar.OnMenuItemClickListener {
+        Toolbar.OnMenuItemClickListener, SelectImageDialogFragment.OnImageSelectedListener {
+    private static final int REQUEST_UPLOAD = 0;
 
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
@@ -60,16 +62,14 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
         mBinding = FragmentCardImageUploadBinding.inflate(inflater, container, false);
+        mBinding.toolbar.inflateMenu(R.menu.help);
+        mBinding.toolbar.setOnMenuItemClickListener(this);
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        final Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.inflateMenu(R.menu.help);
-        toolbar.setOnMenuItemClickListener(this);
 
         mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             mBinding.actionUpload.setEnabled(isFileLoaded());
@@ -96,10 +96,16 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                 case COMPLETE:
                     clearFileContent();
                     mBinding.status.setText(R.string.image_upload_status_completed);
+                    mBinding.speed.setText(null);
                     break;
             }
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
+        mViewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
+                mBinding.speed.setText(getString(R.string.image_upload_speed, speed))
+        );
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
+                mBinding.progress.setProgress(progress)
+        );
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setVisibility(View.VISIBLE);
@@ -113,6 +119,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             mBinding.fileSize.setText(null);
             mBinding.fileHash.setText(null);
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setEnabled(false);
@@ -129,7 +136,10 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
 
         // Restore UPLOAD action state after rotation
         mBinding.actionUpload.setEnabled(isFileLoaded());
-        mBinding.actionUpload.setOnClickListener(v -> mViewModel.upload(getFileContent()));
+        mBinding.actionUpload.setOnClickListener(v -> {
+            final DialogFragment dialog = SelectImageDialogFragment.getInstance(REQUEST_UPLOAD);
+            dialog.show(getChildFragmentManager(), null);
+        });
 
         // Cancel and Pause/Resume buttons
         mBinding.actionCancel.setOnClickListener(v -> mViewModel.cancel());
@@ -190,6 +200,11 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         mBinding.status.setText(error);
     }
 
+    @Override
+    public void onImageSelected(final int requestId, final int image) {
+        mViewModel.upload(getFileContent(), image);
+    }
+
     private void printError(@Nullable final McuMgrException error) {
         String message = error != null ? error.getMessage() : null;
         if (error instanceof McuMgrTimeoutException) {
@@ -197,6 +212,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         }
         if (message == null) {
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -206,5 +222,6 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         mBinding.status.setText(spannable);
+        mBinding.speed.setText(null);
     }
 }

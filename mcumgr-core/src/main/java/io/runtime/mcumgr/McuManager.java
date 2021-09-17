@@ -254,7 +254,7 @@ public abstract class McuManager {
      * @param callback the response callback.
      * @param <T>      the response type.
      */
-    public <T extends McuMgrResponse> void send(@NotNull byte[] data, @NotNull Class<T> respType,
+    public <T extends McuMgrResponse> void send(byte @NotNull [] data, @NotNull Class<T> respType,
                                                 @NotNull McuMgrCallback<T> callback) {
         mTransporter.send(data, respType, callback);
     }
@@ -269,7 +269,7 @@ public abstract class McuManager {
      * @throws McuMgrException when an error occurs while sending the data.
      */
     @NotNull
-    public <T extends McuMgrResponse> T send(@NotNull byte[] data, @NotNull Class<T> respType)
+    public <T extends McuMgrResponse> T send(byte @NotNull [] data, @NotNull Class<T> respType)
             throws McuMgrException {
         return mTransporter.send(data, respType);
     }
@@ -287,10 +287,9 @@ public abstract class McuManager {
      * @return The packet data.
      * @throws McuMgrException if the payload map could not be serialized into CBOR. See cause.
      */
-    @NotNull
-    public static byte[] buildPacket(@NotNull McuMgrScheme scheme, int op, int flags, int groupId,
-                                     int sequenceNum, int commandId,
-                                     @Nullable Map<String, Object> payloadMap)
+    public static byte @NotNull [] buildPacket(@NotNull McuMgrScheme scheme, int op, int flags, int groupId,
+                                               int sequenceNum, int commandId,
+                                               @Nullable Map<String, Object> payloadMap)
             throws McuMgrException {
         byte[] packet;
         try {

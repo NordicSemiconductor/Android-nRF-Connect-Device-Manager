@@ -17,7 +17,6 @@ import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
-import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
@@ -53,8 +52,12 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+
+    private long mUploadStartTimestamp;
+    private int mInitialBytes;
 
     @Inject
     ImageUploadViewModel(final ImageManager manager,
@@ -75,6 +78,14 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         return mProgressLiveData;
     }
 
+    /**
+     * Returns current transfer speed in KB/s.
+     */
+    @NonNull
+    public LiveData<Float> getTransferSpeed() {
+        return mTransferSpeedLiveData;
+    }
+
     @NonNull
     public LiveData<McuMgrException> getError() {
         return mErrorLiveData;
@@ -85,7 +96,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         return mCancelledEvent;
     }
 
-    public void upload(@NonNull final byte[] data) {
+    public void upload(@NonNull final byte[] data, final int image) {
         if (mController != null) {
             return;
         }
@@ -107,25 +118,30 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         mManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
-                // Check if the new firmware is different than the active one.
-                if (response.images.length > 0 && Arrays.equals(hash, response.images[0].hash)) {
-                    // TODO Externalize the text
-                    mErrorLiveData.setValue(new McuMgrException("Firmware already active."));
+                // Check if the fw has already been sent before.
+                McuMgrImageStateResponse.ImageSlot theSameImage = null;
+                for (final McuMgrImageStateResponse.ImageSlot image: response.images) {
+                    if (Arrays.equals(hash, image.hash)) {
+                        theSameImage = image;
+                        break;
+                    }
+                }
+                // If yes, no need to send again.
+                if (theSameImage != null) {
+                    if (theSameImage.slot == 0) {
+                        mErrorLiveData.setValue(new McuMgrException("Firmware already active."));
+                    } else {
+                        // Firmware is identical to one on slot 1. No need to send anything.
+                        mStateLiveData.setValue(State.COMPLETE);
+                    }
                     postReady();
                     return;
                 }
-
-                // Check if the new firmware was already sent.
-                if (response.images.length > 1 && Arrays.equals(hash, response.images[1].hash)) {
-                    // Firmware is identical to one on slot 1. No need to send anything.
-                    mStateLiveData.setValue(State.COMPLETE);
-                    postReady();
-                    return;
-                }
-
-                // Send the firmware.
+                // Otherwise, send the firmware. This may return NO MEMORY error if slot 1 is
+                // filled with an image with pending or confirmed flags set.
                 mStateLiveData.postValue(State.UPLOADING);
-                mController = mManager.imageUpload(data, ImageUploadViewModel.this);
+                mInitialBytes = 0;
+                mController = mManager.imageUpload(data, image,ImageUploadViewModel.this);
             }
 
             @Override
@@ -150,6 +166,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         if (controller != null) {
             setBusy();
             mStateLiveData.setValue(State.UPLOADING);
+            mInitialBytes = 0;
             mController.resume();
         }
     }
@@ -162,9 +179,18 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
     }
 
     @Override
-    public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
+    public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+        if (mInitialBytes == 0) {
+            mUploadStartTimestamp = timestamp;
+            mInitialBytes = bytesSent;
+        } else {
+            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
+            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            // bytes / ms = KB/s
+            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+        }
         // Convert to percent
-        mProgressLiveData.postValue((int) (current * 100.f / total));
+        mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }
 
     @Override

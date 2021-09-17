@@ -12,18 +12,18 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
-
-import javax.inject.Inject;
-
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
@@ -33,6 +33,7 @@ import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
+import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUpgradeViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
@@ -89,20 +90,29 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
                 case TESTING:
                     mBinding.status.setText(R.string.image_upgrade_status_testing);
+                    mBinding.speed.setText(null);
                     break;
                 case CONFIRMING:
                     mBinding.status.setText(R.string.image_upgrade_status_confirming);
+                    mBinding.speed.setText(null);
                     break;
                 case RESETTING:
                     mBinding.status.setText(R.string.image_upgrade_status_resetting);
+                    mBinding.speed.setText(null);
                     break;
                 case COMPLETE:
                     clearFileContent();
                     mBinding.status.setText(R.string.image_upgrade_status_completed);
+                    mBinding.speed.setText(null);
                     break;
             }
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
+        mViewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
+                mBinding.speed.setText(getString(R.string.image_upgrade_speed, speed))
+        );
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
+                mBinding.progress.setProgress(progress)
+        );
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionStart.setVisibility(View.VISIBLE);
@@ -116,6 +126,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             mBinding.fileSize.setText(null);
             mBinding.fileHash.setText(null);
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionStart.setVisibility(View.VISIBLE);
             mBinding.actionStart.setEnabled(false);
@@ -177,13 +188,49 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     protected void onFileLoaded(@NonNull final byte[] data) {
         try {
+            // Try parsing BIN file for single/main core (core0) update.
             final byte[] hash = McuMgrImage.getHash(data);
             mBinding.fileHash.setText(StringUtils.toHex(hash));
             mBinding.actionStart.setEnabled(true);
             mBinding.status.setText(R.string.image_upgrade_status_ready);
         } catch (final McuMgrException e) {
-            clearFileContent();
-            onFileLoadingFailed(R.string.image_error_file_not_valid);
+            // For multi-core devices images are bundled in a ZIP file.
+            try {
+                final ZipPackage zip = new ZipPackage(data);
+                final StringBuilder sizeBuilder = new StringBuilder();
+                final StringBuilder hashBuilder = new StringBuilder();
+                for (final Pair<Integer, byte[]> binary: zip.getBinaries()) {
+                    final byte[] hash = McuMgrImage.getHash(binary.second);
+                    hashBuilder
+                            .append(StringUtils.toHex(hash));
+                    sizeBuilder
+                            .append(getString(R.string.image_upgrade_size_value, binary.second.length));
+                    switch (binary.first) {
+                        case 0:
+                            hashBuilder.append(" (app core)");
+                            sizeBuilder.append(" (app core)");
+                            break;
+                        case 1:
+                            hashBuilder.append(" (net core)");
+                            sizeBuilder.append(" (net core)");
+                            break;
+                        default:
+                            hashBuilder.append(" (unknown core (").append(binary.first).append(")");
+                            sizeBuilder.append(" (unknown core (").append(binary.first).append(")");
+                    }
+                    hashBuilder.append("\n");
+                    sizeBuilder.append("\n");
+                }
+                hashBuilder.setLength(hashBuilder.length() - 1);
+                sizeBuilder.setLength(sizeBuilder.length() - 1);
+                mBinding.fileHash.setText(hashBuilder.toString());
+                mBinding.fileSize.setText(sizeBuilder.toString());
+                mBinding.actionStart.setEnabled(true);
+                mBinding.status.setText(R.string.image_upgrade_status_ready);
+            } catch (final Exception e1) {
+                clearFileContent();
+                onFileLoadingFailed(R.string.image_error_file_not_valid);
+            }
         }
     }
 
@@ -199,6 +246,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         }
         if (message == null) {
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -208,5 +256,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         mBinding.status.setText(spannable);
+        mBinding.speed.setText(null);
     }
 }

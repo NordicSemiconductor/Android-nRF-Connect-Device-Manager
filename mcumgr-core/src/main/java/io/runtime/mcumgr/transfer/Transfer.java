@@ -8,8 +8,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class Transfer implements TransferCallback {
 
-    @Nullable
-    byte[] mData;
+    byte @Nullable [] mData;
     int mOffset;
 
     Transfer() {
@@ -22,12 +21,12 @@ public abstract class Transfer implements TransferCallback {
         mOffset = offset;
     }
 
-    Transfer(@Nullable byte[] data) {
+    Transfer(byte @Nullable [] data) {
         mData = data;
         mOffset = 0;
     }
 
-    Transfer(@Nullable byte[] data, int offset) {
+    Transfer(byte @Nullable [] data, int offset) {
         mData = data;
         mOffset = offset;
     }
@@ -63,8 +62,7 @@ public abstract class Transfer implements TransferCallback {
      *
      * @return the data.
      */
-    @Nullable
-    public byte[] getData() {
+    public byte @Nullable [] getData() {
         return mData;
     }
 

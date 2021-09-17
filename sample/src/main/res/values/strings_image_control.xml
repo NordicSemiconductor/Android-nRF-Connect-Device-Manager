@@ -15,7 +15,8 @@
 
 	<string name="image_control_already_flashed">Image is identical to the active one</string>
     <string name="image_control_split_status">Split Status: %d</string>
-    <string name="image_control_slot"><b>Slot: %d</b>\n
+	<string name="image_control_image_slot">Image: %d, Slot: %d</string>
+    <string name="image_control_flags">
 		• Version: %s\n
 		• Hash: %s\n
 		• Bootable: %B\n
@@ -26,12 +27,12 @@
 
     <string name="image_control_dialog_help_title">Help</string>
     <string name="image_control_dialog_help_message"><b>Images</b> card lets you read the status
-		of image slots on the device.\nWhen a new firmware has been sent to slot&#160;1,
+		of image slots on the device.\nWhen a new firmware has been sent to secondary slot,
 		the TEST, CONFIRM and ERASE buttons become available.
 		The TEST button tells the device to run the new image on its next boot.
 		Such firmware may automatically confirm itself when it\'s configured to do so.
 		You may also make the image swap permanent by tapping CONFIRM button.
 		Each action requires rebooting the target to take effect. You can do this using the
-		<b>Reset</b> card below.\nERASE button erases the slot&#160;1.
+		<b>Reset</b> card below.\nERASE button erases the secondary slot(s).
 	</string>
 </resources>
