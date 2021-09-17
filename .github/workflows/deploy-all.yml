@@ -51,7 +51,7 @@ jobs:
           gpg -d --passphrase "${{ secrets.GPG_FILE_PSWD }}" --batch sec.gpg.asc > sec.gpg
           echo "${{ secrets.API_KEY_FILE }}" > fastlane-api.json.asc
           gpg -d --passphrase "${{ secrets.API_KEY_FILE_PSWD }}" --batch fastlane-api.json.asc > fastlane-api.json
-          fastlane deployAlpha
+          fastlane deployInternal
   deployAarsToNexus:
     needs: generateReadme
     runs-on: ubuntu-latest

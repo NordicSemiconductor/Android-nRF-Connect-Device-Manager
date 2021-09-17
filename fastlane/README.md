@@ -50,6 +50,11 @@ Deploy build to Beta channel.
 ```
 fastlane android deployInternal
 ```
+Deploy build to internal channel.
+### android deployInternalLink
+```
+fastlane android deployInternalLink
+```
 Generate internal Play Store link to the apk
 
 ----

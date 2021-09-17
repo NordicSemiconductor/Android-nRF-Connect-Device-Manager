@@ -58,10 +58,19 @@ platform :android do
         track: 'beta',
         aab: 'sample/build/outputs/bundle/release/sample-release.aab'
       )
-    end
+  end
+
+  desc "Deploy build to internal channel."
+    lane :deployInternal do
+      gradle(task: "clean bundleRelease")
+      upload_to_play_store(
+        track: 'internal',
+        aab: 'sample/build/outputs/bundle/release/sample-release.aab'
+      )
+  end
 
   desc "Generate internal Play Store link to the apk"
-  lane :deployInternal do
+  lane :deployInternalLink do
     gradle(task: "clean bundleRelease")
     upload_to_play_store_internal_app_sharing(aab: 'sample/build/outputs/bundle/release/sample-release.aab')
   end
