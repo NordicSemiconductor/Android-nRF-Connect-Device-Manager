@@ -295,6 +295,13 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     /**
      * A window capacity > 1 enables a faster image upload implementation which allows
      * {@code windowCapacity} concurrent upload requests.
+     * <p>
+     * <b>Note: </b>This feature is in alpha mode and causes problems if the target device is not
+     * compatible. Also, pause and resume will throw an exception when window upload is used.
+     * Packets are sent one after another, without waiting for a notification confirming number
+     * of bytes received. As each packet is identified by SEQ number, the received notifications
+     * should match those SEQ. If the notifications report current offset, not one sent with given
+     * SEQ, the reported progress jumps back and forth. In that case use default window capacity 1.
      *
      * @param windowCapacity the maximum number of concurrent upload requests at any time.
      */
@@ -353,7 +360,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             .setEstimatedSwapTime(mEstimatedSwapTime)
             .setWindowCapacity(mWindowCapacity)
             .build();
-        mPerformer.start(mMode, mcuMgrImages, settings);
+        mPerformer.start(settings, mMode, mcuMgrImages);
     }
 
     //******************************************************************

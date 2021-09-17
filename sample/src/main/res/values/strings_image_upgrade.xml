@@ -12,6 +12,7 @@
     <string name="image_upgrade_size_value">%d bytes</string>
     <string name="image_upgrade_hash">File Hash:</string>
     <string name="image_upgrade_status">State:</string>
+    <string name="image_upgrade_speed">%.1f KB/s</string>
     <string name="image_upgrade_action_start">Start</string>
 
     <string name="image_upgrade_mode">Select Mode</string>

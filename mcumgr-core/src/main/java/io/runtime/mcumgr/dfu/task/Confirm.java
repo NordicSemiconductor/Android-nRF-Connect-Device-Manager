@@ -1,15 +1,23 @@
 package io.runtime.mcumgr.dfu.task;
 
-import android.util.Log;
-
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
-import io.runtime.mcumgr.task.TaskPerformer;
+import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
+import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.managers.ImageManager;
+import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.task.TaskManager;
 
 class Confirm extends FirmwareUpgradeTask {
+	private final static Logger LOG = LoggerFactory.getLogger(Confirm.class);
+
 	private final byte @NotNull [] hash;
 
 	Confirm(final byte @NotNull [] hash) {
@@ -18,8 +26,8 @@ class Confirm extends FirmwareUpgradeTask {
 
 	@Override
 	@NotNull
-	public FirmwareUpgradeManager.State getState() {
-		return FirmwareUpgradeManager.State.CONFIRM;
+	public State getState() {
+		return State.CONFIRM;
 	}
 
 	@Override
@@ -28,10 +36,41 @@ class Confirm extends FirmwareUpgradeTask {
 	}
 
 	@Override
-	public void start(@NotNull final FirmwareUpgradeManager.Settings settings,
-					  @NotNull final TaskPerformer<FirmwareUpgradeManager.Settings> performer) {
-		Log.d("AAA", "Confirm " + Arrays.toString(hash));
-		performer.onTaskCompleted();
+	public void start(final @NotNull TaskManager<Settings, State> performer) {
+		final Settings settings = performer.getSettings();
+		final ImageManager manager = new ImageManager(settings.transport);
+		manager.confirm(hash, new McuMgrCallback<McuMgrImageStateResponse>() {
+			@Override
+			public void onResponse(@NotNull final McuMgrImageStateResponse response) {
+				LOG.trace("Confirm response: {}", response.toString());
+				// Check for an error return code.
+				if (!response.isSuccess()) {
+					performer.onTaskFailed(Confirm.this, new McuMgrErrorException(response.getReturnCode()));
+					return;
+				}
+				// Search for slot for which the confirm command was sent and check its status.
+				for (final McuMgrImageStateResponse.ImageSlot slot : response.images) {
+					if (Arrays.equals(slot.hash, hash)) {
+						if (slot.permanent || slot.confirmed) {
+							performer.onTaskCompleted(Confirm.this);
+						} else {
+							performer.onTaskFailed(Confirm.this, new McuMgrException("Image not confirmed."));
+						}
+						return;
+					}
+				}
+
+				// Some implementations do not report all primary slots.
+				// performer.onTaskFailed(Confirm.this, new McuMgrException("Confirmed image not found."));
+
+				performer.onTaskCompleted(Confirm.this);
+			}
+
+			@Override
+			public void onError(@NotNull McuMgrException e) {
+				performer.onTaskFailed(Confirm.this, e);
+			}
+		});
 	}
 
 //	/**

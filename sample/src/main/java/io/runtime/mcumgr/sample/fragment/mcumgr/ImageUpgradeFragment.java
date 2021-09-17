@@ -90,20 +90,29 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
                 case TESTING:
                     mBinding.status.setText(R.string.image_upgrade_status_testing);
+                    mBinding.speed.setText(null);
                     break;
                 case CONFIRMING:
                     mBinding.status.setText(R.string.image_upgrade_status_confirming);
+                    mBinding.speed.setText(null);
                     break;
                 case RESETTING:
                     mBinding.status.setText(R.string.image_upgrade_status_resetting);
+                    mBinding.speed.setText(null);
                     break;
                 case COMPLETE:
                     clearFileContent();
                     mBinding.status.setText(R.string.image_upgrade_status_completed);
+                    mBinding.speed.setText(null);
                     break;
             }
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
+        mViewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
+                mBinding.speed.setText(getString(R.string.image_upgrade_speed, speed))
+        );
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
+                mBinding.progress.setProgress(progress)
+        );
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionStart.setVisibility(View.VISIBLE);
@@ -117,6 +126,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             mBinding.fileSize.setText(null);
             mBinding.fileHash.setText(null);
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionStart.setVisibility(View.VISIBLE);
             mBinding.actionStart.setEnabled(false);
@@ -236,6 +246,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         }
         if (message == null) {
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -245,5 +256,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         mBinding.status.setText(spannable);
+        mBinding.speed.setText(null);
     }
 }

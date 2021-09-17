@@ -96,10 +96,16 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                 case COMPLETE:
                     clearFileContent();
                     mBinding.status.setText(R.string.image_upload_status_completed);
+                    mBinding.speed.setText(null);
                     break;
             }
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
+        mViewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
+                mBinding.speed.setText(getString(R.string.image_upload_speed, speed))
+        );
+        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
+                mBinding.progress.setProgress(progress)
+        );
         mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setVisibility(View.VISIBLE);
@@ -113,6 +119,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             mBinding.fileSize.setText(null);
             mBinding.fileHash.setText(null);
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             mBinding.actionSelectFile.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setVisibility(View.VISIBLE);
             mBinding.actionUpload.setEnabled(false);
@@ -205,6 +212,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         }
         if (message == null) {
             mBinding.status.setText(null);
+            mBinding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -214,5 +222,6 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         mBinding.status.setText(spannable);
+        mBinding.speed.setText(null);
     }
 }

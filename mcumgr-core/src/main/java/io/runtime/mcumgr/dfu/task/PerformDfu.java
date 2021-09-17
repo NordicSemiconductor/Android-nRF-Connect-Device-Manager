@@ -10,8 +10,12 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.image.McuMgrImage;
-import io.runtime.mcumgr.task.TaskPerformer;
+import io.runtime.mcumgr.task.TaskManager;
 
+/**
+ * This task performs the DFU. Given images will be sent to the target device, and tested and
+ * confirmed, depending on the given mode.
+ */
 public class PerformDfu extends FirmwareUpgradeTask {
 
 	@NotNull
@@ -37,9 +41,8 @@ public class PerformDfu extends FirmwareUpgradeTask {
 	}
 
 	@Override
-	public void start(final @NotNull Settings settings,
-					  final @NotNull TaskPerformer<Settings> performer) {
+	public void start(final @NotNull TaskManager<Settings, State> performer) {
 		performer.enqueue(new Validate(mode, images));
-		performer.onTaskCompleted();
+		performer.onTaskCompleted(this);
 	}
 }

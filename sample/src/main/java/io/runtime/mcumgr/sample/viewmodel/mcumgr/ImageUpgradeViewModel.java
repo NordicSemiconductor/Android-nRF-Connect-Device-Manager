@@ -57,18 +57,32 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+
+    private long mUploadStartTimestamp;
+    private int mInitialBytes;
 
     @Inject
     ImageUpgradeViewModel(final FirmwareUpgradeManager manager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
         mManager = manager;
-
-        mManager.setEstimatedSwapTime(20000);
         mManager.setFirmwareUpgradeCallback(this);
-        mManager.setWindowUploadCapacity(32);
+
+        // mRF52840, due to how the flash memory works, requires ~20 sec to erase images.
+        mManager.setEstimatedSwapTime(10000);
+
+        // Window upload is experimental and seems not to work well.
+        // Each packets sent gets SEQ number assigned. Each response has the same sequence number.
+        // It should be possible to send multiple packets quickly, which should be processed and
+        // acknowledged when done. However, on Zephyr implementation the requests are not buffered,
+        // so all replies get offset set to number of bytes processed, making the library to resend
+        // a lot of packets. Also, with window upload pause and resume throw an exception.
+
+        // mManager.setWindowUploadCapacity(32);
+
         mStateLiveData.setValue(State.IDLE);
         mProgressLiveData.setValue(0);
     }
@@ -81,6 +95,14 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     @NonNull
     public LiveData<Integer> getProgress() {
         return mProgressLiveData;
+    }
+
+    /**
+     * Returns current transfer speed in KB/s.
+     */
+    @NonNull
+    public LiveData<Float> getTransferSpeed() {
+        return mTransferSpeedLiveData;
     }
 
     @NonNull
@@ -135,6 +157,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             setBusy();
             mStateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
+            mInitialBytes = 0;
             mManager.resume();
         }
     }
@@ -160,6 +183,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         switch (newState) {
             case UPLOAD:
                 Timber.i("Uploading firmware...");
+                mInitialBytes = 0;
                 mStateLiveData.postValue(State.UPLOADING);
                 break;
             case TEST:
@@ -176,6 +200,19 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+        if (mInitialBytes == 0) {
+            mUploadStartTimestamp = timestamp;
+            mInitialBytes = bytesSent;
+        } else {
+            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
+            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            // bytes / ms = KB/s
+            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+        }
+        // When done, reset the counter.
+        if (bytesSent == imageSize) {
+            mInitialBytes = 0;
+        }
         // Convert to percent
         mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }

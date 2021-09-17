@@ -10,14 +10,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.runtime.mcumgr.McuMgrCallback;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Mode;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
-import io.runtime.mcumgr.task.TaskPerformer;
+import io.runtime.mcumgr.task.TaskManager;
 
 class Validate extends FirmwareUpgradeTask {
 	private final static Logger LOG = LoggerFactory.getLogger(Validate.class);
@@ -28,9 +29,9 @@ class Validate extends FirmwareUpgradeTask {
 	@NotNull
 	private final List<Pair<Integer, McuMgrImage>> images;
 	@NotNull
-	private final FirmwareUpgradeManager.Mode mode;
+	private final Mode mode;
 
-	Validate(final @NotNull FirmwareUpgradeManager.Mode mode,
+	Validate(final @NotNull Mode mode,
 			 final @NotNull List<Pair<Integer, McuMgrImage>> images) {
 		this.mode = mode;
 		this.images = images;
@@ -38,8 +39,8 @@ class Validate extends FirmwareUpgradeTask {
 
 	@Override
 	@NotNull
-	public FirmwareUpgradeManager.State getState() {
-		return FirmwareUpgradeManager.State.VALIDATE;
+	public State getState() {
+		return State.VALIDATE;
 	}
 
 	@Override
@@ -48,8 +49,8 @@ class Validate extends FirmwareUpgradeTask {
 	}
 
 	@Override
-	public void start(@NotNull final Settings settings,
-					  @NotNull final TaskPerformer<Settings> performer) {
+	public void start(@NotNull final TaskManager<Settings, State> performer) {
+		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(settings.transport);
 		manager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
 			@Override
@@ -58,7 +59,7 @@ class Validate extends FirmwareUpgradeTask {
 
 				// Check for an error return code.
 				if (!response.isSuccess()) {
-					performer.onTaskFailed(new McuMgrErrorException(response.getReturnCode()));
+					performer.onTaskFailed(Validate.this, new McuMgrErrorException(response.getReturnCode()));
 					return;
 				}
 
@@ -66,7 +67,7 @@ class Validate extends FirmwareUpgradeTask {
 				McuMgrImageStateResponse.ImageSlot[] slots = response.images;
 				if (slots == null) {
 					LOG.error("Missing images information: {}", response.toString());
-					performer.onTaskFailed(new McuMgrException("Missing images information"));
+					performer.onTaskFailed(Validate.this, new McuMgrException("Missing images information"));
 					return;
 				}
 
@@ -189,12 +190,12 @@ class Validate extends FirmwareUpgradeTask {
 					performer.enqueue(new Reset());
 				}
 
-				performer.onTaskCompleted();
+				performer.onTaskCompleted(Validate.this);
 			}
 
 			@Override
 			public void onError(@NotNull final McuMgrException e) {
-				performer.onTaskFailed(e);
+				performer.onTaskFailed(Validate.this, e);
 			}
 		});
 	}

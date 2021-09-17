@@ -203,7 +203,7 @@ abstract class Uploader(
         // Size of the string "off" plus the length of the offset integer
         val offsetSize = cborStringLength("off") + cborUIntLength(offset)
 
-        val lengthSize = if (offset == 0) {
+        val lengthSize = getAdditionalSize() + if (offset == 0) {
             // Size of the string "len" plus the length of the data size integer
             cborStringLength("len") + cborUIntLength(data.size)
         } else {
@@ -226,6 +226,8 @@ abstract class Uploader(
         val maxChunkSize = mtu - combinedSize - maxDataUIntTokenSize
         return min(maxChunkSize, data.size - offset)
     }
+
+    internal open fun getAdditionalSize() = 0
 }
 
 /**

@@ -19,12 +19,13 @@ private const val ID_UPLOAD = 1
 
 fun ImageManager.windowUpload(
     data: ByteArray,
+    image: Int,
     windowCapacity: Int,
     callback: UploadCallback
 ): TransferController {
 
     val log = LoggerFactory.getLogger("ImageUploader")
-    val uploader = ImageUploader(data, this, windowCapacity)
+    val uploader = ImageUploader(data, image, this, windowCapacity)
 
     val job = GlobalScope.launch(CoroutineExceptionHandler { _, t ->
         log.error("window image upload failed", t)
@@ -72,6 +73,7 @@ private suspend fun Uploader.uploadCatchMtu() {
 
 internal class ImageUploader(
     private val imageData: ByteArray,
+    private val image: Int,
     private val imageManager: ImageManager,
     windowCapacity: Int = 1
 ) : Uploader(
@@ -87,10 +89,21 @@ internal class ImageUploader(
             "off" to offset
         )
         if (offset == 0) {
+            if (image > 0) {
+                requestMap["image"] = image
+            }
             requestMap["len"] = imageData.size
         }
         imageManager.uploadAsync(requestMap, callback)
     }
+
+    override fun getAdditionalSize(): Int {
+        if (image > 0) {
+            return super.getAdditionalSize() + cborStringLength("image") + cborUIntLength(image)
+        }
+        return super.getAdditionalSize()
+    }
+
 }
 
 private fun ImageManager.uploadAsync(

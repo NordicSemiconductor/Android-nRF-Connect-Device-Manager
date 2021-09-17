@@ -1,11 +1,9 @@
 package io.runtime.mcumgr.task;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
-import io.runtime.mcumgr.exception.McuMgrException;
-
-public abstract class Task<S> implements Comparable<Task<S>> {
+public abstract class Task<S, State> implements Comparable<Task<S, State>> {
 
 	protected Task() {
 	}
@@ -16,9 +14,14 @@ public abstract class Task<S> implements Comparable<Task<S>> {
 	 * @return The task priority.
 	 */
 	public abstract int getPriority();
+	/**
+	 * Returns the state that will be reported to the callback.
+	 * @return The state in which the manager is in.
+	 */
+	@Nullable
+	public abstract State getState();
 
-	public abstract void start(@NotNull final S settings,
-							   @NotNull final TaskPerformer<S> performer);
+	public abstract void start(@NotNull final TaskManager<S, State> performer);
 
 	public void pause() {
 		// Empty default implementation.
@@ -29,7 +32,7 @@ public abstract class Task<S> implements Comparable<Task<S>> {
 	}
 
 	@Override
-	public final int compareTo(final Task<S> o) {
+	public final int compareTo(final Task<S, State> o) {
 		return getPriority() - o.getPriority();
 	}
 }

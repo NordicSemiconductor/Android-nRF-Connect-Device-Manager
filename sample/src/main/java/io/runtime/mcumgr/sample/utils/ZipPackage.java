@@ -6,7 +6,6 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -15,7 +14,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -27,6 +25,7 @@ import timber.log.Timber;
 public final class ZipPackage {
 	private static final String MANIFEST = "manifest.json";
 
+	@SuppressWarnings({"unused", "MismatchedReadAndWriteOfArray"})
 	@Keep
 	private static class Manifest {
 		private int formatVersion;
@@ -37,12 +36,12 @@ public final class ZipPackage {
 			private String version;
 			private String file;
 			private int size;
-			private int image;
+			private int imageIndex;
 		}
 	}
 
 	private Manifest manifest;
-	private List<Pair<Integer, byte[]>> binaries;
+	private final List<Pair<Integer, byte[]>> binaries;
 
 	public ZipPackage(@NonNull final byte[] data) throws IOException {
 		ZipEntry ze;
@@ -58,7 +57,7 @@ public final class ZipPackage {
 
 			if (name.equals(MANIFEST)) {
 				final Gson gson = new GsonBuilder()
-						.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES)
+						.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 						.create();
 				manifest = gson.fromJson(new InputStreamReader(zis), Manifest.class);
 			} else if (name.endsWith(".bin")) {
@@ -78,7 +77,7 @@ public final class ZipPackage {
 			if (content == null)
 				throw new IOException("File not found: " + name);
 
-			binaries.add(new Pair<>(file.image, content));
+			binaries.add(new Pair<>(file.imageIndex, content));
 		}
 	}
 

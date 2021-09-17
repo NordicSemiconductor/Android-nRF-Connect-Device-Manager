@@ -1,13 +1,17 @@
 package io.runtime.mcumgr.dfu.task;
 
-import android.util.Log;
-
 import org.jetbrains.annotations.NotNull;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
-import io.runtime.mcumgr.task.TaskPerformer;
+import io.runtime.mcumgr.managers.ImageManager;
+import io.runtime.mcumgr.task.TaskManager;
 import io.runtime.mcumgr.transfer.TransferController;
+import io.runtime.mcumgr.transfer.UploadCallback;
+
+import static io.runtime.mcumgr.transfer.ImageUploaderKt.windowUpload;
 
 class Upload extends FirmwareUpgradeTask {
 	private final McuMgrImage mcuMgrImage;
@@ -25,8 +29,8 @@ class Upload extends FirmwareUpgradeTask {
 
 	@Override
 	@NotNull
-	public FirmwareUpgradeManager.State getState() {
-		return FirmwareUpgradeManager.State.UPLOAD;
+	public State getState() {
+		return State.UPLOAD;
 	}
 
 	@Override
@@ -35,64 +39,56 @@ class Upload extends FirmwareUpgradeTask {
 	}
 
 	@Override
-	public void start(@NotNull final FirmwareUpgradeManager.Settings settings,
-					  @NotNull final TaskPerformer<FirmwareUpgradeManager.Settings> performer) {
-//		if (mWindowCapacity > 1) {
-//			mUploadController = windowUpload(mImageManager, mImageData, mWindowCapacity,
-//					mImageUploadCallback);
-//		} else {
-//			mUploadController = mImageManager.imageUpload(mImageData, mImageUploadCallback);
-//		}
-		Log.d("AAA", "Uploading " + image);
-		performer.onTaskCompleted();
+	public void start(@NotNull final TaskManager<Settings, State> performer) {
+		// Should we resume?
+		if (mUploadController != null) {
+			mUploadController.resume();
+			return;
+		}
+
+		final UploadCallback callback = new UploadCallback() {
+			@Override
+			public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
+				performer.onTaskProgressChanged(Upload.this, current, total, timestamp);
+			}
+
+			@Override
+			public void onUploadFailed(@NotNull final McuMgrException error) {
+				performer.onTaskFailed(Upload.this, error);
+			}
+
+			@Override
+			public void onUploadCanceled() {
+				performer.onTaskCompleted(Upload.this);
+			}
+
+			@Override
+			public void onUploadCompleted() {
+				performer.onTaskCompleted(Upload.this);
+			}
+		};
+
+		final Settings settings = performer.getSettings();
+		final ImageManager manager = new ImageManager(settings.transport);
+		if (settings.windowCapacity > 1) {
+			mUploadController = windowUpload(
+					manager,
+					mcuMgrImage.getData(), image,
+					settings.windowCapacity,
+					callback
+			);
+		} else {
+			mUploadController = manager.imageUpload(mcuMgrImage.getData(), image, callback);
+		}
 	}
 
 	@Override
 	public void pause() {
-
+		mUploadController.pause();
 	}
 
 	@Override
 	public void cancel() {
-
+		mUploadController.cancel();
 	}
-
-	//******************************************************************
-	// Image Upload Callback
-	//******************************************************************
-
-//	/**
-//	 * Image upload callback. Forwards upload callbacks to the FirmwareUpgradeCallback.
-//	 */
-//	private final UploadCallback mImageUploadCallback = new UploadCallback() {
-//
-//		@Override
-//		public void onUploadProgressChanged(int current, int total, long timestamp) {
-//			mInternalCallback.onUploadProgressChanged(current, total, timestamp);
-//		}
-//
-//		@Override
-//		public void onUploadFailed(@NotNull McuMgrException error) {
-//			fail(error);
-//		}
-//
-//		@Override
-//		public void onUploadCanceled() {
-//			cancelled(FirmwareUpgradeManager.State.UPLOAD);
-//		}
-//
-//		@Override
-//		public void onUploadCompleted() {
-//			// When upload is complete, send test on confirm commands, depending on the mode.
-//			switch (mMode) {
-//				case TEST_ONLY:
-//				case TEST_AND_CONFIRM:
-//					test();
-//					break;
-//				case CONFIRM_ONLY:
-//					confirm();
-//					break;
-//			}
-//		}
-//	};
 }

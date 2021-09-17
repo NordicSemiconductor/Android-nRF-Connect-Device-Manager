@@ -52,8 +52,12 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
 
     private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+
+    private long mUploadStartTimestamp;
+    private int mInitialBytes;
 
     @Inject
     ImageUploadViewModel(final ImageManager manager,
@@ -72,6 +76,14 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
     @NonNull
     public LiveData<Integer> getProgress() {
         return mProgressLiveData;
+    }
+
+    /**
+     * Returns current transfer speed in KB/s.
+     */
+    @NonNull
+    public LiveData<Float> getTransferSpeed() {
+        return mTransferSpeedLiveData;
     }
 
     @NonNull
@@ -128,6 +140,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                 // Otherwise, send the firmware. This may return NO MEMORY error if slot 1 is
                 // filled with an image with pending or confirmed flags set.
                 mStateLiveData.postValue(State.UPLOADING);
+                mInitialBytes = 0;
                 mController = mManager.imageUpload(data, image,ImageUploadViewModel.this);
             }
 
@@ -153,6 +166,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         if (controller != null) {
             setBusy();
             mStateLiveData.setValue(State.UPLOADING);
+            mInitialBytes = 0;
             mController.resume();
         }
     }
@@ -165,9 +179,18 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
     }
 
     @Override
-    public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
+    public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+        if (mInitialBytes == 0) {
+            mUploadStartTimestamp = timestamp;
+            mInitialBytes = bytesSent;
+        } else {
+            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
+            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            // bytes / ms = KB/s
+            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+        }
         // Convert to percent
-        mProgressLiveData.postValue((int) (current * 100.f / total));
+        mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }
 
     @Override
