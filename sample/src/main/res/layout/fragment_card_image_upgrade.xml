@@ -103,7 +103,7 @@
             app:layout_constraintEnd_toStartOf="@+id/speed"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
-            tools:text="@string/image_upload_status_uploading"/>
+            tools:text="@string/image_upgrade_status_uploading"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/speed"
@@ -113,6 +113,15 @@
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
             tools:text="2.3 KB/s"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/option_erase_settings"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/image_upgrade_erase_storage"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/file_name_label"
+            app:layout_constraintTop_toBottomOf="@+id/status" />
 
         <ProgressBar
             android:id="@+id/progress"
@@ -124,7 +133,7 @@
             android:progressBackgroundTint="?colorSurface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/status"/>
+            app:layout_constraintTop_toBottomOf="@+id/option_erase_settings"/>
 
         <View
             android:id="@+id/divider"

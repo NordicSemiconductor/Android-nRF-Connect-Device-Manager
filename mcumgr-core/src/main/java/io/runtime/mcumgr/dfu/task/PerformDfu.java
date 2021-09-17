@@ -23,10 +23,14 @@ public class PerformDfu extends FirmwareUpgradeTask {
 	@NotNull
 	private final FirmwareUpgradeManager.Mode mode;
 
+	private final boolean eraseSettings;
+
 	public PerformDfu(final @NotNull FirmwareUpgradeManager.Mode mode,
-					  final @NotNull List<Pair<Integer, McuMgrImage>> images) {
+					  final @NotNull List<Pair<Integer, McuMgrImage>> images,
+					  final boolean eraseSettings) {
 		this.mode = mode;
 		this.images = images;
+		this.eraseSettings = eraseSettings;
 	}
 
 	@NotNull
@@ -42,7 +46,7 @@ public class PerformDfu extends FirmwareUpgradeTask {
 
 	@Override
 	public void start(final @NotNull TaskManager<Settings, State> performer) {
-		performer.enqueue(new Validate(mode, images));
+		performer.enqueue(new Validate(mode, images, eraseSettings));
 		performer.onTaskCompleted(this);
 	}
 }

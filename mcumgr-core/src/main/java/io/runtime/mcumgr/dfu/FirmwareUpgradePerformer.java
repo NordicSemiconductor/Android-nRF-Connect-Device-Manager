@@ -41,9 +41,10 @@ public class FirmwareUpgradePerformer extends TaskPerformer<Settings, State> {
 
 	void start(@NotNull final Settings settings,
 			   @NotNull final Mode mode,
-			   @NotNull final List<Pair<Integer, McuMgrImage>> images) {
+			   @NotNull final List<Pair<Integer, McuMgrImage>> images,
+			   final boolean eraseSettings) {
 		LOG.trace("Starting DFU, mode: {}", mode.name());
-		super.start(settings, new PerformDfu(mode, images));
+		super.start(settings, new PerformDfu(mode, images, eraseSettings));
 	}
 
 	@Override

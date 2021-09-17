@@ -115,7 +115,9 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         return mCancelledEvent;
     }
 
-    public void upgrade(@NonNull final byte[] data, @NonNull final FirmwareUpgradeManager.Mode mode) {
+    public void upgrade(@NonNull final byte[] data,
+                        @NonNull final FirmwareUpgradeManager.Mode mode,
+                        final boolean eraseSettings) {
         List<Pair<Integer, byte[]>> images;
         try {
             // Check if the BIN file is valid.
@@ -136,7 +138,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                 ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
             }
             mManager.setMode(mode);
-            mManager.start(images);
+            mManager.start(images, eraseSettings);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
             mErrorLiveData.setValue(new McuMgrException("Invalid image file."));

@@ -81,6 +81,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             switch (state) {
                 case VALIDATING:
                     mBinding.status.setText(R.string.image_upgrade_status_validating);
+                    mBinding.optionEraseSettings.setEnabled(false);
                     break;
                 case UPLOADING:
                     mBinding.status.setText(R.string.image_upgrade_status_uploading);
@@ -104,6 +105,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     clearFileContent();
                     mBinding.status.setText(R.string.image_upgrade_status_completed);
                     mBinding.speed.setText(null);
+                    mBinding.optionEraseSettings.setEnabled(true);
                     break;
             }
         });
@@ -118,6 +120,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             mBinding.actionStart.setVisibility(View.VISIBLE);
             mBinding.actionCancel.setVisibility(View.GONE);
             mBinding.actionPauseResume.setVisibility(View.GONE);
+            mBinding.optionEraseSettings.setEnabled(true);
             printError(error);
         });
         mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
@@ -132,6 +135,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             mBinding.actionStart.setEnabled(false);
             mBinding.actionCancel.setVisibility(View.GONE);
             mBinding.actionPauseResume.setVisibility(View.GONE);
+            mBinding.optionEraseSettings.setEnabled(true);
         });
         mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             mBinding.actionSelectFile.setEnabled(!busy);
@@ -171,7 +175,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
      */
     @SuppressWarnings("ConstantConditions")
     public void start(@NonNull final FirmwareUpgradeManager.Mode mode) {
-        mViewModel.upgrade(getFileContent(), mode);
+        mViewModel.upgrade(getFileContent(), mode, mBinding.optionEraseSettings.isChecked());
     }
 
     @Override

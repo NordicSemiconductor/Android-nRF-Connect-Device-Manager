@@ -31,10 +31,14 @@ class Validate extends FirmwareUpgradeTask {
 	@NotNull
 	private final Mode mode;
 
+	private final boolean eraseSettings;
+
 	Validate(final @NotNull Mode mode,
-			 final @NotNull List<Pair<Integer, McuMgrImage>> images) {
+			 final @NotNull List<Pair<Integer, McuMgrImage>> images,
+			 final boolean eraseSettings) {
 		this.mode = mode;
 		this.images = images;
+		this.eraseSettings = eraseSettings;
 	}
 
 	@Override
@@ -187,6 +191,8 @@ class Validate extends FirmwareUpgradeTask {
 					performer.enqueue(new ResetBeforeUpload());
 				}
 				if (resetRequired) {
+					if (eraseSettings)
+						performer.enqueue(new EraseSettings());
 					performer.enqueue(new Reset());
 				}
 
