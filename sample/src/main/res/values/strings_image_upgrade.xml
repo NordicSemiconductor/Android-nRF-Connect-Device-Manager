@@ -21,6 +21,7 @@
         <item>Test only</item>
         <item>Confirm only</item>
     </string-array>
+    <string name="image_upgrade_erase_storage">Erase application storage</string>
 
     <string name="image_upgrade_status_ready">READY</string>
     <string name="image_upgrade_status_validating">VALIDATING…</string>

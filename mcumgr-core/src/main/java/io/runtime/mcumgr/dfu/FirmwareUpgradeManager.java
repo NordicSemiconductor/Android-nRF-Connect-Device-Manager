@@ -328,7 +328,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      */
     public synchronized void start(final byte @NotNull [] imageData) throws McuMgrException {
         final Pair<Integer, byte[]> image = new Pair<>(0, imageData);
-        start(Collections.singletonList(image));
+        start(Collections.singletonList(image), false);
     }
 
     /**
@@ -342,8 +342,12 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * new firmware.  The manager will try to connect to the SMP server on the new firmware and
      * confirm the new images if they were not confirmed before, or they didn't confirm
      * automatically.
+     *
+     * @param images       list of images with image index.
+     * @param eraseStorage should the app settings be erased, or not.
      */
-    public synchronized void start(@NotNull final List<Pair<Integer, byte[]>> images) throws McuMgrException {
+    public synchronized void start(@NotNull final List<Pair<Integer, byte[]>> images,
+                                   final boolean eraseStorage) throws McuMgrException {
         if (mPerformer.isBusy()) {
             LOG.info("Firmware upgrade is already in progress");
             return;
@@ -360,7 +364,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             .setEstimatedSwapTime(mEstimatedSwapTime)
             .setWindowCapacity(mWindowCapacity)
             .build();
-        mPerformer.start(settings, mMode, mcuMgrImages);
+        mPerformer.start(settings, mMode, mcuMgrImages, eraseStorage);
     }
 
     //******************************************************************

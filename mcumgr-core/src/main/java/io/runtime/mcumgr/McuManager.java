@@ -59,6 +59,10 @@ public abstract class McuManager {
     protected final static int GROUP_SPLIT = 6;
     protected final static int GROUP_RUN = 7;
     protected final static int GROUP_FS = 8;
+    // https://github.com/nrfconnect/sdk-zephyr/blob/master/include/mgmt/mcumgr/zephyr_groups.h
+    protected final static int GROUP_BASIC = 63;
+
+    // User defined groups should start from GROUP_PERUSER.
     protected final static int GROUP_PERUSER = 64;
 
     /**
