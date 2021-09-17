@@ -5,6 +5,7 @@
  */
 
 apply plugin: 'com.android.application'
+apply from: rootProject.file("gradle/git-tag-version.gradle")
 
 android {
     compileSdkVersion 30
@@ -13,13 +14,22 @@ android {
         applicationId "no.nordicsemi.android.nrfconnectdevicemanager"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode getVersionCodeFromTags()
+        versionName getVersionNameFromTags()
         resConfigs "en"
 
         vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../keystore')
+            storePassword System.env.KEYSTORE_PSWD
+            keyAlias System.env.KEYSTORE_ALIAS
+            keyPassword System.env.KEYSTORE_KEY_PSWD
+        }
     }
 
     buildFeatures {
@@ -29,6 +39,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            signingConfig signingConfigs.release
         }
     }
 }

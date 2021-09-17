@@ -1,5 +1,11 @@
 # Built application files
 build/*
+PGP/
+
+keystore
+keystore.encrypted
+sec.gpg
+fastlane-api.json
 
 # Crashlytics configuations
 com_crashlytics_export_strings.xml
