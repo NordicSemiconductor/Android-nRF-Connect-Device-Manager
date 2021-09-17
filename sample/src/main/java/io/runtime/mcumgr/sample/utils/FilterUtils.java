@@ -14,17 +14,10 @@ import no.nordicsemi.android.support.v18.scanner.ScanResult;
 public class FilterUtils {
     private static final ParcelUuid EDDYSTONE_UUID
             = ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805f9b34fb");
-    private static final ParcelUuid MESH_PROVISIONING_UUID
-            = ParcelUuid.fromString("00001827-0000-1000-8000-00805f9b34fb");
-    private static final ParcelUuid MESH_PROXY_UUID
-            = ParcelUuid.fromString("00001828-0000-1000-8000-00805f9b34fb");
 
     private static final int COMPANY_ID_MICROSOFT = 0x0006;
     private static final int COMPANY_ID_APPLE = 0x004C;
     private static final int COMPANY_ID_NORDIC_SEMI = 0x0059;
-
-    private static final int EIR_TYPE_MESH_MESSAGE = 0x2A;
-    private static final int EIR_TYPE_MESH_BEACON = 0x2B;
 
     @SuppressWarnings("RedundantIfStatement")
     public static boolean isBeacon(final ScanResult result) {
@@ -68,35 +61,6 @@ public class FilterUtils {
             // iPhones and iMacs advertise with AirDrop packets
             final byte[] appleData = record.getManufacturerSpecificData(COMPANY_ID_APPLE);
             return appleData != null && appleData.length > 1 && appleData[0] == 0x10;
-        }
-        return false;
-    }
-
-    public static boolean isMeshDevice(final ScanResult result) {
-        if (result != null && result.getScanRecord() != null) {
-            final ScanRecord record = result.getScanRecord();
-
-            // GATT bearer
-            if (record.getServiceData(MESH_PROVISIONING_UUID) != null
-                    || record.getServiceData(MESH_PROXY_UUID) != null)
-                return true;
-
-            // ADV bearer
-            final byte[] rawData = record.getBytes();
-            if (rawData != null) {
-                int offset = 0;
-                while (offset < rawData.length) {
-                    final int length = rawData[offset++] & 0xFF;
-                    if (length == 0 || rawData.length < offset)
-                        return false;
-
-                    final int type = rawData[offset] & 0xFF;
-                    if (type == EIR_TYPE_MESH_BEACON || type == EIR_TYPE_MESH_MESSAGE)
-                        return true;
-
-                    offset += length;
-                }
-            }
         }
         return false;
     }
