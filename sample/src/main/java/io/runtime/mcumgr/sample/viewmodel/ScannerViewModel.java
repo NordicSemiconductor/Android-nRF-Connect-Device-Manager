@@ -250,9 +250,8 @@ public class ScannerViewModel extends AndroidViewModel {
      * <li>Are not connectable (Android Oreo or newer only),</li>
      * <li>Are far away (RSSI < -80),</li>
      * <li>Advertise as beacons (iBeacons, Nordic Beacons, Microsoft Advertising Beacons,
-     * Eddystone,</li>
+     * Eddystone),</li>
      * <li>Advertise with AirDrop footprint,</li>
-     * <li>Advertise as Bluetooth Mesh devices.</li>
      * </ul>
      * Noise devices will no the shown on the scanner screen even with all filters disabled.
      *
@@ -275,9 +274,6 @@ public class ScannerViewModel extends AndroidViewModel {
             return true;
 
         if (FilterUtils.isAirDrop(result))
-            return true;
-
-        if (FilterUtils.isMeshDevice(result))
             return true;
 
         return false;
