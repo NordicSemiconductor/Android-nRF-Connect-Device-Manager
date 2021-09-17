@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 jobs:
   generateReadme:
     runs-on: ubuntu-latest
@@ -17,7 +18,7 @@ jobs:
         run: |
           git config user.email $CONTACT_EMAIL
           git config user.name "Github Action"
-          VERSION=`git describe --tags`
+          VERSION=`git describe --tags --abbrev=0`
           VERSION=`./moustache/split.sh $VERSION`
           rm -f ./README.md
           VERSION=$VERSION ./moustache/mo ./moustache/README.mo > ./README.md
