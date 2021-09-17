@@ -528,7 +528,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // called.
         @Override
         protected void initialize() {
-            requestMtu(515)
+            requestMtu(498)
                     .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
                     .fail((device, status) -> {
                         log(Log.INFO, "Failed to negotiate MTU, disconnecting,");
