@@ -46,7 +46,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     //******************************************************************
 
     public enum State {
-        NONE, VALIDATE, UPLOAD, TEST, RESET, CONFIRM, SUCCESS;
+        NONE, VALIDATE, UPLOAD, TEST, RESET, CONFIRM;
 
         public boolean isInProgress() {
             return this == VALIDATE || this == UPLOAD || this == TEST ||
