@@ -150,6 +150,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             mStateLiveData.postValue(State.PAUSED);
             mManager.pause();
             Timber.i("Upload paused");
+            setLoggingEnabled(true);
             setReady();
         }
     }
@@ -160,6 +161,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             mStateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
             mInitialBytes = 0;
+            setLoggingEnabled(false);
             mManager.resume();
         }
     }
@@ -176,12 +178,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onStateChanged(final FirmwareUpgradeManager.State prevState, final FirmwareUpgradeManager.State newState) {
-        // Enable logging for BLE transport
-        final McuMgrTransport transporter = mManager.getTransporter();
-        if (transporter instanceof McuMgrBleTransport) {
-            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
-            bleTransporter.setLoggingEnabled(newState != FirmwareUpgradeManager.State.UPLOAD);
-        }
+        setLoggingEnabled(newState != FirmwareUpgradeManager.State.UPLOAD);
         switch (newState) {
             case UPLOAD:
                 Timber.i("Uploading firmware...");
@@ -223,6 +220,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     public void onUpgradeCompleted() {
         mProgressLiveData.postValue(0);
         mStateLiveData.postValue(State.COMPLETE);
+        setLoggingEnabled(true);
         postReady();
     }
 
@@ -231,6 +229,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         mProgressLiveData.postValue(0);
         mStateLiveData.postValue(State.IDLE);
         mCancelledEvent.post();
+        setLoggingEnabled(true);
         postReady();
     }
 
@@ -238,6 +237,17 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     public void onUpgradeFailed(final FirmwareUpgradeManager.State state, final McuMgrException error) {
         mProgressLiveData.postValue(0);
         mErrorLiveData.postValue(error);
+        setLoggingEnabled(true);
         postReady();
+    }
+
+    private void setLoggingEnabled(final boolean enabled) {
+        super.postReady();
+
+        final McuMgrTransport transporter = mManager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.setLoggingEnabled(enabled);
+        }
     }
 }

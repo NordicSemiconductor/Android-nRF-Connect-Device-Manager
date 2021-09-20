@@ -192,7 +192,7 @@ class Validate extends FirmwareUpgradeTask {
 				}
 				if (resetRequired) {
 					if (eraseSettings)
-						performer.enqueue(new EraseSettings());
+						performer.enqueue(new EraseStorage());
 					performer.enqueue(new Reset());
 				}
 

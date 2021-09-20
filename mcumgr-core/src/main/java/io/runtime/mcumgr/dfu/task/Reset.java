@@ -55,37 +55,21 @@ class Reset extends FirmwareUpgradeTask {
 
 			@Override
 			public void onDisconnected() {
+				LOG.info("Device disconnected");
+
 				transport.removeObserver(this);
 
-				LOG.info("Device disconnected");
-				final Runnable reconnect = () -> transport.connect(new McuMgrTransport.ConnectionCallback() {
-					@Override
-					public void onConnected() {
-						performer.onTaskCompleted(Reset.this);
-					}
-
-					@Override
-					public void onDeferred() {
-						performer.onTaskCompleted(Reset.this);
-					}
-
-					@Override
-					public void onError(@NotNull final Throwable t) {
-						performer.onTaskFailed(Reset.this, new McuMgrException(t));
-					}
-				});
-				// Calculate the delay needed before verification.
-				// It may have taken 20 sec before the phone realized that it's
-				// disconnected. No need to wait more, perhaps?
+				// Calculate the delay need that we need to wait until the swap is complete.
 				long now = SystemClock.elapsedRealtime();
 				long timeSinceReset = now - mResetResponseTime;
 				long remainingTime = settings.estimatedSwapTime - timeSinceReset;
+				final Runnable complete = () -> performer.onTaskCompleted(Reset.this);
 
 				if (remainingTime > 0) {
 					LOG.trace("Waiting for estimated swap time {} ms", settings.estimatedSwapTime);
-					new Handler().postDelayed(reconnect, remainingTime);
+					new Handler().postDelayed(complete, remainingTime);
 				} else {
-					reconnect.run();
+					complete.run();
 				}
 			}
 		});
