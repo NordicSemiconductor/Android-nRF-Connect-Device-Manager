@@ -74,8 +74,9 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public void read() {
-        setBusy();
-        mErrorLiveData.setValue(null);
+        // This is called also from BLE thread after erase(), therefore postValue, not setValue.
+        postBusy();
+        mErrorLiveData.postValue(null);
         mManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
