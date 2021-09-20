@@ -42,11 +42,13 @@ class EraseSettings extends FirmwareUpgradeTask {
 			@Override
 			public void onResponse(@NotNull final McuMgrResponse response) {
 				LOG.trace("Erase settings response: {}", response.toString());
+
+				// Fix: If this feature is not supported on the device, this should not cause fail the process.
 				// Check for an error return code.
-				if (!response.isSuccess()) {
-					performer.onTaskFailed(EraseSettings.this, new McuMgrErrorException(response.getReturnCode()));
-					return;
-				}
+				// if (!response.isSuccess()) {
+				//    performer.onTaskFailed(EraseSettings.this, new McuMgrErrorException(response.getReturnCode()));
+				//	  return;
+				// }
 				performer.onTaskCompleted(EraseSettings.this);
 			}
 
