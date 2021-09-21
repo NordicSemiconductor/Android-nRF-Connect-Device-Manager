@@ -129,10 +129,10 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                 // If yes, no need to send again.
                 if (theSameImage != null) {
                     if (theSameImage.slot == 0) {
-                        mErrorLiveData.setValue(new McuMgrException("Firmware already active."));
+                        mErrorLiveData.postValue(new McuMgrException("Firmware already active."));
                     } else {
                         // Firmware is identical to one on slot 1. No need to send anything.
-                        mStateLiveData.setValue(State.COMPLETE);
+                        mStateLiveData.postValue(State.COMPLETE);
                     }
                     postReady();
                     return;
