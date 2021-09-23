@@ -28,7 +28,7 @@ android {
 dependencies {
 
     // Kotlin
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
 
     // Annotations
     implementation 'org.jetbrains:annotations:22.0.0'
