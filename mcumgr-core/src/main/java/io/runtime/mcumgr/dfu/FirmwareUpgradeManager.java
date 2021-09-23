@@ -322,7 +322,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * The specified image file will be sent to the target using the
      * given transport, then depending on the mode, verified using "test" command or confirmed
      * using "confirm" command. If successful, the reset command will be sent. The device should
-     * boot with the new firmware.  The manager will try to connect to the SMP server on the new
+     * boot with the new firmware. The manager will try to connect to the SMP server on the new
      * firmware and confirm the new images if they were not confirmed before, or they didn't confirm
      * automatically.
      */
@@ -333,18 +333,18 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
     /**
      * Start the upgrade for multi-core devices. Each image is paired with image partition identifier.
-     * E.g. image 0 is the main, application core. Image 1 is the next core, e.g network core, etc.
+     * E.g. image 0 is the main or application core. Image 1 is the next core, e.g network core, etc.
      * <p>
      * The specified image files will be sent to the target to image partitions identified
      * by the Integer parameter paired with each image using the transport specified for the manager,
      * then, depending on the mode, verified using "test" command or confirmed using "confirm"
      * command. If successful, the reset command will be sent. The device should boot with the
-     * new firmware.  The manager will try to connect to the SMP server on the new firmware and
+     * new firmware. The manager will try to connect to the SMP server on the new firmware and
      * confirm the new images if they were not confirmed before, or they didn't confirm
      * automatically.
      *
      * @param images       list of images with image index.
-     * @param eraseStorage should the app settings be erased, or not.
+     * @param eraseStorage should the app settings be erased, or not (default true).
      */
     public synchronized void start(@NotNull final List<Pair<Integer, byte[]>> images,
                                    final boolean eraseStorage) throws McuMgrException {
