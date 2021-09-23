@@ -313,7 +313,9 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                                 }
                             }
 
-                            writeCharacteristic(mSmpCharacteristicWrite, payload).split()
+                            writeCharacteristic(mSmpCharacteristicWrite, payload,
+                                    BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                                    .split()
                                     .fail((device1, status) -> {
                                         switch (status) {
                                             case FailCallback.REASON_TIMEOUT:
