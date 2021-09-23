@@ -25,7 +25,7 @@ Minimum required Android version is 5.0 (Android Lollipop) due to a requirement 
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library). 
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:0.13.0-beta05'
+implementation 'no.nordicsemi.android:mcumgr-ble:0.13.0-beta06'
 ```
 
 The core module will be included automatically.
@@ -34,7 +34,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:0.13.0-beta05'
+implementation 'no.nordicsemi.android:mcumgr-core:0.13.0-beta06'
 ```
 
 ### Migration from the original repo
