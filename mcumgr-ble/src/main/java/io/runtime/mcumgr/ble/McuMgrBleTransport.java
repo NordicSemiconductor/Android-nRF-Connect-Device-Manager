@@ -36,6 +36,9 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.callback.SmpMerger;
 import io.runtime.mcumgr.ble.callback.SmpProtocolSession;
 import io.runtime.mcumgr.ble.callback.SmpTransaction;
+import io.runtime.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
+import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
+import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
 import io.runtime.mcumgr.ble.util.ResultCondition;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
@@ -46,12 +49,9 @@ import io.runtime.mcumgr.util.CBOR;
 import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.ble.Request;
 import no.nordicsemi.android.ble.annotation.ConnectionPriority;
-import no.nordicsemi.android.ble.callback.DataReceivedCallback;
 import no.nordicsemi.android.ble.callback.FailCallback;
-import no.nordicsemi.android.ble.data.Data;
 import no.nordicsemi.android.ble.data.DataMerger;
 import no.nordicsemi.android.ble.error.GattError;
-import no.nordicsemi.android.ble.exception.DeviceDisconnectedException;
 
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.
@@ -72,11 +72,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     final static UUID CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID =
             UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-
-    /**
-     * Simple Management Protocol service.
-     */
-    private BluetoothGattService mSmpService;
 
     // Use a separate characteristic object for writes vs notifications.
     //
@@ -300,7 +295,8 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     }
 
                     // Send a new transaction to the protocol layer
-                    mSmpProtocol.send(payload, new SmpTransaction() {
+                    final SmpProtocolSession session = mSmpProtocol;
+                    session.send(payload, new SmpTransaction() {
                         @Override
                         public void send(@NonNull byte[] data) {
                             if (mLoggingEnabled) {
@@ -313,25 +309,18 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                                 }
                             }
 
+                            // As the write is done without response, it will finish successfully
+                            // even if the device is unreachable. There is no need to catch any
+                            // failures. In the device gets disconnected, the SMP protocol
+                            // session will be closed and all requests will be cancelled.
+
+                            // Note: waitForNotification is not uses, as the library supports
+                            //       asynchronous writes, that is can send multiple requests
+                            //       before receiving a notification and will match responses
+                            //       to the callbacks based on the Sequence number in each packet.
                             writeCharacteristic(mSmpCharacteristicWrite, payload,
                                     BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
                                     .split()
-                                    .fail((device1, status) -> {
-                                        switch (status) {
-                                            case FailCallback.REASON_TIMEOUT:
-                                                callback.onError(new McuMgrException("Request timed out"));
-                                                break;
-                                            case FailCallback.REASON_DEVICE_DISCONNECTED:
-                                                callback.onError(new McuMgrException("Device has disconnected"));
-                                                break;
-                                            case FailCallback.REASON_BLUETOOTH_DISABLED:
-                                                callback.onError(new McuMgrException("Bluetooth adapter disabled"));
-                                                break;
-                                            default:
-                                                callback.onError(new McuMgrException(GattError.parse(status)));
-                                                break;
-                                        }
-                                    })
                                     .enqueue();
                         }
 
@@ -360,33 +349,26 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     });
                 }).fail((device, status) -> {
                     switch (status) {
-                        case FailCallback.REASON_DEVICE_DISCONNECTED:
-                            callback.onError(new McuMgrException("Device has disconnected"));
-                            break;
-                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
-                            callback.onError(new McuMgrException("Device does not support SMP Service"));
-                            break;
                         case FailCallback.REASON_REQUEST_FAILED:
                             // This could be thrown only if the manager was requested to connect for
                             // a second time and to a different device than the one that's already
-                            // connected. This may not happen here.
-                            callback.onError(new McuMgrException("Other device already connected"));
-                            break;
-                        case FailCallback.REASON_NULL_ATTRIBUTE:
-                            callback.onError(new McuMgrException("Attribute not found"));
-                            break;
-                        case FailCallback.REASON_VALIDATION:
-                            callback.onError(new McuMgrException("Validation failed"));
-                            break;
+                            // connected. This may not happen here, as the device is given in the
+                            // constructor.
+                            // This may also happen if service discovery ends with an error, which
+                            // will trigger disconnection.
+                        case FailCallback.REASON_DEVICE_DISCONNECTED:
                         case FailCallback.REASON_CANCELLED:
-                            callback.onError(new McuMgrException("Request cancelled"));
+                            callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
+                            callback.onError(new McuMgrNotSupportedException());
                             break;
                         case FailCallback.REASON_TIMEOUT:
                             // Called after receiving error 133 after 30 seconds.
                             callback.onError(new McuMgrTimeoutException());
                             break;
                         case FailCallback.REASON_BLUETOOTH_DISABLED:
-                            callback.onError(new McuMgrException("Bluetooth adapter disabled"));
+                            callback.onError(new McuMgrBluetoothDisabledException());
                             break;
                         default:
                             callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
@@ -419,23 +401,26 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         return;
                     }
                     switch (status) {
-                        case FailCallback.REASON_DEVICE_DISCONNECTED:
-                            callback.onError(new McuMgrException("Device has disconnected"));
-                            break;
-                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
-                            callback.onError(new McuMgrException("Device does not support SMP Service"));
-                            break;
                         case FailCallback.REASON_REQUEST_FAILED:
                             // This could be thrown only if the manager was requested to connect for
                             // a second time and to a different device than the one that's already
-                            // connected. This may not happen here.
-                            callback.onError(new McuMgrException("Other device already connected"));
-                            break;
+                            // connected. This may not happen here, as the device is given in the
+                            // constructor.
+                            // This may also happen if service discovery ends with an error, which
+                            // will trigger disconnection.
+                        case FailCallback.REASON_DEVICE_DISCONNECTED:
                         case FailCallback.REASON_CANCELLED:
-                            callback.onError(new McuMgrException("Connection cancelled"));
+                            callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
+                            callback.onError(new McuMgrNotSupportedException());
+                            break;
+                        case FailCallback.REASON_TIMEOUT:
+                            // Called after receiving error 133 after 30 seconds.
+                            callback.onError(new McuMgrTimeoutException());
                             break;
                         case FailCallback.REASON_BLUETOOTH_DISABLED:
-                            callback.onError(new McuMgrException("Bluetooth adapter disabled"));
+                            callback.onError(new McuMgrBluetoothDisabledException());
                             break;
                         default:
                             callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
@@ -491,12 +476,12 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Determines whether the device supports the SMP Service
         @Override
         protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
-            mSmpService = gatt.getService(SMP_SERVICE_UUID);
-            if (mSmpService == null) {
+            BluetoothGattService smpService = gatt.getService(SMP_SERVICE_UUID);
+            if (smpService == null) {
                 LOG.error("Device does not support SMP service");
                 return false;
             }
-            mSmpCharacteristicNotify = mSmpService.getCharacteristic(SMP_CHAR_UUID);
+            mSmpCharacteristicNotify = smpService.getCharacteristic(SMP_CHAR_UUID);
             if (mSmpCharacteristicNotify == null) {
                 LOG.error("Device does not support SMP characteristic");
                 return false;
@@ -520,7 +505,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             // More info:
             // https://stackoverflow.com/questions/38922639/how-could-i-achieve-maximum-thread-safety-with-a-read-write-ble-gatt-characteris
             mSmpCharacteristicWrite = cloneCharacteristic(mSmpCharacteristicNotify);
-            mSmpService.addCharacteristic(mSmpCharacteristicWrite);
             return true;
         }
 
@@ -530,51 +514,59 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // called.
         @Override
         protected void initialize() {
+            mSmpProtocol = new SmpProtocolSession(mHandler);
+
+            // Request as high MTU as possible. As SMP protocol is fairly slow, requires a
+            // notification for each packet sent, make sure the packets are as big as possible.
+            // If Data Length Extension (DLE) is enabled, a single Link Layer packet can contain 251
+            // bytes, which give 247 bytes for the payload. MTU equal to 498 allows sending max
+            // data that fits into two LL packets of maximum size.
+            // Maximum supported MTU is 517, but that would mean the third packet is small.
+            // If the packet could not be sent in the same connection interval as 2 big packets,
+            // that would waste the whole connection interval for just around 20 bytes.
             requestMtu(498)
                     .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
                     .fail((device, status) -> {
                         log(Log.INFO, "Failed to negotiate MTU, disconnecting,");
                         disconnect().enqueue();
                     }).enqueue();
+
+            // Enable notifications on the clone of SMP characteristic. This is a hack that
+            // allows having a single characteristic for writing and receiving, as Android API
+            // would lead to race conditions and the outgoing data being overwritten by incoming
+            // data.
             enableNotifications(mSmpCharacteristicNotify).enqueue();
-            mSmpProtocol = new SmpProtocolSession(mHandler);
+
+            // Registered as a callback for all notifications from the SMP characteristic.
+            // Forwards the merged data packets to the protocol layer to be matched to a request.
             setNotificationCallback(mSmpCharacteristicNotify)
                     .merge(mSMPMerger)
-                    .with(mAsyncNotificationCallback);
+                    .with((device, data) -> {
+                        byte[] bytes = data.getValue();
+                        if (bytes == null) {
+                            return;
+                        }
+                        if (mLoggingEnabled) {
+                            try {
+                                log(Log.INFO, "Received "
+                                        + McuMgrHeader.fromBytes(bytes).toString() + " CBOR "
+                                        + CBOR.toString(bytes, McuMgrHeader.HEADER_LENGTH));
+                            } catch (Exception e) {
+                                // Ignore
+                            }
+                        }
+                        mSmpProtocol.receive(bytes);
+                    });
         }
-
-        // Registered as a callback for all notifications from the SMP characteristic.
-        // Forwards the merged data packets to the protocol layer to be matched to a request.
-        private final DataReceivedCallback mAsyncNotificationCallback = new DataReceivedCallback() {
-            @Override
-            public void onDataReceived(@NonNull BluetoothDevice device, @NonNull Data data) {
-                byte[] bytes = data.getValue();
-                if (bytes == null) {
-                    return;
-                }
-                if (mLoggingEnabled) {
-                    try {
-                        log(Log.INFO, "Received "
-                                + McuMgrHeader.fromBytes(bytes).toString() + " CBOR "
-                                + CBOR.toString(bytes, McuMgrHeader.HEADER_LENGTH));
-                    } catch (Exception e) {
-                        // Ignore
-                    }
-                }
-                mSmpProtocol.receive(bytes);
-            }
-        };
 
         // Called when the device has disconnected. This method nulls the services and
         // characteristic variables.
         @Override
         protected void onServicesInvalidated() {
-            removeNotificationCallback(mSmpCharacteristicNotify);
             if (mSmpProtocol != null) {
-                mSmpProtocol.close(new DeviceDisconnectedException());
+                mSmpProtocol.close(new McuMgrDisconnectedException());
             }
             mSmpProtocol = null;
-            mSmpService = null;
             mSmpCharacteristicWrite = null;
             mSmpCharacteristicNotify = null;
             runOnCallbackThread(McuMgrBleTransport.this::notifyDisconnected);
@@ -608,6 +600,12 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             o.onDisconnected();
         }
     }
+
+    //*******************************************************************************************
+    // An Android hack to allow sending and receiving on the same characteristic.
+    // The characteristic is cloned, and data sent and received do not share the same value,
+    // which otherwise could lead to race conditions.
+    //*******************************************************************************************
 
     private static BluetoothGattDescriptor getNotifyCccd(@NonNull final BluetoothGattCharacteristic characteristic) {
         // Check characteristic property
