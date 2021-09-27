@@ -51,9 +51,7 @@ internal class SmpProtocolSession(
             // When the session is closed, fail all remaining transactions.
             // Exception is propagated from close through the channels.
             CoroutineExceptionHandler { _, throwable ->
-                for (transaction in transactions) {
-                    transaction?.onFailure(handler, throwable)
-                }
+                transactions.forEach { it?.onFailure(throwable) }
             }
         ) {
             // Launch the reader and writer
