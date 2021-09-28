@@ -18,6 +18,9 @@ private const val SMP_SEQ_NUM_MAX = 255
 internal class SmpProtocolSession(
     private val handler: Handler? = null
 ) {
+    internal companion object {
+        const val TIMEOUT: Long = 30_000
+    }
 
     private data class Outgoing(val data: ByteArray, val transaction: SmpTransaction) {
         override fun equals(other: Any?): Boolean {
@@ -94,7 +97,7 @@ internal class SmpProtocolSession(
             outgoing.transaction.send(handler, outgoing.data)
 
             scope.launch {
-                delay(30000)
+                delay(TIMEOUT)
                 val transaction = getAndSetTransaction(sequenceNumber, null)
                 transaction?.onFailure(handler, TransactionTimeoutException(sequenceNumber))
             }

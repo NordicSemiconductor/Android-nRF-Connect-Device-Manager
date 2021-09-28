@@ -85,7 +85,7 @@ class SmpProtocolSessionTest {
             McuMgrEchoResponse::class.java
         )
         assertEquals(echo, response.r)
-        delay(11_000) // 10 sec timeout in smp session
+        delay(SmpProtocolSession.TIMEOUT + 1_000) // Wait longer than the timeout
     }
 
     @Test
