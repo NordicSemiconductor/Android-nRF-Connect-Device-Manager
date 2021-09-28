@@ -28,7 +28,7 @@ class SmpProtocolSessionTest {
         val result = Channel<ByteArray>(Channel.RENDEZVOUS)
 
         override fun onResponse(data: ByteArray) {
-            result.offer(data)
+            result.trySend(data)
         }
 
         override fun onFailure(e: Throwable) {
