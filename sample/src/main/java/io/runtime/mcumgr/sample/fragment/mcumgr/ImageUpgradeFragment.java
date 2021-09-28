@@ -17,16 +17,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
@@ -244,10 +244,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     }
 
     private void printError(@Nullable final McuMgrException error) {
-        String message = error != null ? error.getMessage() : null;
-        if (error instanceof McuMgrTimeoutException) {
-            message = getString(R.string.status_connection_timeout);
-        }
+        final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
             mBinding.status.setText(null);
             mBinding.speed.setText(null);

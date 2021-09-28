@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+	<string-array name="mcu_mgr_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>No Memory (2)</item>
+		<item>Invalid value (3)</item>
+		<item>Timeout (4)</item>
+		<item>No entry (5)</item>
+		<item>Bad state (6)</item>
+		<item>Too large (7)</item>
+		<item>Not supported (8)</item>
+	</string-array>
+	<string name="mcu_mgr_error_other">Unknown error (%d)</string>
+</resources>

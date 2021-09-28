@@ -25,12 +25,12 @@ import androidx.lifecycle.ViewModelProvider;
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardFilesUploadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.GenerateFileDialogFragment;
 import io.runtime.mcumgr.sample.utils.FsUtils;
+import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
@@ -196,10 +196,7 @@ public class FilesUploadFragment extends FileBrowserFragment implements Injectab
     }
 
     private void printError(@Nullable final McuMgrException error) {
-        String message = error != null ? error.getMessage() : null;
-        if (error instanceof McuMgrTimeoutException) {
-            message = getString(R.string.status_connection_timeout);
-        }
+        final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
             mBinding.status.setText(null);
             mBinding.speed.setText(null);

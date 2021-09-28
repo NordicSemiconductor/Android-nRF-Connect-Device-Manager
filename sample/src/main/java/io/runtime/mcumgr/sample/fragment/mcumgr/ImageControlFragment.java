@@ -19,8 +19,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -28,10 +26,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageControlBinding;
@@ -181,7 +181,7 @@ public class ImageControlFragment extends Fragment implements Injectable,
     }
 
     private void printError(@Nullable final McuMgrException error) {
-        String message = error != null ? error.getMessage() : null;
+        String message = StringUtils.toString(requireContext(), error);
         if (error instanceof McuMgrErrorException) {
             final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
             if (code == McuMgrErrorCode.UNKNOWN) {
@@ -190,9 +190,6 @@ public class ImageControlFragment extends Fragment implements Injectable,
                 // of the slot 0 to false, which is not possible.
                 message = getString(R.string.image_control_already_flashed);
             }
-        }
-        if (error instanceof McuMgrTimeoutException) {
-            message = getString(R.string.status_connection_timeout);
         }
         if (message == null) {
             mBinding.imageControlError.setText(null);

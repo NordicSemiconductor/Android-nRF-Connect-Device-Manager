@@ -30,11 +30,11 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.stat.McuMgrStatResponse;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardStatsBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
+import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.StatsViewModel;
 
@@ -101,10 +101,7 @@ public class StatsFragment extends Fragment implements Injectable {
     }
 
     private void printError(@Nullable final McuMgrException error) {
-        String message = error != null ? error.getMessage() : null;
-        if (error instanceof McuMgrTimeoutException) {
-            message = getString(R.string.status_connection_timeout);
-        }
+        final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
             mBinding.imageControlError.setText(null);
             return;

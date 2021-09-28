@@ -38,11 +38,11 @@ import javax.inject.Inject;
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardFilesDownloadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.FsUtils;
+import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesDownloadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
@@ -176,15 +176,12 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         mBinding.divider.setVisibility(View.VISIBLE);
         mBinding.fileResult.setVisibility(View.VISIBLE);
 
-        String message = error != null ? error.getMessage() : null;
+        String message = StringUtils.toString(requireContext(), error);
         if (error instanceof McuMgrErrorException) {
             final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
             if (code == McuMgrErrorCode.UNKNOWN) {
                 message = getString(R.string.files_download_error_file_not_found);
             }
-        }
-        if (error instanceof McuMgrTimeoutException) {
-            message = getString(R.string.status_connection_timeout);
         }
         if (message == null) {
             mBinding.fileResult.setText(null);
