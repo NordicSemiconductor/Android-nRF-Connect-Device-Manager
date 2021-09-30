@@ -2,7 +2,21 @@
     package="io.runtime.mcumgr.ble"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!--
+      Bluetooth permission has been replaced with 3 runtime permissions
+      in Android 12.
+     -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30"/>
+
+    <!--
+      This is a new RUNTIME type permission for Android 12+, required
+      to connect to a Bluetooth LE device.
+
+      Note: Apps may also need BLUETOOTH_SCAN permission, but this library
+            does not handle scanning.
+     -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
 
 </manifest>
