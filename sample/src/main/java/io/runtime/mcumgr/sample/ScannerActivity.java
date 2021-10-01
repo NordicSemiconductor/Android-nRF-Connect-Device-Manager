@@ -93,13 +93,14 @@ public class ScannerActivity extends AppCompatActivity
                 registerForActivityResult(new ActivityResultContracts.RequestPermission(),
                         result -> mScannerViewModel.refresh()
         );
+        final ActivityResultLauncher<String[]> requestPermissions =
+                registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
+                        result -> mScannerViewModel.refresh()
+                );
+
         // Configure views
-        mBinding.noDevices.actionEnableLocation.setOnClickListener(v -> {
-            openLocationSettings();
-        });
-        mBinding.bluetoothOff.actionEnableBluetooth.setOnClickListener(v -> {
-            requestBluetoothEnabled();
-        });
+        mBinding.noDevices.actionEnableLocation.setOnClickListener(v -> openLocationSettings());
+        mBinding.bluetoothOff.actionEnableBluetooth.setOnClickListener(v -> requestBluetoothEnabled());
         mBinding.noLocationPermission.actionGrantLocationPermission.setOnClickListener(v -> {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION))
@@ -113,9 +114,13 @@ public class ScannerActivity extends AppCompatActivity
         if (Utils.isSorAbove()) {
             mBinding.noBluetoothPermission.actionGrantBluetoothPermission.setOnClickListener(v -> {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.BLUETOOTH_SCAN))
+                        Manifest.permission.BLUETOOTH_SCAN)) {
                     Utils.markBluetoothScanPermissionRequested(this);
-                requestPermission.launch(Manifest.permission.BLUETOOTH_SCAN);
+                }
+                requestPermissions.launch(new String[] {
+                        Manifest.permission.BLUETOOTH_SCAN,
+                        Manifest.permission.BLUETOOTH_CONNECT,
+                });
             });
             mBinding.noBluetoothPermission.actionPermissionSettings.setOnClickListener(v -> {
                 Utils.clearBluetoothPermissionRequested(this);
@@ -211,6 +216,10 @@ public class ScannerActivity extends AppCompatActivity
                     mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
                     mBinding.progressBar.setVisibility(View.INVISIBLE);
                     mBinding.noDevices.getRoot().setVisibility(View.GONE);
+
+                    final boolean deniedForever = Utils.isBluetoothScanPermissionDeniedForever(this);
+                    mBinding.noBluetoothPermission.actionGrantBluetoothPermission.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
+                    mBinding.noBluetoothPermission.actionPermissionSettings.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
                 }
             } else {
                 mBinding.bluetoothOff.getRoot().setVisibility(View.VISIBLE);
