@@ -35,7 +35,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
          *
          * @param device the Bluetooth device under the clicked row.
          */
-        void onItemClick(final BluetoothDevice device);
+        void onItemClick(@NonNull final BluetoothDevice device);
     }
 
     /**

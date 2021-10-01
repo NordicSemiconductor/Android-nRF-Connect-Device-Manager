@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.sample;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
@@ -20,6 +21,7 @@ import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -143,7 +145,7 @@ public class ScannerActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull final Menu menu) {
         getMenuInflater().inflate(R.menu.filter, menu);
         getMenuInflater().inflate(R.menu.about, menu);
         menu.findItem(R.id.filter_uuid).setChecked(mScannerViewModel.isUuidFilterEnabled());
@@ -151,8 +153,9 @@ public class ScannerActivity extends AppCompatActivity
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
         switch (item.getItemId()) {
             case R.id.filter_uuid:
                 item.setChecked(!item.isChecked());
@@ -171,7 +174,7 @@ public class ScannerActivity extends AppCompatActivity
     }
 
     @Override
-    public void onItemClick(final BluetoothDevice device) {
+    public void onItemClick(@NonNull final BluetoothDevice device) {
         final Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra(MainActivity.EXTRA_DEVICE, device);
         startActivity(intent);
