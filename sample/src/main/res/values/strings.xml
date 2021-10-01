@@ -31,7 +31,7 @@
 		version no scan results are returned without location enabled.</string>
 
 	<string name="bluetooth_permission_title">BLUETOOTH PERMISSIONS REQUIRED</string>
-	<string name="bluetooth_permission_info">The app needs to scan and connect to Bluetooth LE devices.</string>
+	<string name="bluetooth_permission_info">The app needs to scan and connect to\nBluetooth LE devices.</string>
 
 	<string name="bluetooth_disabled_title">BLUETOOTH DISABLED</string>
 	<string name="bluetooth_disabled_info">The Bluetooth adapter is turned off.\nClick the button
