@@ -134,14 +134,13 @@ public class ScannerActivity extends AppCompatActivity
     @Override
     protected void onRestart() {
         super.onRestart();
-        mScannerViewModel.getDevices().clear();
-        mScannerViewModel.getScannerState().clearRecords();
+        clear();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mScannerViewModel.stopScan();
+        stopScan();
     }
 
     @Override
@@ -242,6 +241,21 @@ public class ScannerActivity extends AppCompatActivity
             mBinding.noLocationPermission.actionGrantLocationPermission.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
             mBinding.noLocationPermission.actionPermissionSettings.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
         }
+    }
+
+    /**
+     * stop scanning for bluetooth devices.
+     */
+    private void stopScan() {
+        mScannerViewModel.stopScan();
+    }
+
+    /**
+     * Clears the list of devices, which will notify the observer.
+     */
+    private void clear() {
+        mScannerViewModel.getDevices().clear();
+        mScannerViewModel.getScannerState().clearRecords();
     }
 
     private void openPermissionSettings() {
