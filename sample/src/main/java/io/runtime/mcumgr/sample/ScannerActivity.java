@@ -191,12 +191,12 @@ public class ScannerActivity extends AppCompatActivity
                 Utils.isLocationPermissionGranted(this)) {
             mBinding.noLocationPermission.getRoot().setVisibility(View.GONE);
 
-            // Bluetooth must be enabled
-            if (state.isBluetoothEnabled()) {
-                mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
+            if (!Utils.isSorAbove() || Utils.isBluetoothScanPermissionGranted(this)) {
+                mBinding.noBluetoothPermission.getRoot().setVisibility(View.GONE);
 
-                if (!Utils.isSorAbove() || Utils.isBluetoothScanPermissionGranted(this)) {
-                    mBinding.noBluetoothPermission.getRoot().setVisibility(View.GONE);
+                // Bluetooth must be enabled
+                if (state.isBluetoothEnabled()) {
+                    mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
 
                     // We are now OK to start scanning
                     mScannerViewModel.startScan();
@@ -215,20 +215,21 @@ public class ScannerActivity extends AppCompatActivity
                         mBinding.noDevices.getRoot().setVisibility(View.GONE);
                     }
                 } else {
-                    mBinding.noBluetoothPermission.getRoot().setVisibility(View.VISIBLE);
-                    mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
+                    mBinding.bluetoothOff.getRoot().setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.INVISIBLE);
                     mBinding.noDevices.getRoot().setVisibility(View.GONE);
-
-                    final boolean deniedForever = Utils.isBluetoothScanPermissionDeniedForever(this);
-                    mBinding.noBluetoothPermission.actionGrantBluetoothPermission.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
-                    mBinding.noBluetoothPermission.actionPermissionSettings.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
+                    mBinding.noBluetoothPermission.getRoot().setVisibility(View.GONE);
+                    clear();
                 }
             } else {
-                mBinding.bluetoothOff.getRoot().setVisibility(View.VISIBLE);
+                mBinding.noBluetoothPermission.getRoot().setVisibility(View.VISIBLE);
+                mBinding.bluetoothOff.getRoot().setVisibility(View.GONE);
                 mBinding.progressBar.setVisibility(View.INVISIBLE);
                 mBinding.noDevices.getRoot().setVisibility(View.GONE);
-                mBinding.noBluetoothPermission.getRoot().setVisibility(View.GONE);
+
+                final boolean deniedForever = Utils.isBluetoothScanPermissionDeniedForever(this);
+                mBinding.noBluetoothPermission.actionGrantBluetoothPermission.setVisibility(deniedForever ? View.GONE : View.VISIBLE);
+                mBinding.noBluetoothPermission.actionPermissionSettings.setVisibility(deniedForever ? View.VISIBLE : View.GONE);
             }
         } else {
             mBinding.noLocationPermission.getRoot().setVisibility(View.VISIBLE);
