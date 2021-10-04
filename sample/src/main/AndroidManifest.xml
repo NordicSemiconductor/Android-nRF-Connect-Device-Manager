@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	package="io.runtime.mcumgr.sample">
-	<!-- 	 Bluetooth permission is required in order to communicate with Bluetooth LE devices. -->
+	<!-- Bluetooth permission is required in order to communicate with Bluetooth LE devices. -->
 	<uses-permission
 		android:name="android.permission.BLUETOOTH"
 		android:maxSdkVersion="30" />
-	<!-- 	 Bluetooth Admin permission is required in order to scan for Bluetooth LE devices. -->
+	<!-- Bluetooth Admin permission is required in order to scan for Bluetooth LE devices. -->
 	<uses-permission
 		android:name="android.permission.BLUETOOTH_ADMIN"
 		android:maxSdkVersion="30" />
