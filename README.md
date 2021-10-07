@@ -25,17 +25,21 @@ Minimum required Android version is 5.0 (Android Lollipop) due to a requirement 
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library). 
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:0.13.0-beta07'
+implementation 'no.nordicsemi.android:mcumgr-ble:0.13.0-beta08'
 ```
 
 The core module will be included automatically.
+
+Latest version targeting API 30 is 0.13.0-beta07.
 
 #### McuManager Core
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:0.13.0-beta07'
+implementation 'no.nordicsemi.android:mcumgr-core:0.13.0-beta08'
 ```
+
+Latest version targeting API 30 is 0.13.0-beta07.
 
 ### Migration from the original repo
 
@@ -116,7 +120,8 @@ The different firmware upgrade modes are as follows:
   to boot into the new image, it will not be able to recover and will need to be re-flashed.
   The process for this mode is `UPLOAD`, `CONFIRM`, `RESET`.
 * **`TEST_ONLY`**: This mode is useful if you want to run tests on the new image running before 
-  confirming it manually as the primary boot image. 
+  confirming it manually as the primary boot image.
+  This mode is recommended for devices that do not support reverting images.
   The process for this mode is `UPLOAD`, `TEST`, `RESET`.
 
 ### Firmware Upgrade State
