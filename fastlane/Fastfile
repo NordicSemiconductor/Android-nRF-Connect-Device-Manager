@@ -38,8 +38,7 @@ platform :android do
 
   desc "Deploy libraries to Nexus."
   lane :deployNexus do
-    gradle(task: "publishReleasePublicationToSonatypeRepository")
-    gradle(task: "closeAndReleaseSonatypeStagingRepository")
+    gradle(task: "publishToSonatype closeAndReleaseSonatypeStagingRepository")
   end
 
   desc "Deploy build to Alpha channel."
