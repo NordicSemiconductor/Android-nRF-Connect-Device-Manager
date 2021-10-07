@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:padding="@dimen/activity_horizontal_margin"
-        app:srcCompat="@drawable/ic_location_off"/>
+        app:srcCompat="@drawable/ic_bluetooth_disabled"/>
 
     <com.google.android.material.textview.MaterialTextView
         style="@style/Widget.ScannerSubtitle"
@@ -29,30 +29,31 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:textColor="?colorAccent"
-        android:text="@string/location_permission_title"/>
+        android:text="@string/bluetooth_permission_title"/>
 
     <com.google.android.material.textview.MaterialTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:text="@string/location_permission_info"/>
+        android:text="@string/bluetooth_permission_info"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/action_grant_location_permission"
-        style="@style/Widget.AppCompat.Button"
+        android:id="@+id/action_grant_bluetooth_permission"
+        style="@style/Widget.MaterialComponents.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/location_permission_action"/>
+        android:text="@string/action_grant_permission"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/action_permission_settings"
-        style="@style/Widget.AppCompat.Button"
+        style="@style/Widget.MaterialComponents.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="@string/location_permission_settings"
+        android:text="@string/action_settings"
         android:visibility="gone"
         tools:visibility="visible"/>
 </LinearLayout>
