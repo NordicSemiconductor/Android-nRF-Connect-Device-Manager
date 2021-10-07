@@ -16,41 +16,10 @@
 default_platform(:android)
 
 platform :android do
-  desc "Runs all the tests"
-  lane :test do
-    gradle(task: "test")
-  end
-
-  desc "Submit a new Beta Build to Crashlytics Beta"
-  lane :beta do
-    gradle(task: "clean assembleRelease")
-    crashlytics
-  
-    # sh "your_script.sh"
-    # You can also use other beta testing services here
-  end
 
   desc "Deploy libraries to Nexus."
   lane :deployNexus do
     gradle(task: "publishToSonatype closeAndReleaseSonatypeStagingRepository")
-  end
-
-  desc "Deploy build to Alpha channel."
-  lane :deployAlpha do
-    gradle(task: "clean bundleRelease")
-    upload_to_play_store(
-      track: 'alpha',
-      aab: 'sample/build/outputs/bundle/release/sample-release.aab'
-    )
-  end
-
-  desc "Deploy build to Beta channel."
-    lane :deployBeta do
-      gradle(task: "clean bundleRelease")
-      upload_to_play_store(
-        track: 'beta',
-        aab: 'sample/build/outputs/bundle/release/sample-release.aab'
-      )
   end
 
   desc "Deploy build to Internal channel."
@@ -60,12 +29,6 @@ platform :android do
         track: 'internal',
         aab: 'sample/build/outputs/bundle/release/sample-release.aab'
       )
-  end
-
-  desc "Generate internal Play Store link to the app"
-  lane :deployInternalLink do
-    gradle(task: "clean bundleRelease")
-    upload_to_play_store_internal_app_sharing(aab: 'sample/build/outputs/bundle/release/sample-release.aab')
   end
 
 end
