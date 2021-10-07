@@ -61,7 +61,7 @@ dependencies {
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.39'
 
     // Brings the new BluetoothLeScanner API to older platforms
-    implementation 'no.nordicsemi.android.support.v18:scanner:1.5.0'
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
 
     // Timber & SLF4J
     implementation 'com.arcao:slf4j-timber:3.1'
