@@ -2,7 +2,7 @@ name: Deploy to Nexus
 on:
   workflow_dispatch:
 jobs:
-  restorePassword:
+  deployAarsToNexus:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
