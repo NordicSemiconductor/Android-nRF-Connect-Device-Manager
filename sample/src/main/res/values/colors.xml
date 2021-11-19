@@ -15,7 +15,7 @@
     <color name="colorStatusBar">@color/nordicBlueDark</color>
     <color name="colorOnSurface">?colorOnSurface</color>
     <color name="colorDivider">#DDD</color>
-    <color name="colorError">#FFB00020</color>
+    <color name="colorError">@color/nordicRed</color>
     <color name="colorBackground">@color/lightGray</color>
     <color name="colorOnBackground">@color/black</color>
     <color name="colorDestructive">#CC0000</color>

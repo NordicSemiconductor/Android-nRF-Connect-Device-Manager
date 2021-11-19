@@ -17,6 +17,7 @@ public class IntroActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         final ActivityIntroBinding binding = ActivityIntroBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -33,9 +34,8 @@ public class IntroActivity extends AppCompatActivity {
         );
 
         try {
-            final TextView versionView = findViewById(R.id.version);
             final PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_ACTIVITIES);
-            versionView.setText(getResources().getString(R.string.intro_version, info.versionName));
+            binding.version.setText(getResources().getString(R.string.intro_version, info.versionName));
         } catch (final PackageManager.NameNotFoundException e) {
             // Ignore
         }

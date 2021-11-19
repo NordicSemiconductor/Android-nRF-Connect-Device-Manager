@@ -7,8 +7,9 @@
 
 <resources>
 
+    <!-- Widgets. -->
     <style name="Widget.ActionButton" parent="Widget.MaterialComponents.Button.TextButton">
-        <!-- Empty-->
+        <!-- Default width would be 4 * 88 dip = 352. -->
     </style>
 
 </resources>

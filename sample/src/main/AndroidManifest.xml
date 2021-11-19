@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	package="io.runtime.mcumgr.sample">
+
 	<!-- Bluetooth permission is required in order to communicate with Bluetooth LE devices. -->
 	<uses-permission
 		android:name="android.permission.BLUETOOTH"
@@ -40,12 +41,19 @@
 	-->
 	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+	<!-- Bluetooth LE is required. -->
+	<uses-feature
+		android:name="android.hardware.bluetooth_le"
+		android:required="true"/>
+
 	<queries>
+		<!-- Allow to check existence of a Web browser. -->
 		<intent>
 			<action android:name="android.intent.action.VIEW" />
 			<category android:name="android.intent.category.DEFAULT" />
 			<data android:scheme="https" />
 		</intent>
+		<!-- Allow logging in nRF Logger. -->
 		<package android:name="no.nordicsemi.android.log" />
 	</queries>
 
@@ -58,22 +66,21 @@
 		android:supportsRtl="false"
 		android:theme="@style/AppTheme"
 		tools:ignore="GoogleAppIndexingWarning">
+
 		<activity
-			android:name=".SplashScreenActivity"
-			android:launchMode="singleTop"
-			android:noHistory="true"
+			android:name=".ScannerActivity"
 			android:theme="@style/AppTheme.SplashScreen"
+			android:launchMode="singleTop"
 			android:exported="true">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		<activity android:name=".IntroActivity"
-			android:theme="@style/AppTheme.SplashScreen"
-			android:launchMode="singleTop"/>
-		<activity
-			android:name=".ScannerActivity"
+
+		<activity-alias
+			android:name="SplashScreenActivity"
+			android:targetActivity=".ScannerActivity"
 			android:icon="@drawable/ic_mcumgr_feature"
 			android:label="@string/feature_name"
 			android:launchMode="singleTop"
@@ -82,7 +89,12 @@
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER" />
 			</intent-filter>
-		</activity>
+		</activity-alias>
+
+		<activity android:name=".IntroActivity"
+			android:theme="@style/AppTheme"
+			android:launchMode="singleTop"/>
+
 		<activity
 			android:name=".MainActivity"
 			android:parentActivityName=".ScannerActivity"
