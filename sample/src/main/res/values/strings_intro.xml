@@ -9,12 +9,12 @@
 	<string name="intro_menu_about">About</string>
 	<string name="intro_welcome">Welcome</string>
 	<string name="intro_text">nRF Connect Device Manager is a generic tool for updating and managing
-		devices running nRF Connect SDK supporting management subsystem over Bluetooth LE.
-		\n\nA nRF5 device with SMP Server installed is required.</string>
+		devices over Bluetooth LE.
+		\n\nA device running nRF Connect SDK, Zephyr or Mynewt firmware, with support for MCU management
+		subsystem is required.</string>
 	<string name="intro_link_nrf_connect_sdk">nRF Connect SDK</string>
 	<string name="intro_link_smp_sample">SMP Server Sample</string>
 	<string name="intro_link_source_code">Source Code (GitHub)</string>
-	<string name="intro_link_mcu_manager">Mcu Manager (GitHub)</string>
 	<string name="intro_button_continue">Continue</string>
 	<string name="intro_version">Version %s</string>
 </resources>
