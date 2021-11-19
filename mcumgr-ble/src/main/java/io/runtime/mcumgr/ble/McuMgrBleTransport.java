@@ -542,8 +542,9 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             setNotificationCallback(mSmpCharacteristicNotify)
                     .merge(mSMPMerger)
                     .with((device, data) -> {
-                        byte[] bytes = data.getValue();
-                        if (bytes == null) {
+                        final SmpProtocolSession session = mSmpProtocol;
+                        final byte[] bytes = data.getValue();
+                        if (bytes == null || session == null) {
                             return;
                         }
                         if (mLoggingEnabled) {
@@ -555,7 +556,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                                 // Ignore
                             }
                         }
-                        mSmpProtocol.receive(bytes);
+                        session.receive(bytes);
                     });
         }
 
