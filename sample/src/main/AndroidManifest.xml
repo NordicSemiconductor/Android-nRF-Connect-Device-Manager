@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
 	package="io.runtime.mcumgr.sample">
+
 	<!-- Bluetooth permission is required in order to communicate with Bluetooth LE devices. -->
 	<uses-permission
 		android:name="android.permission.BLUETOOTH"
@@ -40,12 +41,19 @@
 	-->
 	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+	<!-- Bluetooth LE is required. -->
+	<uses-feature
+		android:name="android.hardware.bluetooth_le"
+		android:required="true"/>
+
 	<queries>
+		<!-- Allow to check existence of a Web browser. -->
 		<intent>
 			<action android:name="android.intent.action.VIEW" />
 			<category android:name="android.intent.category.DEFAULT" />
 			<data android:scheme="https" />
 		</intent>
+		<!-- Allow logging in nRF Logger. -->
 		<package android:name="no.nordicsemi.android.log" />
 	</queries>
 
