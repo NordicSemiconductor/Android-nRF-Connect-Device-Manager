@@ -38,7 +38,16 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        tools:layout="@layout/fragment_card_image_control"/>
+        tools:layout="@layout/fragment_card_image_control" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_image_settings"
+        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ImageSettingsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        tools:layout="@layout/fragment_card_image_erase_settings"/>
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_reset"

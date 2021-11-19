@@ -35,6 +35,7 @@ public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
         creators.put(ImageUpgradeViewModel.class, viewModelSubComponent::imageUpgradeViewModel);
         creators.put(ImageUploadViewModel.class, viewModelSubComponent::imageUploadViewModel);
         creators.put(ImageControlViewModel.class, viewModelSubComponent::imageControlViewModel);
+        creators.put(ImageSettingsViewModel.class, viewModelSubComponent::imageSettingsViewModel);
         creators.put(FilesDownloadViewModel.class, viewModelSubComponent::filesDownloadViewModel);
         creators.put(FilesUploadViewModel.class, viewModelSubComponent::filesUploadViewModel);
     }

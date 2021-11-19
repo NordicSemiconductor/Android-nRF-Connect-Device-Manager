@@ -15,6 +15,7 @@ import io.runtime.mcumgr.sample.fragment.mcumgr.EchoFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesDownloadFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ImageControlFragment;
+import io.runtime.mcumgr.sample.fragment.mcumgr.ImageSettingsFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ImageUploadFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ResetFragment;
@@ -39,6 +40,8 @@ public abstract class McuMgrFragmentBuildersModule {
     abstract ImageUploadFragment contributeImageUploadFragment();
     @ContributesAndroidInjector
     abstract ImageControlFragment contributeImageControlFragment();
+    @ContributesAndroidInjector
+    abstract ImageSettingsFragment contributeImageSettingsFragment();
     @ContributesAndroidInjector
     abstract PartitionDialogFragment contributePartitionDialogFragment();
     @ContributesAndroidInjector

@@ -40,6 +40,7 @@ public class ImageFragment extends Fragment implements Injectable {
     // Advanced
     private Fragment mImageUploadFragment;
     private Fragment mImageControlFragment;
+    private Fragment mImageSettingsFragment;
     private Fragment mResetFragment;
 
     private boolean mModeAdvanced;
@@ -83,6 +84,7 @@ public class ImageFragment extends Fragment implements Injectable {
                 getChildFragmentManager().beginTransaction()
                         .show(mImageUploadFragment)
                         .show(mImageControlFragment)
+                        .show(mImageSettingsFragment)
                         .show(mResetFragment)
                         .hide(mImageUpgradeFragment)
                         .commit();
@@ -94,6 +96,7 @@ public class ImageFragment extends Fragment implements Injectable {
                         .show(mImageUpgradeFragment)
                         .hide(mImageUploadFragment)
                         .hide(mImageControlFragment)
+                        .hide(mImageSettingsFragment)
                         .hide(mResetFragment)
                         .commit();
                 requireActivity().invalidateOptionsMenu();
@@ -118,6 +121,7 @@ public class ImageFragment extends Fragment implements Injectable {
         mImageUpgradeFragment = fm.findFragmentById(R.id.fragment_image_upgrade);
         mImageUploadFragment = fm.findFragmentById(R.id.fragment_image_upload);
         mImageControlFragment = fm.findFragmentById(R.id.fragment_image_control);
+        mImageSettingsFragment = fm.findFragmentById(R.id.fragment_image_settings);
         mResetFragment = fm.findFragmentById(R.id.fragment_reset);
 
         // Initially, show only the basic Image Upgrade fragment
@@ -125,6 +129,7 @@ public class ImageFragment extends Fragment implements Injectable {
             getChildFragmentManager().beginTransaction()
                     .hide(mImageUploadFragment)
                     .hide(mImageControlFragment)
+                    .hide(mImageSettingsFragment)
                     .hide(mResetFragment)
                     .commit();
         }
