@@ -10,6 +10,7 @@ import dagger.Module;
 import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.managers.BasicManager;
 import io.runtime.mcumgr.managers.ConfigManager;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.FsManager;
@@ -43,6 +44,11 @@ public class McuMgrManagerModule {
     @Provides
     static ImageManager provideImageManager(final McuMgrTransport transport) {
         return new ImageManager(transport);
+    }
+
+    @Provides
+    static BasicManager provideBasicManager(final McuMgrTransport transport) {
+        return new BasicManager(transport);
     }
 
     @Provides

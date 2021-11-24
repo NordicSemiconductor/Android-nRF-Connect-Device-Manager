@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) 2018, Nordic Semiconductor
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package io.runtime.mcumgr.sample.fragment.mcumgr;
+
+import android.animation.LayoutTransition;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import javax.inject.Inject;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
+import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.FragmentCardImageEraseSettingsBinding;
+import io.runtime.mcumgr.sample.di.Injectable;
+import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
+import io.runtime.mcumgr.sample.utils.StringUtils;
+import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageSettingsViewModel;
+import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
+
+public class ImageSettingsFragment extends Fragment implements Injectable, Toolbar.OnMenuItemClickListener {
+
+    @Inject
+    McuMgrViewModelFactory mViewModelFactory;
+    
+    private FragmentCardImageEraseSettingsBinding mBinding;
+
+    private ImageSettingsViewModel mViewModel;
+
+    @Override
+    public void onCreate(@Nullable final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+                .get(ImageSettingsViewModel.class);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull final LayoutInflater inflater,
+                             @Nullable final ViewGroup container,
+                             @Nullable final Bundle savedInstanceState) {
+        mBinding = FragmentCardImageEraseSettingsBinding.inflate(inflater, container, false);
+        mBinding.toolbar.inflateMenu(R.menu.help);
+        mBinding.toolbar.setOnMenuItemClickListener(this);
+        return  mBinding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // This makes the layout animate when the TextView value changes.
+        // By default it animates only on hiding./showing views.
+        // The view must have android:animateLayoutChanges(true) attribute set in the XML.
+        ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
+
+        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+            // Other actions will be optionally enabled by other observers
+            mBinding.actionErase.setEnabled(!busy);
+        });
+        mBinding.actionErase.setOnClickListener(v -> mViewModel.eraseSettings());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mBinding = null;
+    }
+
+    @Override
+    public boolean onMenuItemClick(final MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_help:
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.image_settings_dialog_help_title,
+                        R.string.image_settings_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+        }
+        return false;
+    }
+
+    private void printError(@Nullable final McuMgrException error) {
+        String message = StringUtils.toString(requireContext(), error);
+        if (error instanceof McuMgrErrorException) {
+            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
+            if (code == McuMgrErrorCode.UNKNOWN) {
+                // User tried to test a firmware with hash equal to the hash of the
+                // active firmware. This would result in changing the permanent flag
+                // of the slot 0 to false, which is not possible.
+                message = getString(R.string.image_control_already_flashed);
+            }
+        }
+        if (message == null) {
+            mBinding.imageControlError.setText(null);
+            return;
+        }
+        final SpannableString spannable = new SpannableString(message);
+        spannable.setSpan(new ForegroundColorSpan(
+                        ContextCompat.getColor(requireContext(), R.color.colorError)),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        spannable.setSpan(new StyleSpan(Typeface.BOLD),
+                0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        mBinding.imageControlError.setText(spannable);
+        mBinding.imageControlError.setVisibility(View.VISIBLE);
+    }
+}
