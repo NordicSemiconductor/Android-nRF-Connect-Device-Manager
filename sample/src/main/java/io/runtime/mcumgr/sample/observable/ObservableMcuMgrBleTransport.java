@@ -18,8 +18,8 @@ import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import no.nordicsemi.android.ble.observer.BondingObserver;
 
 public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
-    private final MutableLiveData<ConnectionState> mConnectionState = new MutableLiveData<>(ConnectionState.DISCONNECTED);
-    private final MutableLiveData<BondingState> mBondingState = new MutableLiveData<>(BondingState.NOT_BONDED);
+    private final MutableLiveData<ConnectionState> mConnectionState;
+    private final MutableLiveData<BondingState> mBondingState;
 
     /**
      * Construct a McuMgrBleTransport object.
@@ -33,6 +33,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                                         @NonNull final Handler handler) {
         super(context, device, handler);
 
+        mConnectionState = new MutableLiveData<>(ConnectionState.of(context, device));
         setConnectionObserver(new no.nordicsemi.android.ble.observer.ConnectionObserver() {
             @Override
             public void onDeviceConnecting(@NonNull final BluetoothDevice device) {
@@ -72,6 +73,8 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                 }
             }
         });
+
+        mBondingState = new MutableLiveData<>(BondingState.of(device));
         setBondingObserver(new BondingObserver() {
             @Override
             public void onBondingRequired(@NonNull final BluetoothDevice device) {
