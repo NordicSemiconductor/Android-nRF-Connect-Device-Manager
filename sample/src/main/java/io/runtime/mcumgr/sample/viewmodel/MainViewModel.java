@@ -1,6 +1,7 @@
 package io.runtime.mcumgr.sample.viewmodel;
 
 import android.app.Application;
+import android.os.HandlerThread;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -12,6 +13,8 @@ import io.runtime.mcumgr.McuMgrTransport;
 public class MainViewModel extends AndroidViewModel {
     @Inject
     McuMgrTransport mMcuMgrTransport;
+    @Inject
+    HandlerThread mHandlerThread;
 
     @Inject
     public MainViewModel(@NonNull final Application application) {
@@ -23,5 +26,6 @@ public class MainViewModel extends AndroidViewModel {
         super.onCleared();
 
         mMcuMgrTransport.release();
+        mHandlerThread.quitSafely();
     }
 }
