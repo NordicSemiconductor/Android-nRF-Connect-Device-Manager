@@ -78,7 +78,7 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
     /**
      * Clears the list of devices.
      */
-    public synchronized void clear() {
+    /* package */ synchronized void clear() {
         mDevices.clear();
         mFilteredDevices = null;
         postValue(null);

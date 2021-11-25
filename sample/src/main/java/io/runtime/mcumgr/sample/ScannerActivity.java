@@ -146,6 +146,10 @@ public class ScannerActivity extends AppCompatActivity
                 );
 
         // Configure views
+        mBinding.refreshLayout.setOnRefreshListener(() -> {
+            mScannerViewModel.clear();
+            mBinding.refreshLayout.setRefreshing(false);
+        });
         mBinding.noDevices.actionEnableLocation.setOnClickListener(v -> openLocationSettings());
         mBinding.bluetoothOff.actionEnableBluetooth.setOnClickListener(v -> requestBluetoothEnabled());
         mBinding.noLocationPermission.actionGrantLocationPermission.setOnClickListener(v -> {
@@ -177,9 +181,9 @@ public class ScannerActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        clear();
+    protected void onStart() {
+        super.onStart();
+        startScan();
     }
 
     @Override
@@ -269,7 +273,8 @@ public class ScannerActivity extends AppCompatActivity
                     mBinding.progressBar.setVisibility(View.INVISIBLE);
                     mBinding.noDevices.getRoot().setVisibility(View.GONE);
                     mBinding.noBluetoothPermission.getRoot().setVisibility(View.GONE);
-                    clear();
+
+                    mScannerViewModel.clear();
                 }
             } else {
                 mBinding.noBluetoothPermission.getRoot().setVisibility(View.VISIBLE);
@@ -295,18 +300,17 @@ public class ScannerActivity extends AppCompatActivity
     }
 
     /**
+     * Starts scanning for Bluetooth LE devices.
+     */
+    private void startScan() {
+        startScan(mScannerViewModel.getScannerState());
+    }
+
+    /**
      * Stops scanning for Bluetooth LE devices.
      */
     private void stopScan() {
         mScannerViewModel.stopScan();
-    }
-
-    /**
-     * Clears the list of devices, which will notify the observer.
-     */
-    private void clear() {
-        mScannerViewModel.getDevices().clear();
-        mScannerViewModel.getScannerState().clearRecords();
     }
 
     /**

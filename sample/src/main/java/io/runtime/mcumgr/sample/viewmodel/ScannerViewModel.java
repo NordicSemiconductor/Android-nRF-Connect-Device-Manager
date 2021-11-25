@@ -21,13 +21,13 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
-
 import io.runtime.mcumgr.sample.utils.FilterUtils;
 import io.runtime.mcumgr.sample.utils.Utils;
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
 import no.nordicsemi.android.support.v18.scanner.ScanCallback;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
+import timber.log.Timber;
 
 public class ScannerViewModel extends AndroidViewModel {
     private static final String PREFS_FILTER_UUID_REQUIRED = "filter_uuid";
@@ -68,11 +68,7 @@ public class ScannerViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        getApplication().unregisterReceiver(mBluetoothStateBroadcastReceiver);
-
-        if (Utils.isMarshmallowOrAbove()) {
-            getApplication().unregisterReceiver(mLocationProviderChangedReceiver);
-        }
+        unregisterBroadcastReceivers(getApplication());
     }
 
     public boolean isUuidFilterEnabled() {
@@ -90,6 +86,14 @@ public class ScannerViewModel extends AndroidViewModel {
      */
     public void refresh() {
         mScannerStateLiveData.refresh();
+    }
+
+    /**
+     * Forgets discovered devices.
+     */
+    public void clear() {
+        mDevicesLiveData.clear();
+        mScannerStateLiveData.clearRecords();
     }
 
     /**
@@ -191,9 +195,12 @@ public class ScannerViewModel extends AndroidViewModel {
 
         @Override
         public void onScanFailed(final int errorCode) {
-            // TODO This should be handled
-            stopScan();
-            mScannerStateLiveData.scanningStopped();
+            Timber.w("Scanning failed with code %d", errorCode);
+
+            if (errorCode == ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {
+                stopScan();
+                startScan();
+            }
         }
     };
 
@@ -204,6 +211,17 @@ public class ScannerViewModel extends AndroidViewModel {
         application.registerReceiver(mBluetoothStateBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
         if (Utils.isMarshmallowOrAbove()) {
             application.registerReceiver(mLocationProviderChangedReceiver, new IntentFilter(LocationManager.MODE_CHANGED_ACTION));
+        }
+    }
+
+    /**
+     * Unregister all broadcast receivers.
+     */
+    private void unregisterBroadcastReceivers(@NonNull final Context context) {
+        context.unregisterReceiver(mBluetoothStateBroadcastReceiver);
+
+        if (Utils.isMarshmallowOrAbove()) {
+            context.unregisterReceiver(mBluetoothStateBroadcastReceiver);
         }
     }
 

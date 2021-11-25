@@ -22,7 +22,6 @@ public class ScannerStateLiveData extends LiveData<ScannerStateLiveData> {
         mScanningStarted = false;
         mBluetoothEnabled = bluetoothEnabled;
         mLocationEnabled = locationEnabled;
-        postValue(this);
     }
 
     /* package */ void refresh() {
@@ -56,9 +55,24 @@ public class ScannerStateLiveData extends LiveData<ScannerStateLiveData> {
         postValue(this);
     }
 
+    /**
+     * Notifies observers that a record has been found.
+     */
     /* package */ void recordFound() {
-        mHasRecords = true;
-        postValue(this);
+        if (!mHasRecords) {
+            mHasRecords = true;
+            postValue(this);
+        }
+    }
+
+    /**
+     * Notifies observers that scanner has no records to show.
+     */
+    /* package */ void clearRecords() {
+        if (mHasRecords) {
+            mHasRecords = false;
+            postValue(this);
+        }
     }
 
     /**
@@ -87,13 +101,5 @@ public class ScannerStateLiveData extends LiveData<ScannerStateLiveData> {
      */
     public boolean isLocationEnabled() {
         return mLocationEnabled;
-    }
-
-    /**
-     * Notifies the observer that scanner has no records to show.
-     */
-    public void clearRecords() {
-        mHasRecords = false;
-        postValue(this);
     }
 }
