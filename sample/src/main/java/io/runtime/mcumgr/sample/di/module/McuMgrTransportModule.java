@@ -46,7 +46,7 @@ public class McuMgrTransportModule {
     @NonNull
     static HandlerThread provideTransportHandlerThread() {
         final HandlerThread handlerThread = new HandlerThread("McuMgrTransport");
-        handlerThread.start(); // The handler thread is stopped in MainActivity#onDestroy().
+        handlerThread.start(); // The handler thread is stopped in MainViewModel#onCleard().
         return handlerThread;
     }
 

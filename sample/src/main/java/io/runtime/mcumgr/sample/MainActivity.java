@@ -8,22 +8,19 @@ package io.runtime.mcumgr.sample;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
-import android.os.HandlerThread;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import javax.inject.Inject;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import javax.inject.Inject;
-
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
-import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.fragment.DeviceFragment;
 import io.runtime.mcumgr.sample.fragment.FilesFragment;
@@ -41,8 +38,6 @@ public class MainActivity extends AppCompatActivity
     DispatchingAndroidInjector<Object> mDispatchingAndroidInjector;
     @Inject
     McuMgrViewModelFactory mViewModelFactory;
-    @Inject
-    HandlerThread mHandlerThread;
 
     private Fragment mDeviceFragment;
     private Fragment mImageFragment;
@@ -56,15 +51,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
-        // The target must be set before calling super.onCreate(Bundle).
-        // Otherwise, Dagger2 will fail to inflate this Activity.
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
         final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
         final String deviceName = device.getName();
         final String deviceAddress = device.getAddress();
-        ((Dagger2Application) getApplication()).setTarget(device);
-
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         new ViewModelProvider(this, mViewModelFactory)
                 .get(MainViewModel.class);
@@ -129,12 +121,5 @@ public class MainActivity extends AppCompatActivity
             mFilesFragment = getSupportFragmentManager().findFragmentByTag("fs");
             mLogsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // This will stop the handler thread that is used by transport object.
-        mHandlerThread.quitSafely();
     }
 }
