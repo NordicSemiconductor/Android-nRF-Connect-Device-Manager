@@ -49,16 +49,16 @@ public class ImageControlFragment extends Fragment implements Injectable,
     private static final int REQUEST_ERASE   = 3;
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
     
-    private FragmentCardImageControlBinding mBinding;
+    private FragmentCardImageControlBinding binding;
 
-    private ImageControlViewModel mViewModel;
+    private ImageControlViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(ImageControlViewModel.class);
     }
 
@@ -67,10 +67,10 @@ public class ImageControlFragment extends Fragment implements Injectable,
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardImageControlBinding.inflate(inflater, container, false);
-        mBinding.toolbar.inflateMenu(R.menu.help);
-        mBinding.toolbar.setOnMenuItemClickListener(this);
-        return  mBinding.getRoot();
+        binding = FragmentCardImageControlBinding.inflate(inflater, container, false);
+        binding.toolbar.inflateMenu(R.menu.help);
+        binding.toolbar.setOnMenuItemClickListener(this);
+        return  binding.getRoot();
     }
 
     @Override
@@ -82,35 +82,35 @@ public class ImageControlFragment extends Fragment implements Injectable,
         // The view must have android:animateLayoutChanges(true) attribute set in the XML.
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
 
-        mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printImageSlotInfo);
-        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
-        mViewModel.getTestOperationAvailability().observe(getViewLifecycleOwner(),
-                enabled -> mBinding.actionTest.setEnabled(enabled));
-        mViewModel.getConfirmOperationAvailability().observe(getViewLifecycleOwner(),
-                enabled -> mBinding.actionConfirm.setEnabled(enabled));
-        mViewModel.getEraseOperationAvailability().observe(getViewLifecycleOwner(),
-                enabled -> mBinding.actionErase.setEnabled(enabled));
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+        viewModel.getResponse().observe(getViewLifecycleOwner(), this::printImageSlotInfo);
+        viewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        viewModel.getTestOperationAvailability().observe(getViewLifecycleOwner(),
+                enabled -> binding.actionTest.setEnabled(enabled));
+        viewModel.getConfirmOperationAvailability().observe(getViewLifecycleOwner(),
+                enabled -> binding.actionConfirm.setEnabled(enabled));
+        viewModel.getEraseOperationAvailability().observe(getViewLifecycleOwner(),
+                enabled -> binding.actionErase.setEnabled(enabled));
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             if (busy) {
-                mBinding.actionRead.setEnabled(false);
-                mBinding.actionTest.setEnabled(false);
-                mBinding.actionConfirm.setEnabled(false);
-                mBinding.actionErase.setEnabled(false);
+                binding.actionRead.setEnabled(false);
+                binding.actionTest.setEnabled(false);
+                binding.actionConfirm.setEnabled(false);
+                binding.actionErase.setEnabled(false);
             } else {
-                mBinding.actionRead.setEnabled(true);
+                binding.actionRead.setEnabled(true);
                 // Other actions will be optionally enabled by other observers
             }
         });
-        mBinding.actionRead.setOnClickListener(v -> mViewModel.read());
-        mBinding.actionTest.setOnClickListener(v -> onActionClick(REQUEST_TEST));
-        mBinding.actionConfirm.setOnClickListener(v -> onActionClick(REQUEST_CONFIRM));
-        mBinding.actionErase.setOnClickListener(v -> onActionClick(REQUEST_ERASE));
+        binding.actionRead.setOnClickListener(v -> viewModel.read());
+        binding.actionTest.setOnClickListener(v -> onActionClick(REQUEST_TEST));
+        binding.actionConfirm.setOnClickListener(v -> onActionClick(REQUEST_CONFIRM));
+        binding.actionErase.setOnClickListener(v -> onActionClick(REQUEST_ERASE));
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 
     @Override
@@ -130,19 +130,19 @@ public class ImageControlFragment extends Fragment implements Injectable,
     public void onImageSelected(final int requestId, final int image) {
         switch (requestId) {
             case REQUEST_TEST:
-                mViewModel.test(image);
+                viewModel.test(image);
                 break;
             case REQUEST_CONFIRM:
-                mViewModel.confirm(image);
+                viewModel.confirm(image);
                 break;
             case REQUEST_ERASE:
-                mViewModel.erase(image);
+                viewModel.erase(image);
                 break;
         }
     }
 
     private void onActionClick(final int requestId) {
-        final int[] images = mViewModel.getValidImages();
+        final int[] images = viewModel.getValidImages();
         if (images.length > 1) {
             final DialogFragment dialog = SelectImageDialogFragment.getInstance(requestId);
             dialog.show(getChildFragmentManager(), null);
@@ -173,10 +173,10 @@ public class ImageControlFragment extends Fragment implements Injectable,
                         slot.bootable, slot.pending, slot.confirmed,
                         slot.active, slot.permanent));
             }
-            mBinding.imageControlValue.setText(builder);
-            mBinding.imageControlError.setVisibility(View.GONE);
+            binding.imageControlValue.setText(builder);
+            binding.imageControlError.setVisibility(View.GONE);
         } else {
-            mBinding.imageControlValue.setText(null);
+            binding.imageControlValue.setText(null);
         }
     }
 
@@ -192,7 +192,7 @@ public class ImageControlFragment extends Fragment implements Injectable,
             }
         }
         if (message == null) {
-            mBinding.imageControlError.setText(null);
+            binding.imageControlError.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -201,7 +201,7 @@ public class ImageControlFragment extends Fragment implements Injectable,
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        mBinding.imageControlError.setText(spannable);
-        mBinding.imageControlError.setVisibility(View.VISIBLE);
+        binding.imageControlError.setText(spannable);
+        binding.imageControlError.setVisibility(View.VISIBLE);
     }
 }

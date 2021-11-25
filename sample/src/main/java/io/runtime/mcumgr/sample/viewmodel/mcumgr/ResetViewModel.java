@@ -19,28 +19,28 @@ import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class ResetViewModel extends McuMgrViewModel {
-    private final DefaultManager mManager;
+    private final DefaultManager manager;
 
-    private final MutableLiveData<String> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<String> errorLiveData = new MutableLiveData<>();
 
     @Inject
     ResetViewModel(final DefaultManager manager,
                    @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
+        this.manager = manager;
     }
 
     @NonNull
     public LiveData<String> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     public void reset() {
         setBusy();
-        mManager.reset(new McuMgrCallback<McuMgrResponse>() {
+        manager.reset(new McuMgrCallback<McuMgrResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrResponse response) {
-                mManager.getTransporter().addObserver(new McuMgrTransport.ConnectionObserver() {
+                manager.getTransporter().addObserver(new McuMgrTransport.ConnectionObserver() {
                     @Override
                     public void onConnected() {
                         // ignore
@@ -48,7 +48,7 @@ public class ResetViewModel extends McuMgrViewModel {
 
                     @Override
                     public void onDisconnected() {
-                        mManager.getTransporter().removeObserver(this);
+                        manager.getTransporter().removeObserver(this);
                         postReady();
                     }
                 });
@@ -56,7 +56,7 @@ public class ResetViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error.getMessage());
+                errorLiveData.postValue(error.getMessage());
                 postReady();
             }
         });

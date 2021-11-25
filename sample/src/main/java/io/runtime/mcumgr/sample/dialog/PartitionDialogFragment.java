@@ -29,9 +29,9 @@ import io.runtime.mcumgr.sample.utils.FsUtils;
 public class PartitionDialogFragment extends DialogFragment implements Injectable {
 
     @Inject
-    FsUtils mFsUtils;
+    FsUtils fsUtils;
 
-    private InputMethodManager mImm;
+    private InputMethodManager imm;
 
     public static DialogFragment getInstance() {
         return new PartitionDialogFragment();
@@ -40,7 +40,7 @@ public class PartitionDialogFragment extends DialogFragment implements Injectabl
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mImm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     @NonNull
@@ -49,7 +49,7 @@ public class PartitionDialogFragment extends DialogFragment implements Injectabl
         final LayoutInflater inflater = requireActivity().getLayoutInflater();
         final View view = inflater.inflate(R.layout.dialog_files_settings, null);
         final EditText partition = view.findViewById(R.id.partition);
-        partition.setText(mFsUtils.getPartitionString());
+        partition.setText(fsUtils.getPartitionString());
         partition.selectAll();
 
         final AlertDialog dialog = new AlertDialog.Builder(requireContext())
@@ -62,21 +62,21 @@ public class PartitionDialogFragment extends DialogFragment implements Injectabl
                 // Setting the neutral button listener here would cause the dialog to dismiss.
                 .setNeutralButton(R.string.files_settings_action_restore, null)
                 .create();
-        dialog.setOnShowListener(d -> mImm.showSoftInput(partition, InputMethodManager.SHOW_IMPLICIT));
+        dialog.setOnShowListener(d -> imm.showSoftInput(partition, InputMethodManager.SHOW_IMPLICIT));
 
         // The neutral button should not dismiss the dialog.
         // We have to overwrite the default OnClickListener.
         // This can be done only after the dialog was shown.
         dialog.show();
         dialog.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener(v -> {
-            final String defaultPartition = mFsUtils.getDefaultPartition();
+            final String defaultPartition = fsUtils.getDefaultPartition();
             partition.setText(defaultPartition);
             partition.setSelection(defaultPartition.length());
         });
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             final String newPartition = partition.getText().toString().trim();
             if (!TextUtils.isEmpty(newPartition)) {
-                mFsUtils.setPartition(newPartition);
+                fsUtils.setPartition(newPartition);
                 dismiss();
             } else {
                 partition.setError(getString(R.string.files_settings_error));

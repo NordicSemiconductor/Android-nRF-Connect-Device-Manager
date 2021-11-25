@@ -40,16 +40,16 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
     
-    private FragmentCardImageUpgradeBinding mBinding;
+    private FragmentCardImageUpgradeBinding binding;
 
-    private ImageUpgradeViewModel mViewModel;
+    private ImageUpgradeViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(ImageUpgradeViewModel.class);
     }
 
@@ -58,108 +58,108 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardImageUpgradeBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
+        binding = FragmentCardImageUpgradeBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mViewModel.getState().observe(getViewLifecycleOwner(), state -> {
-            mBinding.actionStart.setEnabled(isFileLoaded());
-            mBinding.actionCancel.setEnabled(state.canCancel());
-            mBinding.actionPauseResume.setEnabled(state.canPauseOrResume());
-            mBinding.actionPauseResume.setText(state == ImageUpgradeViewModel.State.PAUSED ?
+        viewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            binding.actionStart.setEnabled(isFileLoaded());
+            binding.actionCancel.setEnabled(state.canCancel());
+            binding.actionPauseResume.setEnabled(state.canPauseOrResume());
+            binding.actionPauseResume.setText(state == ImageUpgradeViewModel.State.PAUSED ?
                     R.string.image_action_resume : R.string.image_action_pause);
 
-            mBinding.actionSelectFile.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
-            mBinding.actionStart.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
-            mBinding.actionCancel.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
-            mBinding.actionPauseResume.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
+            binding.actionSelectFile.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
+            binding.actionStart.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
+            binding.actionCancel.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
+            binding.actionPauseResume.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
             // Update status
             switch (state) {
                 case VALIDATING:
-                    mBinding.status.setText(R.string.image_upgrade_status_validating);
-                    mBinding.optionEraseSettings.setEnabled(false);
+                    binding.status.setText(R.string.image_upgrade_status_validating);
+                    binding.optionEraseSettings.setEnabled(false);
                     break;
                 case UPLOADING:
-                    mBinding.status.setText(R.string.image_upgrade_status_uploading);
+                    binding.status.setText(R.string.image_upgrade_status_uploading);
                     break;
                 case PAUSED:
-                    mBinding.status.setText(R.string.image_upgrade_status_paused);
+                    binding.status.setText(R.string.image_upgrade_status_paused);
                     break;
                 case TESTING:
-                    mBinding.status.setText(R.string.image_upgrade_status_testing);
-                    mBinding.speed.setText(null);
+                    binding.status.setText(R.string.image_upgrade_status_testing);
+                    binding.speed.setText(null);
                     break;
                 case CONFIRMING:
-                    mBinding.status.setText(R.string.image_upgrade_status_confirming);
-                    mBinding.speed.setText(null);
+                    binding.status.setText(R.string.image_upgrade_status_confirming);
+                    binding.speed.setText(null);
                     break;
                 case RESETTING:
-                    mBinding.status.setText(R.string.image_upgrade_status_resetting);
-                    mBinding.speed.setText(null);
+                    binding.status.setText(R.string.image_upgrade_status_resetting);
+                    binding.speed.setText(null);
                     break;
                 case COMPLETE:
                     clearFileContent();
-                    mBinding.status.setText(R.string.image_upgrade_status_completed);
-                    mBinding.speed.setText(null);
-                    mBinding.optionEraseSettings.setEnabled(true);
+                    binding.status.setText(R.string.image_upgrade_status_completed);
+                    binding.speed.setText(null);
+                    binding.optionEraseSettings.setEnabled(true);
                     break;
             }
         });
-        mViewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
-                mBinding.speed.setText(getString(R.string.image_upgrade_speed, speed))
+        viewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
+                binding.speed.setText(getString(R.string.image_upgrade_speed, speed))
         );
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
-                mBinding.progress.setProgress(progress)
+        viewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
+                binding.progress.setProgress(progress)
         );
-        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            mBinding.actionSelectFile.setVisibility(View.VISIBLE);
-            mBinding.actionStart.setVisibility(View.VISIBLE);
-            mBinding.actionCancel.setVisibility(View.GONE);
-            mBinding.actionPauseResume.setVisibility(View.GONE);
-            mBinding.optionEraseSettings.setEnabled(true);
+        viewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            binding.actionSelectFile.setVisibility(View.VISIBLE);
+            binding.actionStart.setVisibility(View.VISIBLE);
+            binding.actionCancel.setVisibility(View.GONE);
+            binding.actionPauseResume.setVisibility(View.GONE);
+            binding.optionEraseSettings.setEnabled(true);
             printError(error);
         });
-        mViewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
+        viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
             clearFileContent();
-            mBinding.fileName.setText(null);
-            mBinding.fileSize.setText(null);
-            mBinding.fileHash.setText(null);
-            mBinding.status.setText(null);
-            mBinding.speed.setText(null);
-            mBinding.actionSelectFile.setVisibility(View.VISIBLE);
-            mBinding.actionStart.setVisibility(View.VISIBLE);
-            mBinding.actionStart.setEnabled(false);
-            mBinding.actionCancel.setVisibility(View.GONE);
-            mBinding.actionPauseResume.setVisibility(View.GONE);
-            mBinding.optionEraseSettings.setEnabled(true);
+            binding.fileName.setText(null);
+            binding.fileSize.setText(null);
+            binding.fileHash.setText(null);
+            binding.status.setText(null);
+            binding.speed.setText(null);
+            binding.actionSelectFile.setVisibility(View.VISIBLE);
+            binding.actionStart.setVisibility(View.VISIBLE);
+            binding.actionStart.setEnabled(false);
+            binding.actionCancel.setVisibility(View.GONE);
+            binding.actionPauseResume.setVisibility(View.GONE);
+            binding.optionEraseSettings.setEnabled(true);
         });
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
-            mBinding.actionSelectFile.setEnabled(!busy);
-            mBinding.actionStart.setEnabled(isFileLoaded() && !busy);
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+            binding.actionSelectFile.setEnabled(!busy);
+            binding.actionStart.setEnabled(isFileLoaded() && !busy);
         });
 
         // Configure SELECT FILE action
-        mBinding.actionSelectFile.setOnClickListener(v -> selectFile("application/*"));
+        binding.actionSelectFile.setOnClickListener(v -> selectFile("application/*"));
 
         // Restore START action state after rotation
-        mBinding.actionStart.setEnabled(isFileLoaded());
-        mBinding.actionStart.setOnClickListener(v -> {
+        binding.actionStart.setEnabled(isFileLoaded());
+        binding.actionStart.setOnClickListener(v -> {
             // Show a mode picker. When mode is selected, the upgrade(Mode) method will be called.
             final DialogFragment dialog = FirmwareUpgradeModeDialogFragment.getInstance();
             dialog.show(getChildFragmentManager(), null);
         });
 
         // Cancel and Pause/Resume buttons
-        mBinding.actionCancel.setOnClickListener(v -> mViewModel.cancel());
-        mBinding.actionPauseResume.setOnClickListener(v -> {
-            if (mViewModel.getState().getValue() == ImageUpgradeViewModel.State.UPLOADING) {
-                mViewModel.pause();
+        binding.actionCancel.setOnClickListener(v -> viewModel.cancel());
+        binding.actionPauseResume.setOnClickListener(v -> {
+            if (viewModel.getState().getValue() == ImageUpgradeViewModel.State.UPLOADING) {
+                viewModel.pause();
             } else {
-                mViewModel.resume();
+                viewModel.resume();
             }
         });
     }
@@ -167,7 +167,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 
     /**
@@ -175,18 +175,18 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
      */
     @SuppressWarnings("ConstantConditions")
     public void start(@NonNull final FirmwareUpgradeManager.Mode mode) {
-        mViewModel.upgrade(getFileContent(), mode, mBinding.optionEraseSettings.isChecked());
+        viewModel.upgrade(getFileContent(), mode, binding.optionEraseSettings.isChecked());
     }
 
     @Override
     protected void onFileCleared() {
-        mBinding.actionStart.setEnabled(false);
+        binding.actionStart.setEnabled(false);
     }
 
     @Override
     protected void onFileSelected(@NonNull final String fileName, final int fileSize) {
-        mBinding.fileName.setText(fileName);
-        mBinding.fileSize.setText(getString(R.string.image_upgrade_size_value, fileSize));
+        binding.fileName.setText(fileName);
+        binding.fileSize.setText(getString(R.string.image_upgrade_size_value, fileSize));
     }
 
     @Override
@@ -194,9 +194,9 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         try {
             // Try parsing BIN file for single/main core (core0) update.
             final byte[] hash = McuMgrImage.getHash(data);
-            mBinding.fileHash.setText(StringUtils.toHex(hash));
-            mBinding.actionStart.setEnabled(true);
-            mBinding.status.setText(R.string.image_upgrade_status_ready);
+            binding.fileHash.setText(StringUtils.toHex(hash));
+            binding.actionStart.setEnabled(true);
+            binding.status.setText(R.string.image_upgrade_status_ready);
         } catch (final McuMgrException e) {
             // For multi-core devices images are bundled in a ZIP file.
             try {
@@ -227,10 +227,10 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 }
                 hashBuilder.setLength(hashBuilder.length() - 1);
                 sizeBuilder.setLength(sizeBuilder.length() - 1);
-                mBinding.fileHash.setText(hashBuilder.toString());
-                mBinding.fileSize.setText(sizeBuilder.toString());
-                mBinding.actionStart.setEnabled(true);
-                mBinding.status.setText(R.string.image_upgrade_status_ready);
+                binding.fileHash.setText(hashBuilder.toString());
+                binding.fileSize.setText(sizeBuilder.toString());
+                binding.actionStart.setEnabled(true);
+                binding.status.setText(R.string.image_upgrade_status_ready);
             } catch (final Exception e1) {
                 clearFileContent();
                 onFileLoadingFailed(R.string.image_error_file_not_valid);
@@ -240,14 +240,14 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
 
     @Override
     protected void onFileLoadingFailed(final int error) {
-        mBinding.status.setText(error);
+        binding.status.setText(error);
     }
 
     private void printError(@Nullable final McuMgrException error) {
         final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
-            mBinding.status.setText(null);
-            mBinding.speed.setText(null);
+            binding.status.setText(null);
+            binding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -256,7 +256,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        mBinding.status.setText(spannable);
-        mBinding.speed.setText(null);
+        binding.status.setText(spannable);
+        binding.speed.setText(null);
     }
 }

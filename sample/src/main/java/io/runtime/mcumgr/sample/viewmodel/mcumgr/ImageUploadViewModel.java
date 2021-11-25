@@ -47,35 +47,35 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         }
     }
 
-    private final ImageManager mManager;
-    private TransferController mController;
+    private final ImageManager manager;
+    private TransferController controller;
 
-    private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
-    private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
-    private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+    private final MutableLiveData<State> stateLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Integer> progressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> transferSpeedLiveData = new MutableLiveData<>();
+    private final SingleLiveEvent<McuMgrException> errorLiveData = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
 
-    private long mUploadStartTimestamp;
-    private int mInitialBytes;
+    private long uploadStartTimestamp;
+    private int initialBytes;
 
     @Inject
     ImageUploadViewModel(final ImageManager manager,
                          @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
-        mStateLiveData.setValue(State.IDLE);
-        mProgressLiveData.setValue(0);
+        this.manager = manager;
+        this.stateLiveData.setValue(State.IDLE);
+        this.progressLiveData.setValue(0);
     }
 
     @NonNull
     public LiveData<State> getState() {
-        return mStateLiveData;
+        return stateLiveData;
     }
 
     @NonNull
     public LiveData<Integer> getProgress() {
-        return mProgressLiveData;
+        return progressLiveData;
     }
 
     /**
@@ -83,39 +83,39 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
      */
     @NonNull
     public LiveData<Float> getTransferSpeed() {
-        return mTransferSpeedLiveData;
+        return transferSpeedLiveData;
     }
 
     @NonNull
     public LiveData<McuMgrException> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     @NonNull
     public LiveData<Void> getCancelledEvent() {
-        return mCancelledEvent;
+        return cancelledEvent;
     }
 
     public void upload(@NonNull final byte[] data, final int image) {
-        if (mController != null) {
+        if (controller != null) {
             return;
         }
         setBusy();
-        mStateLiveData.setValue(State.VALIDATING);
+        stateLiveData.setValue(State.VALIDATING);
 
         byte[] hash;
         try {
             hash = McuMgrImage.getHash(data);
         } catch (final McuMgrException e) {
-            mErrorLiveData.setValue(e);
+            errorLiveData.setValue(e);
             return;
         }
 
-        final McuMgrTransport transport = mManager.getTransporter();
+        final McuMgrTransport transport = manager.getTransporter();
         if (transport instanceof McuMgrBleTransport) {
             ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
-        mManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
+        manager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 // Check if the fw has already been sent before.
@@ -129,92 +129,92 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                 // If yes, no need to send again.
                 if (theSameImage != null) {
                     if (theSameImage.slot == 0) {
-                        mErrorLiveData.postValue(new McuMgrException("Firmware already active."));
+                        errorLiveData.postValue(new McuMgrException("Firmware already active."));
                     } else {
                         // Firmware is identical to one on slot 1. No need to send anything.
-                        mStateLiveData.postValue(State.COMPLETE);
+                        stateLiveData.postValue(State.COMPLETE);
                     }
                     postReady();
                     return;
                 }
                 // Otherwise, send the firmware. This may return NO MEMORY error if slot 1 is
                 // filled with an image with pending or confirmed flags set.
-                mStateLiveData.postValue(State.UPLOADING);
-                mInitialBytes = 0;
-                mController = mManager.imageUpload(data, image,ImageUploadViewModel.this);
+                stateLiveData.postValue(State.UPLOADING);
+                initialBytes = 0;
+                controller = manager.imageUpload(data, image,ImageUploadViewModel.this);
             }
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady();
             }
         });
     }
 
     public void pause() {
-        final TransferController controller = mController;
+        final TransferController controller = this.controller;
         if (controller != null) {
-            mStateLiveData.setValue(State.PAUSED);
-            mController.pause();
+            stateLiveData.setValue(State.PAUSED);
+            controller.pause();
             setReady();
         }
     }
 
     public void resume() {
-        final TransferController controller = mController;
+        final TransferController controller = this.controller;
         if (controller != null) {
             setBusy();
-            mStateLiveData.setValue(State.UPLOADING);
-            mInitialBytes = 0;
-            mController.resume();
+            stateLiveData.setValue(State.UPLOADING);
+            initialBytes = 0;
+            controller.resume();
         }
     }
 
     public void cancel() {
-        final TransferController controller = mController;
+        final TransferController controller = this.controller;
         if (controller != null) {
-            mController.cancel();
+            controller.cancel();
         }
     }
 
     @Override
     public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
-        if (mInitialBytes == 0) {
-            mUploadStartTimestamp = timestamp;
-            mInitialBytes = bytesSent;
+        if (initialBytes == 0) {
+            uploadStartTimestamp = timestamp;
+            initialBytes = bytesSent;
         } else {
-            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
-            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            final int bytesSentSinceUploadStarted = bytesSent - initialBytes;
+            final long timeSinceUploadStarted = timestamp - uploadStartTimestamp;
             // bytes / ms = KB/s
-            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+            transferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
         }
         // Convert to percent
-        mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
+        progressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }
 
     @Override
     public void onUploadFailed(@NonNull final McuMgrException error) {
-        mController = null;
-        mProgressLiveData.postValue(0);
-        mErrorLiveData.postValue(error);
+        controller = null;
+        progressLiveData.postValue(0);
+        errorLiveData.postValue(error);
         postReady();
     }
 
     @Override
     public void onUploadCanceled() {
-        mController = null;
-        mProgressLiveData.postValue(0);
-        mStateLiveData.postValue(State.IDLE);
-        mCancelledEvent.post();
+        controller = null;
+        progressLiveData.postValue(0);
+        stateLiveData.postValue(State.IDLE);
+        cancelledEvent.post();
         postReady();
     }
 
     @Override
     public void onUploadCompleted() {
-        mController = null;
-        mProgressLiveData.postValue(0);
-        mStateLiveData.postValue(State.COMPLETE);
+        controller = null;
+        progressLiveData.postValue(0);
+        stateLiveData.postValue(State.COMPLETE);
         postReady();
     }
 }

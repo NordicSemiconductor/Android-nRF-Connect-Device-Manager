@@ -49,22 +49,22 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 public class FilesDownloadFragment extends Fragment implements Injectable {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
     @Inject
-    FsUtils mFsUtils;
+    FsUtils fsUtils;
 
-    private FragmentCardFilesDownloadBinding mBinding;
+    private FragmentCardFilesDownloadBinding binding;
 
-    private FilesDownloadViewModel mViewModel;
-    private InputMethodManager mImm;
-    private String mPartition;
+    private FilesDownloadViewModel viewModel;
+    private InputMethodManager imm;
+    private String partition;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(FilesDownloadViewModel.class);
-        mImm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     @Nullable
@@ -72,35 +72,35 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardFilesDownloadBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
+        binding = FragmentCardFilesDownloadBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mBinding.fileName.addTextChangedListener(new SimpleTextWatcher() {
+        binding.fileName.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void onTextChanged(final CharSequence s,
                                       final int start, final int before, final int count) {
-                mBinding.filePath.setText(getString(R.string.files_file_path, mPartition, s));
+                binding.filePath.setText(getString(R.string.files_file_path, partition, s));
             }
         });
 
-        mFsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
-            mPartition = partition;
-            final String fileName = mBinding.fileName.getText().toString();
-            mBinding.filePath.setText(getString(R.string.files_file_path, partition, fileName));
+        fsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
+            partition = partition;
+            final String fileName = binding.fileName.getText().toString();
+            binding.filePath.setText(getString(R.string.files_file_path, partition, fileName));
         });
-        mViewModel.getProgress().observe(getViewLifecycleOwner(), progress -> mBinding.progress.setProgress(progress));
-        mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printContent);
-        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionDownload.setEnabled(!busy));
-        mBinding.actionHistory.setOnClickListener(v -> {
+        viewModel.getProgress().observe(getViewLifecycleOwner(), progress -> binding.progress.setProgress(progress));
+        viewModel.getResponse().observe(getViewLifecycleOwner(), this::printContent);
+        viewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> binding.actionDownload.setEnabled(!busy));
+        binding.actionHistory.setOnClickListener(v -> {
             final PopupMenu popupMenu = new PopupMenu(requireContext(), v);
             final Menu menu = popupMenu.getMenu();
-            final Set<String> recents = mFsUtils.getRecents();
+            final Set<String> recents = fsUtils.getRecents();
             if (recents.isEmpty()) {
                 menu.add(R.string.files_download_recent_files_empty).setEnabled(false);
             } else {
@@ -111,20 +111,20 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                 }
             }
             popupMenu.setOnMenuItemClickListener(item -> {
-                mBinding.fileName.setError(null);
-                mBinding.fileName.setText(item.getTitle());
+                binding.fileName.setError(null);
+                binding.fileName.setText(item.getTitle());
                 return true;
             });
             popupMenu.show();
         });
-        mBinding.actionDownload.setOnClickListener(v -> {
-            final String fileName = mBinding.fileName.getText().toString();
+        binding.actionDownload.setOnClickListener(v -> {
+            final String fileName = binding.fileName.getText().toString();
             if (TextUtils.isEmpty(fileName)) {
-                mBinding.fileName.setError(getString(R.string.files_download_empty));
+                binding.fileName.setError(getString(R.string.files_download_empty));
             } else {
                 hideKeyboard();
-                mFsUtils.addRecent(fileName);
-                mViewModel.download(mBinding.filePath.getText().toString());
+                fsUtils.addRecent(fileName);
+                viewModel.download(binding.filePath.getText().toString());
             }
         });
     }
@@ -132,49 +132,49 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 
     private void hideKeyboard() {
-        mImm.hideSoftInputFromWindow(mBinding.fileName.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(binding.fileName.getWindowToken(), 0);
     }
 
     private void printContent(@Nullable final byte[] data) {
-        mBinding.divider.setVisibility(View.VISIBLE);
-        mBinding.fileResult.setVisibility(View.VISIBLE);
-        mBinding.image.setVisibility(View.VISIBLE);
-        mBinding.image.setImageDrawable(null);
+        binding.divider.setVisibility(View.VISIBLE);
+        binding.fileResult.setVisibility(View.VISIBLE);
+        binding.image.setVisibility(View.VISIBLE);
+        binding.image.setImageDrawable(null);
 
         if (data == null) {
-            mBinding.fileResult.setText(R.string.files_download_error_file_not_found);
+            binding.fileResult.setText(R.string.files_download_error_file_not_found);
         } else {
             if (data.length == 0) {
-                mBinding.fileResult.setText(R.string.files_download_file_empty);
+                binding.fileResult.setText(R.string.files_download_file_empty);
             } else {
-                final String path = mBinding.filePath.getText().toString();
+                final String path = binding.filePath.getText().toString();
                 final Bitmap bitmap = FsUtils.toBitmap(getResources(), data);
                 if (bitmap != null) {
                     final SpannableString spannable = new SpannableString(
                             getString(R.string.files_download_image, path, data.length));
                     spannable.setSpan(new StyleSpan(Typeface.BOLD),
                             0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                    mBinding.fileResult.setText(spannable);
-                    mBinding.image.setImageBitmap(bitmap);
+                    binding.fileResult.setText(spannable);
+                    binding.image.setImageBitmap(bitmap);
                 } else {
                     final String content = new String(data);
                     final SpannableString spannable = new SpannableString(
                             getString(R.string.files_download_file, path, data.length, content));
                     spannable.setSpan(new StyleSpan(Typeface.BOLD),
                             0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                    mBinding.fileResult.setText(spannable);
+                    binding.fileResult.setText(spannable);
                 }
             }
         }
     }
 
     private void printError(@Nullable final McuMgrException error) {
-        mBinding.divider.setVisibility(View.VISIBLE);
-        mBinding.fileResult.setVisibility(View.VISIBLE);
+        binding.divider.setVisibility(View.VISIBLE);
+        binding.fileResult.setVisibility(View.VISIBLE);
 
         String message = StringUtils.toString(requireContext(), error);
         if (error instanceof McuMgrErrorException) {
@@ -184,7 +184,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
             }
         }
         if (message == null) {
-            mBinding.fileResult.setText(null);
+            binding.fileResult.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -193,7 +193,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        mBinding.fileResult.setText(spannable);
+        binding.fileResult.setText(spannable);
     }
 
     private abstract static class SimpleTextWatcher implements TextWatcher {

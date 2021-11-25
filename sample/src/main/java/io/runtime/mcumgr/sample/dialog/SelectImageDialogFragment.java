@@ -13,7 +13,7 @@ import io.runtime.mcumgr.sample.databinding.DialogSelectImageBinding;
 
 public class SelectImageDialogFragment extends DialogFragment {
 	private static final String ARG_REQUEST_ID = "requestId";
-	private int mPosition = 0;
+	private int position = 0;
 
 	public interface OnImageSelectedListener {
 		void onImageSelected(final int requestId, final int image);
@@ -37,7 +37,7 @@ public class SelectImageDialogFragment extends DialogFragment {
 		binding.image.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.dialog_select_image_item, items));
 		binding.image.setText(items[0], false);
 		binding.image.setOnItemClickListener((parent, view, position, id) -> {
-			mPosition = position;
+			position = position;
 		});
 
 		return new AlertDialog.Builder(requireContext())
@@ -51,7 +51,7 @@ public class SelectImageDialogFragment extends DialogFragment {
 
 					final OnImageSelectedListener listener = (OnImageSelectedListener) getParentFragment();
 					if (listener != null)
-						listener.onImageSelected(requestId, mPosition);
+						listener.onImageSelected(requestId, position);
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.create();

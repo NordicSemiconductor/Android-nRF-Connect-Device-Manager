@@ -31,37 +31,37 @@ public class ImageFragment extends Fragment implements Injectable {
 
     @SuppressWarnings("WeakerAccess")
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
 
-    private McuMgrViewModel mViewModel;
+    private McuMgrViewModel viewModel;
 
     // Basic
-    private Fragment mImageUpgradeFragment;
+    private Fragment imageUpgradeFragment;
     // Advanced
-    private Fragment mImageUploadFragment;
-    private Fragment mImageControlFragment;
-    private Fragment mImageSettingsFragment;
-    private Fragment mResetFragment;
+    private Fragment imageUploadFragment;
+    private Fragment imageControlFragment;
+    private Fragment imageSettingsFragment;
+    private Fragment resetFragment;
 
-    private boolean mModeAdvanced;
-    private boolean mOperationInProgress;
+    private boolean modeAdvanced;
+    private boolean operationInProgress;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(McuMgrViewModel.class);
 
-        mModeAdvanced = savedInstanceState != null &&
+        modeAdvanced = savedInstanceState != null &&
                 savedInstanceState.getBoolean(SIS_MODE_ADVANCED);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(SIS_MODE_ADVANCED, mModeAdvanced);
+        outState.putBoolean(SIS_MODE_ADVANCED, modeAdvanced);
     }
 
     @Override
@@ -69,35 +69,35 @@ public class ImageFragment extends Fragment implements Injectable {
         inflater.inflate(R.menu.image_mode, menu);
 
         menu.findItem(R.id.action_switch_to_advanced)
-                .setVisible(!mModeAdvanced)
-                .setEnabled(!mOperationInProgress);
+                .setVisible(!modeAdvanced)
+                .setEnabled(!operationInProgress);
         menu.findItem(R.id.action_switch_to_basic)
-                .setVisible(mModeAdvanced)
-                .setEnabled(!mOperationInProgress);
+                .setVisible(modeAdvanced)
+                .setEnabled(!operationInProgress);
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_switch_to_advanced:
-                mModeAdvanced = true;
+                modeAdvanced = true;
                 getChildFragmentManager().beginTransaction()
-                        .show(mImageUploadFragment)
-                        .show(mImageControlFragment)
-                        .show(mImageSettingsFragment)
-                        .show(mResetFragment)
-                        .hide(mImageUpgradeFragment)
+                        .show(imageUploadFragment)
+                        .show(imageControlFragment)
+                        .show(imageSettingsFragment)
+                        .show(resetFragment)
+                        .hide(imageUpgradeFragment)
                         .commit();
                 requireActivity().invalidateOptionsMenu();
                 return true;
             case R.id.action_switch_to_basic:
-                mModeAdvanced = false;
+                modeAdvanced = false;
                 getChildFragmentManager().beginTransaction()
-                        .show(mImageUpgradeFragment)
-                        .hide(mImageUploadFragment)
-                        .hide(mImageControlFragment)
-                        .hide(mImageSettingsFragment)
-                        .hide(mResetFragment)
+                        .show(imageUpgradeFragment)
+                        .hide(imageUploadFragment)
+                        .hide(imageControlFragment)
+                        .hide(imageSettingsFragment)
+                        .hide(resetFragment)
                         .commit();
                 requireActivity().invalidateOptionsMenu();
                 return true;
@@ -118,24 +118,24 @@ public class ImageFragment extends Fragment implements Injectable {
         super.onViewCreated(view, savedInstanceState);
 
         final FragmentManager fm = getChildFragmentManager();
-        mImageUpgradeFragment = fm.findFragmentById(R.id.fragment_image_upgrade);
-        mImageUploadFragment = fm.findFragmentById(R.id.fragment_image_upload);
-        mImageControlFragment = fm.findFragmentById(R.id.fragment_image_control);
-        mImageSettingsFragment = fm.findFragmentById(R.id.fragment_image_settings);
-        mResetFragment = fm.findFragmentById(R.id.fragment_reset);
+        imageUpgradeFragment = fm.findFragmentById(R.id.fragment_image_upgrade);
+        imageUploadFragment = fm.findFragmentById(R.id.fragment_image_upload);
+        imageControlFragment = fm.findFragmentById(R.id.fragment_image_control);
+        imageSettingsFragment = fm.findFragmentById(R.id.fragment_image_settings);
+        resetFragment = fm.findFragmentById(R.id.fragment_reset);
 
         // Initially, show only the basic Image Upgrade fragment
         if (savedInstanceState == null) {
             getChildFragmentManager().beginTransaction()
-                    .hide(mImageUploadFragment)
-                    .hide(mImageControlFragment)
-                    .hide(mImageSettingsFragment)
-                    .hide(mResetFragment)
+                    .hide(imageUploadFragment)
+                    .hide(imageControlFragment)
+                    .hide(imageSettingsFragment)
+                    .hide(resetFragment)
                     .commit();
         }
 
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
-            mOperationInProgress = busy;
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+            operationInProgress = busy;
             requireActivity().invalidateOptionsMenu();
         });
     }

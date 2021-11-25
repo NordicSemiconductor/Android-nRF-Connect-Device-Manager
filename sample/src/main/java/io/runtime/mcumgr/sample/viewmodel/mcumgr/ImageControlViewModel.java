@@ -20,55 +20,55 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 
 public class ImageControlViewModel extends McuMgrViewModel {
-    private final ImageManager mManager;
+    private final ImageManager manager;
 
-    private final MutableLiveData<McuMgrImageStateResponse> mResponseLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> mTestAvailableLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> mConfirmAvailableLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> mEraseAvailableLiveData = new MutableLiveData<>();
-    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrImageStateResponse> responseLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> testAvailableLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> confirmAvailableLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> eraseAvailableLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> errorLiveData = new MutableLiveData<>();
 
     @NonNull
-    private final byte[][] mHashes;
+    private final byte[][] hashes;
 
     @Inject
     ImageControlViewModel(final ImageManager manager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
+        this.manager = manager;
         // The current version supports 2 images.
-        mHashes = new byte[2][];
+        this.hashes = new byte[2][];
     }
 
     @NonNull
     public LiveData<McuMgrImageStateResponse> getResponse() {
-        return mResponseLiveData;
+        return responseLiveData;
     }
 
     @NonNull
     public LiveData<Boolean> getTestOperationAvailability() {
-        return mTestAvailableLiveData;
+        return testAvailableLiveData;
     }
 
     @NonNull
     public LiveData<Boolean> getConfirmOperationAvailability() {
-        return mConfirmAvailableLiveData;
+        return confirmAvailableLiveData;
     }
 
     @NonNull
     public LiveData<Boolean> getEraseOperationAvailability() {
-        return mEraseAvailableLiveData;
+        return eraseAvailableLiveData;
     }
 
     @NonNull
     public LiveData<McuMgrException> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     public int[] getValidImages() {
-        if (mHashes[0] != null && mHashes[1] != null)
+        if (hashes[0] != null && hashes[1] != null)
             return new int[] { 0, 1 };
-        if (mHashes[0] != null)
+        if (hashes[0] != null)
             return new int[] { 0 };
         return new int[] { 1 };
     }
@@ -76,17 +76,17 @@ public class ImageControlViewModel extends McuMgrViewModel {
     public void read() {
         // This is called also from BLE thread after erase(), therefore postValue, not setValue.
         postBusy();
-        mErrorLiveData.postValue(null);
-        mManager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
+        errorLiveData.postValue(null);
+        manager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
-                mHashes[0] = mHashes[1] = null;
+                hashes[0] = hashes[1] = null;
                 // Save the hash of the unconfirmed images. They are required for sending test
                 // and confirm messages.
                 if (response.images != null) {
                     for (McuMgrImageStateResponse.ImageSlot slot : response.images) {
                         if (!slot.confirmed) {
-                            mHashes[slot.image] = slot.hash;
+                            hashes[slot.image] = slot.hash;
                         }
                     }
                 }
@@ -95,19 +95,19 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady(null);
             }
         });
     }
 
     public void test(final int image) {
-        if (image < 0 || mHashes.length < image || mHashes[image] == null)
+        if (image < 0 || hashes.length < image || hashes[image] == null)
             return;
 
         setBusy();
-        mErrorLiveData.setValue(null);
-        mManager.test(mHashes[image], new McuMgrCallback<McuMgrImageStateResponse>() {
+        errorLiveData.setValue(null);
+        manager.test(hashes[image], new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 postReady(response);
@@ -115,19 +115,19 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady(null);
             }
         });
     }
 
     public void confirm(final int image) {
-        if (image < 0 || mHashes.length < image || mHashes[image] == null)
+        if (image < 0 || hashes.length < image || hashes[image] == null)
             return;
 
         setBusy();
-        mErrorLiveData.setValue(null);
-        mManager.confirm(mHashes[image], new McuMgrCallback<McuMgrImageStateResponse>() {
+        errorLiveData.setValue(null);
+        manager.confirm(hashes[image], new McuMgrCallback<McuMgrImageStateResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 postReady(response);
@@ -135,19 +135,19 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady(null);
             }
         });
     }
 
     public void erase(final int image) {
-        if (image < 0 || mHashes.length < image || mHashes[image] == null)
+        if (image < 0 || hashes.length < image || hashes[image] == null)
             return;
 
         setBusy();
-        mErrorLiveData.setValue(null);
-        mManager.erase(image, new McuMgrCallback<McuMgrResponse>() {
+        errorLiveData.setValue(null);
+        manager.erase(image, new McuMgrCallback<McuMgrResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrResponse response) {
                 read();
@@ -155,7 +155,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady(null);
             }
         });
@@ -183,10 +183,10 @@ public class ImageControlViewModel extends McuMgrViewModel {
             }
         }
 
-        mResponseLiveData.postValue(response);
-        mTestAvailableLiveData.postValue(testEnabled);
-        mConfirmAvailableLiveData.postValue(confirmEnabled);
-        mEraseAvailableLiveData.postValue(eraseEnabled);
+        responseLiveData.postValue(response);
+        testAvailableLiveData.postValue(testEnabled);
+        confirmAvailableLiveData.postValue(confirmEnabled);
+        eraseAvailableLiveData.postValue(eraseEnabled);
         postReady();
     }
 }

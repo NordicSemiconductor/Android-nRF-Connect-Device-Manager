@@ -33,19 +33,19 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 public class EchoFragment extends Fragment implements Injectable {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
 
-    private FragmentCardEchoBinding mBinding;
+    private FragmentCardEchoBinding binding;
 
-    private EchoViewModel mViewModel;
-    private InputMethodManager mImm;
+    private EchoViewModel viewModel;
+    private InputMethodManager imm;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(EchoViewModel.class);
-        mImm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     @Nullable
@@ -53,52 +53,52 @@ public class EchoFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardEchoBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
+        binding = FragmentCardEchoBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mBinding.echoValue.setSelection(mBinding.echoValue.getText().length());
+        binding.echoValue.setSelection(binding.echoValue.getText().length());
 
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionSend.setEnabled(!busy));
-        mViewModel.getRequest().observe(getViewLifecycleOwner(), text -> {
-            mBinding.echoContent.setVisibility(View.VISIBLE);
-            print(mBinding.echoRequest, text);
-            if (mBinding.echoResponse.getVisibility() == View.VISIBLE) {
-                mBinding.echoResponse.setVisibility(View.INVISIBLE);
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> binding.actionSend.setEnabled(!busy));
+        viewModel.getRequest().observe(getViewLifecycleOwner(), text -> {
+            binding.echoContent.setVisibility(View.VISIBLE);
+            print(binding.echoRequest, text);
+            if (binding.echoResponse.getVisibility() == View.VISIBLE) {
+                binding.echoResponse.setVisibility(View.INVISIBLE);
             }
         });
-        mViewModel.getResponse().observe(getViewLifecycleOwner(), response -> {
-            mBinding.echoResponse.setBackgroundResource(R.drawable.echo_response);
-            print(mBinding.echoResponse, response);
+        viewModel.getResponse().observe(getViewLifecycleOwner(), response -> {
+            binding.echoResponse.setBackgroundResource(R.drawable.echo_response);
+            print(binding.echoResponse, response);
         });
-        mViewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            mBinding.echoResponse.setBackgroundResource(R.drawable.echo_error);
-            print(mBinding.echoResponse, StringUtils.toString(requireContext(), error));
+        viewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            binding.echoResponse.setBackgroundResource(R.drawable.echo_error);
+            print(binding.echoResponse, StringUtils.toString(requireContext(), error));
         });
-        mBinding.actionSend.setOnClickListener(v -> {
-            mBinding.echoRequest.setText(null);
-            mBinding.echoResponse.setText(null);
+        binding.actionSend.setOnClickListener(v -> {
+            binding.echoRequest.setText(null);
+            binding.echoResponse.setText(null);
 
             hideKeyboard();
 
-            final String text = mBinding.echoValue.getText().toString();
-            mBinding.echoValue.setText(null);
-            mViewModel.echo(text);
+            final String text = binding.echoValue.getText().toString();
+            binding.echoValue.setText(null);
+            viewModel.echo(text);
         });
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 
     private void hideKeyboard() {
-        mImm.hideSoftInputFromWindow(mBinding.echoValue.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(binding.echoValue.getWindowToken(), 0);
     }
 
     private void print(final TextView view, final String text) {

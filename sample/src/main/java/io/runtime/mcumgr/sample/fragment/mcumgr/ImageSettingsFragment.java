@@ -41,16 +41,16 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 public class ImageSettingsFragment extends Fragment implements Injectable, Toolbar.OnMenuItemClickListener {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
     
-    private FragmentCardImageEraseSettingsBinding mBinding;
+    private FragmentCardImageEraseSettingsBinding binding;
 
-    private ImageSettingsViewModel mViewModel;
+    private ImageSettingsViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(ImageSettingsViewModel.class);
     }
 
@@ -59,10 +59,10 @@ public class ImageSettingsFragment extends Fragment implements Injectable, Toolb
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardImageEraseSettingsBinding.inflate(inflater, container, false);
-        mBinding.toolbar.inflateMenu(R.menu.help);
-        mBinding.toolbar.setOnMenuItemClickListener(this);
-        return  mBinding.getRoot();
+        binding = FragmentCardImageEraseSettingsBinding.inflate(inflater, container, false);
+        binding.toolbar.inflateMenu(R.menu.help);
+        binding.toolbar.setOnMenuItemClickListener(this);
+        return  binding.getRoot();
     }
 
     @Override
@@ -74,18 +74,18 @@ public class ImageSettingsFragment extends Fragment implements Injectable, Toolb
         // The view must have android:animateLayoutChanges(true) attribute set in the XML.
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
 
-        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+        viewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             // Other actions will be optionally enabled by other observers
-            mBinding.actionErase.setEnabled(!busy);
+            binding.actionErase.setEnabled(!busy);
         });
-        mBinding.actionErase.setOnClickListener(v -> mViewModel.eraseSettings());
+        binding.actionErase.setOnClickListener(v -> viewModel.eraseSettings());
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 
     @Override
@@ -113,7 +113,7 @@ public class ImageSettingsFragment extends Fragment implements Injectable, Toolb
             }
         }
         if (message == null) {
-            mBinding.imageControlError.setText(null);
+            binding.imageControlError.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -122,7 +122,7 @@ public class ImageSettingsFragment extends Fragment implements Injectable, Toolb
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        mBinding.imageControlError.setText(spannable);
-        mBinding.imageControlError.setVisibility(View.VISIBLE);
+        binding.imageControlError.setText(spannable);
+        binding.imageControlError.setVisibility(View.VISIBLE);
     }
 }

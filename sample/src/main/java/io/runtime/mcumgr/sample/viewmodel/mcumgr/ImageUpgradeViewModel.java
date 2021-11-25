@@ -53,26 +53,26 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         }
     }
 
-    private final FirmwareUpgradeManager mManager;
+    private final FirmwareUpgradeManager manager;
 
-    private final MutableLiveData<State> mStateLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Float> mTransferSpeedLiveData = new MutableLiveData<>();
-    private final SingleLiveEvent<McuMgrException> mErrorLiveData = new SingleLiveEvent<>();
-    private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+    private final MutableLiveData<State> stateLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Integer> progressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Float> transferSpeedLiveData = new MutableLiveData<>();
+    private final SingleLiveEvent<McuMgrException> errorLiveData = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
 
-    private long mUploadStartTimestamp;
-    private int mInitialBytes;
+    private long uploadStartTimestamp;
+    private int initialBytes;
 
     @Inject
     ImageUpgradeViewModel(final FirmwareUpgradeManager manager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
-        mManager.setFirmwareUpgradeCallback(this);
+        this.manager = manager;
+        this.manager.setFirmwareUpgradeCallback(this);
 
-        // mRF52840, due to how the flash memory works, requires ~20 sec to erase images.
-        mManager.setEstimatedSwapTime(10000);
+        // rF52840, due to how the flash memory works, requires ~20 sec to erase images.
+        this.manager.setEstimatedSwapTime(10000);
 
         // Window upload is experimental and seems not to work well.
         // Each packets sent gets SEQ number assigned. Each response has the same sequence number.
@@ -81,20 +81,20 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         // so all replies get offset set to number of bytes processed, making the library to resend
         // a lot of packets. Also, with window upload pause and resume throw an exception.
 
-        // mManager.setWindowUploadCapacity(32);
+        // manager.setWindowUploadCapacity(32);
 
-        mStateLiveData.setValue(State.IDLE);
-        mProgressLiveData.setValue(0);
+        stateLiveData.setValue(State.IDLE);
+        progressLiveData.setValue(0);
     }
 
     @NonNull
     public LiveData<State> getState() {
-        return mStateLiveData;
+        return stateLiveData;
     }
 
     @NonNull
     public LiveData<Integer> getProgress() {
-        return mProgressLiveData;
+        return progressLiveData;
     }
 
     /**
@@ -102,17 +102,17 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
      */
     @NonNull
     public LiveData<Float> getTransferSpeed() {
-        return mTransferSpeedLiveData;
+        return transferSpeedLiveData;
     }
 
     @NonNull
     public LiveData<McuMgrException> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     @NonNull
     public LiveData<Void> getCancelledEvent() {
-        return mCancelledEvent;
+        return cancelledEvent;
     }
 
     public void upgrade(@NonNull final byte[] data,
@@ -128,27 +128,27 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                 final ZipPackage zip = new ZipPackage(data);
                 images = zip.getBinaries();
             } catch (final Exception e1) {
-                mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
+                errorLiveData.setValue(new McuMgrException("Invalid image file."));
                 return;
             }
         }
         try {
-            final McuMgrTransport transport = mManager.getTransporter();
+            final McuMgrTransport transport = manager.getTransporter();
             if (transport instanceof McuMgrBleTransport) {
                 ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
             }
-            mManager.setMode(mode);
-            mManager.start(images, eraseSettings);
+            manager.setMode(mode);
+            manager.start(images, eraseSettings);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
-            mErrorLiveData.setValue(new McuMgrException("Invalid image file."));
+            errorLiveData.setValue(new McuMgrException("Invalid image file."));
         }
     }
 
     public void pause() {
-        if (mManager.isInProgress()) {
-            mStateLiveData.postValue(State.PAUSED);
-            mManager.pause();
+        if (manager.isInProgress()) {
+            stateLiveData.postValue(State.PAUSED);
+            manager.pause();
             Timber.i("Upload paused");
             setLoggingEnabled(true);
             setReady();
@@ -156,24 +156,24 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     }
 
     public void resume() {
-        if (mManager.isPaused()) {
+        if (manager.isPaused()) {
             setBusy();
-            mStateLiveData.postValue(State.UPLOADING);
+            stateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
-            mInitialBytes = 0;
+            initialBytes = 0;
             setLoggingEnabled(false);
-            mManager.resume();
+            manager.resume();
         }
     }
 
     public void cancel() {
-        mManager.cancel();
+        manager.cancel();
     }
 
     @Override
     public void onUpgradeStarted(final FirmwareUpgradeController controller) {
         postBusy();
-        mStateLiveData.setValue(State.VALIDATING);
+        stateLiveData.setValue(State.VALIDATING);
     }
 
     @Override
@@ -182,61 +182,61 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         switch (newState) {
             case UPLOAD:
                 Timber.i("Uploading firmware...");
-                mInitialBytes = 0;
-                mStateLiveData.postValue(State.UPLOADING);
+                initialBytes = 0;
+                stateLiveData.postValue(State.UPLOADING);
                 break;
             case TEST:
-                mStateLiveData.postValue(State.TESTING);
+                stateLiveData.postValue(State.TESTING);
                 break;
             case CONFIRM:
-                mStateLiveData.postValue(State.CONFIRMING);
+                stateLiveData.postValue(State.CONFIRMING);
                 break;
             case RESET:
-                mStateLiveData.postValue(State.RESETTING);
+                stateLiveData.postValue(State.RESETTING);
                 break;
         }
     }
 
     @Override
     public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
-        if (mInitialBytes == 0) {
-            mUploadStartTimestamp = timestamp;
-            mInitialBytes = bytesSent;
+        if (initialBytes == 0) {
+            uploadStartTimestamp = timestamp;
+            initialBytes = bytesSent;
         } else {
-            final int bytesSentSinceUploadStarted = bytesSent - mInitialBytes;
-            final long timeSinceUploadStarted = timestamp - mUploadStartTimestamp;
+            final int bytesSentSinceUploadStarted = bytesSent - initialBytes;
+            final long timeSinceUploadStarted = timestamp - uploadStartTimestamp;
             // bytes / ms = KB/s
-            mTransferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+            transferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
         }
         // When done, reset the counter.
         if (bytesSent == imageSize) {
-            mInitialBytes = 0;
+            initialBytes = 0;
         }
         // Convert to percent
-        mProgressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
+        progressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }
 
     @Override
     public void onUpgradeCompleted() {
-        mProgressLiveData.postValue(0);
-        mStateLiveData.postValue(State.COMPLETE);
+        progressLiveData.postValue(0);
+        stateLiveData.postValue(State.COMPLETE);
         setLoggingEnabled(true);
         postReady();
     }
 
     @Override
     public void onUpgradeCanceled(final FirmwareUpgradeManager.State state) {
-        mProgressLiveData.postValue(0);
-        mStateLiveData.postValue(State.IDLE);
-        mCancelledEvent.post();
+        progressLiveData.postValue(0);
+        stateLiveData.postValue(State.IDLE);
+        cancelledEvent.post();
         setLoggingEnabled(true);
         postReady();
     }
 
     @Override
     public void onUpgradeFailed(final FirmwareUpgradeManager.State state, final McuMgrException error) {
-        mProgressLiveData.postValue(0);
-        mErrorLiveData.postValue(error);
+        progressLiveData.postValue(0);
+        errorLiveData.postValue(error);
         setLoggingEnabled(true);
         postReady();
     }
@@ -244,7 +244,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     private void setLoggingEnabled(final boolean enabled) {
         super.postReady();
 
-        final McuMgrTransport transporter = mManager.getTransporter();
+        final McuMgrTransport transporter = manager.getTransporter();
         if (transporter instanceof McuMgrBleTransport) {
             final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
             bleTransporter.setLoggingEnabled(enabled);

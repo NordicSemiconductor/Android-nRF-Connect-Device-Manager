@@ -12,9 +12,9 @@ import io.runtime.mcumgr.McuMgrTransport;
 
 public class MainViewModel extends AndroidViewModel {
     @Inject
-    McuMgrTransport mMcuMgrTransport;
+    McuMgrTransport mcuMgrTransport;
     @Inject
-    HandlerThread mHandlerThread;
+    HandlerThread handlerThread;
 
     @Inject
     public MainViewModel(@NonNull final Application application) {
@@ -25,7 +25,7 @@ public class MainViewModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
 
-        mMcuMgrTransport.release();
-        mHandlerThread.quitSafely();
+        mcuMgrTransport.release();
+        handlerThread.quitSafely();
     }
 }

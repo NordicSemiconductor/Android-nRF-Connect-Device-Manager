@@ -41,16 +41,16 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.StatsViewModel;
 public class StatsFragment extends Fragment implements Injectable {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
 
-    private FragmentCardStatsBinding mBinding;
+    private FragmentCardStatsBinding binding;
 
-    private StatsViewModel mViewModel;
+    private StatsViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(StatsViewModel.class);
     }
 
@@ -59,8 +59,8 @@ public class StatsFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardStatsBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
+        binding = FragmentCardStatsBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
@@ -72,16 +72,16 @@ public class StatsFragment extends Fragment implements Injectable {
         // The view must have android:animateLayoutChanges(true) attribute set in the XML.
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
 
-        mViewModel.getResponse().observe(getViewLifecycleOwner(), this::printStats);
-        mViewModel.getError().observe(getViewLifecycleOwner(), this::printError);
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionRefresh.setEnabled(!busy));
-        mBinding.actionRefresh.setOnClickListener(v -> mViewModel.readStats());
+        viewModel.getResponse().observe(getViewLifecycleOwner(), this::printStats);
+        viewModel.getError().observe(getViewLifecycleOwner(), this::printError);
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> binding.actionRefresh.setEnabled(!busy));
+        binding.actionRefresh.setOnClickListener(v -> viewModel.readStats());
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 
     private void printStats(@NonNull final List<McuMgrStatResponse> responses) {
@@ -97,13 +97,13 @@ public class StatsFragment extends Fragment implements Injectable {
                         entry.getKey(), entry.getValue())).append("\n");
             }
         }
-        mBinding.statsValue.setText(builder);
+        binding.statsValue.setText(builder);
     }
 
     private void printError(@Nullable final McuMgrException error) {
         final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
-            mBinding.imageControlError.setText(null);
+            binding.imageControlError.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -112,7 +112,7 @@ public class StatsFragment extends Fragment implements Injectable {
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        mBinding.imageControlError.setText(spannable);
-        mBinding.imageControlError.setVisibility(View.VISIBLE);
+        binding.imageControlError.setText(spannable);
+        binding.imageControlError.setVisibility(View.VISIBLE);
     }
 }

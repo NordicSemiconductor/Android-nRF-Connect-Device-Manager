@@ -25,7 +25,7 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
     @Inject
     DispatchingAndroidInjector<Object> dispatchingAndroidInjector;
     @Inject
-    McuMgrSubComponent.Builder mBuilder;
+    McuMgrSubComponent.Builder builder;
 
     private Timber.Tree logger;
 
@@ -57,6 +57,6 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
             logger = null;
         }
         Timber.plant(logger = new nRFLoggerTree(this, "Device Manager", device.getName()));
-        mBuilder.target(device).build().update(this);
+        builder.target(device).build().update(this);
     }
 }

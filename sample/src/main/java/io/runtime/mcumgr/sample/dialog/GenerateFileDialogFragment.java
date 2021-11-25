@@ -23,7 +23,7 @@ import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment;
 
 public class GenerateFileDialogFragment extends DialogFragment {
-    private InputMethodManager mImm;
+    private InputMethodManager imm;
 
     public static DialogFragment getInstance() {
         return new GenerateFileDialogFragment();
@@ -32,7 +32,7 @@ public class GenerateFileDialogFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mImm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -51,7 +51,7 @@ public class GenerateFileDialogFragment extends DialogFragment {
                 .setPositiveButton(R.string.files_action_generate, null)
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
-        dialog.setOnShowListener(d -> mImm.showSoftInput(fileSize, InputMethodManager.SHOW_IMPLICIT));
+        dialog.setOnShowListener(d -> imm.showSoftInput(fileSize, InputMethodManager.SHOW_IMPLICIT));
         dialog.show();
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             try {

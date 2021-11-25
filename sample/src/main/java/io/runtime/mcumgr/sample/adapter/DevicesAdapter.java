@@ -25,8 +25,8 @@ import io.runtime.mcumgr.sample.viewmodel.DevicesLiveData;
 
 @SuppressWarnings("unused")
 public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
-    private List<DiscoveredBluetoothDevice> mDevices;
-    private OnItemClickListener mOnItemClickListener;
+    private List<DiscoveredBluetoothDevice> devices;
+    private OnItemClickListener onItemClickListener;
 
     @FunctionalInterface
     public interface OnItemClickListener {
@@ -44,15 +44,15 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
      * @param listener the listener.
      */
     public void setOnItemClickListener(final OnItemClickListener listener) {
-        mOnItemClickListener = listener;
+        onItemClickListener = listener;
     }
 
     public DevicesAdapter(final ScannerActivity activity, final DevicesLiveData devicesLiveData) {
         setHasStableIds(true);
         devicesLiveData.observe(activity, devices -> {
             DiffUtil.DiffResult result = DiffUtil.calculateDiff(
-                    new DeviceDiffCallback(mDevices, devices), false);
-            mDevices = devices;
+                    new DeviceDiffCallback(this.devices, devices), false);
+            this.devices = devices;
             result.dispatchUpdatesTo(this);
         });
     }
@@ -67,47 +67,47 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
-        final DiscoveredBluetoothDevice device = mDevices.get(position);
+        final DiscoveredBluetoothDevice device = devices.get(position);
         final String deviceName = device.getName();
 
         if (!TextUtils.isEmpty(deviceName)) {
-            holder.mBinding.deviceName.setText(deviceName);
+            holder.binding.deviceName.setText(deviceName);
             // Set device icon. This is just guessing, based on the device name.
             if (deviceName.toLowerCase(Locale.US).contains("zephyr"))
-                holder.mBinding.icon.setImageResource(R.drawable.ic_device_zephyr);
+                holder.binding.icon.setImageResource(R.drawable.ic_device_zephyr);
             else if (deviceName.toLowerCase(Locale.US).contains("nimble"))
-                holder.mBinding.icon.setImageResource(R.drawable.ic_device_mynewt);
+                holder.binding.icon.setImageResource(R.drawable.ic_device_mynewt);
             else
-                holder.mBinding.icon.setImageResource(R.drawable.ic_device_other);
+                holder.binding.icon.setImageResource(R.drawable.ic_device_other);
         } else {
-            holder.mBinding.deviceName.setText(R.string.unknown_device);
-            holder.mBinding.icon.setImageResource(R.drawable.ic_device_other);
+            holder.binding.deviceName.setText(R.string.unknown_device);
+            holder.binding.icon.setImageResource(R.drawable.ic_device_other);
         }
-        holder.mBinding.deviceAddress.setText(device.getAddress());
+        holder.binding.deviceAddress.setText(device.getAddress());
         final int rssiPercent = (int) (100.0f * (127.0f + device.getRssi()) / (127.0f + 20.0f));
-        holder.mBinding.rssi.setImageLevel(rssiPercent);
+        holder.binding.rssi.setImageLevel(rssiPercent);
     }
 
     @Override
     public long getItemId(final int position) {
-        return mDevices.get(position).hashCode();
+        return devices.get(position).hashCode();
     }
 
     @Override
     public int getItemCount() {
-        return mDevices != null ? mDevices.size() : 0;
+        return devices != null ? devices.size() : 0;
     }
 
     final class ViewHolder extends RecyclerView.ViewHolder {
-        private final DeviceItemBinding mBinding;
+        private final DeviceItemBinding binding;
 
         private ViewHolder(final DeviceItemBinding binding) {
             super(binding.getRoot());
-            mBinding = binding;
+            this.binding = binding;
 
             binding.deviceContainer.setOnClickListener(v -> {
-                if (mOnItemClickListener != null) {
-                    mOnItemClickListener.onItemClick(mDevices.get(getBindingAdapterPosition()).getDevice());
+                if (onItemClickListener != null) {
+                    onItemClickListener.onItemClick(devices.get(getBindingAdapterPosition()).getDevice());
                 }
             });
         }
