@@ -27,16 +27,16 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 public class DeviceStatusFragment extends Fragment implements Injectable {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
 
-    private FragmentCardDeviceStatusBinding mBinding;
+    private FragmentCardDeviceStatusBinding binding;
 
-    private DeviceStatusViewModel mViewModel;
+    private DeviceStatusViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(DeviceStatusViewModel.class);
     }
 
@@ -45,59 +45,59 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardDeviceStatusBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
+        binding = FragmentCardDeviceStatusBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mViewModel.getConnectionState().observe(getViewLifecycleOwner(), state -> {
+        viewModel.getConnectionState().observe(getViewLifecycleOwner(), state -> {
             switch (state) {
                 case CONNECTING:
-                    mBinding.connectionStatus.setText(R.string.status_connecting);
+                    binding.connectionStatus.setText(R.string.status_connecting);
                     break;
                 case INITIALIZING:
-                    mBinding.connectionStatus.setText(R.string.status_initializing);
+                    binding.connectionStatus.setText(R.string.status_initializing);
                     break;
                 case READY:
-                    mBinding.connectionStatus.setText(R.string.status_connected);
+                    binding.connectionStatus.setText(R.string.status_connected);
                     break;
                 case DISCONNECTING:
-                    mBinding.connectionStatus.setText(R.string.status_disconnecting);
+                    binding.connectionStatus.setText(R.string.status_disconnecting);
                     break;
                 case DISCONNECTED:
-                    mBinding.connectionStatus.setText(R.string.status_disconnected);
+                    binding.connectionStatus.setText(R.string.status_disconnected);
                     break;
                 case TIMEOUT:
-                    mBinding.connectionStatus.setText(R.string.status_connection_timeout);
+                    binding.connectionStatus.setText(R.string.status_connection_timeout);
                     break;
                 case NOT_SUPPORTED:
-                    mBinding.connectionStatus.setText(R.string.status_not_supported);
+                    binding.connectionStatus.setText(R.string.status_not_supported);
                     break;
             }
         });
-        mViewModel.getBondState().observe(getViewLifecycleOwner(), state -> {
+        viewModel.getBondState().observe(getViewLifecycleOwner(), state -> {
             switch (state) {
                 case NOT_BONDED:
-                    mBinding.bondingStatus.setText(R.string.status_not_bonded);
+                    binding.bondingStatus.setText(R.string.status_not_bonded);
                     break;
                 case BONDING:
-                    mBinding.bondingStatus.setText(R.string.status_bonding);
+                    binding.bondingStatus.setText(R.string.status_bonding);
                     break;
                 case BONDED:
-                    mBinding.bondingStatus.setText(R.string.status_bonded);
+                    binding.bondingStatus.setText(R.string.status_bonded);
                     break;
             }
         });
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
-                mBinding.workIndicator.setVisibility(busy ? View.VISIBLE : View.GONE));
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
+                binding.workIndicator.setVisibility(busy ? View.VISIBLE : View.GONE));
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 }

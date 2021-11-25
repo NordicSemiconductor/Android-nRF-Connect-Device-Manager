@@ -24,15 +24,15 @@ public class FsUtils {
     private static final String PREFS_PARTITION = "partition";
     private static final String PARTITION_DEFAULT = "lfs";
 
-    private final SharedPreferences mPreferences;
-    private final MutableLiveData<String> mPartitionLiveData = new MutableLiveData<>();
-    private final Set<String> mRecents;
+    private final SharedPreferences preferences;
+    private final MutableLiveData<String> partitionLiveData = new MutableLiveData<>();
+    private final Set<String> recents;
 
     public FsUtils(@NonNull final SharedPreferences preferences) {
-        mPreferences = preferences;
-        mPartitionLiveData.setValue(getPartitionString());
+        this.preferences = preferences;
+        this.partitionLiveData.setValue(getPartitionString());
 
-        mRecents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
+        this. recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
     }
 
     /**
@@ -42,7 +42,7 @@ public class FsUtils {
      */
     @NonNull
     public LiveData<String> getPartition() {
-        return mPartitionLiveData;
+        return partitionLiveData;
     }
 
     /**
@@ -62,7 +62,7 @@ public class FsUtils {
      */
     @NonNull
     public String getPartitionString() {
-        return mPreferences.getString(PREFS_PARTITION, PARTITION_DEFAULT);
+        return preferences.getString(PREFS_PARTITION, PARTITION_DEFAULT);
     }
 
     /**
@@ -71,8 +71,8 @@ public class FsUtils {
      * @param partition The new partition name.
      */
     public void setPartition(@NonNull final String partition) {
-        mPreferences.edit().putString(PREFS_PARTITION, partition).apply();
-        mPartitionLiveData.postValue(partition);
+        preferences.edit().putString(PREFS_PARTITION, partition).apply();
+        partitionLiveData.postValue(partition);
     }
 
     /**
@@ -81,8 +81,8 @@ public class FsUtils {
      * @param fileName the file name.
      */
     public void addRecent(@NonNull final String fileName) {
-        mRecents.add(fileName);
-        mPreferences.edit().putStringSet(PREFS_RECENTS, mRecents).apply();
+        recents.add(fileName);
+        preferences.edit().putStringSet(PREFS_RECENTS, recents).apply();
     }
 
     /**
@@ -91,7 +91,7 @@ public class FsUtils {
      * @return A set of file names added using {@link #addRecent(String)}.
      */
     public Set<String> getRecents() {
-        return mRecents;
+        return recents;
     }
 
     /**

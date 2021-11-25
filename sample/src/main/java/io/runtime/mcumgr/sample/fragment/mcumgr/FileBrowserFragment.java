@@ -40,21 +40,21 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     private static final String SIS_DATA = "data";
     private static final String SIS_URI = "uri";
 
-    private byte[] mFileContent;
-    private Uri mFileUri;
+    private byte[] fileContent;
+    private Uri fileUri;
 
-    private ActivityResultLauncher<String> mFileBrowserLauncher;
+    private ActivityResultLauncher<String> fileBrowserLauncher;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            mFileContent = savedInstanceState.getByteArray(SIS_DATA);
-            mFileUri = savedInstanceState.getParcelable(SIS_URI);
+            fileContent = savedInstanceState.getByteArray(SIS_DATA);
+            fileUri = savedInstanceState.getParcelable(SIS_URI);
         }
 
-        mFileBrowserLauncher = registerForActivityResult(
+        fileBrowserLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri == null)
@@ -75,8 +75,8 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putByteArray(SIS_DATA, mFileContent);
-        outState.putParcelable(SIS_URI, mFileUri);
+        outState.putByteArray(SIS_DATA, fileContent);
+        outState.putParcelable(SIS_URI, fileUri);
     }
 
     /**
@@ -86,11 +86,11 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      */
     @Nullable
     byte[] getFileContent() {
-        return mFileContent;
+        return fileContent;
     }
 
     void setFileContent(@NonNull final byte[] data) {
-        mFileContent = data;
+        fileContent = data;
         onFileLoaded(data);
     }
 
@@ -98,7 +98,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      * Releases the reference to the file content and calls {@link #onFileCleared()}.
      */
     void clearFileContent() {
-        mFileContent = null;
+        fileContent = null;
         onFileCleared();
     }
 
@@ -108,7 +108,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      * @return True if the file has been selected, false otherwise.
      */
     boolean isFileLoaded() {
-        return mFileContent != null;
+        return fileContent != null;
     }
 
     /**
@@ -211,7 +211,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      * @param mimeType required MIME TYPE of a file.
      */
     void selectFile(@Nullable final String mimeType) {
-        mFileBrowserLauncher.launch(mimeType);
+        fileBrowserLauncher.launch(mimeType);
     }
 
     /**
@@ -239,7 +239,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
             } finally {
                 buf.close();
             }
-            mFileContent = bytes;
+            fileContent = bytes;
             onFileLoaded(bytes);
         } catch (final IOException e) {
             Timber.e(e, "Reading file content failed");

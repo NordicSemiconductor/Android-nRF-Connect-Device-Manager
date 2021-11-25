@@ -35,18 +35,18 @@ public class MainActivity extends AppCompatActivity
     public static final String EXTRA_DEVICE = "device";
 
     @Inject
-    DispatchingAndroidInjector<Object> mDispatchingAndroidInjector;
+    DispatchingAndroidInjector<Object> dispatchingAndroidInjector;
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
 
-    private Fragment mDeviceFragment;
-    private Fragment mImageFragment;
-    private Fragment mFilesFragment;
-    private Fragment mLogsStatsFragment;
+    private Fragment deviceFragment;
+    private Fragment imageFragment;
+    private Fragment filesFragment;
+    private Fragment logsStatsFragment;
 
     @Override
     public AndroidInjector<Object> androidInjector() {
-        return mDispatchingAndroidInjector;
+        return dispatchingAndroidInjector;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity
         final String deviceName = device.getName();
         final String deviceAddress = device.getAddress();
 
-        new ViewModelProvider(this, mViewModelFactory)
+        new ViewModelProvider(this, viewModelFactory)
                 .get(MainViewModel.class);
 
         // Configure the view.
@@ -74,26 +74,26 @@ public class MainActivity extends AppCompatActivity
             switch (item.getItemId()) {
                 case R.id.nav_default:
                     getSupportFragmentManager().beginTransaction()
-                            .show(mDeviceFragment).hide(mImageFragment)
-                            .hide(mFilesFragment).hide(mLogsStatsFragment)
+                            .show(deviceFragment).hide(imageFragment)
+                            .hide(filesFragment).hide(logsStatsFragment)
                             .commit();
                     return true;
                 case R.id.nav_dfu:
                     getSupportFragmentManager().beginTransaction()
-                            .hide(mDeviceFragment).show(mImageFragment)
-                            .hide(mFilesFragment).hide(mLogsStatsFragment)
+                            .hide(deviceFragment).show(imageFragment)
+                            .hide(filesFragment).hide(logsStatsFragment)
                             .commit();
                     return true;
                 case R.id.nav_fs:
                     getSupportFragmentManager().beginTransaction()
-                            .hide(mDeviceFragment).hide(mImageFragment)
-                            .show(mFilesFragment).hide(mLogsStatsFragment)
+                            .hide(deviceFragment).hide(imageFragment)
+                            .show(filesFragment).hide(logsStatsFragment)
                             .commit();
                     return true;
                 case R.id.nav_stats:
                     getSupportFragmentManager().beginTransaction()
-                            .hide(mDeviceFragment).hide(mImageFragment)
-                            .hide(mFilesFragment).show(mLogsStatsFragment)
+                            .hide(deviceFragment).hide(imageFragment)
+                            .hide(filesFragment).show(logsStatsFragment)
                             .commit();
                     return true;
             }
@@ -102,24 +102,24 @@ public class MainActivity extends AppCompatActivity
 
         // Initialize fragments.
         if (savedInstanceState == null) {
-            mDeviceFragment = new DeviceFragment();
-            mImageFragment = new ImageFragment();
-            mFilesFragment = new FilesFragment();
-            mLogsStatsFragment = new LogsStatsFragment();
+            deviceFragment = new DeviceFragment();
+            imageFragment = new ImageFragment();
+            filesFragment = new FilesFragment();
+            logsStatsFragment = new LogsStatsFragment();
 
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, mDeviceFragment, "device")
-                    .add(R.id.container, mImageFragment, "image")
-                    .add(R.id.container, mFilesFragment, "fs")
-                    .add(R.id.container, mLogsStatsFragment, "logs")
+                    .add(R.id.container, deviceFragment, "device")
+                    .add(R.id.container, imageFragment, "image")
+                    .add(R.id.container, filesFragment, "fs")
+                    .add(R.id.container, logsStatsFragment, "logs")
                     // Initially, show the Device fragment and hide others.
-                    .hide(mImageFragment).hide(mFilesFragment).hide(mLogsStatsFragment)
+                    .hide(imageFragment).hide(filesFragment).hide(logsStatsFragment)
                     .commit();
         } else {
-            mDeviceFragment = getSupportFragmentManager().findFragmentByTag("device");
-            mImageFragment = getSupportFragmentManager().findFragmentByTag("image");
-            mFilesFragment = getSupportFragmentManager().findFragmentByTag("fs");
-            mLogsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
+            deviceFragment = getSupportFragmentManager().findFragmentByTag("device");
+            imageFragment = getSupportFragmentManager().findFragmentByTag("image");
+            filesFragment = getSupportFragmentManager().findFragmentByTag("fs");
+            logsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
         }
     }
 }

@@ -18,8 +18,8 @@ import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import no.nordicsemi.android.ble.observer.BondingObserver;
 
 public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
-    private final MutableLiveData<ConnectionState> mConnectionState;
-    private final MutableLiveData<BondingState> mBondingState;
+    private final MutableLiveData<ConnectionState> connectionState;
+    private final MutableLiveData<BondingState> bondingState;
 
     /**
      * Construct a McuMgrBleTransport object.
@@ -33,62 +33,62 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                                         @NonNull final Handler handler) {
         super(context, device, handler);
 
-        mConnectionState = new MutableLiveData<>(ConnectionState.of(context, device));
+        connectionState = new MutableLiveData<>(ConnectionState.of(context, device));
         setConnectionObserver(new no.nordicsemi.android.ble.observer.ConnectionObserver() {
             @Override
             public void onDeviceConnecting(@NonNull final BluetoothDevice device) {
-                mConnectionState.postValue(ConnectionState.CONNECTING);
+                connectionState.postValue(ConnectionState.CONNECTING);
             }
 
             @Override
             public void onDeviceConnected(@NonNull final BluetoothDevice device) {
-                mConnectionState.postValue(ConnectionState.INITIALIZING);
+                connectionState.postValue(ConnectionState.INITIALIZING);
             }
 
             @Override
             public void onDeviceFailedToConnect(@NonNull final BluetoothDevice device, final int reason) {
                 if (reason == no.nordicsemi.android.ble.observer.ConnectionObserver.REASON_TIMEOUT) {
-                    mConnectionState.postValue(ConnectionState.TIMEOUT);
+                    connectionState.postValue(ConnectionState.TIMEOUT);
                 } else {
-                    mConnectionState.postValue(ConnectionState.DISCONNECTED);
+                    connectionState.postValue(ConnectionState.DISCONNECTED);
                 }
             }
 
             @Override
             public void onDeviceReady(@NonNull final BluetoothDevice device) {
-                mConnectionState.postValue(ConnectionState.READY);
+                connectionState.postValue(ConnectionState.READY);
             }
 
             @Override
             public void onDeviceDisconnecting(@NonNull final BluetoothDevice device) {
-                mConnectionState.postValue(ConnectionState.DISCONNECTING);
+                connectionState.postValue(ConnectionState.DISCONNECTING);
             }
 
             @Override
             public void onDeviceDisconnected(@NonNull final BluetoothDevice device, final int reason) {
                 if (reason == no.nordicsemi.android.ble.observer.ConnectionObserver.REASON_NOT_SUPPORTED) {
-                    mConnectionState.postValue(ConnectionState.NOT_SUPPORTED);
+                    connectionState.postValue(ConnectionState.NOT_SUPPORTED);
                 } else {
-                    mConnectionState.postValue(ConnectionState.DISCONNECTED);
+                    connectionState.postValue(ConnectionState.DISCONNECTED);
                 }
             }
         });
 
-        mBondingState = new MutableLiveData<>(BondingState.of(device));
+        bondingState = new MutableLiveData<>(BondingState.of(device));
         setBondingObserver(new BondingObserver() {
             @Override
             public void onBondingRequired(@NonNull final BluetoothDevice device) {
-                mBondingState.postValue(BondingState.BONDING);
+                bondingState.postValue(BondingState.BONDING);
             }
 
             @Override
             public void onBonded(@NonNull final BluetoothDevice device) {
-                mBondingState.postValue(BondingState.BONDED);
+                bondingState.postValue(BondingState.BONDED);
             }
 
             @Override
             public void onBondingFailed(@NonNull final BluetoothDevice device) {
-                mBondingState.postValue(BondingState.NOT_BONDED);
+                bondingState.postValue(BondingState.NOT_BONDED);
             }
         });
         setLoggingEnabled(true);
@@ -96,11 +96,11 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
 
     @Nullable
     public LiveData<ConnectionState> getState() {
-        return mConnectionState;
+        return connectionState;
     }
 
     @Nullable
     public LiveData<BondingState> getBondingState() {
-        return mBondingState;
+        return bondingState;
     }
 }

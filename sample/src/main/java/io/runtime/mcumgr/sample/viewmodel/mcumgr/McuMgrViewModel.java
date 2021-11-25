@@ -15,31 +15,31 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class McuMgrViewModel extends ViewModel {
-    private final MutableLiveData<Boolean> mBusyStateLiveData;
+    private final MutableLiveData<Boolean> busyStateLiveData;
 
     @Inject
     McuMgrViewModel(@Named("busy") final MutableLiveData<Boolean> state) {
-        mBusyStateLiveData = state;
+        busyStateLiveData = state;
     }
 
     @NonNull
     public LiveData<Boolean> getBusyState() {
-        return mBusyStateLiveData;
+        return busyStateLiveData;
     }
 
     void setBusy() {
-        mBusyStateLiveData.setValue(true);
+        busyStateLiveData.setValue(true);
     }
 
     void postBusy() {
-        mBusyStateLiveData.postValue(true);
+        busyStateLiveData.postValue(true);
     }
 
     void setReady() {
-        mBusyStateLiveData.setValue(false);
+        busyStateLiveData.setValue(false);
     }
 
     void postReady() {
-        mBusyStateLiveData.postValue(false);
+        busyStateLiveData.postValue(false);
     }
 }

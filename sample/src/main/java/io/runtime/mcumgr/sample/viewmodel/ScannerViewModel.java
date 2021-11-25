@@ -34,34 +34,34 @@ public class ScannerViewModel extends AndroidViewModel {
     private static final String PREFS_FILTER_NEARBY_ONLY = "filter_nearby";
 
     /** MutableLiveData containing the list of devices. */
-    private final DevicesLiveData mDevicesLiveData;
+    private final DevicesLiveData devicesLiveData;
     /** MutableLiveData containing the scanner state. */
-    private final ScannerStateLiveData mScannerStateLiveData;
+    private final ScannerStateLiveData scannerStateLiveData;
 
-    private final SharedPreferences mPreferences;
+    private final SharedPreferences preferences;
 
     public DevicesLiveData getDevices() {
-        return mDevicesLiveData;
+        return devicesLiveData;
     }
 
     public ScannerStateLiveData getScannerState() {
-        return mScannerStateLiveData;
+        return scannerStateLiveData;
     }
 
     @Inject
     public ScannerViewModel(@NonNull final Application application,
                             @NonNull final SharedPreferences preferences) {
         super(application);
-        mPreferences = preferences;
+        this.preferences = preferences;
 
         final boolean filterUuidRequired = isUuidFilterEnabled();
         final boolean filerNearbyOnly = isNearbyFilterEnabled();
 
-        mScannerStateLiveData = new ScannerStateLiveData(
+        scannerStateLiveData = new ScannerStateLiveData(
                 Utils.isBleEnabled(),
                 Utils.isLocationEnabled(application)
         );
-        mDevicesLiveData = new DevicesLiveData(filterUuidRequired, filerNearbyOnly);
+        devicesLiveData = new DevicesLiveData(filterUuidRequired, filerNearbyOnly);
         registerBroadcastReceivers(application);
     }
 
@@ -72,11 +72,11 @@ public class ScannerViewModel extends AndroidViewModel {
     }
 
     public boolean isUuidFilterEnabled() {
-        return mPreferences.getBoolean(PREFS_FILTER_UUID_REQUIRED, true);
+        return preferences.getBoolean(PREFS_FILTER_UUID_REQUIRED, true);
     }
 
     public boolean isNearbyFilterEnabled() {
-        return mPreferences.getBoolean(PREFS_FILTER_NEARBY_ONLY, false);
+        return preferences.getBoolean(PREFS_FILTER_NEARBY_ONLY, false);
     }
 
     /**
@@ -85,15 +85,15 @@ public class ScannerViewModel extends AndroidViewModel {
      * {@link io.runtime.mcumgr.sample.ScannerActivity} will try to start scanning.
      */
     public void refresh() {
-        mScannerStateLiveData.refresh();
+        scannerStateLiveData.refresh();
     }
 
     /**
      * Forgets discovered devices.
      */
     public void clear() {
-        mDevicesLiveData.clear();
-        mScannerStateLiveData.clearRecords();
+        devicesLiveData.clear();
+        scannerStateLiveData.clearRecords();
     }
 
     /**
@@ -105,11 +105,11 @@ public class ScannerViewModel extends AndroidViewModel {
      *                     in the advertising packet.
      */
     public void filterByUuid(final boolean uuidRequired) {
-        mPreferences.edit().putBoolean(PREFS_FILTER_UUID_REQUIRED, uuidRequired).apply();
-        if (mDevicesLiveData.filterByUuid(uuidRequired))
-            mScannerStateLiveData.recordFound();
+        preferences.edit().putBoolean(PREFS_FILTER_UUID_REQUIRED, uuidRequired).apply();
+        if (devicesLiveData.filterByUuid(uuidRequired))
+            scannerStateLiveData.recordFound();
         else
-            mScannerStateLiveData.clearRecords();
+            scannerStateLiveData.clearRecords();
     }
 
     /**
@@ -120,18 +120,18 @@ public class ScannerViewModel extends AndroidViewModel {
      * @param nearbyOnly if true, the list will show only devices with high RSSI.
      */
     public void filterByDistance(final boolean nearbyOnly) {
-        mPreferences.edit().putBoolean(PREFS_FILTER_NEARBY_ONLY, nearbyOnly).apply();
-        if (mDevicesLiveData.filterByDistance(nearbyOnly))
-            mScannerStateLiveData.recordFound();
+        preferences.edit().putBoolean(PREFS_FILTER_NEARBY_ONLY, nearbyOnly).apply();
+        if (devicesLiveData.filterByDistance(nearbyOnly))
+            scannerStateLiveData.recordFound();
         else
-            mScannerStateLiveData.clearRecords();
+            scannerStateLiveData.clearRecords();
     }
 
     /**
      * Start scanning for Bluetooth LE devices.
      */
     public void startScan() {
-        if (mScannerStateLiveData.isScanning()) {
+        if (scannerStateLiveData.isScanning()) {
             return;
         }
 
@@ -145,7 +145,7 @@ public class ScannerViewModel extends AndroidViewModel {
 
         final BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
         scanner.startScan(null, settings, scanCallback);
-        mScannerStateLiveData.scanningStarted();
+        scannerStateLiveData.scanningStarted();
     }
 
     /**
@@ -154,7 +154,7 @@ public class ScannerViewModel extends AndroidViewModel {
     public void stopScan() {
         final BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
         scanner.stopScan(scanCallback);
-        mScannerStateLiveData.scanningStopped();
+        scannerStateLiveData.scanningStopped();
     }
 
     private final ScanCallback scanCallback = new ScanCallback() {
@@ -166,9 +166,9 @@ public class ScannerViewModel extends AndroidViewModel {
             if (Utils.isLocationRequired(getApplication()) && !Utils.isLocationEnabled(getApplication()))
                 Utils.markLocationNotRequired(getApplication());
 
-            if (!isNoise(result) && mDevicesLiveData.deviceDiscovered(result)) {
-                mDevicesLiveData.applyFilter();
-                mScannerStateLiveData.recordFound();
+            if (!isNoise(result) && devicesLiveData.deviceDiscovered(result)) {
+                devicesLiveData.applyFilter();
+                scannerStateLiveData.recordFound();
             }
         }
 
@@ -185,11 +185,11 @@ public class ScannerViewModel extends AndroidViewModel {
             boolean atLeastOneMatchedFilter = false;
             for (final ScanResult result : results)
                 atLeastOneMatchedFilter =
-                        (!isNoise(result) && mDevicesLiveData.deviceDiscovered(result))
+                        (!isNoise(result) && devicesLiveData.deviceDiscovered(result))
                                 || atLeastOneMatchedFilter;
             if (atLeastOneMatchedFilter) {
-                mDevicesLiveData.applyFilter();
-                mScannerStateLiveData.recordFound();
+                devicesLiveData.applyFilter();
+                scannerStateLiveData.recordFound();
             }
         }
 
@@ -208,9 +208,9 @@ public class ScannerViewModel extends AndroidViewModel {
      * Register for required broadcast receivers.
      */
     private void registerBroadcastReceivers(@NonNull final Application application) {
-        application.registerReceiver(mBluetoothStateBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        application.registerReceiver(bluetoothStateBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
         if (Utils.isMarshmallowOrAbove()) {
-            application.registerReceiver(mLocationProviderChangedReceiver, new IntentFilter(LocationManager.MODE_CHANGED_ACTION));
+            application.registerReceiver(locationProviderChangedReceiver, new IntentFilter(LocationManager.MODE_CHANGED_ACTION));
         }
     }
 
@@ -218,28 +218,28 @@ public class ScannerViewModel extends AndroidViewModel {
      * Unregister all broadcast receivers.
      */
     private void unregisterBroadcastReceivers(@NonNull final Context context) {
-        context.unregisterReceiver(mBluetoothStateBroadcastReceiver);
+        context.unregisterReceiver(bluetoothStateBroadcastReceiver);
 
         if (Utils.isMarshmallowOrAbove()) {
-            context.unregisterReceiver(mBluetoothStateBroadcastReceiver);
+            context.unregisterReceiver(bluetoothStateBroadcastReceiver);
         }
     }
 
     /**
      * Broadcast receiver to monitor the changes in the location provider
      */
-    private final BroadcastReceiver mLocationProviderChangedReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver locationProviderChangedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             final boolean enabled = Utils.isLocationEnabled(context);
-            mScannerStateLiveData.setLocationEnabled(enabled);
+            scannerStateLiveData.setLocationEnabled(enabled);
         }
     };
 
     /**
      * Broadcast receiver to monitor the changes in the bluetooth adapter
      */
-    private final BroadcastReceiver mBluetoothStateBroadcastReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver bluetoothStateBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
@@ -247,14 +247,14 @@ public class ScannerViewModel extends AndroidViewModel {
 
             switch (state) {
                 case BluetoothAdapter.STATE_ON:
-                    mScannerStateLiveData.bluetoothEnabled();
+                    scannerStateLiveData.bluetoothEnabled();
                     break;
                 case BluetoothAdapter.STATE_TURNING_OFF:
                 case BluetoothAdapter.STATE_OFF:
                     if (previousState != BluetoothAdapter.STATE_TURNING_OFF && previousState != BluetoothAdapter.STATE_OFF) {
                         stopScan();
-                        mDevicesLiveData.bluetoothDisabled();
-                        mScannerStateLiveData.bluetoothDisabled();
+                        devicesLiveData.bluetoothDisabled();
+                        scannerStateLiveData.bluetoothDisabled();
                     }
                     break;
             }

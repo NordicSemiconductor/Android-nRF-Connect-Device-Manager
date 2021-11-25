@@ -18,8 +18,8 @@ import io.runtime.mcumgr.sample.observable.ConnectionState;
 import io.runtime.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 
 public class DeviceStatusViewModel extends McuMgrViewModel {
-    private final LiveData<ConnectionState> mConnectionStateLiveData;
-    private final LiveData<BondingState> mBondStateLiveData;
+    private final LiveData<ConnectionState> connectionStateLiveData;
+    private final LiveData<BondingState> bondStateLiveData;
 
     @Inject
     DeviceStatusViewModel(final McuMgrTransport transport,
@@ -27,32 +27,32 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
         super(state);
 
         if (transport instanceof ObservableMcuMgrBleTransport) {
-            mConnectionStateLiveData = ((ObservableMcuMgrBleTransport) transport).getState();
-            mBondStateLiveData = ((ObservableMcuMgrBleTransport) transport).getBondingState();
+            connectionStateLiveData = ((ObservableMcuMgrBleTransport) transport).getState();
+            bondStateLiveData = ((ObservableMcuMgrBleTransport) transport).getBondingState();
         } else {
-            final MutableLiveData<ConnectionState> connectionStateLiveData = new MutableLiveData<>();
+            final MutableLiveData<ConnectionState> liveData = new MutableLiveData<>();
             transport.addObserver(new McuMgrTransport.ConnectionObserver() {
                 @Override
                 public void onConnected() {
-                    connectionStateLiveData.postValue(ConnectionState.READY);
+                    liveData.postValue(ConnectionState.READY);
                 }
 
                 @Override
                 public void onDisconnected() {
-                    connectionStateLiveData.postValue(ConnectionState.DISCONNECTED);
+                    liveData.postValue(ConnectionState.DISCONNECTED);
                 }
             });
-            mConnectionStateLiveData = connectionStateLiveData;
-            mBondStateLiveData = new MutableLiveData<>(BondingState.NOT_BONDED);
+            connectionStateLiveData = liveData;
+            bondStateLiveData = new MutableLiveData<>(BondingState.NOT_BONDED);
         }
     }
 
     public LiveData<ConnectionState> getConnectionState() {
-        return mConnectionStateLiveData;
+        return connectionStateLiveData;
     }
 
     public LiveData<BondingState> getBondState() {
-        return mBondStateLiveData;
+        return bondStateLiveData;
     }
 
 }

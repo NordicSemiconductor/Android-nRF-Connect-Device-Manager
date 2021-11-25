@@ -26,16 +26,16 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
 public class ResetFragment extends Fragment implements Injectable {
 
     @Inject
-    McuMgrViewModelFactory mViewModelFactory;
+    McuMgrViewModelFactory viewModelFactory;
     
-    private FragmentCardResetBinding mBinding;
+    private FragmentCardResetBinding binding;
 
-    private ResetViewModel mViewModel;
+    private ResetViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this, mViewModelFactory)
+        viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(ResetViewModel.class);
     }
 
@@ -44,22 +44,22 @@ public class ResetFragment extends Fragment implements Injectable {
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
-        mBinding = FragmentCardResetBinding.inflate(inflater, container, false);
-        return mBinding.getRoot();
+        binding = FragmentCardResetBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mViewModel.getError().observe(getViewLifecycleOwner(), s -> mBinding.resetError.setText(s));
-        mViewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> mBinding.actionReset.setEnabled(!busy));
-        mBinding.actionReset.setOnClickListener(v -> mViewModel.reset());
+        viewModel.getError().observe(getViewLifecycleOwner(), s -> binding.resetError.setText(s));
+        viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> binding.actionReset.setEnabled(!busy));
+        binding.actionReset.setOnClickListener(v -> viewModel.reset());
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mBinding = null;
+        binding = null;
     }
 }

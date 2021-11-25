@@ -22,48 +22,48 @@ import io.runtime.mcumgr.response.stat.McuMgrStatListResponse;
 import io.runtime.mcumgr.response.stat.McuMgrStatResponse;
 
 public class StatsViewModel extends McuMgrViewModel {
-    private final StatsManager mManager;
+    private final StatsManager manager;
 
-    private final MutableLiveData<List<McuMgrStatResponse>> mResponseLiveData = new MutableLiveData<>();
-    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<McuMgrStatResponse>> responseLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> errorLiveData = new MutableLiveData<>();
 
     @Inject
     StatsViewModel(final StatsManager manager,
                    @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
+        this.manager = manager;
     }
 
     public LiveData<List<McuMgrStatResponse>> getResponse() {
-        return mResponseLiveData;
+        return responseLiveData;
     }
 
     @NonNull
     public LiveData<McuMgrException> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     public void readStats() {
         setBusy();
-        mErrorLiveData.setValue(null);
-        mManager.list(new McuMgrCallback<McuMgrStatListResponse>() {
+        errorLiveData.setValue(null);
+        manager.list(new McuMgrCallback<McuMgrStatListResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrStatListResponse listResponse) {
                 final List<McuMgrStatResponse> list = new ArrayList<>(listResponse.stat_list.length);
 
                 // Request stats for each module
                 for (final String module : listResponse.stat_list) {
-                    mManager.read(module, new McuMgrCallback<McuMgrStatResponse>() {
+                    manager.read(module, new McuMgrCallback<McuMgrStatResponse>() {
                         @Override
                         public void onResponse(@NonNull final McuMgrStatResponse response) {
                             list.add(response);
-                            mResponseLiveData.postValue(list);
+                            responseLiveData.postValue(list);
                             postReady();
                         }
 
                         @Override
                         public void onError(@NonNull final McuMgrException error) {
-                            mErrorLiveData.postValue(error);
+                            errorLiveData.postValue(error);
                             postReady();
                         }
                     });
@@ -72,7 +72,7 @@ public class StatsViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady();
             }
         });

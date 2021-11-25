@@ -20,7 +20,7 @@ import io.runtime.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment;
 public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
     private static final String SIS_ITEM = "item";
 
-    private int mSelectedItem;
+    private int selectedItem;
 
     public static DialogFragment getInstance() {
         return new FirmwareUpgradeModeDialogFragment();
@@ -31,15 +31,15 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         if (savedInstanceState != null) {
-            mSelectedItem = savedInstanceState.getInt(SIS_ITEM);
+            selectedItem = savedInstanceState.getInt(SIS_ITEM);
         } else {
-            mSelectedItem = 0;
+            selectedItem = 0;
         }
 
         return new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.image_upgrade_mode)
-                .setSingleChoiceItems(R.array.image_upgrade_options, mSelectedItem,
-                        (dialog, which) -> mSelectedItem = which)
+                .setSingleChoiceItems(R.array.image_upgrade_options, selectedItem,
+                        (dialog, which) -> selectedItem = which)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.image_upgrade_action_start, (dialog, which) -> {
                     final ImageUpgradeFragment parent = (ImageUpgradeFragment) getParentFragment();
@@ -51,11 +51,11 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(SIS_ITEM, mSelectedItem);
+        outState.putInt(SIS_ITEM, selectedItem);
     }
 
     private FirmwareUpgradeManager.Mode getMode() {
-        switch (mSelectedItem) {
+        switch (selectedItem) {
             case 2:
                 return FirmwareUpgradeManager.Mode.CONFIRM_ONLY;
             case 1:

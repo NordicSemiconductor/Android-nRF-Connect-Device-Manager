@@ -18,35 +18,35 @@ import io.runtime.mcumgr.managers.BasicManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class ImageSettingsViewModel extends McuMgrViewModel {
-    private final BasicManager mManager;
+    private final BasicManager manager;
 
-    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> errorLiveData = new MutableLiveData<>();
 
     @Inject
 	ImageSettingsViewModel(final BasicManager manager,
 						   @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
+        this.manager = manager;
     }
 
     @NonNull
     public LiveData<McuMgrException> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     public void eraseSettings() {
         setBusy();
-        mErrorLiveData.setValue(null);
-        mManager.eraseStorage(new McuMgrCallback<McuMgrResponse>() {
+        errorLiveData.setValue(null);
+        manager.eraseStorage(new McuMgrCallback<McuMgrResponse>() {
             @Override
             public void onResponse(@NonNull final McuMgrResponse response) {
-                mErrorLiveData.postValue(null);
+                errorLiveData.postValue(null);
                 postReady();
             }
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                mErrorLiveData.postValue(error);
+                errorLiveData.postValue(error);
                 postReady();
             }
         });

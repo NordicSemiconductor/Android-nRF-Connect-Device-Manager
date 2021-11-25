@@ -23,55 +23,55 @@ import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
 @SuppressWarnings("unused")
 public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadCallback {
-    private final FsManager mManager;
-    private TransferController mController;
+    private final FsManager manager;
+    private TransferController controller;
 
-    private final MutableLiveData<Integer> mProgressLiveData = new MutableLiveData<>();
-    private final MutableLiveData<byte[]> mResponseLiveData = new MutableLiveData<>();
-    private final MutableLiveData<McuMgrException> mErrorLiveData = new MutableLiveData<>();
-    private final SingleLiveEvent<Void> mCancelledEvent = new SingleLiveEvent<>();
+    private final MutableLiveData<Integer> progressLiveData = new MutableLiveData<>();
+    private final MutableLiveData<byte[]> responseLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> errorLiveData = new MutableLiveData<>();
+    private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
 
     @Inject
     FilesDownloadViewModel(final FsManager manager,
                            @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        mManager = manager;
+        this.manager = manager;
     }
 
     @NonNull
     public LiveData<Integer> getProgress() {
-        return mProgressLiveData;
+        return progressLiveData;
     }
 
     @NonNull
     public LiveData<byte[]> getResponse() {
-        return mResponseLiveData;
+        return responseLiveData;
     }
 
     @NonNull
     public LiveData<McuMgrException> getError() {
-        return mErrorLiveData;
+        return errorLiveData;
     }
 
     @NonNull
     public LiveData<Void> getCancelledEvent() {
-        return mCancelledEvent;
+        return cancelledEvent;
     }
 
     public void download(final String path) {
-        if (mController != null) {
+        if (controller != null) {
             return;
         }
         setBusy();
-        final McuMgrTransport transport = mManager.getTransporter();
+        final McuMgrTransport transport = manager.getTransporter();
         if (transport instanceof McuMgrBleTransport) {
             ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
-        mController = mManager.fileDownload(path, this);
+        controller = manager.fileDownload(path, this);
     }
 
     public void pause() {
-        final TransferController controller = mController;
+        final TransferController controller = this.controller;
         if (controller != null) {
             controller.pause();
             setReady();
@@ -79,7 +79,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     }
 
     public void resume() {
-        final TransferController controller = mController;
+        final TransferController controller = this.controller;
         if (controller != null) {
             setBusy();
             controller.resume();
@@ -87,7 +87,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     }
 
     public void cancel() {
-        final TransferController controller = mController;
+        final TransferController controller = this.controller;
         if (controller != null) {
             controller.cancel();
         }
@@ -96,30 +96,30 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
     @Override
     public void onDownloadProgressChanged(final int current, final int total, final long timestamp) {
         // Convert to percent
-        mProgressLiveData.postValue((int) (current * 100.f / total));
+        progressLiveData.postValue((int) (current * 100.f / total));
     }
 
     @Override
     public void onDownloadFailed(@NonNull final McuMgrException error) {
-        mController = null;
-        mProgressLiveData.postValue(0);
-        mErrorLiveData.postValue(error);
+        controller = null;
+        progressLiveData.postValue(0);
+        errorLiveData.postValue(error);
         postReady();
     }
 
     @Override
     public void onDownloadCanceled() {
-        mController = null;
-        mProgressLiveData.postValue(0);
-        mCancelledEvent.post();
+        controller = null;
+        progressLiveData.postValue(0);
+        cancelledEvent.post();
         postReady();
     }
 
     @Override
     public void onDownloadCompleted(@NonNull final byte[] data) {
-        mController = null;
-        mProgressLiveData.postValue(0);
-        mResponseLiveData.postValue(data);
+        controller = null;
+        progressLiveData.postValue(0);
+        responseLiveData.postValue(data);
         postReady();
     }
 }
