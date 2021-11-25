@@ -11,10 +11,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 
-import javax.inject.Named;
-
 import androidx.annotation.NonNull;
-import androidx.lifecycle.MutableLiveData;
 import dagger.Module;
 import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
@@ -23,14 +20,6 @@ import io.runtime.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 
 @Module
 public class McuMgrTransportModule {
-
-    @Provides
-    @Named("busy")
-    @McuMgrScope
-    @NonNull
-    static MutableLiveData<Boolean> provideBusyStateLiveData() {
-        return new MutableLiveData<>();
-    }
 
     @Provides
     @McuMgrScope
