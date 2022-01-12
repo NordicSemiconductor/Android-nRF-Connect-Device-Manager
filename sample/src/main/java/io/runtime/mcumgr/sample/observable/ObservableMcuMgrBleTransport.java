@@ -21,6 +21,13 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     private final MutableLiveData<ConnectionState> connectionState;
     private final MutableLiveData<BondingState> bondingState;
 
+    @Nullable
+    private OnReleaseCallback onReleaseCallback;
+
+    public interface OnReleaseCallback {
+        void onReleased();
+    }
+
     /**
      * Construct a McuMgrBleTransport object.
      *
@@ -92,6 +99,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
             }
         });
         setLoggingEnabled(true);
+        setDeviceSidePacketMergingSupported(3 * 498);
     }
 
     @Nullable
@@ -102,5 +110,28 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     @Nullable
     public LiveData<BondingState> getBondingState() {
         return bondingState;
+    }
+
+    public void setOnReleasedCallback(@Nullable final OnReleaseCallback callback) {
+        onReleaseCallback = callback;
+    }
+
+    @Override
+    public void release() {
+        cancelQueue();
+        disconnect()
+                // Handling a case when user releases the transport object without connecting to the device.
+                // In that case, the BluetoothDevice is not set and DisconnectRequest returns invalid state.
+                .invalid(this::close)
+                .enqueue();
+    }
+
+    @Override
+    public void close() {
+        super.close();
+
+        if (onReleaseCallback != null) {
+            onReleaseCallback.onReleased();
+        }
     }
 }

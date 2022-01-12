@@ -32,7 +32,8 @@ public class McuMgrViewModelModule {
     @Provides
     @McuMgrScope
     static McuMgrViewModelFactory provideMcuMgrViewModelFactory(
-            final McuMgrViewModelSubComponent.Builder viewModelSubComponent) {
+            final McuMgrViewModelSubComponent.Builder viewModelSubComponent
+    ) {
         return new McuMgrViewModelFactory(viewModelSubComponent.build());
     }
 }

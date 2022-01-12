@@ -26,6 +26,5 @@ public class MainViewModel extends AndroidViewModel {
         super.onCleared();
 
         mcuMgrTransport.release();
-        handlerThread.quitSafely();
     }
 }
