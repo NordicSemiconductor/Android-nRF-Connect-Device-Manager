@@ -26,8 +26,11 @@ public class McuMgrTransportModule {
     @NonNull
     static McuMgrTransport provideMcuMgrTransport(@NonNull final Context context,
                                                   @NonNull final BluetoothDevice device,
-                                                  @NonNull final Handler handler) {
-        return new ObservableMcuMgrBleTransport(context, device, handler);
+                                                  @NonNull final HandlerThread handlerThread) {
+        final Handler handler = new Handler(handlerThread.getLooper());
+        final ObservableMcuMgrBleTransport transport = new ObservableMcuMgrBleTransport(context, device, handler);
+        transport.setOnReleasedCallback(handlerThread::quitSafely);
+        return transport;
     }
 
     @Provides
@@ -37,12 +40,5 @@ public class McuMgrTransportModule {
         final HandlerThread handlerThread = new HandlerThread("McuMgrTransport");
         handlerThread.start(); // The handler thread is stopped in MainViewModel#onCleard().
         return handlerThread;
-    }
-
-    @Provides
-    @McuMgrScope
-    @NonNull
-    static Handler provideTransportHandler(@NonNull final HandlerThread handlerThread) {
-        return new Handler(handlerThread.getLooper());
     }
 }
