@@ -87,6 +87,12 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         progressLiveData.setValue(0);
     }
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        manager.setFirmwareUpgradeCallback(null);
+    }
+
     @NonNull
     public LiveData<State> getState() {
         return stateLiveData;
