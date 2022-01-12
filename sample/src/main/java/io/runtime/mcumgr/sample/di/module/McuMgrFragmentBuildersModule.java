@@ -25,51 +25,28 @@ import io.runtime.mcumgr.sample.fragment.mcumgr.StatsFragment;
 @SuppressWarnings("unused")
 @Module
 public abstract class McuMgrFragmentBuildersModule {
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract DeviceStatusFragment contributeDeviceStatusFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract EchoFragment contributeEchoFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract ResetFragment contributeResetFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract StatsFragment contributeStatsFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract ImageFragment contributeImageFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract ImageUpgradeFragment contributeImageUpgradeFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract ImageUploadFragment contributeImageUploadFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract ImageControlFragment contributeImageControlFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract ImageSettingsFragment contributeImageSettingsFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract PartitionDialogFragment contributePartitionDialogFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract FilesDownloadFragment contributeFileDownloadFragment();
-
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract FilesUploadFragment contributeFilesUploadFragment();
 }

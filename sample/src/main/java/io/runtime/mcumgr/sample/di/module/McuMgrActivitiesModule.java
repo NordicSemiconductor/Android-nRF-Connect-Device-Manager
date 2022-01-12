@@ -14,7 +14,6 @@ import io.runtime.mcumgr.sample.di.McuMgrScope;
 @SuppressWarnings("unused")
 @Module
 public abstract class McuMgrActivitiesModule {
-    @McuMgrScope
     @ContributesAndroidInjector
     abstract MainActivity contributeMainActivity();
 }
