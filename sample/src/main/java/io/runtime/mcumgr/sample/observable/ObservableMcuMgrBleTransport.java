@@ -99,7 +99,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
             }
         });
         setLoggingEnabled(true);
-        setDeviceSidePacketMergingSupported(3 * 498);
     }
 
     @Nullable
