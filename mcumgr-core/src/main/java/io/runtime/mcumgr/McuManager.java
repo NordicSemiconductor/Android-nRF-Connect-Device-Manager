@@ -26,7 +26,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
 
 /**
- * TODO
+ * The base class for managers handling MCU Manager groups.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class McuManager {
@@ -34,7 +34,9 @@ public abstract class McuManager {
     private final static Logger LOG = LoggerFactory.getLogger(McuManager.class);
 
     // Transport constants
-    private final static int DEFAULT_MTU = 515;
+
+    /** Maximum length of a single SMP packet. */
+    private final static int DEFAULT_MTU = 0xFFFF + 8; // Header size + max packet size.
 
     // Date format
     private final static String MCUMGR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ";
@@ -78,6 +80,9 @@ public abstract class McuManager {
 
     /**
      * The MTU used to send data to the device.
+     * <p>
+     * Initially, the MTU is set to highest possible value for the SMP protocol.
+     * It can be lowered with {@link #setUploadMtu(int)} by the transport if required.
      */
     protected int mMtu = DEFAULT_MTU;
 
