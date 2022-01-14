@@ -127,7 +127,7 @@ public abstract class McuManager {
     }
 
     /**
-     * Sets the upload MTU. MTU must be between 20 and 1024.
+     * Sets the upload MTU.
      * This is transport independent value, so should be equal to the maximum length of a packet
      * with selected transport.
      *
@@ -136,10 +136,10 @@ public abstract class McuManager {
      */
     public synchronized boolean setUploadMtu(int mtu) {
         if (mtu < 20) {
-            LOG.error("MTU is too small! Must be greater than 20.");
+            LOG.error("MTU is too small! Must be >= 20.");
             return false;
-        } else if (mtu > 1024) {
-            LOG.error("MTU is too large! Must be less than 1024.");
+        } else if (mtu > DEFAULT_MTU) {
+            LOG.error("MTU is too large! Must be <= 65543.");
             return false;
         } else {
             mMtu = mtu;
@@ -148,9 +148,9 @@ public abstract class McuManager {
     }
 
     /**
-     * Returns the upload MTU. MTU must be between 20 and 1024.
+     * Returns the upload MTU.
      *
-     * @return The MTY.
+     * @return The MTU.
      */
     public synchronized int getMtu() {
         return mMtu;
