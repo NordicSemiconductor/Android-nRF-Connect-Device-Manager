@@ -26,7 +26,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
 
 /**
- * TODO
+ * The base class for managers handling MCU Manager groups.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class McuManager {
@@ -34,7 +34,9 @@ public abstract class McuManager {
     private final static Logger LOG = LoggerFactory.getLogger(McuManager.class);
 
     // Transport constants
-    private final static int DEFAULT_MTU = 515;
+
+    /** Maximum length of a single SMP packet. */
+    private final static int DEFAULT_MTU = 0xFFFF + 8; // Header size + max packet size.
 
     // Date format
     private final static String MCUMGR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ";
@@ -78,6 +80,9 @@ public abstract class McuManager {
 
     /**
      * The MTU used to send data to the device.
+     * <p>
+     * Initially, the MTU is set to highest possible value for the SMP protocol.
+     * It can be lowered with {@link #setUploadMtu(int)} by the transport if required.
      */
     protected int mMtu = DEFAULT_MTU;
 
@@ -122,7 +127,7 @@ public abstract class McuManager {
     }
 
     /**
-     * Sets the upload MTU. MTU must be between 20 and 1024.
+     * Sets the upload MTU.
      * This is transport independent value, so should be equal to the maximum length of a packet
      * with selected transport.
      *
@@ -131,10 +136,10 @@ public abstract class McuManager {
      */
     public synchronized boolean setUploadMtu(int mtu) {
         if (mtu < 20) {
-            LOG.error("MTU is too small! Must be greater than 20.");
+            LOG.error("MTU is too small! Must be >= 20.");
             return false;
-        } else if (mtu > 1024) {
-            LOG.error("MTU is too large! Must be less than 1024.");
+        } else if (mtu > DEFAULT_MTU) {
+            LOG.error("MTU is too large! Must be <= 65543.");
             return false;
         } else {
             mMtu = mtu;
@@ -143,9 +148,9 @@ public abstract class McuManager {
     }
 
     /**
-     * Returns the upload MTU. MTU must be between 20 and 1024.
+     * Returns the upload MTU.
      *
-     * @return The MTY.
+     * @return The MTU.
      */
     public synchronized int getMtu() {
         return mMtu;
