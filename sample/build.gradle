@@ -16,7 +16,7 @@ android {
         targetSdkVersion 31
         versionCode getVersionCodeFromTags()
         versionName getVersionNameFromTags()
-        resConfigs "en"
+        resConfigs 'en'
 
         vectorDrawables.useSupportLibrary = true
 
