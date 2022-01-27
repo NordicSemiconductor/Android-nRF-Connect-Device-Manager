@@ -95,10 +95,8 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         }
         setBusy();
         stateLiveData.setValue(State.UPLOADING);
-        final McuMgrTransport transport = manager.getTransporter();
-        if (transport instanceof McuMgrBleTransport) {
-            ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
-        }
+        requestHighConnectionPriority();
+        setLoggingEnabled(false);
         initialBytes = 0;
         controller = manager.fileUpload(path, data, this);
     }
@@ -107,6 +105,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         final TransferController controller = this.controller;
         if (controller != null) {
             stateLiveData.setValue(State.PAUSED);
+            setLoggingEnabled(true);
             controller.pause();
             setReady();
         }
@@ -118,6 +117,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
             stateLiveData.setValue(State.UPLOADING);
             setBusy();
             initialBytes = 0;
+            setLoggingEnabled(false);
             controller.resume();
         }
     }
@@ -149,6 +149,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         controller = null;
         progressLiveData.postValue(0);
         errorLiveData.postValue(error);
+        setLoggingEnabled(true);
         postReady();
     }
 
@@ -158,6 +159,7 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         progressLiveData.postValue(0);
         stateLiveData.postValue(State.IDLE);
         cancelledEvent.post();
+        setLoggingEnabled(true);
         postReady();
     }
 
@@ -166,6 +168,23 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         controller = null;
         progressLiveData.postValue(0);
         stateLiveData.postValue(State.COMPLETE);
+        setLoggingEnabled(true);
         postReady();
+    }
+
+    private void requestHighConnectionPriority() {
+        final McuMgrTransport transporter = manager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+        }
+    }
+
+    private void setLoggingEnabled(final boolean enabled) {
+        final McuMgrTransport transporter = manager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.setLoggingEnabled(enabled);
+        }
     }
 }
