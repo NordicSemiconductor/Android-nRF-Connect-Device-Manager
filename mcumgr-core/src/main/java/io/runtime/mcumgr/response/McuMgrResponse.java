@@ -22,6 +22,8 @@ import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.McuMgrHeader;
 import io.runtime.mcumgr.McuMgrScheme;
 import io.runtime.mcumgr.exception.McuMgrCoapException;
+import io.runtime.mcumgr.response.fs.McuMgrFsUploadResponse;
+import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.util.CBOR;
 
 @SuppressWarnings("unused")
@@ -215,6 +217,32 @@ public class McuMgrResponse {
         byte[] payload = Arrays.copyOfRange(bytes, McuMgrHeader.HEADER_LENGTH, bytes.length);
         McuMgrHeader header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH));
 
+        // Try decoding response for Image Manager and FS Manager UPLOAD commands really quickly.
+        if ((
+                type == McuMgrImageUploadResponse.class
+                && bytes[0] == 0x03 // OP_WRITE_RSP
+                && bytes[4] == 0x00 && bytes[5] == 0x01 // GROUP_IMAGE
+                && bytes[7] == 0x01 // ID_UPLOAD
+            ) || (
+                type == McuMgrFsUploadResponse.class
+                && bytes[0] == 0x03 // OP_WRITE_RSP
+                && bytes[4] == 0x00 && bytes[5] == 0x08 // GROUP_FS
+                && bytes[7] == 0x00 // ID_FILE
+            )) {
+            try {
+                final UploadResponse response = type == McuMgrImageUploadResponse.class ?
+                        McuMgrResponse.tryDecoding(payload, McuMgrImageUploadResponse.class) :
+                        McuMgrResponse.tryDecoding(payload, McuMgrFsUploadResponse.class);
+                if (response != null) {
+                    response.initFields(scheme, bytes, header, payload);
+                    //noinspection unchecked
+                    return (T) response;
+                }
+            } catch (final Exception e) {
+                // Ignore, a CBOR parser will be used below.
+            }
+        }
+
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
         response.initFields(scheme, bytes, header, payload);
@@ -283,6 +311,104 @@ public class McuMgrResponse {
             McuMgrHeader header = McuMgrHeader.fromBytes(headerBytes);
             return header.getLen() + McuMgrHeader.HEADER_LENGTH;
         }
+    }
+
+    /**
+     * This method tries decoding response for Image Manager UPLOAD command really quickly, skipping
+     * using {@link CBOR#toObject(byte[], Class)}, which is very slow. For a message to be properly
+     * parsed it can be encoded as map(*) or map(2) with "rc" and "off" parameters in any order.
+     *
+     * @param payload the CBOR payload as bytes.
+     * @return the decoded message, or null.
+     */
+    private static <T extends UploadResponse> UploadResponse tryDecoding(final byte @NotNull [] payload, Class<T> responseType)
+            throws IllegalAccessException, InstantiationException {
+        // The response must have "rc" and "off" encoded. The minimum number of bytes is 10.
+        if (payload.length < 10)
+            return null;
+
+        int offset = 0;
+
+        // The response is encoded as map(*) (0xBF), or map(2) (0xA2).
+        int firstByte = payload[offset++] & 0xFF;
+        if (firstByte != 0xBF && firstByte != 0xA2)
+            return null;
+
+        int rc = -1, off = -1;
+        int currentToken = -1; // 0 = "rc", 1 = "off"
+        while (offset < payload.length) {
+            final int type = (payload[offset] & 0xE0) >> 5;
+            final int lowerBits = payload[offset++] & 0x1F;
+
+            switch (type) {
+                case 0: // positive int
+                    // Values 23 or lower can be read as they are.
+                    int value = -1;
+                    if (lowerBits <= 23) {
+                        value = lowerBits;
+                    } else {
+                        // This fast method supports only 8, 16 and 32-bit positive integers.
+                        switch (lowerBits - 24) {
+                            case 0:
+                                if (payload.length > offset) {
+                                    value = payload[offset] & 0xFF;
+                                }
+                                offset += 1;
+                                break;
+                            case 1:
+                                if (payload.length > offset + 1) {
+                                    value = ((payload[offset] & 0xFF) << 8) | (payload[offset + 1] & 0xFF);
+                                }
+                                offset += 2;
+                                break;
+                            case 2:
+                                if (payload.length > offset + 3) {
+                                    value = ((payload[offset] & 0xFF) << 24) | ((payload[offset + 1] & 0xFF) << 16) | ((payload[offset + 2] & 0xFF) << 8) | (payload[offset + 3] & 0xFF);
+                                    if (value < 0) {
+                                        return null;
+                                    }
+                                }
+                                offset += 4;
+                                break;
+                            case 3:
+                                // unsupported
+                            default:
+                                return null;
+                        }
+                    }
+                    if (value >= 0) {
+                        if (currentToken == 0)
+                            rc = value;
+                        else if (currentToken == 1)
+                            off = value;
+                        currentToken = -1;
+                    }
+                    break;
+                case 3: // string
+                    // We are only looking for "rc" and "off", which have lengths 2 and 3.
+                    // The below code will return null if a longer token is found.
+                    switch (lowerBits) {
+                        case 2: // "rc"
+                            if (payload.length > offset + 1 && payload[offset] == 0x72 && payload[offset + 1] == 0x63) {
+                                currentToken = 0;
+                            }
+                            break;
+                        case 3: // "off"
+                            if (payload.length > offset + 2 && payload[offset] == 0x6F && payload[offset + 1] == 0x66 && payload[offset + 2] == 0x66) {
+                                currentToken = 1;
+                            }
+                            break;
+                        default:
+                            return null;
+                    }
+                    offset += lowerBits;
+                    break;
+            }
+        }
+        final UploadResponse response = responseType.newInstance();
+        if (rc >= 0) response.rc = rc;
+        if (off >= 0) response.off = off;
+        return response;
     }
 }
 

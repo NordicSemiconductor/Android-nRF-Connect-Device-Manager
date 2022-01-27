@@ -11,6 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.lang.IllegalArgumentException
 import kotlin.coroutines.EmptyCoroutineContext
 
 private const val SMP_SEQ_NUM_MAX = 255
@@ -110,8 +111,7 @@ internal class SmpProtocolSession(
     private suspend fun reader() {
         rxChannel.consumeEach { data ->
             // Parse header to get sequence number
-            val header = McuMgrHeader.fromBytes(data)
-            val sequenceNumber = header.sequenceNum
+            val sequenceNumber = data.getSequenceNumber()
 
             // Get the transaction from the store, clear the entry, and call
             // the callback
@@ -131,6 +131,13 @@ internal class SmpProtocolSession(
 
     private fun ByteArray.setSequenceNumber(value: Int) {
         this[6] = (value and 0xff).toByte()
+    }
+
+    private fun ByteArray.getSequenceNumber(): Int {
+        if (size < McuMgrHeader.HEADER_LENGTH) {
+            throw IllegalArgumentException("Failed to parse mcumgr header from bytes; too short - length=$size")
+        }
+        return this[6].toInt() and 0xFF
     }
 }
 

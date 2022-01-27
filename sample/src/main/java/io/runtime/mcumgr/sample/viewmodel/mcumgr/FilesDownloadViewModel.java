@@ -63,16 +63,15 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
             return;
         }
         setBusy();
-        final McuMgrTransport transport = manager.getTransporter();
-        if (transport instanceof McuMgrBleTransport) {
-            ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
-        }
+        requestHighConnectionPriority();
+        setLoggingEnabled(false);
         controller = manager.fileDownload(path, this);
     }
 
     public void pause() {
         final TransferController controller = this.controller;
         if (controller != null) {
+            setLoggingEnabled(true);
             controller.pause();
             setReady();
         }
@@ -82,6 +81,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
         final TransferController controller = this.controller;
         if (controller != null) {
             setBusy();
+            setLoggingEnabled(false);
             controller.resume();
         }
     }
@@ -104,6 +104,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
         controller = null;
         progressLiveData.postValue(0);
         errorLiveData.postValue(error);
+        setLoggingEnabled(true);
         postReady();
     }
 
@@ -112,6 +113,7 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
         controller = null;
         progressLiveData.postValue(0);
         cancelledEvent.post();
+        setLoggingEnabled(true);
         postReady();
     }
 
@@ -120,6 +122,23 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
         controller = null;
         progressLiveData.postValue(0);
         responseLiveData.postValue(data);
+        setLoggingEnabled(true);
         postReady();
+    }
+
+    private void requestHighConnectionPriority() {
+        final McuMgrTransport transporter = manager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+        }
+    }
+
+    private void setLoggingEnabled(final boolean enabled) {
+        final McuMgrTransport transporter = manager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.setLoggingEnabled(enabled);
+        }
     }
 }

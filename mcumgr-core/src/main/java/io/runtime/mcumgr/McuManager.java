@@ -314,7 +314,8 @@ public abstract class McuManager {
             payloadMapCopy.remove(HEADER_KEY);
 
             // Get the length
-            int len = CBOR.toBytes(payloadMapCopy).length;
+            byte[] cborPayload = CBOR.toBytes(payloadMapCopy);
+            int len = cborPayload.length;
 
             // Build header
             byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
@@ -328,7 +329,6 @@ public abstract class McuManager {
                 packet = CBOR.toBytes(payloadMap);
             } else {
                 // Standard scheme appends the CBOR payload to the header.
-                byte[] cborPayload = CBOR.toBytes(payloadMap);
                 packet = new byte[header.length + cborPayload.length];
                 System.arraycopy(header, 0, packet, 0, header.length);
                 System.arraycopy(cborPayload, 0, packet, header.length, cborPayload.length);

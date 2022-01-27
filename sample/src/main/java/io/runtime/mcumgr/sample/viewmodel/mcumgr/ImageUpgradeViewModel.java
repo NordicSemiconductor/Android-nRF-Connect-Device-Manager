@@ -139,10 +139,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             }
         }
         try {
-            final McuMgrTransport transport = manager.getTransporter();
-            if (transport instanceof McuMgrBleTransport) {
-                ((McuMgrBleTransport) transport).requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
-            }
+            requestHighConnectionPriority();
             manager.setMode(mode);
             manager.start(images, eraseSettings);
         } catch (final McuMgrException e) {
@@ -183,7 +180,10 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     }
 
     @Override
-    public void onStateChanged(final FirmwareUpgradeManager.State prevState, final FirmwareUpgradeManager.State newState) {
+    public void onStateChanged(
+            final FirmwareUpgradeManager.State prevState,
+            final FirmwareUpgradeManager.State newState)
+    {
         setLoggingEnabled(newState != FirmwareUpgradeManager.State.UPLOAD);
         switch (newState) {
             case UPLOAD:
@@ -247,9 +247,15 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         postReady();
     }
 
-    private void setLoggingEnabled(final boolean enabled) {
-        super.postReady();
+    private void requestHighConnectionPriority() {
+        final McuMgrTransport transporter = manager.getTransporter();
+        if (transporter instanceof McuMgrBleTransport) {
+            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+            bleTransporter.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+        }
+    }
 
+    private void setLoggingEnabled(final boolean enabled) {
         final McuMgrTransport transporter = manager.getTransporter();
         if (transporter instanceof McuMgrBleTransport) {
             final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;

@@ -56,8 +56,3 @@ if (rootProject.file('gradle/publish-module.gradle').exists()) {
     }
     apply from: rootProject.file('gradle/publish-module.gradle')
 }
-// === JaCoCo configuration ===
-// https://www.eclemma.org/jacoco/
-if (rootProject.file('gradle/jacoco-android.gradle').exists()) {
-    apply from: rootProject.file('gradle/jacoco-android.gradle')
-}

@@ -70,9 +70,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     private final static UUID SMP_CHAR_UUID =
             UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
 
-    final static UUID CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID =
-            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-
     // Use a separate characteristic object for writes vs notifications.
     //
     // We must clone the characteristic object in order to ensure no race
@@ -607,6 +604,9 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     // The characteristic is cloned, and data sent and received do not share the same value,
     // which otherwise could lead to race conditions.
     //*******************************************************************************************
+
+    private final static UUID CLIENT_CHARACTERISTIC_CONFIG_DESCRIPTOR_UUID =
+            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private static BluetoothGattDescriptor getNotifyCccd(@NonNull final BluetoothGattCharacteristic characteristic) {
         // Check characteristic property
