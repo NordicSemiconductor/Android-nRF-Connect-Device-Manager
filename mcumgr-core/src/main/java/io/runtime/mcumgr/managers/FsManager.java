@@ -603,26 +603,34 @@ public class FsManager extends TransferManager {
                 }
             };
 
-    // TODO more precise overhead calculations
     private int calculatePacketOverhead(@NotNull String name, byte @NotNull [] data, int offset) {
-        HashMap<String, Object> overheadTestMap = new HashMap<>();
-        overheadTestMap.put("name", name);
-        overheadTestMap.put("data", new byte[0]);
-        overheadTestMap.put("off", offset);
-        if (offset == 0) {
-            overheadTestMap.put("len", data.length);
-        }
         try {
             if (getScheme().isCoap()) {
+                HashMap<String, Object> overheadTestMap = new HashMap<>();
+                overheadTestMap.put("name", name);
+                overheadTestMap.put("data", new byte[0]);
+                overheadTestMap.put("off", offset);
+                if (offset == 0) {
+                    overheadTestMap.put("len", data.length);
+                }
                 byte[] header = {0, 0, 0, 0, 0, 0, 0, 0};
                 overheadTestMap.put("_h", header);
                 byte[] cborData = CBOR.toBytes(overheadTestMap);
                 // 20 byte estimate of CoAP Header; 5 bytes for good measure
                 return cborData.length + 20 + 5;
             } else {
-                byte[] cborData = CBOR.toBytes(overheadTestMap);
-                // 8 bytes for McuMgr header; 2 bytes for data length
-                return cborData.length + 8 + 2;
+                // The code below removes the need of calling an expensive method CBOR.toBytes(..)
+                // by calculating the overhead manually. Mind, that the data itself are not added.
+                int size = 0;
+                size += 2; // map: 0xBF at the beginning and 0xFF at the end
+                size += 5 + 2 + name.getBytes().length; // "name": 0x646E616D65 + 2 for name length (assuming > 23 bytes, but <= 256) + name
+                size += 5 + 3; // "data": 0x6464617461 + 3 for encoding length (as 16-bin positive int, worse case scenario) + NO DATA
+                size += 4 + 3; // "off": 0x636F6666 + 3 bytes for the offset (as 16-bin positive int, worse case scenario)
+                if (offset == 0) {
+                    size -= 2; // (offset = 0 requires just 1 byte, and we added 3 above)
+                    size += 4 + 5; // "len": 0x636C656E + len (as 32-bit positive integer, worse case scenario)
+                }
+                return size + 8; // 8 additional bytes for the SMP header
             }
         } catch (IOException e) {
             LOG.error("Error while calculating packet overhead", e);
