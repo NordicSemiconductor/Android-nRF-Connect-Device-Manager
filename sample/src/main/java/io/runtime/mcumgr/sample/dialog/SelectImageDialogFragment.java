@@ -36,9 +36,7 @@ public class SelectImageDialogFragment extends DialogFragment {
 		final CharSequence[] items = getResources().getTextArray(R.array.image_select_images);
 		binding.image.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.dialog_select_image_item, items));
 		binding.image.setText(items[0], false);
-		binding.image.setOnItemClickListener((parent, view, position, id) -> {
-			position = position;
-		});
+		binding.image.setOnItemClickListener((parent, view, position, id) -> this.position = position);
 
 		return new AlertDialog.Builder(requireContext())
 				.setTitle(R.string.image_select_image)
