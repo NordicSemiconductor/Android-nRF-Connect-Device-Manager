@@ -26,14 +26,14 @@ android {
 }
 
 dependencies {
-    // Kotlin
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2"
-
     // Annotations
     implementation 'org.jetbrains:annotations:22.0.0'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:1.7.32'
+    implementation 'org.slf4j:slf4j-api:1.7.35'
+
+    // Kotlin
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0"
 
     // Import CBOR parser
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.4'

@@ -61,18 +61,18 @@ dependencies {
     implementation 'com.google.android.material:material:1.6.0-alpha02'
 
     // Dagger 2
-    implementation 'com.google.dagger:dagger:2.40.4'
-    implementation 'com.google.dagger:dagger-android:2.39'
-    implementation 'com.google.dagger:dagger-android-support:2.39'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.40.4'
-    annotationProcessor 'com.google.dagger:dagger-android-processor:2.39'
+    implementation 'com.google.dagger:dagger:2.40.5'
+    implementation 'com.google.dagger:dagger-android:2.40.5'
+    implementation 'com.google.dagger:dagger-android-support:2.40.5'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.40.5'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.40.5'
 
     // Brings the new BluetoothLeScanner API to older platforms
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
 
     // Timber & SLF4J
     implementation 'com.arcao:slf4j-timber:3.1'
-    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
     implementation 'no.nordicsemi.android:log-timber:2.3.0'
 
     // Mcu Mgr
