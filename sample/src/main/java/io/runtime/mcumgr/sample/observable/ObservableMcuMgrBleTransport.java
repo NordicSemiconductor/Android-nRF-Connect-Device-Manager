@@ -9,6 +9,7 @@ package io.runtime.mcumgr.sample.observable;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -106,7 +107,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         // Uncomment to get the previous logging details.
         // return Log.VERBOSE;
         // The new default min log priority increases DFU speed, but is bad for debugging.
-        return super.getMinLogPriority();
+        return Log.WARN; //super.getMinLogPriority();
     }
 
     @Nullable
