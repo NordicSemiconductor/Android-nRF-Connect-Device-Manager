@@ -5,6 +5,8 @@
  */
 package io.runtime.mcumgr.exception;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Essentially a renamed {@link Exception}.
  */
@@ -65,5 +67,23 @@ public class McuMgrException extends Exception {
      */
     public McuMgrException(Throwable cause) {
         super(cause);
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        final Throwable cause = getCause();
+        if (cause != null) {
+            final String message = getCause().getMessage();
+            if (message != null)
+                return message;
+            else
+                return cause.toString();
+        } else {
+            final String message = getMessage();
+            if (message != null)
+                return message;
+        }
+        return super.toString();
     }
 }
