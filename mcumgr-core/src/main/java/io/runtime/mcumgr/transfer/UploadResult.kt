@@ -22,12 +22,8 @@ internal sealed class UploadResult {
 internal inline fun UploadResult.onSuccess(
     action: (response: UploadResponse) -> Unit
 ): UploadResult {
-    when (this) {
-        is UploadResult.Response -> {
-            if (code.isSuccess) {
-                action(body)
-            }
-        }
+    if (this is UploadResult.Response && code.isSuccess) {
+        action(body)
     }
     return this
 }
