@@ -23,13 +23,13 @@ fun ImageManager.windowUpload(
     windowCapacity: Int,
     callback: UploadCallback
 ): TransferController {
-
     val log = LoggerFactory.getLogger("ImageUploader")
     val uploader = ImageUploader(data, image, this, windowCapacity)
 
-    val job = GlobalScope.launch(CoroutineExceptionHandler { _, t ->
-        log.error("window image upload failed", t)
-    }) {
+    val exceptionHandler = CoroutineExceptionHandler { _, t ->
+        log.error("Upload failed", t)
+    }
+    val job = GlobalScope.launch(exceptionHandler) {
         val progress = uploader.progress.onEach { progress ->
             callback.onUploadProgressChanged(
                 progress.offset,
@@ -103,7 +103,6 @@ internal class ImageUploader(
         }
         return super.getAdditionalSize()
     }
-
 }
 
 private fun ImageManager.uploadAsync(
