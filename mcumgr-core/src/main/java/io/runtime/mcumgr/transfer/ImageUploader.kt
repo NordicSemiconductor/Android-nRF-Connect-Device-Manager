@@ -93,6 +93,7 @@ internal class ImageUploader(
                 requestMap["image"] = image
             }
             requestMap["len"] = imageData.size
+            // TODO "sha" is not supported by the Uploader, as it's sending multiple chunks in parallel without waiting for the first response.
         }
         imageManager.uploadAsync(requestMap, callback)
     }
