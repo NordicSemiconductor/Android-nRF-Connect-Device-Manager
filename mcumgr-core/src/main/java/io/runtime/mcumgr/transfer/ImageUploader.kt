@@ -38,7 +38,10 @@ fun ImageManager.windowUpload(
             )
         }.launchIn(this)
 
+        val start = System.currentTimeMillis();
         uploader.uploadCatchMtu()
+        val duration = System.currentTimeMillis() - start
+        log.info("Upload completed in $duration ms, avg speed: ${data.size.toFloat() / (duration.toFloat() + 1f)} kBytes/s") // + 1 to prevent division by zero
         progress.cancel()
     }
 
