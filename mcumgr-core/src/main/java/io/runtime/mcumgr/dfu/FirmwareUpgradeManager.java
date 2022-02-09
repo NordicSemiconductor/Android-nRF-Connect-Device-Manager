@@ -126,16 +126,37 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
                 this.transport = transport;
             }
 
+            /**
+             * Sets estimated time for the image swap. The device should reset after that time after
+             * successful DFU operation.
+             * <p>
+             * If the device requires long time for the images to be swapped, and this is not set,
+             * the reconnection may fail and DFU process may be reported as unsuccessful despite
+             * it actually working correctly. This is important with
+             * {@link FirmwareUpgradeManager.Mode#TEST_AND_CONFIRM} mode, which
+             * reconnects to the device after it resets.
+             * @param time the swap time in milliseconds.
+             * @return The builder.
+             */
             public Builder setEstimatedSwapTime(final int time) {
                 this.estimatedSwapTime = Math.max(0, time);
                 return this;
             }
 
+            /**
+             * Sets window capacity. On Zephyr this is equal to MCUMGR_BUF_COUNT value, which defaults to 4.
+             * @param windowCapacity number of windows that can be sent in parallel.
+             * @return The builder.
+             */
             public Builder setWindowCapacity(final int windowCapacity) {
                 this.windowCapacity = Math.max(0, windowCapacity);
                 return this;
             }
 
+            /**
+             * Builds the settings object.
+             * @return Settings.
+             */
             public Settings build() {
                 return new Settings(transport, estimatedSwapTime, windowCapacity);
             }
@@ -293,15 +314,18 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     /**
-     * A window capacity > 1 enables a faster image upload implementation which allows
-     * {@code windowCapacity} concurrent upload requests.
+     * A window capacity > 1 enables a faster image upload implementation (SMP pipelining) which
+     * allows {@code windowCapacity} concurrent upload requests. The manager will send multiple
+     * packets, trimmed to match the memory alignment. It will then wait for corresponding
+     * notifications and continue to send until the complete image is sent.
      * <p>
-     * <b>Note: </b>This feature is in alpha mode and causes problems if the target device is not
-     * compatible. Also, pause and resume will throw an exception when window upload is used.
-     * Packets are sent one after another, without waiting for a notification confirming number
-     * of bytes received. As each packet is identified by SEQ number, the received notifications
-     * should match those SEQ. If the notifications report current offset, not one sent with given
-     * SEQ, the reported progress jumps back and forth. In that case use default window capacity 1.
+     * This value should match MCUMGR_BUF_COUNT (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
+     * in Zephyr KConfig, which is by default set to 4.
+     * <p>
+     * Mind, that the speed increases only if the returned offsets match the required offset
+     * (initial offset + sent packet size). In other case the packets with unexpected offsets
+     * are dropped by the device causing teh packets to be resent, which actually makes the upload
+     * slower.
      *
      * @param windowCapacity the maximum number of concurrent upload requests at any time.
      */
