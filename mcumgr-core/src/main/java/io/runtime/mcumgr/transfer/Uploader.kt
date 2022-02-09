@@ -75,7 +75,7 @@ abstract class Uploader(
 
             val nextChunk = writeInternal(chunk, resend, this) { result ->
                 result.onSuccess { response ->
-                    if (!resend && response.off != chunk.offset + chunk.data.size) {
+                    if (!resend && response.off < chunk.offset + chunk.data.size) {
                         // An unexpected offset means that the message was
                         // somehow lost or the device could not accept the
                         // chunk. We need to resend the chunk at the offset
