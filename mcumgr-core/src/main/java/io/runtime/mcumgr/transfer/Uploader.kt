@@ -115,8 +115,8 @@ abstract class Uploader(
                 window.release()
             }
 
-            // Only send the next chunk if the we still have more data to upload
-            if (nextChunk.offset != data.size) {
+            // Only send the next chunk if the we still have more data to upload.
+            if (nextChunk.offset < data.size) {
                 next.send(nextChunk)
             }
         }
