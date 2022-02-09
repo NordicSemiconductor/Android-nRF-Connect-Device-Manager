@@ -33,7 +33,6 @@ abstract class Uploader(
     internal var mtu: Int,
     private val protocol: McuMgrScheme
 ) {
-
     private val log = LoggerFactory.getLogger("Uploader")
 
     private val _progress: MutableStateFlow<UploadProgress> =
