@@ -66,7 +66,7 @@ class Reset extends FirmwareUpgradeTask {
 				final Runnable complete = () -> performer.onTaskCompleted(Reset.this);
 
 				if (remainingTime > 0) {
-					LOG.trace("Waiting for estimated swap time {} ms", settings.estimatedSwapTime);
+					LOG.trace("Waiting remaining {} ms for the swap operation to complete", remainingTime);
 					new Handler().postDelayed(complete, remainingTime);
 				} else {
 					complete.run();

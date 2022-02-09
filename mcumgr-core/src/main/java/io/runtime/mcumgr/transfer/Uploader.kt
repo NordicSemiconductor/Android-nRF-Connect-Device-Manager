@@ -30,10 +30,10 @@ private data class Chunk(val data: ByteArray, val offset: Int) {
 abstract class Uploader(
     private val data: ByteArray,
     private val windowCapacity: Int,
+    private val memoryAlignment: Int,
     internal var mtu: Int,
     private val protocol: McuMgrScheme
 ) {
-
     private val log = LoggerFactory.getLogger("Uploader")
 
     private val _progress: MutableStateFlow<UploadProgress> =
@@ -50,13 +50,12 @@ abstract class Uploader(
 
     @Throws
     suspend fun upload() = coroutineScope {
-
         // Tracks the number of failures experienced for any given chunk,
         // identified by the offset.
         val failureDirectory = mutableMapOf<Int, Int>()
         val failureDirectoryMutex = Mutex()
 
-        // Bounds number of in-progress requests within window capacity
+        // Bounds number of in-progress requests within window capacity.
         val window = Semaphore(windowCapacity)
 
         val next: Channel<Chunk> = Channel(CONFLATED)
@@ -66,7 +65,6 @@ abstract class Uploader(
         next.send(newChunk(0))
 
         while (true) {
-
             window.acquire()
 
             // Select the next chunk to send, prioritizing failed chunks.
@@ -76,52 +74,50 @@ abstract class Uploader(
                 close.onReceive { null }
             } ?: break
 
-            log.info("uploader write: chunk=$chunk, resend=$resend")
-
             val nextChunk = writeInternal(chunk, resend, this) { result ->
-
-                log.info("uploader result: chunk=$chunk, result=$result")
-
                 result.onSuccess { response ->
-                    if (!resend && response.off != chunk.offset + chunk.data.size) {
+                    if (!resend && response.off < chunk.offset + chunk.data.size) {
                         // An unexpected offset means that the message was
                         // somehow lost or the device could not accept the
                         // chunk. We need to resend the chunk at the offset
                         // requested by the device.
-                        log.info("uploader write error: offset=${chunk.offset}, requested=${response.off}")
+                        log.warn("Chunk with offset ${chunk.offset} has been lost (expected offset=${chunk.offset + chunk.data.size}, received=${response.off})")
                         failures.send(newChunk(response.off))
                     } else {
-                        // Success, update the progress
-                        val current = chunk.offset + chunk.data.size
-                        _progress.value = UploadProgress(current, data.size)
-                        if (current == data.size) {
-                            log.info("uploader complete!")
+                        // Success, update the progress.
+                        if (_progress.value.offset < response.off) {
+                            _progress.value = UploadProgress(response.off, data.size)
+                        }
+                        if (response.off == data.size) {
                             close.send(Unit)
                         }
                     }
                 }.onErrorOrFailure { failure ->
-                    // Request failure, resend failed chunk
-                    log.info("uploader write failure: offset=${chunk.offset}, failure=$failure")
+                    if (failure is InsufficientMtuException) {
+                        throw failure
+                    }
+                    // Request failure, resend failed chunk.
+                    log.warn("Uploader write failure for chunk with offset ${chunk.offset}: $failure")
                     // Track the number of times a chunk has failed. If the
                     // chunk has failed more times than the threshold,
-                    // throw the exception to fail the upload entirely
+                    // throw the exception to fail the upload entirely.
                     val fails = failureDirectoryMutex.withLock {
                         val fails = (failureDirectory[chunk.offset] ?: 0) + 1
                         failureDirectory[chunk.offset] = fails
                         fails
                     }
-                    if (fails >= MAX_CHUNK_FAILURES || failure is InsufficientMtuException) {
+                    if (fails >= MAX_CHUNK_FAILURES) {
                         throw failure
                     }
                     failures.send(newChunk(chunk.offset))
                 }
 
-                // Release the semaphore
+                // Release the semaphore.
                 window.release()
             }
 
-            // Only send the next chunk if the we still have more data to upload
-            if (nextChunk.offset != data.size) {
+            // Only send the next chunk if the we still have more data to upload.
+            if (nextChunk.offset < data.size) {
                 next.send(nextChunk)
             }
         }
@@ -133,18 +129,15 @@ abstract class Uploader(
         scope: CoroutineScope,
         callback: suspend (UploadResult) -> Unit
     ): Chunk {
-
         val resultChannel: Channel<UploadResult> = Channel(1)
         write(chunk.data, chunk.offset) {
             resultChannel.trySend(it)
         }
 
         return if (resend) {
-
             // Failed and resent chunks should suspend the current coroutine
             // and await the result.
             val result = resultChannel.receive()
-
             callback(result)
 
             // When the result is successful response with an offset, return
@@ -156,21 +149,24 @@ abstract class Uploader(
                 else -> nextChunk(chunk)
             }
         } else {
-
-            // Regular send should launch the result handling on a child coroutine
+            // Regular send should launch the result handling on a child coroutine.
             scope.launch {
                 val result = resultChannel.receive()
                 callback(result)
             }
 
-            // Return the next logical chunk
+            // Return the next logical chunk.
             nextChunk(chunk)
         }
     }
 
     private fun newChunk(offset: Int): Chunk {
-        val chunkSize = getChunkSize(data, offset)
-        val chunkData = data.copyOfRange(offset, offset + chunkSize)
+        // SMP pipelining may require data to be aligned to some number of bytes.
+        // In Zephyr, since https://github.com/zephyrproject-rtos/zephyr/pull/41959 has been merged
+        // this is not required, but memory aligning here makes even older devices to work.
+        val maxChunkSize = getMaxChunkSize(data, offset)
+        val alignedSize = if (offset + maxChunkSize < data.size) maxChunkSize / memoryAlignment * memoryAlignment else maxChunkSize
+        val chunkData = data.copyOfRange(offset, offset + alignedSize)
         return Chunk(chunkData, offset)
     }
 
@@ -188,8 +184,7 @@ abstract class Uploader(
      * out of bounds on the last chunk, if the calculated chunk size is greater than data.size -
      * offset, then the latter value is returned.
      */
-    private fun getChunkSize(data: ByteArray, offset: Int): Int {
-
+    private fun getMaxChunkSize(data: ByteArray, offset: Int): Int {
         // The size of the header is based on the scheme. CoAP scheme is larger because there are
         // 4 additional bytes of CBOR.
         val headerSize = when (protocol) {
@@ -203,17 +198,20 @@ abstract class Uploader(
         // Size of the string "off" plus the length of the offset integer
         val offsetSize = cborStringLength("off") + cborUIntLength(offset)
 
-        val lengthSize = getAdditionalSize() + if (offset == 0) {
+        val lengthSize = if (offset == 0) {
             // Size of the string "len" plus the length of the data size integer
             cborStringLength("len") + cborUIntLength(data.size)
         } else {
             0
         }
 
+        // Implementation specific size
+        val implSpecificSize = getAdditionalSize()
+
         // Size of the field name "data" utf8 string
         val dataStringSize = cborStringLength("data")
 
-        val combinedSize = headerSize + mapSize + offsetSize + lengthSize + dataStringSize
+        val combinedSize = headerSize + mapSize + offsetSize + lengthSize + implSpecificSize + dataStringSize
 
         // Now we calculate the max amount of data that we can fit given the MTU.
         val maxDataLength = mtu - combinedSize

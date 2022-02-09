@@ -75,6 +75,7 @@ class Upload extends FirmwareUpgradeTask {
 					manager,
 					mcuMgrImage.getData(), image,
 					settings.windowCapacity,
+					settings.memoryAlignment,
 					callback
 			);
 		} else {

@@ -218,21 +218,21 @@ public class McuMgrResponse {
         McuMgrHeader header = McuMgrHeader.fromBytes(Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH));
 
         // Try decoding response for Image Manager and FS Manager UPLOAD commands really quickly.
-        if ((
-                type == McuMgrImageUploadResponse.class
-                && bytes[0] == 0x03 // OP_WRITE_RSP
+        Class<? extends UploadResponse> responseClass = null;
+        if (type == McuMgrImageUploadResponse.class
+                && bytes[0] == 0x03                     // OP_WRITE_RSP
                 && bytes[4] == 0x00 && bytes[5] == 0x01 // GROUP_IMAGE
-                && bytes[7] == 0x01 // ID_UPLOAD
-            ) || (
-                type == McuMgrFsUploadResponse.class
-                && bytes[0] == 0x03 // OP_WRITE_RSP
+                && bytes[7] == 0x01) {                  // ID_UPLOAD
+           responseClass = McuMgrImageUploadResponse.class;
+        } else if (type == McuMgrFsUploadResponse.class
+                && bytes[0] == 0x03                     // OP_WRITE_RSP
                 && bytes[4] == 0x00 && bytes[5] == 0x08 // GROUP_FS
-                && bytes[7] == 0x00 // ID_FILE
-            )) {
+                && bytes[7] == 0x00) {                  // ID_FILE
+            responseClass = McuMgrFsUploadResponse.class;
+        }
+        if (responseClass != null) {
             try {
-                final UploadResponse response = type == McuMgrImageUploadResponse.class ?
-                        McuMgrResponse.tryDecoding(payload, McuMgrImageUploadResponse.class) :
-                        McuMgrResponse.tryDecoding(payload, McuMgrFsUploadResponse.class);
+                final UploadResponse response = McuMgrResponse.tryDecoding(payload, responseClass);
                 if (response != null) {
                     response.initFields(scheme, bytes, header, payload);
                     //noinspection unchecked

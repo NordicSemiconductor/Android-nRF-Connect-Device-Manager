@@ -66,8 +66,9 @@ public abstract class TaskPerformer<S, State> {
 	private class TaskManagerImpl implements TaskManager<S, State> {
 		/**
 		 * The queue of tasks to be performed during the update. The content of the queue
-		 * depends on the images given in {@link FirmwareUpgradeManager#start(List)} and the state of the device,
-		 * which is determined by validation step before the upload begins.
+		 * depends on the images given in {@link FirmwareUpgradeManager#start(List, boolean)}
+		 * and the state of the device, which is determined by validation step before the upload
+		 * begins.
 		 */
 		@NotNull
 		private final Queue<Task<S, State>> taskQueue = new PriorityQueue<>();

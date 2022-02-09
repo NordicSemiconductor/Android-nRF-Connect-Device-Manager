@@ -21,15 +21,16 @@ fun ImageManager.windowUpload(
     data: ByteArray,
     image: Int,
     windowCapacity: Int,
+    memoryAlignment: Int,
     callback: UploadCallback
 ): TransferController {
-
     val log = LoggerFactory.getLogger("ImageUploader")
-    val uploader = ImageUploader(data, image, this, windowCapacity)
+    val uploader = ImageUploader(data, image, this, windowCapacity, memoryAlignment)
 
-    val job = GlobalScope.launch(CoroutineExceptionHandler { _, t ->
-        log.error("window image upload failed", t)
-    }) {
+    val exceptionHandler = CoroutineExceptionHandler { _, t ->
+        log.error("Upload failed", t)
+    }
+    val job = GlobalScope.launch(exceptionHandler) {
         val progress = uploader.progress.onEach { progress ->
             callback.onUploadProgressChanged(
                 progress.offset,
@@ -38,7 +39,10 @@ fun ImageManager.windowUpload(
             )
         }.launchIn(this)
 
+        val start = System.currentTimeMillis();
         uploader.uploadCatchMtu()
+        val duration = System.currentTimeMillis() - start
+        log.info("Upload completed in $duration ms, avg speed: ${data.size.toFloat() / (duration.toFloat() + 1f)} kBytes/s") // + 1 to prevent division by zero
         progress.cancel()
     }
 
@@ -75,14 +79,15 @@ internal class ImageUploader(
     private val imageData: ByteArray,
     private val image: Int,
     private val imageManager: ImageManager,
-    windowCapacity: Int = 1
+    windowCapacity: Int = 1,
+    memoryAlignment: Int = 1,
 ) : Uploader(
     imageData,
     windowCapacity,
+    memoryAlignment,
     imageManager.mtu,
     imageManager.scheme
 ) {
-
     override fun write(data: ByteArray, offset: Int, callback: (UploadResult) -> Unit) {
         val requestMap: MutableMap<String, Any> = mutableMapOf(
             "data" to data,
@@ -93,6 +98,7 @@ internal class ImageUploader(
                 requestMap["image"] = image
             }
             requestMap["len"] = imageData.size
+            // TODO "sha" is not supported by the Uploader, as it's sending multiple chunks in parallel without waiting for the first response.
         }
         imageManager.uploadAsync(requestMap, callback)
     }
@@ -103,7 +109,6 @@ internal class ImageUploader(
         }
         return super.getAdditionalSize()
     }
-
 }
 
 private fun ImageManager.uploadAsync(

@@ -38,7 +38,7 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
 
         return new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.image_upgrade_mode)
-                .setSingleChoiceItems(R.array.image_upgrade_options, selectedItem,
+                .setSingleChoiceItems(R.array.image_upgrade_mode_options, selectedItem,
                         (dialog, which) -> selectedItem = which)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.image_upgrade_action_start, (dialog, which) -> {

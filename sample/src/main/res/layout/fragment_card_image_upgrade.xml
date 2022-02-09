@@ -1,12 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) 2018, Nordic Semiconductor
   ~
   ~ SPDX-License-Identifier: Apache-2.0
   -->
 
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -15,7 +13,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -24,7 +23,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:title="@string/image_upgrade_title"/>
+            app:title="@string/image_upgrade_title" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_name_label"
@@ -33,7 +32,7 @@
             android:layout_marginStart="16dp"
             android:text="@string/image_upgrade_file_name"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_size_label"
@@ -41,7 +40,7 @@
             android:layout_height="wrap_content"
             android:text="@string/image_upgrade_size"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
-            app:layout_constraintTop_toBottomOf="@+id/file_name"/>
+            app:layout_constraintTop_toBottomOf="@+id/file_name" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_hash_label"
@@ -49,7 +48,7 @@
             android:layout_height="wrap_content"
             android:text="@string/image_upgrade_hash"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
-            app:layout_constraintTop_toBottomOf="@+id/file_size"/>
+            app:layout_constraintTop_toBottomOf="@+id/file_size" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/status_label"
@@ -57,20 +56,20 @@
             android:layout_height="wrap_content"
             android:text="@string/image_upgrade_status"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
-            app:layout_constraintTop_toBottomOf="@+id/file_hash"/>
+            app:layout_constraintTop_toBottomOf="@+id/file_hash" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:freezesText="true"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/file_name_label"
             app:layout_constraintTop_toTopOf="@+id/file_name_label"
-            tools:text="a_very_long_file_name_indeed_very_very_long.img"/>
+            tools:text="a_very_long_file_name_indeed_very_very_long.img" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_size"
@@ -81,7 +80,7 @@
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/file_size_label"
-            tools:text="1234 bytes"/>
+            tools:text="1234 bytes" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_hash"
@@ -92,7 +91,7 @@
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/file_hash_label"
-            tools:text="001122334455667788990011223344556677889900112233445566778899AABB"/>
+            tools:text="001122334455667788990011223344556677889900112233445566778899AABB" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/status"
@@ -103,7 +102,7 @@
             app:layout_constraintEnd_toStartOf="@+id/speed"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
-            tools:text="@string/image_upgrade_status_uploading"/>
+            tools:text="@string/image_upgrade_status_uploading" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/speed"
@@ -112,17 +111,124 @@
             android:freezesText="true"
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
-            tools:text="2.3 KB/s"/>
+            tools:text="2.3 KB/s" />
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/advanced_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:constraint_referenced_ids="advanced_erase_settings,advanced_erase_settings_info,advanced_swap_time_layout,advanced_swap_time_info,advanced_pipeline_layout,advanced_pipeline_info,advanced_memory_alignment_layout,advanced_memory_alignment_info" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/option_erase_settings"
+            android:id="@+id/advanced_erase_settings"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/image_upgrade_erase_storage"
             android:checked="true"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@string/image_upgrade_erase_storage"
+            app:layout_constraintEnd_toStartOf="@+id/advanced_erase_settings_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/status" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/advanced_erase_settings_info"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_help"
+            app:layout_constraintBottom_toBottomOf="@+id/advanced_erase_settings"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            android:contentDescription="@string/image_upgrade_erase_storage_descr"
+            app:layout_constraintTop_toTopOf="@+id/advanced_erase_settings" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/advanced_swap_time_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/image_upgrade_swap_time"
+            app:layout_constraintEnd_toStartOf="@+id/advanced_swap_time_info"
+            app:layout_constraintStart_toStartOf="@+id/file_name_label"
+            app:layout_constraintTop_toBottomOf="@+id/advanced_erase_settings">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/advanced_swap_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/advanced_swap_time_info"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_help"
+            android:contentDescription="@string/image_upgrade_swap_time_descr"
+            app:layout_constraintBottom_toBottomOf="@+id/advanced_swap_time_layout"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintTop_toTopOf="@+id/advanced_swap_time_layout" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/advanced_pipeline_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/image_upgrade_pipeline"
+            app:layout_constraintEnd_toStartOf="@+id/advanced_swap_time_info"
+            app:layout_constraintStart_toStartOf="@+id/file_name_label"
+            app:layout_constraintTop_toBottomOf="@+id/advanced_swap_time_layout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/advanced_window_capacity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/advanced_pipeline_info"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_help"
+            android:contentDescription="@string/image_upgrade_pipeline_descr"
+            app:layout_constraintBottom_toBottomOf="@+id/advanced_pipeline_layout"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintTop_toTopOf="@+id/advanced_pipeline_layout" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/advanced_memory_alignment_layout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/image_upgrade_memory_alignment"
+            app:layout_constraintEnd_toStartOf="@+id/advanced_memory_alignment_info"
+            app:layout_constraintStart_toStartOf="@+id/file_name_label"
+            app:layout_constraintTop_toBottomOf="@+id/advanced_pipeline_layout">
+
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/advanced_memory_alignment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/advanced_memory_alignment_info"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_help"
+            android:contentDescription="@string/image_upgrade_memory_alignment_descr"
+            app:layout_constraintBottom_toBottomOf="@+id/advanced_memory_alignment_layout"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintTop_toTopOf="@+id/advanced_memory_alignment_layout" />
 
         <ProgressBar
             android:id="@+id/progress"
@@ -134,7 +240,7 @@
             android:progressBackgroundTint="?colorSurface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/option_erase_settings"/>
+            app:layout_constraintTop_toBottomOf="@+id/advanced_memory_alignment_layout" />
 
         <View
             android:id="@+id/divider"
@@ -143,7 +249,7 @@
             android:background="@color/colorDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/progress"/>
+            app:layout_constraintTop_toBottomOf="@+id/progress" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_select_file"
@@ -153,7 +259,7 @@
             android:text="@string/image_action_select"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/action_start"
-            app:layout_constraintTop_toBottomOf="@+id/divider"/>
+            app:layout_constraintTop_toBottomOf="@+id/divider" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_start"
@@ -165,7 +271,7 @@
             android:text="@string/image_upgrade_action_start"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/action_cancel"
-            app:layout_constraintTop_toTopOf="@+id/action_select_file"/>
+            app:layout_constraintTop_toTopOf="@+id/action_select_file" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_cancel"
@@ -177,7 +283,7 @@
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/action_pause_resume"
-            app:layout_constraintTop_toBottomOf="@+id/divider"/>
+            app:layout_constraintTop_toBottomOf="@+id/divider" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_pause_resume"
@@ -189,7 +295,7 @@
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/divider"/>
+            app:layout_constraintTop_toBottomOf="@+id/divider" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

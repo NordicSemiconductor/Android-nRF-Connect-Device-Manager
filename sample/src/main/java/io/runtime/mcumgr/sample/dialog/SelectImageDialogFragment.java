@@ -34,7 +34,7 @@ public class SelectImageDialogFragment extends DialogFragment {
 	public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
 		final DialogSelectImageBinding binding = DialogSelectImageBinding.inflate(getLayoutInflater());
 		final CharSequence[] items = getResources().getTextArray(R.array.image_select_images);
-		binding.image.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.dialog_select_image_item, items));
+		binding.image.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.drop_down_item, items));
 		binding.image.setText(items[0], false);
 		binding.image.setOnItemClickListener((parent, view, position, id) -> this.position = position);
 
