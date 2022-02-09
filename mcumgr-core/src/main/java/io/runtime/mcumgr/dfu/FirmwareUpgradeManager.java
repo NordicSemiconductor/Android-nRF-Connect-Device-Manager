@@ -327,6 +327,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * are dropped by the device causing teh packets to be resent, which actually makes the upload
      * slower.
      *
+     * Pause and resume will throw an exception when window upload is used.
      * @param windowCapacity the maximum number of concurrent upload requests at any time.
      */
     public void setWindowUploadCapacity(final int windowCapacity) {
