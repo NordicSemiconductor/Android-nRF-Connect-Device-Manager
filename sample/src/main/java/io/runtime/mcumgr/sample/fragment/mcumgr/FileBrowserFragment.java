@@ -10,7 +10,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Toast;
+
+import org.jetbrains.annotations.NotNull;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -18,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -27,7 +31,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.viewmodel.FileBrowserViewModel;
+import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import timber.log.Timber;
 
 public abstract class FileBrowserFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -37,22 +45,17 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     private static final int LOAD_FILE_LOADER_REQ = 2;
     private static final String EXTRA_FILE_URI = "uri";
 
-    private static final String SIS_DATA = "data";
-    private static final String SIS_URI = "uri";
-
-    private byte[] fileContent;
-    private Uri fileUri;
+    @Inject
+    McuMgrViewModelFactory viewModelFactory;
 
     private ActivityResultLauncher<String> fileBrowserLauncher;
+    private FileBrowserViewModel viewModel;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            fileContent = savedInstanceState.getByteArray(SIS_DATA);
-            fileUri = savedInstanceState.getParcelable(SIS_URI);
-        }
+        viewModel = new ViewModelProvider(this, viewModelFactory)
+                .get(FileBrowserViewModel.class);
 
         fileBrowserLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -73,10 +76,15 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     }
 
     @Override
-    public void onSaveInstanceState(@NonNull final Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putByteArray(SIS_DATA, fileContent);
-        outState.putParcelable(SIS_URI, fileUri);
+    public void onViewCreated(@NonNull @NotNull final View view, @Nullable final Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        viewModel.getFileContent().observe(getViewLifecycleOwner(), bytes -> {
+            if (bytes != null) {
+                onFileLoaded(bytes);
+            } else {
+                onFileCleared();
+            }
+        });
     }
 
     /**
@@ -86,20 +94,18 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      */
     @Nullable
     byte[] getFileContent() {
-        return fileContent;
+        return viewModel.getFileContent().getValue();
     }
 
     void setFileContent(@NonNull final byte[] data) {
-        fileContent = data;
-        onFileLoaded(data);
+        viewModel.setFileContent(data);
     }
 
     /**
      * Releases the reference to the file content and calls {@link #onFileCleared()}.
      */
     void clearFileContent() {
-        fileContent = null;
-        onFileCleared();
+        viewModel.setFileContent(null);
     }
 
     /**
@@ -108,7 +114,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      * @return True if the file has been selected, false otherwise.
      */
     boolean isFileLoaded() {
-        return fileContent != null;
+        return viewModel.isFileLoaded();
     }
 
     /**
@@ -141,11 +147,10 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(final int id, @Nullable final Bundle args) {
-        switch (id) {
-            case LOAD_FILE_LOADER_REQ:
-                final Uri uri = args.getParcelable(EXTRA_FILE_URI);
-                return new CursorLoader(requireContext(), uri,
-                        null/* projection */, null, null, null);
+        if (id == LOAD_FILE_LOADER_REQ) {
+            final Uri uri = args.getParcelable(EXTRA_FILE_URI);
+            return new CursorLoader(requireContext(), uri,
+                    null/* projection */, null, null, null);
         }
         throw new UnsupportedOperationException("Invalid loader ID: " + id);
     }
@@ -158,45 +163,43 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
             return;
         }
 
-        switch (loader.getId()) {
-            case LOAD_FILE_LOADER_REQ: {
-                final int displayNameColumn = data.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
-                final int sizeColumn = data.getColumnIndex(MediaStore.MediaColumns.SIZE);
+        if (loader.getId() == LOAD_FILE_LOADER_REQ) {
+            final int displayNameColumn = data.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+            final int sizeColumn = data.getColumnIndex(MediaStore.MediaColumns.SIZE);
 
-                if (displayNameColumn == -1 || sizeColumn == -1) {
+            if (displayNameColumn == -1 || sizeColumn == -1) {
+                Toast.makeText(requireContext(), R.string.file_loader_error_loading_file_failed,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (data.moveToNext()) {
+                final String fileName = data.getString(displayNameColumn);
+                final int fileSize = data.getInt(sizeColumn);
+                if (fileName == null || fileSize < 0) {
                     Toast.makeText(requireContext(), R.string.file_loader_error_loading_file_failed,
                             Toast.LENGTH_SHORT).show();
-                    break;
+                    return;
                 }
 
-                if (data.moveToNext()) {
-                    final String fileName = data.getString(displayNameColumn);
-                    final int fileSize = data.getInt(sizeColumn);
-                    if (fileName == null || fileSize < 0) {
-                        Toast.makeText(requireContext(), R.string.file_loader_error_loading_file_failed,
-                                Toast.LENGTH_SHORT).show();
-                        break;
-                    }
-
-                    onFileSelected(fileName, fileSize);
-                    try {
-                        final CursorLoader cursorLoader = (CursorLoader) loader;
-                        final InputStream is = requireContext().getContentResolver()
-                                .openInputStream(cursorLoader.getUri());
-                        loadContent(is);
-                    } catch (final FileNotFoundException e) {
-                        Timber.e(e, "File not found");
-                        onFileLoadingFailed(R.string.file_loader_error_no_uri);
-                    }
-                } else {
-                    Timber.e("Empty cursor");
+                onFileSelected(fileName, fileSize);
+                try {
+                    final CursorLoader cursorLoader = (CursorLoader) loader;
+                    final InputStream is = requireContext().getContentResolver()
+                            .openInputStream(cursorLoader.getUri());
+                    loadContent(is);
+                } catch (final FileNotFoundException e) {
+                    Timber.e(e, "File not found");
                     onFileLoadingFailed(R.string.file_loader_error_no_uri);
                 }
-                // Reset the loader as the URU read permission is one time only.
-                // We keep the file content in the fragment so no need to load it again.
-                // onLoaderReset(...) will be called after that.
-                LoaderManager.getInstance(this).destroyLoader(LOAD_FILE_LOADER_REQ);
+            } else {
+                Timber.e("Empty cursor");
+                onFileLoadingFailed(R.string.file_loader_error_no_uri);
             }
+            // Reset the loader as the URU read permission is one time only.
+            // We keep the file content in the fragment so no need to load it again.
+            // onLoaderReset(...) will be called after that.
+            LoaderManager.getInstance(this).destroyLoader(LOAD_FILE_LOADER_REQ);
         }
     }
 
@@ -239,8 +242,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
             } finally {
                 buf.close();
             }
-            fileContent = bytes;
-            onFileLoaded(bytes);
+            setFileContent(bytes);
         } catch (final IOException e) {
             Timber.e(e, "Reading file content failed");
             onFileLoadingFailed(R.string.file_loader_error_loading_file_failed);

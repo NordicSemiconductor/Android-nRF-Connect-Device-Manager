@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import io.runtime.mcumgr.sample.di.component.McuMgrViewModelSubComponent;
+import io.runtime.mcumgr.sample.viewmodel.FileBrowserViewModel;
 import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
 
 public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
@@ -32,6 +33,7 @@ public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
         creators.put(ResetViewModel.class, viewModelSubComponent::resetViewModel);
         creators.put(StatsViewModel.class, viewModelSubComponent::statsViewModel);
         creators.put(McuMgrViewModel.class, viewModelSubComponent::mcuMgrViewModel);
+        creators.put(FileBrowserViewModel.class, viewModelSubComponent::fileBrowserViewModel);
         creators.put(ImageUpgradeViewModel.class, viewModelSubComponent::imageUpgradeViewModel);
         creators.put(ImageUploadViewModel.class, viewModelSubComponent::imageUploadViewModel);
         creators.put(ImageControlViewModel.class, viewModelSubComponent::imageControlViewModel);

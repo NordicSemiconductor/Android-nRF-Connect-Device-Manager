@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.sample.di.component;
 
 import dagger.Subcomponent;
+import io.runtime.mcumgr.sample.viewmodel.FileBrowserViewModel;
 import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.EchoViewModel;
@@ -40,6 +41,7 @@ public interface McuMgrViewModelSubComponent {
     ResetViewModel resetViewModel();
     StatsViewModel statsViewModel();
     McuMgrViewModel mcuMgrViewModel();
+    FileBrowserViewModel fileBrowserViewModel();
     ImageUpgradeViewModel imageUpgradeViewModel();
     ImageUploadViewModel imageUploadViewModel();
     ImageControlViewModel imageControlViewModel();
