@@ -6,6 +6,7 @@
 
 package io.runtime.mcumgr.sample.fragment.mcumgr;
 
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -14,8 +15,10 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.util.Pair;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +28,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
 
+import androidx.preference.PreferenceManager;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
@@ -32,12 +36,17 @@ import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragment;
+import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUpgradeViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable {
+    private static final String PREF_ERASE_APP_SETTINGS = "pref_erase_app_settings";
+    private static final String PREF_ESTIMATED_SWAP_TIME = "pref_estimated_swap_time";
+    private static final String PREF_WINDOW_CAPACITY = "pref_window_capacity";
+    private static final String PREF_MEMORY_ALIGNMENT = "pref_memory_alignment";
 
     @Inject
     McuMgrViewModelFactory viewModelFactory;
@@ -45,6 +54,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     private FragmentCardImageUpgradeBinding binding;
 
     private ImageUpgradeViewModel viewModel;
+    private int memoryAlignment;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -59,6 +69,81 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentCardImageUpgradeBinding.inflate(inflater, container, false);
+
+        // Set up (i) buttons.
+        binding.advancedEraseSettingsInfo.setOnClickListener(v -> {
+            final DialogFragment dialog = HelpDialogFragment.getInstance(
+                    R.string.image_upgrade_erase_storage,
+                    R.string.image_upgrade_erase_storage_info);
+            dialog.show(getChildFragmentManager(), null);
+        });
+        binding.advancedSwapTimeInfo.setOnClickListener(v -> {
+            final DialogFragment dialog = HelpDialogFragment.getInstance(
+                    R.string.image_upgrade_swap_time,
+                    R.string.image_upgrade_swap_time_info);
+            dialog.show(getChildFragmentManager(), null);
+        });
+        binding.advancedPipelineInfo.setOnClickListener(v -> {
+            final DialogFragment dialog = HelpDialogFragment.getInstance(
+                    R.string.image_upgrade_pipeline,
+                    R.string.image_upgrade_pipeline_info);
+            dialog.show(getChildFragmentManager(), null);
+        });
+        binding.advancedMemoryAlignmentInfo.setOnClickListener(v -> {
+            final DialogFragment dialog = HelpDialogFragment.getInstance(
+                    R.string.image_upgrade_memory_alignment,
+                    R.string.image_upgrade_memory_alignment_info);
+            dialog.show(getChildFragmentManager(), null);
+        });
+
+        final CharSequence[] items = getResources().getTextArray(R.array.image_upgrade_memory_alignment_options);
+        binding.advancedMemoryAlignment.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.drop_down_item, items));
+        binding.advancedMemoryAlignment.setOnItemClickListener((parent, view, position, id) -> {
+            switch (position) {
+                case 1: memoryAlignment = 2; break;
+                case 2: memoryAlignment = 4; break;
+                case 3: memoryAlignment = 8; break;
+                case 4: memoryAlignment = 16; break;
+                case 0:
+                default:memoryAlignment = 1; break;
+            }
+        });
+
+        // Fill default values.
+        if (savedInstanceState == null) {
+            final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+            binding.advancedEraseSettings.setChecked(preferences.getBoolean(PREF_ERASE_APP_SETTINGS, true));
+            binding.advancedSwapTime.setText(getString(R.string.value_int, preferences.getInt(PREF_ESTIMATED_SWAP_TIME, 10)));
+            binding.advancedWindowCapacity.setText(getString(R.string.value_int, preferences.getInt(PREF_WINDOW_CAPACITY, 4)));
+            memoryAlignment = preferences.getInt(PREF_MEMORY_ALIGNMENT, 4);
+            int position;
+            switch (memoryAlignment) {
+                case 2: position = 1; break;
+                case 4: position = 2; break;
+                case 8: position = 3; break;
+                case 16: position = 4; break;
+                case 0:
+                default: position = 0; break;
+            }
+            binding.advancedMemoryAlignment.setText(items[position], false);
+        }
+
+        // Set up Expand / Collapse buttons in the section's menu.
+        binding.toolbar.inflateMenu(R.menu.expandable);
+        binding.toolbar.getMenu().findItem(R.id.action_expand).setOnMenuItemClickListener(item -> {
+            viewModel.setAdvancedSettingsExpanded(true);
+            return true;
+        });
+        binding.toolbar.getMenu().findItem(R.id.action_collapse).setOnMenuItemClickListener(item -> {
+            viewModel.setAdvancedSettingsExpanded(false);
+            return true;
+        });
+        viewModel.getAdvancedSettingsState().observe(getViewLifecycleOwner(), expanded -> {
+            final Menu menu = binding.toolbar.getMenu();
+            menu.findItem(R.id.action_collapse).setVisible(expanded);
+            menu.findItem(R.id.action_expand).setVisible(!expanded);
+            binding.advancedGroup.setVisibility(expanded ? View.VISIBLE : View.GONE);
+        });
         return binding.getRoot();
     }
 
@@ -81,7 +166,10 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             switch (state) {
                 case VALIDATING:
                     binding.status.setText(R.string.image_upgrade_status_validating);
-                    binding.optionEraseSettings.setEnabled(false);
+                    binding.advancedEraseSettings.setEnabled(false);
+                    binding.advancedSwapTimeLayout.setEnabled(false);
+                    binding.advancedPipelineLayout.setEnabled(false);
+                    binding.advancedMemoryAlignmentLayout.setEnabled(false);
                     break;
                 case UPLOADING:
                     binding.status.setText(R.string.image_upgrade_status_uploading);
@@ -105,7 +193,10 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     clearFileContent();
                     binding.status.setText(R.string.image_upgrade_status_completed);
                     binding.speed.setText(null);
-                    binding.optionEraseSettings.setEnabled(true);
+                    binding.advancedEraseSettings.setEnabled(true);
+                    binding.advancedSwapTimeLayout.setEnabled(true);
+                    binding.advancedPipelineLayout.setEnabled(true);
+                    binding.advancedMemoryAlignmentLayout.setEnabled(true);
                     break;
             }
         });
@@ -120,7 +211,10 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.actionStart.setVisibility(View.VISIBLE);
             binding.actionCancel.setVisibility(View.GONE);
             binding.actionPauseResume.setVisibility(View.GONE);
-            binding.optionEraseSettings.setEnabled(true);
+            binding.advancedEraseSettings.setEnabled(true);
+            binding.advancedSwapTimeLayout.setEnabled(true);
+            binding.advancedPipelineLayout.setEnabled(true);
+            binding.advancedMemoryAlignmentLayout.setEnabled(true);
             printError(error);
         });
         viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
@@ -135,7 +229,10 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.actionStart.setEnabled(false);
             binding.actionCancel.setVisibility(View.GONE);
             binding.actionPauseResume.setVisibility(View.GONE);
-            binding.optionEraseSettings.setEnabled(true);
+            binding.advancedEraseSettings.setEnabled(true);
+            binding.advancedSwapTimeLayout.setEnabled(true);
+            binding.advancedPipelineLayout.setEnabled(true);
+            binding.advancedMemoryAlignmentLayout.setEnabled(true);
         });
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             binding.actionSelectFile.setEnabled(!busy);
@@ -175,7 +272,45 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
      */
     @SuppressWarnings("ConstantConditions")
     public void start(@NonNull final FirmwareUpgradeManager.Mode mode) {
-        viewModel.upgrade(getFileContent(), mode, binding.optionEraseSettings.isChecked());
+        if (binding.advancedSwapTime.getText().toString().isEmpty()) {
+            binding.advancedSwapTime.setText("0");
+        }
+        if (binding.advancedWindowCapacity.getText().toString().isEmpty()) {
+            binding.advancedWindowCapacity.setText("1");
+        }
+        final boolean eraseAppSettings = binding.advancedEraseSettings.isChecked();
+        int swapTimeSeconds;
+        try {
+            swapTimeSeconds = Integer.parseInt(binding.advancedSwapTime.getText().toString());
+            binding.advancedSwapTimeLayout.setError(null);
+        } catch (final NumberFormatException e) {
+            binding.advancedSwapTimeLayout.setError(getText(R.string.image_upgrade_error));
+            return;
+        }
+        int windowCapacity;
+        try {
+            windowCapacity = Integer.parseInt(binding.advancedWindowCapacity.getText().toString());
+            binding.advancedPipelineLayout.setError(null);
+        } catch (final NumberFormatException e) {
+            binding.advancedPipelineLayout.setError(getText(R.string.image_upgrade_error));
+            return;
+        }
+        final int memoryAlignment = this.memoryAlignment;
+
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        preferences.edit()
+                .putBoolean(PREF_ERASE_APP_SETTINGS, eraseAppSettings)
+                .putInt(PREF_ESTIMATED_SWAP_TIME, swapTimeSeconds)
+                .putInt(PREF_WINDOW_CAPACITY, windowCapacity)
+                .putInt(PREF_MEMORY_ALIGNMENT, memoryAlignment)
+                .apply();
+
+        viewModel.upgrade(getFileContent(), mode,
+                eraseAppSettings,
+                swapTimeSeconds * 1000,
+                windowCapacity,
+                memoryAlignment
+        );
     }
 
     @Override

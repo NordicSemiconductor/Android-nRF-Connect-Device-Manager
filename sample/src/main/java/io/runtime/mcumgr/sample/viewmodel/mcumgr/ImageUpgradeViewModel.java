@@ -58,6 +58,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     private final MutableLiveData<State> stateLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> progressLiveData = new MutableLiveData<>();
     private final MutableLiveData<Float> transferSpeedLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> advancedSettingsExpanded = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> errorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
 
@@ -71,18 +72,6 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         this.manager = manager;
         this.manager.setFirmwareUpgradeCallback(this);
 
-        // rF52840, due to how the flash memory works, requires ~20 sec to erase images.
-        this.manager.setEstimatedSwapTime(10000);
-
-        // Window upload is experimental and seems not to work well.
-        // Each packets sent gets SEQ number assigned. Each response has the same sequence number.
-        // It should be possible to send multiple packets quickly, which should be processed and
-        // acknowledged when done. However, on Zephyr implementation the requests are not buffered,
-        // so all replies get offset set to number of bytes processed, making the library to resend
-        // a lot of packets. Also, with window upload pause and resume throw an exception.
-
-        // manager.setWindowUploadCapacity(32);
-
         stateLiveData.setValue(State.IDLE);
         progressLiveData.setValue(0);
     }
@@ -91,6 +80,15 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     protected void onCleared() {
         super.onCleared();
         manager.setFirmwareUpgradeCallback(null);
+    }
+
+    @NonNull
+    public LiveData<Boolean> getAdvancedSettingsState() {
+        return advancedSettingsExpanded;
+    }
+
+    public void setAdvancedSettingsExpanded(final boolean expanded) {
+        advancedSettingsExpanded.setValue(expanded);
     }
 
     @NonNull
@@ -123,7 +121,10 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     public void upgrade(@NonNull final byte[] data,
                         @NonNull final FirmwareUpgradeManager.Mode mode,
-                        final boolean eraseSettings) {
+                        final boolean eraseSettings,
+                        final int estimatedSwapTime,
+                        final int windowCapacity,
+                        final int memoryAlignment) {
         List<Pair<Integer, byte[]>> images;
         try {
             // Check if the BIN file is valid.
@@ -140,7 +141,27 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         }
         try {
             requestHighConnectionPriority();
+
+            // Set the upgrade mode.
             manager.setMode(mode);
+            // rF52840, due to how the flash memory works, requires ~20 sec to erase images.
+            manager.setEstimatedSwapTime(estimatedSwapTime);
+            // Set the window capacity. Values > 1 enable a new implementation for uploading
+            // the images, which makes use of SMP pipelining feature.
+            // The app will send this many packets immediately, without waiting for notification
+            // confirming each packet. This value should be lower or equal to MCUMGR_BUF_COUNT
+            // (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
+            // parameter in KConfig in NCS / Zephyr configuration and should also be supported
+            // on Mynewt devices.
+            // Mind, that in Zephyr, before https://github.com/zephyrproject-rtos/zephyr/pull/41959
+            // was merged, the device required data to be sent with memory alignment. Otherwise,
+            // the device would ignore uneven bytes and reply with lower than expected offset
+            // causing multiple packets to be sent again dropping the speed instead of increasing it.
+            manager.setWindowUploadCapacity(windowCapacity);
+            // Set the selected memory alignment. In the app this defaults to 4 to match Nordic
+            // devices, but can be modified in the UI.
+            manager.setMemoryAlignment(memoryAlignment);
+
             manager.start(images, eraseSettings);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
@@ -216,6 +237,11 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         }
         // When done, reset the counter.
         if (bytesSent == imageSize) {
+            Timber.i("Image (%d bytes) sent in %d ms (avg speed: %f kB/s)",
+                    imageSize - initialBytes,
+                    timestamp - uploadStartTimestamp,
+                    (float) (imageSize - initialBytes) / (float) (timestamp - uploadStartTimestamp)
+            );
             initialBytes = 0;
         }
         // Convert to percent
@@ -226,6 +252,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     public void onUpgradeCompleted() {
         progressLiveData.postValue(0);
         stateLiveData.postValue(State.COMPLETE);
+        Timber.i("Upgrade complete");
         setLoggingEnabled(true);
         postReady();
     }
@@ -235,6 +262,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         progressLiveData.postValue(0);
         stateLiveData.postValue(State.IDLE);
         cancelledEvent.post();
+        Timber.w("Upgrade cancelled");
         setLoggingEnabled(true);
         postReady();
     }
@@ -244,6 +272,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         progressLiveData.postValue(0);
         errorLiveData.postValue(error);
         setLoggingEnabled(true);
+        Timber.e(error, "Upgrade failed");
         postReady();
     }
 
