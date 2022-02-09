@@ -20,6 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import org.jetbrains.annotations.NotNull;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -47,6 +49,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     private static final String PREF_ESTIMATED_SWAP_TIME = "pref_estimated_swap_time";
     private static final String PREF_WINDOW_CAPACITY = "pref_window_capacity";
     private static final String PREF_MEMORY_ALIGNMENT = "pref_memory_alignment";
+    private static final String SIS_MEMORY_ALIGNMENT = "sis_memory_alignment";
 
     @Inject
     McuMgrViewModelFactory viewModelFactory;
@@ -61,6 +64,16 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(ImageUpgradeViewModel.class);
+
+        if (savedInstanceState != null) {
+            memoryAlignment = savedInstanceState.getInt(SIS_MEMORY_ALIGNMENT);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull @NotNull final Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SIS_MEMORY_ALIGNMENT, memoryAlignment);
     }
 
     @Nullable
