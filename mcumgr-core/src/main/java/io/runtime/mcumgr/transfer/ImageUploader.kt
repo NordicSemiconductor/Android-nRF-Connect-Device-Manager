@@ -21,10 +21,11 @@ fun ImageManager.windowUpload(
     data: ByteArray,
     image: Int,
     windowCapacity: Int,
+    memoryAlignment: Int,
     callback: UploadCallback
 ): TransferController {
     val log = LoggerFactory.getLogger("ImageUploader")
-    val uploader = ImageUploader(data, image, this, windowCapacity)
+    val uploader = ImageUploader(data, image, this, windowCapacity, memoryAlignment)
 
     val exceptionHandler = CoroutineExceptionHandler { _, t ->
         log.error("Upload failed", t)
@@ -78,14 +79,15 @@ internal class ImageUploader(
     private val imageData: ByteArray,
     private val image: Int,
     private val imageManager: ImageManager,
-    windowCapacity: Int = 1
+    windowCapacity: Int = 1,
+    memoryAlignment: Int = 1,
 ) : Uploader(
     imageData,
     windowCapacity,
+    memoryAlignment,
     imageManager.mtu,
     imageManager.scheme
 ) {
-
     override fun write(data: ByteArray, offset: Int, callback: (UploadResult) -> Unit) {
         val requestMap: MutableMap<String, Any> = mutableMapOf(
             "data" to data,

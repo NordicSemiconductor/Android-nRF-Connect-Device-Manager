@@ -108,12 +108,19 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
          */
         public final int windowCapacity;
 
+        /**
+         * Memory alignment. Value 1 disables memory alignment.
+         */
+        public final int memoryAlignment;
+
         private Settings(@NotNull final McuMgrTransport transport,
                          final int estimatedSwapTime,
-                         final int windowCapacity) {
+                         final int windowCapacity,
+                         final int memoryAlignment) {
             this.transport = transport;
             this.estimatedSwapTime = estimatedSwapTime;
             this.windowCapacity = windowCapacity;
+            this.memoryAlignment = memoryAlignment;
         }
 
         public static class Builder {
@@ -121,6 +128,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             private final McuMgrTransport transport;
             private int estimatedSwapTime = 0;
             private int windowCapacity = 1;
+            private int memoryAlignment = 1;
 
             public Builder(@NotNull final McuMgrTransport transport) {
                 this.transport = transport;
@@ -154,11 +162,24 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             }
 
             /**
+             * The memory alignment value should match the device's memory layout.
+             * Some devices require the chunks to be word or 16-byte aligned to be saved.
+             * <p>
+             * Value 1 disables alignment and chunks will be sent as big as possible.
+             * @param alignment device memory alignment.
+             * @return The builder.
+             */
+            public Builder setMemoryAlignment(final int alignment) {
+                this.memoryAlignment = Math.max(1, alignment);
+                return this;
+            }
+
+            /**
              * Builds the settings object.
              * @return Settings.
              */
             public Settings build() {
-                return new Settings(transport, estimatedSwapTime, windowCapacity);
+                return new Settings(transport, estimatedSwapTime, windowCapacity, memoryAlignment);
             }
         }
     }
@@ -200,6 +221,13 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * using the faster window upload implementation.
      */
     private int mWindowCapacity = 1;
+
+    /**
+     * The memory alignment of a device. This value is used to trim each packet of data sent.
+     * By default, memory alignment is disabled (value = 1) and should be set to 4, 8, 16, or any
+     * other value that the flash is aligned to. For Nordic devices this is equal to 4.
+     */
+    private int mMemoryAlignment = 1; // initially disabled for backwards compatibility.
 
     //******************************************************************
     // Firmware Upgrade Manager API
@@ -342,6 +370,31 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     }
 
     /**
+     * Sets the memory alignment of a device. This value is used to trim each packet of data sent.
+     * <p>
+     * This a specially helps when used with pipelining (window capacity > 1), where
+     * the mobile device sends multiple packets without waiting for a response from a device.
+     * If the remote device can store only the number of bytes divisible by its memory alignment,
+     * e.g. a word (4 bytes), it would ignore uneven bytes and reply with a lower than expected
+     * offset, also ignoring already sent packets following the first one. All packets except the
+     * first one would have to be sent again, not with slightly decremented offset.
+     * By trimming to memory alignment, this library makes sure that all bytes sent are consumed.
+     * <p>
+     * With https://github.com/zephyrproject-rtos/zephyr/pull/41959 PR merged, you can set the
+     * alignment to 1 (disabled), as the flash manager itself takes care of alignment.
+     */
+    public void setMemoryAlignment(final int alignment) {
+        if (alignment < 1) {
+            throw new IllegalArgumentException("memory alignment must be >= 1");
+        }
+        if (mPerformer.isBusy()) {
+            LOG.info("Firmware upgrade is already in progress");
+            return;
+        }
+        mMemoryAlignment = alignment;
+    }
+
+    /**
      * Start the upgrade.
      * <p>
      * The specified image file will be sent to the target using the
@@ -388,6 +441,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         final Settings settings = new Settings.Builder(mTransport)
             .setEstimatedSwapTime(mEstimatedSwapTime)
             .setWindowCapacity(mWindowCapacity)
+            .setMemoryAlignment(mMemoryAlignment)
             .build();
         mPerformer.start(settings, mMode, mcuMgrImages, eraseStorage);
     }

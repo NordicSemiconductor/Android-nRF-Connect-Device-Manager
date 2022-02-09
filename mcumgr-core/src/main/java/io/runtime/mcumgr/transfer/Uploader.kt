@@ -30,6 +30,7 @@ private data class Chunk(val data: ByteArray, val offset: Int) {
 abstract class Uploader(
     private val data: ByteArray,
     private val windowCapacity: Int,
+    private val memoryAlignment: Int,
     internal var mtu: Int,
     private val protocol: McuMgrScheme
 ) {
@@ -160,8 +161,12 @@ abstract class Uploader(
     }
 
     private fun newChunk(offset: Int): Chunk {
-        val chunkSize = getChunkSize(data, offset)
-        val chunkData = data.copyOfRange(offset, offset + chunkSize)
+        // SMP pipelining may require data to be aligned to some number of bytes.
+        // In Zephyr, since https://github.com/zephyrproject-rtos/zephyr/pull/41959 has been merged
+        // this is not required, but memory aligning here makes even older devices to work.
+        val maxChunkSize = getMaxChunkSize(data, offset)
+        val alignedSize = if (offset + maxChunkSize < data.size) maxChunkSize / memoryAlignment * memoryAlignment else maxChunkSize
+        val chunkData = data.copyOfRange(offset, offset + alignedSize)
         return Chunk(chunkData, offset)
     }
 
@@ -179,8 +184,7 @@ abstract class Uploader(
      * out of bounds on the last chunk, if the calculated chunk size is greater than data.size -
      * offset, then the latter value is returned.
      */
-    private fun getChunkSize(data: ByteArray, offset: Int): Int {
-
+    private fun getMaxChunkSize(data: ByteArray, offset: Int): Int {
         // The size of the header is based on the scheme. CoAP scheme is larger because there are
         // 4 additional bytes of CBOR.
         val headerSize = when (protocol) {
