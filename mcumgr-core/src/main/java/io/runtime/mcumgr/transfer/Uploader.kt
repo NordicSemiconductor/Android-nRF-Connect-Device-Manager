@@ -194,17 +194,20 @@ abstract class Uploader(
         // Size of the string "off" plus the length of the offset integer
         val offsetSize = cborStringLength("off") + cborUIntLength(offset)
 
-        val lengthSize = getAdditionalSize() + if (offset == 0) {
+        val lengthSize = if (offset == 0) {
             // Size of the string "len" plus the length of the data size integer
             cborStringLength("len") + cborUIntLength(data.size)
         } else {
             0
         }
 
+        // Implementation specific size
+        val implSpecificSize = getAdditionalSize()
+
         // Size of the field name "data" utf8 string
         val dataStringSize = cborStringLength("data")
 
-        val combinedSize = headerSize + mapSize + offsetSize + lengthSize + dataStringSize
+        val combinedSize = headerSize + mapSize + offsetSize + lengthSize + implSpecificSize + dataStringSize
 
         // Now we calculate the max amount of data that we can fit given the MTU.
         val maxDataLength = mtu - combinedSize
