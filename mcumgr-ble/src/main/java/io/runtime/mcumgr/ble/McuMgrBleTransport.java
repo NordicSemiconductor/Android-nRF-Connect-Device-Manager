@@ -296,10 +296,10 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     session.send(payload, new SmpTransaction() {
                         @Override
                         public void send(@NonNull byte[] data) {
-                            if (mLoggingEnabled) {
+                            if (getMinLogPriority() <= Log.INFO && mLoggingEnabled) {
                                 try {
                                     log(Log.INFO, "Sending (" + payload.length + " bytes) "
-                                            + McuMgrHeader.fromBytes(payload).toString() + " CBOR "
+                                            + McuMgrHeader.fromBytes(payload) + " CBOR "
                                             + CBOR.toString(payload, McuMgrHeader.HEADER_LENGTH));
                                 } catch (Exception e) {
                                     // Ignore
@@ -524,7 +524,9 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             requestMtu(498)
                     .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
                     .fail((device, status) -> {
-                        log(Log.INFO, "Failed to negotiate MTU, disconnecting,");
+                        if (getMinLogPriority() <= Log.WARN) {
+                            log(Log.WARN, "Failed to negotiate MTU, disconnecting...");
+                        }
                         disconnect().enqueue();
                     }).enqueue();
 
@@ -544,10 +546,10 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         if (bytes == null || session == null) {
                             return;
                         }
-                        if (mLoggingEnabled) {
+                        if (getMinLogPriority() <= Log.INFO && mLoggingEnabled) {
                             try {
                                 log(Log.INFO, "Received "
-                                        + McuMgrHeader.fromBytes(bytes).toString() + " CBOR "
+                                        + McuMgrHeader.fromBytes(bytes) + " CBOR "
                                         + CBOR.toString(bytes, McuMgrHeader.HEADER_LENGTH));
                             } catch (Exception e) {
                                 // Ignore
