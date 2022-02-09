@@ -17,7 +17,7 @@
     <string name="image_upgrade_erase_storage_descr">About erase application settings feature</string>
     <string name="image_upgrade_swap_time">Estimated swap time (in seconds)</string>
     <string name="image_upgrade_swap_time_descr">About estimated swap time</string>
-    <string name="image_upgrade_pipeline">Concurrent buffers count</string>
+    <string name="image_upgrade_pipeline">Number of mcumgr buffers</string>
     <string name="image_upgrade_pipeline_descr">About pipelining</string>
     <string name="image_upgrade_memory_alignment">Memory alignment</string>
     <string name="image_upgrade_memory_alignment_descr">About memory alignment</string>
@@ -33,7 +33,7 @@
     <string name="image_upgrade_dialog_help_title">Help</string>
     <string name="image_upgrade_erase_storage_info">Enabling this feature will cause the application settings to be erased after the new firmware has been sent successfully. This is equivalent of Factory Reset.\n\nEnable when switching applications or upgrading by a major version with incompatible settings structure.\n\nEnabled by default.</string>
     <string name="image_upgrade_swap_time_info">A time required by a device to swap the images. When used with Test &amp; Confirm, the app will delay reconnection given number of seconds to avoid timeouts on reconnection.\n\nBy default 10 seconds.</string>
-    <string name="image_upgrade_pipeline_info">Number of mcumgr buffers on the target device. Multiple buffers allow to send many packets in parallel greatly improving upload speed.\n\nThis is set as MCUMGR_BUF_COUNT in KConfig in Zephyr.\n\nBy default 4.</string>
+    <string name="image_upgrade_pipeline_info">The number of net_bufs to allocate for mcumgr. Multiple buffers allow sending packets in parallel, without waiting for their responses, which improves the upload speed.\n\nThis is configured as MCUMGR_BUF_COUNT in KConfig in Zephyr and default equal to 4.</string>
     <string name="image_upgrade_memory_alignment_info">Enabling this will cause each packet to be truncated to fit the device\'s flash alignment. This is only relevant with pipelining, that is with Concurrent buffers count  greater than 1, and is ignored otherwise.\n\nIf a device uses internal flash buffering this can be disabled.</string>
 
     <string name="image_upgrade_action_start">Start</string>
