@@ -16,7 +16,7 @@
     <string name="image_upgrade_action_start">Start</string>
 
     <string name="image_upgrade_mode">Select Mode</string>
-    <string-array name="image_upgrade_options">
+    <string-array name="image_upgrade_mode_options">
         <item>Test and confirm</item>
         <item>Test only</item>
         <item>Confirm only</item>
