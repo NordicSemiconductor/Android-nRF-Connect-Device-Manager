@@ -102,14 +102,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         setLoggingEnabled(true);
     }
 
-    @Override
-    public int getMinLogPriority() {
-        // Uncomment to get the previous logging details.
-        // return Log.VERBOSE;
-        // The new default min log priority increases DFU speed, but is bad for debugging.
-        return Log.WARN; //super.getMinLogPriority();
-    }
-
     @Nullable
     public LiveData<ConnectionState> getState() {
         return connectionState;

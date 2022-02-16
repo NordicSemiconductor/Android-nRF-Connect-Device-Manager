@@ -216,27 +216,30 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     }
 
     @Override
+    public int getMinLogPriority() {
+        return mLoggingEnabled ? super.getMinLogPriority() : Log.WARN;
+    }
+
+    @Override
     public void log(int priority, @NonNull String message) {
-        if (mLoggingEnabled) {
-            switch (priority) {
-                case Log.DEBUG:
-                    LOG.debug(message);
-                    break;
-                case Log.INFO:
-                    LOG.info(message);
-                    break;
-                case Log.WARN:
-                    LOG.warn(message);
-                    break;
-                case Log.ERROR:
-                case Log.ASSERT:
-                    LOG.error(message);
-                    break;
-                case Log.VERBOSE:
-                default:
-                    LOG.trace(message);
-                    break;
-            }
+        switch (priority) {
+            case Log.DEBUG:
+                LOG.debug(message);
+                break;
+            case Log.INFO:
+                LOG.info(message);
+                break;
+            case Log.WARN:
+                LOG.warn(message);
+                break;
+            case Log.ERROR:
+            case Log.ASSERT:
+                LOG.error(message);
+                break;
+            case Log.VERBOSE:
+            default:
+                LOG.trace(message);
+                break;
         }
     }
 
@@ -296,7 +299,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     session.send(payload, new SmpTransaction() {
                         @Override
                         public void send(@NonNull byte[] data) {
-                            if (getMinLogPriority() <= Log.INFO && mLoggingEnabled) {
+                            if (getMinLogPriority() <= Log.INFO) {
                                 try {
                                     log(Log.INFO, "Sending (" + payload.length + " bytes) "
                                             + McuMgrHeader.fromBytes(payload) + " CBOR "
@@ -546,7 +549,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         if (bytes == null || session == null) {
                             return;
                         }
-                        if (getMinLogPriority() <= Log.INFO && mLoggingEnabled) {
+                        if (getMinLogPriority() <= Log.INFO) {
                             try {
                                 log(Log.INFO, "Received "
                                         + McuMgrHeader.fromBytes(bytes) + " CBOR "
