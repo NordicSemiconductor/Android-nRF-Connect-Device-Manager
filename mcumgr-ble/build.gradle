@@ -31,7 +31,7 @@ dependencies {
     api project(':mcumgr-core')
 
     // Import the BLE Library
-    api 'no.nordicsemi.android:ble:2.4.0-beta01'
+    api 'no.nordicsemi.android:ble:2.4.0.beta02'
 
     // Logging
     implementation 'org.slf4j:slf4j-api:1.7.35'
