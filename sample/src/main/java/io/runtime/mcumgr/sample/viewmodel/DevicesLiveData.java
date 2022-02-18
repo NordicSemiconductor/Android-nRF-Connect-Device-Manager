@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
-import io.runtime.mcumgr.ble.McuMgrBleTransport;
+import io.runtime.mcumgr.ble.DefaultMcuMgrUuidConfig;
 import io.runtime.mcumgr.sample.adapter.DiscoveredBluetoothDevice;
 import no.nordicsemi.android.support.v18.scanner.ScanRecord;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
@@ -24,7 +24,7 @@ import no.nordicsemi.android.support.v18.scanner.ScanResult;
  */
 @SuppressWarnings("unused")
 public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
-    private static final ParcelUuid FILTER_UUID = new ParcelUuid(McuMgrBleTransport.SMP_SERVICE_UUID);
+    private static final ParcelUuid FILTER_UUID = new ParcelUuid(DefaultMcuMgrUuidConfig.SMP_SERVICE_UUID);
     private static final int FILTER_RSSI = -50; // [dBm]
 
     private final List<DiscoveredBluetoothDevice> devices = new ArrayList<>();
