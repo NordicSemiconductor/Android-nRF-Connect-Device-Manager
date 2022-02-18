@@ -65,10 +65,13 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     private static final Logger LOG = LoggerFactory.getLogger(McuMgrBleTransport.class);
 
-    public final static UUID SMP_SERVICE_UUID =
-            UUID.fromString("8D53DC1D-1DB7-4CD3-868B-8A527460AA84");
-    private final static UUID SMP_CHAR_UUID =
-            UUID.fromString("DA2E7828-FBCE-4E01-AE9E-261174997C48");
+    /**
+     * The SMP service UUID.
+     *
+     * @deprecated Use {@link DefaultMcuMgrUuidConfig#SMP_SERVICE_UUID} instead.
+     */
+    @Deprecated
+    public final static UUID SMP_SERVICE_UUID = DefaultMcuMgrUuidConfig.SMP_SERVICE_UUID;
 
     // Use a separate characteristic object for writes vs notifications.
     //
@@ -136,15 +139,20 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     private final Handler mHandler;
 
     /**
+     * The UUID configuration. This object allows for using custom UUIDs.
+     */
+    private final UuidConfig mUUIDConfig;
+
+    /**
      * Construct a McuMgrBleTransport object.
-     *
+     * <p>
      * Uses the main thread for callbacks.
      *
      * @param context the context used to connect to the device.
      * @param device  the device to connect to and communicate with.
      */
     public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice device) {
-        this(context, device, new Handler(Looper.getMainLooper()));
+        this(context, device, new Handler(Looper.getMainLooper()), new DefaultMcuMgrUuidConfig());
     }
 
     /**
@@ -155,10 +163,29 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * @param device  the device to connect to and communicate with.
      * @param handler the handler to run the {@link BleManager} and {@link McuMgrCallback}s.
      */
-    public McuMgrBleTransport(@NonNull Context context, @NonNull BluetoothDevice device, @NonNull Handler handler) {
+    public McuMgrBleTransport(@NonNull Context context,
+                              @NonNull BluetoothDevice device,
+                              @NonNull Handler handler) {
+        this(context, device, handler, new DefaultMcuMgrUuidConfig());
+    }
+
+    /**
+     * Construct a McuMgrBleTransport object with a handler to run the
+     * {@link BleManager} and asynchronous callbacks.
+     *
+     * @param context the context used to connect to the device.
+     * @param device  the device to connect to and communicate with.
+     * @param handler the handler to run the {@link BleManager} and {@link McuMgrCallback}s.
+     * @param uuidConfig custom UUID configuration.
+     */
+    public McuMgrBleTransport(@NonNull Context context,
+                              @NonNull BluetoothDevice device,
+                              @NonNull Handler handler,
+                              @NonNull UuidConfig uuidConfig) {
         super(context, handler);
         mHandler = handler;
         mDevice = device;
+        mUUIDConfig = uuidConfig;
     }
 
     /**
@@ -476,12 +503,12 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Determines whether the device supports the SMP Service
         @Override
         protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
-            BluetoothGattService smpService = gatt.getService(SMP_SERVICE_UUID);
+            BluetoothGattService smpService = gatt.getService(mUUIDConfig.getServiceUuid());
             if (smpService == null) {
                 LOG.error("Device does not support SMP service");
                 return false;
             }
-            mSmpCharacteristicNotify = smpService.getCharacteristic(SMP_CHAR_UUID);
+            mSmpCharacteristicNotify = smpService.getCharacteristic(mUUIDConfig.getCharacteristicUuid());
             if (mSmpCharacteristicNotify == null) {
                 LOG.error("Device does not support SMP characteristic");
                 return false;
