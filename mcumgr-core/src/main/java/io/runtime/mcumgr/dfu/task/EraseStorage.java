@@ -5,8 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.BasicManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
@@ -36,7 +38,7 @@ class EraseStorage extends FirmwareUpgradeTask {
 		manager.eraseStorage(new McuMgrCallback<McuMgrResponse>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrResponse response) {
-				LOG.trace("Erase storage response: {}", response.toString());
+				LOG.trace("Erase storage response: {}", response);
 
 				// Fix: If this feature is not supported on the device, this should not cause fail
 				//      the process.
@@ -51,6 +53,15 @@ class EraseStorage extends FirmwareUpgradeTask {
 
 			@Override
 			public void onError(@NotNull McuMgrException e) {
+				// If Erase is not supported, proceed with the update.
+				// Erase Storage has been added in NCS 1.8.
+				if (e instanceof McuMgrErrorException) {
+					final McuMgrErrorException error = (McuMgrErrorException) e;
+					if (error.getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
+						performer.onTaskCompleted(EraseStorage.this);
+						return;
+					}
+				}
 				performer.onTaskFailed(EraseStorage.this, e);
 			}
 		});
