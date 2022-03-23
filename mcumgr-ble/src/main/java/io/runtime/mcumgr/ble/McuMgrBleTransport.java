@@ -498,6 +498,44 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     // Ble Manager Callbacks
     //*******************************************************************************************
 
+    /**
+     * This method is called when the target device has connected and the service discovery
+     * is complete. The {@link BluetoothGatt#getService(UUID)} method can be used to obtain
+     * required services.
+     * <p>
+     * This method allows expanding the Mcu Mgr BLE Transport object to support other services.
+     * <p>
+     * When implementing this method {@link #initializeAdditionalServices()} and
+     * {@link #onServicesInvalidated()} should also be implemented.
+     *
+     * @param gatt The Bluetooth GATT object with services discovered.
+     * @return True if any additional services were found; false otherwise.
+     */
+    protected boolean isAdditionalServiceSupported(@NonNull BluetoothGatt gatt) {
+        // By default no extra services are supported.
+        return true;
+    }
+
+    /**
+     * This method should initialize additional services. The SMP services requests have already
+     * been enqueued.
+     */
+    protected void initializeAdditionalServices() {
+        // Empty default implementation.
+    }
+
+    /**
+     * This method should nullify all services and characteristics of the device.
+     * <p>
+     * It's called when the services were invalidated and can no longer be used. Most probably the
+     * device has disconnected, Service Changed indication was received, or
+     * {@link BleManager#refreshDeviceCache()} request was executed, which has invalidated cached
+     * services.
+     */
+    protected void onServicesInvalidated() {
+        // Empty default implementation.
+    }
+
     private class McuMgrGattCallback extends BleManagerGattCallback {
 
         // Determines whether the device supports the SMP Service
@@ -532,7 +570,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             // More info:
             // https://stackoverflow.com/questions/38922639/how-could-i-achieve-maximum-thread-safety-with-a-read-write-ble-gatt-characteris
             mSmpCharacteristicWrite = cloneCharacteristic(mSmpCharacteristicNotify);
-            return true;
+            return isAdditionalServiceSupported(gatt);
         }
 
         // Called once the connection has been established and services discovered. This method
@@ -587,6 +625,9 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         }
                         session.receive(bytes);
                     });
+
+            // Initialize additional services.
+            initializeAdditionalServices();
         }
 
         // Called when the device has disconnected. This method nulls the services and
@@ -599,6 +640,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             mSmpProtocol = null;
             mSmpCharacteristicWrite = null;
             mSmpCharacteristicNotify = null;
+            McuMgrBleTransport.this.onServicesInvalidated();
             runOnCallbackThread(McuMgrBleTransport.this::notifyDisconnected);
         }
     }
