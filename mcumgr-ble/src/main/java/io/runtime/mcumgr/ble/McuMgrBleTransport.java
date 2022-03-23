@@ -47,7 +47,6 @@ import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.util.CBOR;
 import no.nordicsemi.android.ble.BleManager;
-import no.nordicsemi.android.ble.Request;
 import no.nordicsemi.android.ble.annotation.ConnectionPriority;
 import no.nordicsemi.android.ble.callback.FailCallback;
 import no.nordicsemi.android.ble.data.DataMerger;
@@ -56,9 +55,15 @@ import no.nordicsemi.android.ble.error.GattError;
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.
  * This class extends {@link BleManager}, which handles the BLE state machine and owns the
- * {@link BluetoothGatt} object that executes BLE actions. If you wish to integrate McuManager an
- * existing BLE implementation, you may simply implement {@link McuMgrTransport} or use this class
- * to perform your BLE actions by calling {@link BleManager#enqueue(Request)}.
+ * {@link BluetoothGatt} object that executes BLE actions.
+ * <p>
+ * Starting from version 1.1 it is possible to extend the functionality to support additional
+ * services. For that extend the following methods:
+ * <ul>
+ *     <li>{@link #isAdditionalServiceSupported(BluetoothGatt)}</li>
+ *     <li>{@link #initializeAdditionalServices()}</li>
+ *     <li>{@link #onServicesInvalidated()}</li>
+ * </ul>
  */
 @SuppressWarnings("unused")
 public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
