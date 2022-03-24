@@ -40,6 +40,7 @@ public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
         creators.put(ImageSettingsViewModel.class, viewModelSubComponent::imageSettingsViewModel);
         creators.put(FilesDownloadViewModel.class, viewModelSubComponent::filesDownloadViewModel);
         creators.put(FilesUploadViewModel.class, viewModelSubComponent::filesUploadViewModel);
+        creators.put(ExecViewModel.class, viewModelSubComponent::execViewModel);
     }
 
     @SuppressWarnings("unchecked")

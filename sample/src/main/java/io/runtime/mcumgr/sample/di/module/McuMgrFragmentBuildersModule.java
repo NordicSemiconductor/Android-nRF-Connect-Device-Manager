@@ -13,6 +13,7 @@ import io.runtime.mcumgr.sample.dialog.PartitionDialogFragment;
 import io.runtime.mcumgr.sample.fragment.ImageFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.DeviceStatusFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.EchoFragment;
+import io.runtime.mcumgr.sample.fragment.mcumgr.ExecFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesDownloadFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ImageControlFragment;
@@ -49,4 +50,6 @@ public abstract class McuMgrFragmentBuildersModule {
     abstract FilesDownloadFragment contributeFileDownloadFragment();
     @ContributesAndroidInjector
     abstract FilesUploadFragment contributeFilesUploadFragment();
+    @ContributesAndroidInjector
+    abstract ExecFragment contributeExecFragment();
 }
