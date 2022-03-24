@@ -515,6 +515,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      *
      * @param gatt The Bluetooth GATT object with services discovered.
      * @return True if any additional services were found; false otherwise.
+     * @since 1.1
      */
     protected boolean isAdditionalServiceSupported(@NonNull BluetoothGatt gatt) {
         // By default no extra services are supported.
@@ -524,6 +525,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     /**
      * This method should initialize additional services. The SMP services requests have already
      * been enqueued.
+     * @since 1.1
      */
     protected void initializeAdditionalServices() {
         // Empty default implementation.
@@ -536,6 +538,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * device has disconnected, Service Changed indication was received, or
      * {@link BleManager#refreshDeviceCache()} request was executed, which has invalidated cached
      * services.
+     * @since 1.1
      */
     protected void onServicesInvalidated() {
         // Empty default implementation.
