@@ -16,6 +16,7 @@ import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.managers.LogManager;
+import io.runtime.mcumgr.managers.ShellManager;
 import io.runtime.mcumgr.managers.StatsManager;
 import io.runtime.mcumgr.sample.di.McuMgrScope;
 
@@ -62,6 +63,12 @@ public class McuMgrManagerModule {
     @McuMgrScope
     static StatsManager provideStatsManager(final McuMgrTransport transport) {
         return new StatsManager(transport);
+    }
+
+    @Provides
+    @McuMgrScope
+    static ShellManager provideShellManager(final McuMgrTransport transport) {
+        return new ShellManager(transport);
     }
 
     @Provides

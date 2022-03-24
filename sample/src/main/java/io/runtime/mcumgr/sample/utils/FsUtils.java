@@ -32,7 +32,7 @@ public class FsUtils {
         this.preferences = preferences;
         this.partitionLiveData.setValue(getPartitionString());
 
-        this. recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
+        this.recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
     }
 
     /**

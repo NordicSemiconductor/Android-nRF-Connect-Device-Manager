@@ -89,7 +89,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         });
 
         fsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
-            partition = partition;
+            this.partition = partition;
             final String fileName = binding.fileName.getText().toString();
             binding.filePath.setText(getString(R.string.files_file_path, partition, fileName));
         });

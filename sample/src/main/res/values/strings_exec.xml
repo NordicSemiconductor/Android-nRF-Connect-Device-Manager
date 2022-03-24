@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+    <string name="exec_title">Shell</string>
+    <string name="exec_action">Send</string>
+    <string name="exec_hint">Command</string>
+    <string name="exec_console_empty">$</string>
+    <string name="exec_console_cmd">%s %s\n</string>
+    <string name="exec_console_output">%s%s\n$</string>
+    <string name="exec_recent_commands_empty">No recent commands</string>
+    <string name="exec_empty_error">Command cannot be empty.</string>
+    <string name="exec_unknown">Unknown command</string>
+</resources>

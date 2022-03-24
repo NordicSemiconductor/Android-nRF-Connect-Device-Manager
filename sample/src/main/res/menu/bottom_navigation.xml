@@ -34,4 +34,11 @@
         android:icon="@drawable/ic_nav_stats"
         android:title="@string/nav_stats"
         app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/nav_shell"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_shell"
+        android:title="@string/nav_shell"
+        app:showAsAction="ifRoom"/>
 </menu>

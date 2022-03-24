@@ -20,6 +20,7 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
+import io.runtime.mcumgr.sample.viewmodel.mcumgr.ExecViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.StatsViewModel;
 
 /**
@@ -48,4 +49,5 @@ public interface McuMgrViewModelSubComponent {
     ImageSettingsViewModel imageSettingsViewModel();
     FilesDownloadViewModel filesDownloadViewModel();
     FilesUploadViewModel filesUploadViewModel();
+    ExecViewModel execViewModel();
 }
