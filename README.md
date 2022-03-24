@@ -26,7 +26,7 @@ https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager#migrat
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library).
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:1.1-beta01'
+implementation 'no.nordicsemi.android:mcumgr-ble:1.1.0'
 ```
 
 The core module will be included automatically.
@@ -37,7 +37,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:1.1-beta01'
+implementation 'no.nordicsemi.android:mcumgr-core:1.1.0'
 ```
 
 > Latest version targeting API 30 is 0.13.0-beta07.
