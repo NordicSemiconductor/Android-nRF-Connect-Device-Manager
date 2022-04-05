@@ -5,8 +5,6 @@ import io.runtime.mcumgr.exception.InsufficientMtuException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
-import java.lang.IllegalArgumentException
-import kotlin.math.min
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +14,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
+import kotlin.math.min
 
 const val MAX_CHUNK_FAILURES = 5
 
@@ -41,10 +40,12 @@ abstract class Uploader(
 
     val progress: Flow<UploadProgress> = _progress
 
+    /**
+     * This method should send the request with given parameters.
+     */
     @Throws
     internal abstract fun write(
-        data: ByteArray,
-        offset: Int,
+        requestMap: Map<String, Any>,
         callback: (UploadResult) -> Unit
     )
 
@@ -130,11 +131,23 @@ abstract class Uploader(
         callback: suspend (UploadResult) -> Unit
     ): Chunk {
         val resultChannel: Channel<UploadResult> = Channel(1)
-        write(chunk.data, chunk.offset) {
+        val map = prepareWrite(chunk.data, chunk.offset)
+        log.debug(map.toString())
+        write(map) {
             resultChannel.trySend(it)
         }
 
-        return if (resend) {
+        return if (chunk.offset == 0) {
+            // Send the first chunk synchronously, to get the last offset.
+            val result = resultChannel.receive()
+            log.debug("Result received: $result")
+            callback(result)
+
+            result.onSuccess {
+                return newChunk(it.off)
+            }
+            return nextChunk(chunk)
+        } else if (resend) {
             // Failed and resent chunks should suspend the current coroutine
             // and await the result.
             val result = resultChannel.receive()
@@ -165,7 +178,8 @@ abstract class Uploader(
         // In Zephyr, since https://github.com/zephyrproject-rtos/zephyr/pull/41959 has been merged
         // this is not required, but memory aligning here makes even older devices to work.
         val maxChunkSize = getMaxChunkSize(data, offset)
-        val alignedSize = if (offset + maxChunkSize < data.size) maxChunkSize / memoryAlignment * memoryAlignment else maxChunkSize
+        val alignedSize =
+            if (offset + maxChunkSize < data.size) maxChunkSize / memoryAlignment * memoryAlignment else maxChunkSize
         val chunkData = data.copyOfRange(offset, offset + alignedSize)
         return Chunk(chunkData, offset)
     }
@@ -174,7 +188,16 @@ abstract class Uploader(
         return newChunk(chunk.offset + chunk.data.size)
     }
 
-    // TODO interface this function for alternative implementations (e.g. sha for mynewt devices)
+    private fun prepareWrite(
+        data: ByteArray,
+        offset: Int,
+    ): Map<String, Any> = mutableMapOf<String, Any>(
+        "data" to data,
+        "off" to offset
+    ).also {
+        getAdditionalData(data, offset, it)
+    }
+
     /**
      * Returns the maximum amount of upload data which can fit into an upload request with the given
      * data and offset.
@@ -195,23 +218,16 @@ abstract class Uploader(
         // Size of the indefinite length map tokens (bf, ff)
         val mapSize = 2
 
-        // Size of the string "off" plus the length of the offset integer
-        val offsetSize = cborStringLength("off") + cborUIntLength(offset)
-
-        val lengthSize = if (offset == 0) {
-            // Size of the string "len" plus the length of the data size integer
-            cborStringLength("len") + cborUIntLength(data.size)
-        } else {
-            0
-        }
-
-        // Implementation specific size
-        val implSpecificSize = getAdditionalSize()
-
         // Size of the field name "data" utf8 string
         val dataStringSize = cborStringLength("data")
 
-        val combinedSize = headerSize + mapSize + offsetSize + lengthSize + implSpecificSize + dataStringSize
+        // Size of the string "off" plus the length of the offset integer
+        val offsetSize = cborStringLength("off") + cborUIntLength(offset)
+
+        // Implementation specific size
+        val implSpecificSize = getAdditionalSize(offset)
+
+        val combinedSize = headerSize + mapSize + offsetSize + implSpecificSize + dataStringSize
 
         // Now we calculate the max amount of data that we can fit given the MTU.
         val maxDataLength = mtu - combinedSize
@@ -225,7 +241,22 @@ abstract class Uploader(
         return min(maxChunkSize, data.size - offset)
     }
 
-    internal open fun getAdditionalSize() = 0
+    /**
+     * This method should add additional parameters to the map.
+     */
+    internal open fun getAdditionalData(
+        data: ByteArray,
+        offset: Int,
+        map: MutableMap<String, Any>
+    ) {
+        // Empty default implementation.
+    }
+
+    /**
+     * This method should return an additional size of the CBOR payload, which will be placed to the
+     * packet with the given offset. By default only "data" and "off" are added.
+     */
+    internal open fun getAdditionalSize(offset: Int) = 0
 }
 
 /**

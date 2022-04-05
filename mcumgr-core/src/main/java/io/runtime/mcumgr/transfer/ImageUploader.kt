@@ -12,10 +12,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.util.*
 
 private const val OP_WRITE = 2
 private const val ID_UPLOAD = 1
+private const val TRUNCATED_HASH_LEN = 3
 
 fun ImageManager.windowUpload(
     data: ByteArray,
@@ -39,7 +42,7 @@ fun ImageManager.windowUpload(
             )
         }.launchIn(this)
 
-        val start = System.currentTimeMillis();
+        val start = System.currentTimeMillis()
         uploader.uploadCatchMtu()
         val duration = System.currentTimeMillis() - start
         log.info("Upload completed in $duration ms, avg speed: ${data.size.toFloat() / (duration.toFloat() + 1f)} kBytes/s") // + 1 to prevent division by zero
@@ -88,26 +91,53 @@ internal class ImageUploader(
     imageManager.mtu,
     imageManager.scheme
 ) {
-    override fun write(data: ByteArray, offset: Int, callback: (UploadResult) -> Unit) {
-        val requestMap: MutableMap<String, Any> = mutableMapOf(
-            "data" to data,
-            "off" to offset
-        )
-        if (offset == 0) {
-            if (image > 0) {
-                requestMap["image"] = image
-            }
-            requestMap["len"] = imageData.size
-            // TODO "sha" is not supported by the Uploader, as it's sending multiple chunks in parallel without waiting for the first response.
-        }
+    override fun write(requestMap: Map<String, Any>, callback: (UploadResult) -> Unit) {
         imageManager.uploadAsync(requestMap, callback)
     }
 
-    override fun getAdditionalSize(): Int {
-        if (image > 0) {
-            return super.getAdditionalSize() + cborStringLength("image") + cborUIntLength(image)
+    override fun getAdditionalData(
+        data: ByteArray,
+        offset: Int,
+        map: MutableMap<String, Any>
+    ) {
+        map.takeIf { offset == 0 }?.apply {
+            put("len", imageData.size)
+            if (image > 0) {
+                put("image", image)
+            }
+            sha(data)?.let { put("sha", it) }
         }
-        return super.getAdditionalSize()
+    }
+
+    override fun getAdditionalSize(offset: Int): Int = when {
+        offset > 0 -> 0
+        else -> {
+            val lenSize = cborStringLength("len") + cborUIntLength(imageData.size)
+            val shaSize =
+                cborStringLength("sha") + cborUIntLength(TRUNCATED_HASH_LEN) + TRUNCATED_HASH_LEN
+            val imageSize = if (image > 0) {
+                cborStringLength("image") + cborUIntLength(image)
+            } else 0
+            lenSize + shaSize + imageSize
+        }
+    }
+
+    /**
+     * This method should return a session identifier for the given data.
+     * In theory, this can be any string, but should be derived from the data, so that different
+     * byte arrays produce a different string, but the same array returns an equal one.
+     * This allows to resume uploading the previously started image in case the new and old
+     * identifiers match, or start a new session if a different identifiers is sent.
+     */
+    private fun sha(data: ByteArray): ByteArray? {
+        return try {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val hash = digest.digest(data)
+            // Truncate the hash to save space.
+            Arrays.copyOf(hash, TRUNCATED_HASH_LEN)
+        } catch (e: NoSuchAlgorithmException) {
+            null
+        }
     }
 }
 
