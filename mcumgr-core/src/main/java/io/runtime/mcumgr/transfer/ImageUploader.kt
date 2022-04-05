@@ -84,7 +84,7 @@ private suspend fun Uploader.uploadCatchMtu() {
 }
 
 internal class ImageUploader(
-    private val imageData: ByteArray,
+    imageData: ByteArray,
     private val image: Int,
     private val imageManager: ImageManager,
     windowCapacity: Int = 1,
@@ -106,25 +106,22 @@ internal class ImageUploader(
         map: MutableMap<String, Any>
     ) {
         map.takeIf { offset == 0 }?.apply {
-            put("len", imageData.size)
-            if (image > 0) {
-                put("image", image)
-            }
+            takeIf { image > 0 }?.let { put("image", image) }
             sha(data)?.let { put("sha", it) }
         }
     }
 
-    override fun getAdditionalSize(offset: Int): Int = when {
-        offset > 0 -> 0
-        else -> {
-            val lenSize = cborStringLength("len") + cborUIntLength(imageData.size)
+    override fun getAdditionalSize(offset: Int): Int = when (offset) {
+        // "sha" and "image" params are only sent in the first packet.
+        0 -> {
             val shaSize =
                 cborStringLength("sha") + cborUIntLength(TRUNCATED_HASH_LEN) + TRUNCATED_HASH_LEN
             val imageSize = if (image > 0) {
                 cborStringLength("image") + cborUIntLength(image)
             } else 0
-            lenSize + shaSize + imageSize
+            shaSize + imageSize
         }
+        else -> 0
     }
 
     /**
