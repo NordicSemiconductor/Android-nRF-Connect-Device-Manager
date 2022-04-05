@@ -39,6 +39,7 @@ abstract class Uploader(
         MutableStateFlow(UploadProgress(0, data.size))
 
     val progress: Flow<UploadProgress> = _progress
+    private val resumed = Semaphore(1)
 
     /**
      * This method should send the request with given parameters.
@@ -49,6 +50,9 @@ abstract class Uploader(
         callback: (UploadResult) -> Unit
     )
 
+    /**
+     * Uploads the data.
+     */
     @Throws
     suspend fun upload() = coroutineScope {
         // Tracks the number of failures experienced for any given chunk,
@@ -67,6 +71,10 @@ abstract class Uploader(
 
         while (true) {
             window.acquire()
+
+            // Try acquiring resumed lock. If worked, release it immediately.
+            resumed.acquire()
+            resumed.release()
 
             // Select the next chunk to send, prioritizing failed chunks.
             val (chunk, resend) = select<Pair<Chunk, Boolean>?> {
@@ -124,6 +132,20 @@ abstract class Uploader(
         }
     }
 
+    /**
+     * Pauses upload.
+     */
+    suspend fun pause() {
+        resumed.acquire()
+    }
+
+    /**
+     * Resumes upload.
+     */
+    fun resume() {
+        resumed.release()
+    }
+
     private suspend fun writeInternal(
         chunk: Chunk,
         resend: Boolean,
@@ -131,16 +153,13 @@ abstract class Uploader(
         callback: suspend (UploadResult) -> Unit
     ): Chunk {
         val resultChannel: Channel<UploadResult> = Channel(1)
-        val map = prepareWrite(chunk.data, chunk.offset)
-        log.debug(map.toString())
-        write(map) {
-            resultChannel.trySend(it)
+        write(prepareWrite(chunk.data, chunk.offset)) { result ->
+            resultChannel.trySend(result)
         }
 
         return if (chunk.offset == 0) {
             // Send the first chunk synchronously, to get the last offset.
             val result = resultChannel.receive()
-            log.debug("Result received: $result")
             callback(result)
 
             result.onSuccess {
@@ -195,6 +214,9 @@ abstract class Uploader(
         "data" to data,
         "off" to offset
     ).also {
+        if (offset == 0) {
+            it["len"] = this.data.size // NOT data.size, as data is just a chunk of this.data
+        }
         getAdditionalData(data, offset, it)
     }
 
@@ -224,10 +246,18 @@ abstract class Uploader(
         // Size of the string "off" plus the length of the offset integer
         val offsetSize = cborStringLength("off") + cborUIntLength(offset)
 
+        // Size of the string "len" plus the length of the data size integer
+        // "len" is sent only in the initial packet.
+        val lengthSize = if (offset == 0) {
+            cborStringLength("len") + cborUIntLength(data.size)
+        } else {
+            0
+        }
+
         // Implementation specific size
         val implSpecificSize = getAdditionalSize(offset)
 
-        val combinedSize = headerSize + mapSize + offsetSize + implSpecificSize + dataStringSize
+        val combinedSize = headerSize + mapSize + offsetSize + lengthSize + implSpecificSize + dataStringSize
 
         // Now we calculate the max amount of data that we can fit given the MTU.
         val maxDataLength = mtu - combinedSize
@@ -243,6 +273,7 @@ abstract class Uploader(
 
     /**
      * This method should add additional parameters to the map.
+     * The "data", "len" and "off" parameters are already added.
      */
     internal open fun getAdditionalData(
         data: ByteArray,
@@ -254,7 +285,8 @@ abstract class Uploader(
 
     /**
      * This method should return an additional size of the CBOR payload, which will be placed to the
-     * packet with the given offset. By default only "data" and "off" are added.
+     * packet with the given offset.
+     * The "data", "len" and "off" parameters are already calculated.
      */
     internal open fun getAdditionalSize(offset: Int) = 0
 }
