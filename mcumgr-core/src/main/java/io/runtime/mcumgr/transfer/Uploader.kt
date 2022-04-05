@@ -39,6 +39,7 @@ abstract class Uploader(
         MutableStateFlow(UploadProgress(0, data.size))
 
     val progress: Flow<UploadProgress> = _progress
+    private val resumed = Semaphore(1)
 
     /**
      * This method should send the request with given parameters.
@@ -49,6 +50,9 @@ abstract class Uploader(
         callback: (UploadResult) -> Unit
     )
 
+    /**
+     * Uploads the data.
+     */
     @Throws
     suspend fun upload() = coroutineScope {
         // Tracks the number of failures experienced for any given chunk,
@@ -67,6 +71,10 @@ abstract class Uploader(
 
         while (true) {
             window.acquire()
+
+            // Try acquiring resumed lock. If worked, release it immediately.
+            resumed.acquire()
+            resumed.release()
 
             // Select the next chunk to send, prioritizing failed chunks.
             val (chunk, resend) = select<Pair<Chunk, Boolean>?> {
@@ -122,6 +130,20 @@ abstract class Uploader(
                 next.send(nextChunk)
             }
         }
+    }
+
+    /**
+     * Pauses upload.
+     */
+    suspend fun pause() {
+        resumed.acquire()
+    }
+
+    /**
+     * Resumes upload.
+     */
+    fun resume() {
+        resumed.release()
     }
 
     private suspend fun writeInternal(

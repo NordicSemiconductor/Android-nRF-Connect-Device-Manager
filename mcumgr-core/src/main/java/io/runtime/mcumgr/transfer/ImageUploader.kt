@@ -5,12 +5,9 @@ import io.runtime.mcumgr.exception.InsufficientMtuException
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.ImageManager
 import io.runtime.mcumgr.response.UploadResponse
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -60,9 +57,17 @@ fun ImageManager.windowUpload(
     }
 
     return object : TransferController {
-        override fun pause() = throw IllegalStateException("cannot pause window upload")
-        override fun resume() = throw IllegalStateException("cannot resume window upload")
+        var paused: Job? = null
+
+        override fun pause() {
+            paused = GlobalScope.launch { uploader.pause() }
+        }
+        override fun resume() {
+            uploader.resume()
+            paused = null
+        }
         override fun cancel() {
+            paused?.cancel()
             job.cancel()
         }
     }
