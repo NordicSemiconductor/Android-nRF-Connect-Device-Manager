@@ -93,6 +93,7 @@ class Validate extends FirmwareUpgradeTask {
 					boolean pending = false;   // TEST command was sent
 					boolean permanent = false; // CONFIRM command was sent
 					boolean confirmed = false; // Image has booted and confirmed itself
+					boolean active = false; // Image has booted
 					for (final McuMgrImageStateResponse.ImageSlot slot : slots) {
 						if (slot.image != image)
 							continue;
@@ -104,6 +105,7 @@ class Validate extends FirmwareUpgradeTask {
 							pending = slot.pending;
 							permanent = slot.permanent;
 							confirmed = slot.confirmed;
+							active = slot.active;
 
 							// If the image has been found on the secondary slot and it's confirmed,
 							// we just need to restart the device in order for it to be swapped back to
@@ -147,9 +149,9 @@ class Validate extends FirmwareUpgradeTask {
 					switch (mode) {
 						case TEST_AND_CONFIRM:
 							// If the image is not pending (test command has not been sent) and not
-							// confirmed (another image is under test), send test command and update the
-							// flag.
-							if (!pending && !confirmed) {
+							// confirmed (another image is under test), and isnt the currently
+							// running image, send test command and update the flag.
+							if (!pending && !confirmed && !active) {
 								performer.enqueue(new Test(mcuMgrImage.getHash()));
 								pending = true;
 							}
@@ -163,9 +165,9 @@ class Validate extends FirmwareUpgradeTask {
 							break;
 						case TEST_ONLY:
 							// If the image is not pending (test command has not been sent) and not
-							// confirmed (another image is under test), send test command and update the
-							// flag.
-							if (!pending && !confirmed) {
+							// confirmed (another image is under test), and isnt the currently
+							// running image, send test command and update the flag.
+							if (!pending && !confirmed && !active) {
 								performer.enqueue(new Test(mcuMgrImage.getHash()));
 								pending = true;
 							}
