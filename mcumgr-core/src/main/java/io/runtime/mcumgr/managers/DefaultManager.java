@@ -21,6 +21,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrEchoResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrMpStatResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrParamsResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrReadDateTimeResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrTaskStatResponse;
 
@@ -37,6 +38,7 @@ public class DefaultManager extends McuManager {
     private final static int ID_MPSTATS = 3;
     private final static int ID_DATETIME_STR = 4;
     private final static int ID_RESET = 5;
+    private final static int ID_MCUMGR_PARAMS = 6;
 
     /**
      * Construct an default manager.
@@ -215,5 +217,25 @@ public class DefaultManager extends McuManager {
     @NotNull
     public McuMgrResponse reset() throws McuMgrException {
         return send(OP_WRITE, ID_RESET, null, McuMgrResponse.class);
+    }
+
+    /**
+     * Reads McuMgr parameters (asynchronous).
+     *
+     * @param callback the asynchronous callback.
+     */
+    public void params(@NotNull McuMgrCallback<McuMgrParamsResponse> callback) {
+        send(OP_READ, ID_MCUMGR_PARAMS, null, McuMgrParamsResponse.class, callback);
+    }
+
+    /**
+     * Reads McuMgr parameters (synchronous).
+     *
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     */
+    @NotNull
+    public McuMgrResponse params() throws McuMgrException {
+        return send(OP_READ, ID_MCUMGR_PARAMS, null, McuMgrParamsResponse.class);
     }
 }
