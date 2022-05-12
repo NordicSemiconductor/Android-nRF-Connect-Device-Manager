@@ -45,6 +45,7 @@ import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrParamsResponse;
 import io.runtime.mcumgr.util.CBOR;
 import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.ble.annotation.ConnectionPriority;
@@ -546,6 +547,16 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     private class McuMgrGattCallback extends BleManagerGattCallback {
 
+        /** The bytes of {@link io.runtime.mcumgr.managers.DefaultManager#params()} command. */
+        private final byte[] READ_MCU_MGR_PARAMS = new byte[] {
+                0x00, // McuManager.OP_READ
+                0x00, // Flags
+                0x00, 0x00, // Len
+                0x00, 0x00, // McuManager.GROUP_DEFAULT
+                0x00, // Seq
+                0x06, // DefaultManager.ID_MCUMGR_PARAMS
+        };
+
         // Determines whether the device supports the SMP Service
         @Override
         protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
@@ -611,6 +622,39 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             // would lead to race conditions and the outgoing data being overwritten by incoming
             // data.
             enableNotifications(mSmpCharacteristicNotify).enqueue();
+
+            // Before we set the notification callback, let's first read the McuMgr params.
+            // See: https://github.com/zephyrproject-rtos/zephyr/pull/44643
+            // This allows the transport layer to send SMP packets longer than MTU-3.
+            // The longer packets are split into MTU-3 chunks in Ble Library by using MtuSlitter.
+
+            // Let's set one time notification callback...
+            waitForNotification(mSmpCharacteristicNotify)
+                    // ...and send the hardcoded request.
+                    .trigger(
+                            writeCharacteristic(mSmpCharacteristicWrite, READ_MCU_MGR_PARAMS,
+                                    BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                    )
+                    // The response should be received immediately.
+                    .timeout(1000 /* ms */)
+                    .with((device, data) -> {
+                        final byte[] bytes = data.getValue();
+                        // If the response is 14 bytes or shorter, that means the McuMgr Params
+                        // request is not supported. Let's pretend nothing happened.
+                        if (bytes != null && bytes.length > 14) {
+                            try {
+                                final McuMgrParamsResponse response = McuMgrResponse
+                                        .buildResponse(McuMgrScheme.BLE, bytes, McuMgrParamsResponse.class);
+                                if (getMinLogPriority() <= Log.INFO) {
+                                    log(Log.INFO, "SMP reassembly supported with buffer size: " + response.bufSize + " bytes and count: " + response.bufCount);
+                                }
+                                mMaxPacketLength = response.bufSize;
+                            } catch (final Exception e) {
+                                // Ignore
+                            }
+                        }
+                    })
+                    .enqueue();
 
             // Registered as a callback for all notifications from the SMP characteristic.
             // Forwards the merged data packets to the protocol layer to be matched to a request.
