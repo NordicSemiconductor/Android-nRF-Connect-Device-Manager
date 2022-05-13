@@ -303,6 +303,8 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         int windowCapacity;
         try {
             windowCapacity = Integer.parseInt(binding.advancedWindowCapacity.getText().toString());
+            if (windowCapacity < 1 || windowCapacity > 25)
+                throw new NumberFormatException();
             binding.advancedPipelineLayout.setError(null);
         } catch (final NumberFormatException e) {
             binding.advancedPipelineLayout.setError(getText(R.string.image_upgrade_error));
@@ -321,7 +323,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         viewModel.upgrade(getFileContent(), mode,
                 eraseAppSettings,
                 swapTimeSeconds * 1000,
-                windowCapacity,
+                Math.max(1, windowCapacity - 1), // 1 buffer is used for sending responses.
                 memoryAlignment
         );
     }
