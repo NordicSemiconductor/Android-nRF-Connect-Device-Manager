@@ -44,6 +44,7 @@ import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
+import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrParamsResponse;
 import io.runtime.mcumgr.util.CBOR;
@@ -211,28 +212,54 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         return new McuMgrGattCallback();
     }
 
+    //*******************************************************************************************
+    // Maximum SMP packet length.
+    //*******************************************************************************************
+
     /**
-     * In order to send packets longer than MTU size, this library supports automatic splitting
+     * In order to send packets longer than MTU size, this library supports automatic segmentation
      * of packets into at-most-MTU size chunks. This feature must be also supported by the target
-     * device, as it must merge received chunks into a single packet, based on the length field
-     * from the {@link io.runtime.mcumgr.McuMgrHeader}, included in the first chunk.
-     * <p>
-     * {@link io.runtime.mcumgr.managers.ImageManager} and
-     * {@link io.runtime.mcumgr.managers.FsManager} will automatically split the file into multiple
-     * SMP packets. This feature is about splitting SMP packet into chunks, not splitting data into
-     * SMP packets.
+     * device, as it must reassembly received chunks into full SMP packet, based on the length field
+     * from the {@link io.runtime.mcumgr.McuMgrHeader}, included in the first segment.
      * <p>
      * This method sets the maximum packet length supported by the target device.
-     * By default, this is be set to MTU - 3, which means that no splitting will be done.
+     * By default, this is be set to MTU - 3, which means that each BLE packet will contain the full
+     * SMP packet (header + CBOR-encoded data). For devices supporting reading McuMgr parameters
+     * (nRF Connect SDK 2.0+) this value is automatically obtained after connection using
+     * {@link DefaultManager#params()}.
      * <p>
      * Keep in mind, that before Android 5 requesting higher MTU was not supported. Setting the
      * maximum length to a greater value is required on those devices in order to upgrade
      * the firmware, send file or send any other SMP packet that is longer than 20 bytes.
      *
+     * @since 1.3
      * @param maxLength the maximum packet length.
      */
-    public void setDeviceSidePacketMergingSupported(int maxLength) {
+    public final void setMaxPacketLength(final int maxLength) {
         mMaxPacketLength = maxLength;
+    }
+
+    /**
+     * Returns the maximum length of a SMP packet that can be transmitted over by the transport.
+     * @return the maximum
+     */
+    public final int getMaxPacketLength() {
+        return mMaxPacketLength;
+    }
+
+    /**
+     * Sets the maximum packet length for the transport.
+     *
+     * Starting from version 1.3 the library can automatically obtain the value from a device build
+     * on nRF Connect SDK 2.0+ using the new {@link DefaultManager#params()} command. If the feature
+     * is not supported on the device the maximum length defaults to MTU-3 bytes.
+     *
+     * @param maxLength the maximum packet length.
+     * @deprecated Use {@link #setMaxPacketLength(int)} instead.
+     */
+    @Deprecated
+    public void setDeviceSidePacketMergingSupported(int maxLength) {
+        setMaxPacketLength(maxLength);
     }
 
     //*******************************************************************************************
