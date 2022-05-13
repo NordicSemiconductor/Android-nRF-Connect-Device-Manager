@@ -9,6 +9,7 @@
     <string name="status_title">Device Status</string>
     <string name="status_status_label">Connection status:</string>
     <string name="status_bond_label">Bonding status:</string>
+    <string name="status_mcumgr_buffer_size_label">Buffer details:</string>
 
     <string name="status_not_connected">Not connected</string>
     <string name="status_connecting">Connecting…</string>
@@ -23,4 +24,7 @@
     <string name="status_not_bonded">Not bonded</string>
     <string name="status_bonding">Bonding…</string>
     <string name="status_bonded">Bonded</string>
+
+    <string name="status_unknown">UNKNOWN</string>
+    <string name="status_mcumgr_buffer_size">%d x %d bytes</string>
 </resources>

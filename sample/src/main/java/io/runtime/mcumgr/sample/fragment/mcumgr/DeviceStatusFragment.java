@@ -91,6 +91,14 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                     break;
             }
         });
+        viewModel.getBufferParams().observe(getViewLifecycleOwner(), params -> {
+            if (params != null) {
+                final String text = getString(R.string.status_mcumgr_buffer_size, params.count, params.size);
+                binding.mcumgrBufferSize.setText(text);
+            } else {
+                binding.mcumgrBufferSize.setText(R.string.status_unknown);
+            }
+        });
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
                 binding.workIndicator.setVisibility(busy ? View.VISIBLE : View.GONE));
     }
