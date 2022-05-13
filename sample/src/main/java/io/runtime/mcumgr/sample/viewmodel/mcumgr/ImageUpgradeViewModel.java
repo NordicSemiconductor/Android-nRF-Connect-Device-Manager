@@ -64,6 +64,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     private long uploadStartTimestamp;
     private int initialBytes;
+    private final static int RESET = -1;
 
     @Inject
     ImageUpgradeViewModel(final FirmwareUpgradeManager manager,
@@ -184,7 +185,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             setBusy();
             stateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
-            initialBytes = 0;
+            initialBytes = RESET;
             setLoggingEnabled(false);
             manager.resume();
         }
@@ -209,7 +210,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         switch (newState) {
             case UPLOAD:
                 Timber.i("Uploading firmware...");
-                initialBytes = 0;
+                initialBytes = RESET;
                 stateLiveData.postValue(State.UPLOADING);
                 break;
             case TEST:
@@ -226,7 +227,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
-        if (initialBytes == 0) {
+        if (initialBytes == RESET) {
             uploadStartTimestamp = timestamp;
             initialBytes = bytesSent;
         } else {
@@ -242,7 +243,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                     timestamp - uploadStartTimestamp,
                     (float) (imageSize - initialBytes) / (float) (timestamp - uploadStartTimestamp)
             );
-            initialBytes = 0;
+            initialBytes = RESET;
         }
         // Convert to percent
         progressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
