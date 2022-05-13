@@ -102,12 +102,12 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         setLoggingEnabled(true);
     }
 
-    @Nullable
+    @NonNull
     public LiveData<ConnectionState> getState() {
         return connectionState;
     }
 
-    @Nullable
+    @NonNull
     public LiveData<BondingState> getBondingState() {
         return bondingState;
     }
