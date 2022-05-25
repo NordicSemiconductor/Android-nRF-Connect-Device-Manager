@@ -203,7 +203,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     binding.speed.setText(null);
                     break;
                 case COMPLETE:
-                    clearFileContent();
                     binding.status.setText(R.string.image_upgrade_status_completed);
                     binding.speed.setText(null);
                     binding.advancedEraseSettings.setEnabled(true);
@@ -213,12 +212,21 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
             }
         });
-        viewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
-                binding.speed.setText(getString(R.string.image_upgrade_speed, speed))
-        );
-        viewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
-                binding.progress.setProgress(progress)
-        );
+        viewModel.getProgress().observe(getViewLifecycleOwner(), throughputData -> {
+            if (throughputData == null) {
+                binding.graph.setVisibility(View.GONE);
+                binding.speed.setText(null);
+                binding.graph.clear();
+            } else {
+                binding.graph.setVisibility(View.VISIBLE);
+                binding.speed.setText(getString(R.string.image_upgrade_speed, throughputData.averageThroughput));
+                binding.graph.addProgress(
+                        throughputData.progress,
+                        throughputData.instantaneousThroughput,
+                        throughputData.averageThroughput
+                );
+            }
+        });
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
             binding.actionSelectFile.setVisibility(View.VISIBLE);
             binding.actionStart.setVisibility(View.VISIBLE);
@@ -231,7 +239,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             printError(error);
         });
         viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
-            clearFileContent();
             binding.fileName.setText(null);
             binding.fileSize.setText(null);
             binding.fileHash.setText(null);
