@@ -250,7 +250,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         });
 
         // Configure SELECT FILE action
-        binding.actionSelectFile.setOnClickListener(v -> selectFile("application/*"));
+        binding.actionSelectFile.setOnClickListener(v -> selectFile("*/*"));
 
         // Restore START action state after rotation
         binding.actionStart.setEnabled(isFileLoaded());

@@ -213,6 +213,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
      *
      * @param mimeType required MIME TYPE of a file.
      */
+    @SuppressWarnings("SameParameterValue")
     void selectFile(@Nullable final String mimeType) {
         fileBrowserLauncher.launch(mimeType);
     }
