@@ -7,10 +7,10 @@
 
 <resources>
     <string name="image_upload_title">Firmware Upload</string>
-    <string name="image_upload_file_name">File Name:</string>
-    <string name="image_upload_size">File Size:</string>
+    <string name="image_upload_file_name">Name:</string>
+    <string name="image_upload_size">Size:</string>
     <string name="image_upload_size_value">%d bytes</string>
-    <string name="image_upload_hash">File Hash:</string>
+    <string name="image_upload_hash">Hash:</string>
     <string name="image_upload_status">State:</string>
     <string name="image_upload_speed">%.1f KB/s</string>
     <string name="image_upload_action_start">Upload</string>
