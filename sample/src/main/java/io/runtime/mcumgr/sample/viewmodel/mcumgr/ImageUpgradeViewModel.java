@@ -26,6 +26,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import kotlin.Triple;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 import timber.log.Timber;
 
@@ -53,18 +54,36 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         }
     }
 
+    public static class ThroughputData {
+        public int progress;
+        public float instantaneousThroughput;
+        public float averageThroughput;
+
+        public ThroughputData(final int progress, final float instantaneousThroughput, final float averageThroughput) {
+            this.progress = progress;
+            this.instantaneousThroughput = instantaneousThroughput;
+            this.averageThroughput = averageThroughput;
+        }
+    }
+
     private final FirmwareUpgradeManager manager;
 
     private final MutableLiveData<State> stateLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Integer> progressLiveData = new MutableLiveData<>();
-    private final MutableLiveData<Float> transferSpeedLiveData = new MutableLiveData<>();
+    private final MutableLiveData<ThroughputData> progressLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> advancedSettingsExpanded = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> errorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
 
-    private long uploadStartTimestamp;
-    private int initialBytes;
-    private final static int RESET = -1;
+    private long uploadStartTimestamp, lastProgressChangeTimestamp;
+    private int initialBytesSent, lastProgressChangeBytesSent, lastProgress;
+    /** A value indicating that the upload has not been started before. */
+    private final static int NOT_STARTED = -1;
+    /**
+     * The minimum time interval prevents from sharp peaks on the throughput graph.
+     * Otherwise it may happen that the bytes are sent in a single connection interval and the
+     * time, for which we divide the number of bytes, is very low and the throughput skyrockets.
+     */
+    private static final float MIN_INTERVAL = 36.0f;
 
     @Inject
     ImageUpgradeViewModel(final FirmwareUpgradeManager manager,
@@ -74,7 +93,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         this.manager.setFirmwareUpgradeCallback(this);
 
         stateLiveData.setValue(State.IDLE);
-        progressLiveData.setValue(0);
+        progressLiveData.setValue(null);
     }
 
     @Override
@@ -97,17 +116,12 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         return stateLiveData;
     }
 
-    @NonNull
-    public LiveData<Integer> getProgress() {
-        return progressLiveData;
-    }
-
     /**
      * Returns current transfer speed in KB/s.
      */
     @NonNull
-    public LiveData<Float> getTransferSpeed() {
-        return transferSpeedLiveData;
+    public LiveData<ThroughputData> getProgress() {
+        return progressLiveData;
     }
 
     @NonNull
@@ -185,7 +199,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             setBusy();
             stateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
-            initialBytes = RESET;
+            initialBytesSent = NOT_STARTED;
             setLoggingEnabled(false);
             manager.resume();
         }
@@ -198,6 +212,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     @Override
     public void onUpgradeStarted(final FirmwareUpgradeController controller) {
         postBusy();
+        progressLiveData.setValue(null);
         stateLiveData.setValue(State.VALIDATING);
     }
 
@@ -210,7 +225,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
         switch (newState) {
             case UPLOAD:
                 Timber.i("Uploading firmware...");
-                initialBytes = RESET;
+                initialBytesSent = NOT_STARTED;
                 stateLiveData.postValue(State.UPLOADING);
                 break;
             case TEST:
@@ -227,31 +242,72 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
-        if (initialBytes == RESET) {
+        // Calculate the current upload progress.
+        final int progress = (int) (bytesSent * 100.f / imageSize);
+
+        float averageThroughput = 0.0f;
+        float instantaneousThroughput = 0.0f;
+
+        // Check if this is the first time this method is called since:
+        // - the start of an upload
+        // - after resume
+        if (initialBytesSent == NOT_STARTED) {
+            // If a new image started being sending, clear the progress graph.
+            if (lastProgress > progress) {
+                progressLiveData.postValue(null);
+            }
+            lastProgress = progress;
+
+            // To calculate the throughput it is necessary to store the initial timestamp and
+            // the number of bytes sent so far. Mind, that the upload may be resumed from any point,
+            // not necessarily from the beginning.
             uploadStartTimestamp = timestamp;
-            initialBytes = bytesSent;
+            initialBytesSent = bytesSent;
+            // The instantaneous throughput is calculated each time the integer percentage value
+            // of the progress changes.
+            lastProgressChangeTimestamp = timestamp;
+            lastProgressChangeBytesSent = bytesSent;
         } else {
-            final int bytesSentSinceUploadStarted = bytesSent - initialBytes;
-            final long timeSinceUploadStarted = timestamp - uploadStartTimestamp;
-            // bytes / ms = KB/s
-            transferSpeedLiveData.postValue((float) bytesSentSinceUploadStarted / (float) timeSinceUploadStarted);
+            // Calculate the average throughout.
+            // This is done by diving number of bytes sent since upload has been started (or resumed)
+            // by the time since that moment. The minimum time of MIN_INTERVAL ms prevents from
+            // graph peaks that are not seen in reality during tests.
+            final float bytesSentSinceUploadStarted = bytesSent - initialBytesSent;
+            final float timeSinceUploadStarted = Math.max(MIN_INTERVAL, timestamp - uploadStartTimestamp);
+            averageThroughput = bytesSentSinceUploadStarted / timeSinceUploadStarted; // bytes / ms = KB/s
+
+            // If the progress has changed, calculate the instantaneous throughput.
+            if (lastProgress != progress) {
+                lastProgress = progress;
+
+                // Just like for the average throughput, this is calculated by diving number of
+                // bytes sent since last progress change by the time since the change.
+                final float bytesSentSinceProgressChanged = bytesSent - lastProgressChangeBytesSent;
+                final float timeSinceProgressChanged = Math.max(MIN_INTERVAL, timestamp - lastProgressChangeTimestamp);
+                instantaneousThroughput = bytesSentSinceProgressChanged / timeSinceProgressChanged; // bytes / ms = KB/s
+
+                // And reset the counters.
+                lastProgressChangeTimestamp = timestamp;
+                lastProgressChangeBytesSent = bytesSent;
+
+                progressLiveData.postValue(new ThroughputData(progress, instantaneousThroughput, averageThroughput));
+            }
         }
         // When done, reset the counter.
         if (bytesSent == imageSize) {
             Timber.i("Image (%d bytes) sent in %d ms (avg speed: %f kB/s)",
-                    imageSize - initialBytes,
+                    imageSize - initialBytesSent,
                     timestamp - uploadStartTimestamp,
-                    (float) (imageSize - initialBytes) / (float) (timestamp - uploadStartTimestamp)
+                    (float) (imageSize - initialBytesSent) / (float) (timestamp - uploadStartTimestamp)
             );
-            initialBytes = RESET;
+            // Reset the initial bytes counter, so if there is a next image uploaded afterwards,
+            // it will start the throughput calculations again.
+            initialBytesSent = NOT_STARTED;
         }
-        // Convert to percent
-        progressLiveData.postValue((int) (bytesSent * 100.f / imageSize));
     }
 
     @Override
     public void onUpgradeCompleted() {
-        progressLiveData.postValue(0);
         stateLiveData.postValue(State.COMPLETE);
         Timber.i("Upgrade complete");
         setLoggingEnabled(true);
@@ -260,7 +316,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onUpgradeCanceled(final FirmwareUpgradeManager.State state) {
-        progressLiveData.postValue(0);
+        progressLiveData.postValue(null);
         stateLiveData.postValue(State.IDLE);
         cancelledEvent.post();
         Timber.w("Upgrade cancelled");
@@ -270,7 +326,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     @Override
     public void onUpgradeFailed(final FirmwareUpgradeManager.State state, final McuMgrException error) {
-        progressLiveData.postValue(0);
+        progressLiveData.postValue(null);
         errorLiveData.postValue(error);
         setLoggingEnabled(true);
         Timber.e(error, "Upgrade failed");

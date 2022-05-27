@@ -3,11 +3,12 @@ package io.runtime.mcumgr.transfer
 import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.exception.InsufficientMtuException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -18,7 +19,11 @@ import kotlin.math.min
 
 const val MAX_CHUNK_FAILURES = 5
 
-data class UploadProgress(val offset: Int, val size: Int)
+data class UploadProgress(
+    val offset: Int,
+    val size: Int,
+    val timestamp: Long = System.currentTimeMillis()
+)
 
 private data class Chunk(val data: ByteArray, val offset: Int) {
     override fun toString(): String {
@@ -35,8 +40,12 @@ abstract class Uploader(
 ) {
     private val log = LoggerFactory.getLogger("Uploader")
 
-    private val _progress: MutableStateFlow<UploadProgress> =
-        MutableStateFlow(UploadProgress(0, data.size))
+    private val _progress: MutableSharedFlow<UploadProgress> = MutableSharedFlow(
+        replay = 2,
+        extraBufferCapacity = 2,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    private var currentOffset = 0
 
     val progress: Flow<UploadProgress> = _progress
     private val resumed = Semaphore(1)
@@ -67,6 +76,7 @@ abstract class Uploader(
         val failures: Channel<Chunk> = Channel(CONFLATED)
         val close: Channel<Unit> = Channel(CONFLATED)
 
+        val initialTimestamp = System.currentTimeMillis()
         next.send(newChunk(0))
 
         while (true) {
@@ -94,8 +104,12 @@ abstract class Uploader(
                         failures.send(newChunk(response.off))
                     } else {
                         // Success, update the progress.
-                        if (_progress.value.offset < response.off) {
-                            _progress.value = UploadProgress(response.off, data.size)
+                        if (chunk.offset == 0 && response.off == chunk.data.size) {
+                            _progress.tryEmit(UploadProgress(0, data.size, initialTimestamp))
+                        }
+                        if (currentOffset < response.off) {
+                            _progress.tryEmit(UploadProgress(response.off, data.size))
+                            currentOffset = response.off
                         }
                         if (response.off == data.size) {
                             close.send(Unit)

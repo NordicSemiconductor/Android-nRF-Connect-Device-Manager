@@ -192,20 +192,15 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
                 case TESTING:
                     binding.status.setText(R.string.image_upgrade_status_testing);
-                    binding.speed.setText(null);
                     break;
                 case CONFIRMING:
                     binding.status.setText(R.string.image_upgrade_status_confirming);
-                    binding.speed.setText(null);
                     break;
                 case RESETTING:
                     binding.status.setText(R.string.image_upgrade_status_resetting);
-                    binding.speed.setText(null);
                     break;
                 case COMPLETE:
-                    clearFileContent();
                     binding.status.setText(R.string.image_upgrade_status_completed);
-                    binding.speed.setText(null);
                     binding.advancedEraseSettings.setEnabled(true);
                     binding.advancedSwapTimeLayout.setEnabled(true);
                     binding.advancedPipelineLayout.setEnabled(true);
@@ -213,12 +208,19 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
             }
         });
-        viewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
-                binding.speed.setText(getString(R.string.image_upgrade_speed, speed))
-        );
-        viewModel.getProgress().observe(getViewLifecycleOwner(), progress ->
-                binding.progress.setProgress(progress)
-        );
+        viewModel.getProgress().observe(getViewLifecycleOwner(), throughputData -> {
+            if (throughputData == null) {
+                binding.graph.setVisibility(View.GONE);
+                binding.graph.clear();
+            } else {
+                binding.graph.setVisibility(View.VISIBLE);
+                binding.graph.addProgress(
+                        throughputData.progress,
+                        throughputData.instantaneousThroughput,
+                        throughputData.averageThroughput
+                );
+            }
+        });
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
             binding.actionSelectFile.setVisibility(View.VISIBLE);
             binding.actionStart.setVisibility(View.VISIBLE);
@@ -231,12 +233,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             printError(error);
         });
         viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
-            clearFileContent();
-            binding.fileName.setText(null);
-            binding.fileSize.setText(null);
-            binding.fileHash.setText(null);
-            binding.status.setText(null);
-            binding.speed.setText(null);
+            binding.status.setText(R.string.image_upgrade_status_cancelled);
             binding.actionSelectFile.setVisibility(View.VISIBLE);
             binding.actionStart.setVisibility(View.VISIBLE);
             binding.actionStart.setEnabled(false);
@@ -253,7 +250,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         });
 
         // Configure SELECT FILE action
-        binding.actionSelectFile.setOnClickListener(v -> selectFile("application/*"));
+        binding.actionSelectFile.setOnClickListener(v -> selectFile("*/*"));
 
         // Restore START action state after rotation
         binding.actionStart.setEnabled(isFileLoaded());
@@ -397,7 +394,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
             binding.status.setText(null);
-            binding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -407,6 +403,5 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         binding.status.setText(spannable);
-        binding.speed.setText(null);
     }
 }

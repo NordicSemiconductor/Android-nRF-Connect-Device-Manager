@@ -35,7 +35,7 @@ fun ImageManager.windowUpload(
             callback.onUploadProgressChanged(
                 progress.offset,
                 progress.size,
-                System.currentTimeMillis()
+                progress.timestamp,
             )
         }.launchIn(this)
 

@@ -131,7 +131,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         });
 
         // Configure SELECT FILE action
-        binding.actionSelectFile.setOnClickListener(v -> selectFile("application/*"));
+        binding.actionSelectFile.setOnClickListener(v -> selectFile("*/*"));
 
         // Restore UPLOAD action state after rotation
         binding.actionUpload.setEnabled(isFileLoaded());

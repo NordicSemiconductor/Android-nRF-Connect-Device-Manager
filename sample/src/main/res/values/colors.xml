@@ -21,4 +21,8 @@
     <color name="colorDestructive">#CC0000</color>
     <color name="colorDestructiveDisabled">#CCAAAA</color>
 
+    <color name="colorGraphGrid">#88CFD8DC</color>
+    <color name="colorInstantaneousThroughput">@color/nordicLightGray</color>
+    <color name="colorAverageThroughput">@color/darkGray</color>
+
 </resources>

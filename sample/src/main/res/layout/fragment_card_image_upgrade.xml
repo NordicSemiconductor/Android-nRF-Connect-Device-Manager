@@ -55,6 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/image_upgrade_status"
+            android:paddingBottom="16dp"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/file_hash" />
 
@@ -62,7 +63,7 @@
             android:id="@+id/file_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
             android:freezesText="true"
             android:textStyle="bold"
@@ -88,6 +89,7 @@
             android:layout_height="wrap_content"
             android:freezesText="true"
             android:textStyle="bold"
+            android:fontFamily="monospace"
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/file_hash_label"
@@ -99,19 +101,20 @@
             android:layout_height="wrap_content"
             android:freezesText="true"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/speed"
+            app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
             tools:text="@string/image_upgrade_status_uploading" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/speed"
+        <io.runtime.mcumgr.sample.graph.ThroughputGraph
+            android:id="@+id/graph"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:freezesText="true"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
-            app:layout_constraintTop_toTopOf="@+id/status_label"
-            tools:text="2.3 KB/s" />
+            android:layout_height="100dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/status_label" />
 
         <androidx.constraintlayout.widget.Group
             android:id="@+id/advanced_group"
@@ -129,7 +132,7 @@
             android:text="@string/image_upgrade_erase_storage"
             app:layout_constraintEnd_toStartOf="@+id/advanced_erase_settings_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
-            app:layout_constraintTop_toBottomOf="@+id/status" />
+            app:layout_constraintTop_toBottomOf="@+id/graph" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/advanced_erase_settings_info"
@@ -207,6 +210,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_memory_alignment"
+            android:paddingBottom="16dp"
             app:layout_constraintEnd_toStartOf="@+id/advanced_memory_alignment_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/advanced_pipeline_layout">
@@ -230,18 +234,6 @@
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/advanced_memory_alignment_layout" />
 
-        <ProgressBar
-            android:id="@+id/progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="4dp"
-            android:layout_marginTop="16dp"
-            android:max="100"
-            android:progressBackgroundTint="?colorSurface"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/advanced_memory_alignment_layout" />
-
         <View
             android:id="@+id/divider"
             android:layout_width="0dp"
@@ -249,7 +241,7 @@
             android:background="@color/colorDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/progress" />
+            app:layout_constraintTop_toBottomOf="@+id/advanced_memory_alignment_layout" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_select_file"
