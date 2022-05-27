@@ -192,19 +192,15 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     break;
                 case TESTING:
                     binding.status.setText(R.string.image_upgrade_status_testing);
-                    binding.speed.setText(null);
                     break;
                 case CONFIRMING:
                     binding.status.setText(R.string.image_upgrade_status_confirming);
-                    binding.speed.setText(null);
                     break;
                 case RESETTING:
                     binding.status.setText(R.string.image_upgrade_status_resetting);
-                    binding.speed.setText(null);
                     break;
                 case COMPLETE:
                     binding.status.setText(R.string.image_upgrade_status_completed);
-                    binding.speed.setText(null);
                     binding.advancedEraseSettings.setEnabled(true);
                     binding.advancedSwapTimeLayout.setEnabled(true);
                     binding.advancedPipelineLayout.setEnabled(true);
@@ -215,11 +211,9 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         viewModel.getProgress().observe(getViewLifecycleOwner(), throughputData -> {
             if (throughputData == null) {
                 binding.graph.setVisibility(View.GONE);
-                binding.speed.setText(null);
                 binding.graph.clear();
             } else {
                 binding.graph.setVisibility(View.VISIBLE);
-                binding.speed.setText(getString(R.string.image_upgrade_speed, throughputData.averageThroughput));
                 binding.graph.addProgress(
                         throughputData.progress,
                         throughputData.instantaneousThroughput,
@@ -239,11 +233,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             printError(error);
         });
         viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
-            binding.fileName.setText(null);
-            binding.fileSize.setText(null);
-            binding.fileHash.setText(null);
-            binding.status.setText(null);
-            binding.speed.setText(null);
+            binding.status.setText(R.string.image_upgrade_status_cancelled);
             binding.actionSelectFile.setVisibility(View.VISIBLE);
             binding.actionStart.setVisibility(View.VISIBLE);
             binding.actionStart.setEnabled(false);
@@ -404,7 +394,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         final String message = StringUtils.toString(requireContext(), error);
         if (message == null) {
             binding.status.setText(null);
-            binding.speed.setText(null);
             return;
         }
         final SpannableString spannable = new SpannableString(message);
@@ -414,6 +403,5 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         binding.status.setText(spannable);
-        binding.speed.setText(null);
     }
 }
