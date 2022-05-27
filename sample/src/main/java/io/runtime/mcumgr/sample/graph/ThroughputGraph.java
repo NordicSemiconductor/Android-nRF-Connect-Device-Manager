@@ -19,7 +19,7 @@ public class ThroughputGraph extends View {
 
 	private final Paint instantaneousThroughputPaint;
 	private final Paint averageThroughputPaint;
-	private final Paint metadataPaint;
+	private final Paint horizontalLinesPaint;
 	private float tenKbPerSHeight;
 	/** View dimension. */
 	private int width, height;
@@ -48,8 +48,8 @@ public class ThroughputGraph extends View {
 
 		currentMaxThroughput = maxThroughput = DEFAULT_MAX_THROUGHPUT; // kB/s
 
-		metadataPaint = new Paint();
-		metadataPaint.setStrokeWidth(2);
+		horizontalLinesPaint = new Paint();
+		horizontalLinesPaint.setStrokeWidth(2);
 		instantaneousThroughputPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		averageThroughputPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		averageThroughputPaint.setStrokeWidth(5);
@@ -62,11 +62,11 @@ public class ThroughputGraph extends View {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			instantaneousThroughputPaint.setColor(getResources().getColor(R.color.colorInstantaneousThroughput, context.getTheme()));
 			averageThroughputPaint.setColor(getResources().getColor(R.color.colorAverageThroughput, context.getTheme()));
-			metadataPaint.setColor(getResources().getColor(R.color.colorGraphGrid, context.getTheme()));
+			horizontalLinesPaint.setColor(getResources().getColor(R.color.colorGraphGrid, context.getTheme()));
 		} else {
 			instantaneousThroughputPaint.setColor(getResources().getColor(R.color.colorInstantaneousThroughput));
 			averageThroughputPaint.setColor(getResources().getColor(R.color.colorAverageThroughput));
-			metadataPaint.setColor(getResources().getColor(R.color.colorGraphGrid));
+			horizontalLinesPaint.setColor(getResources().getColor(R.color.colorGraphGrid));
 		}
 	}
 
@@ -105,14 +105,18 @@ public class ThroughputGraph extends View {
 		super.onDraw(canvas);
 
 		if (currentProgress > 0) {
+			// First, draw the (instantaneous throughput.
 			canvas.drawPath(instantaneousThroughputPath, instantaneousThroughputPaint);
 
+			// Draw the horizontal lines indicating each 10 kB/s.
 			for (float h = height; h > 0; h -= tenKbPerSHeight) {
-				canvas.drawLine(0, h, width, h, metadataPaint);
+				canvas.drawLine(0, h, width, h, horizontalLinesPaint);
 			}
 
+			// Draw the average throughput.
 			canvas.drawLines(averageThroughputPoints, 0, currentProgress << 2, averageThroughputPaint);
 
+			// And print the average throughput value.
 			final String text = getResources().getString(R.string.image_upgrade_speed, averageThroughputData[currentProgress - 1]);
 			final float x = averageThroughputPoints[(currentProgress << 2) - 2] - averageThroughputTextWidth;
 			final float y = averageThroughputPoints[(currentProgress << 2) - 1] - 2 * averageThroughputPaint.getStrokeWidth();
