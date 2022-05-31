@@ -518,13 +518,14 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      *                 {@link BluetoothGatt#CONNECTION_PRIORITY_LOW_POWER}.
      */
     public void requestConnPriority(@ConnectionPriority final int priority) {
-        connect(mDevice).done(device -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                McuMgrBleTransport.super.requestConnectionPriority(priority).enqueue();
-            } // else ignore... :(
-        })
-        .retry(3, 500)
-        .enqueue();
+        connect(mDevice)
+                .retry(3, 500)
+                .done(device -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        McuMgrBleTransport.super.requestConnectionPriority(priority).enqueue();
+                    } // else ignore... :(
+                })
+                .enqueue();
     }
 
     //*******************************************************************************************
