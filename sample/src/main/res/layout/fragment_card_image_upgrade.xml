@@ -152,6 +152,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_swap_time"
+            app:suffixText="seconds"
+            app:suffixTextColor="@color/colorSecondary"
+            android:importantForAutofill="no"
             app:layout_constraintEnd_toStartOf="@+id/advanced_swap_time_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/advanced_erase_settings">
@@ -181,6 +184,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_pipeline"
+            android:importantForAutofill="no"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toStartOf="@+id/advanced_swap_time_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/advanced_swap_time_layout">
@@ -211,6 +216,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_memory_alignment"
             android:paddingBottom="16dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toStartOf="@+id/advanced_memory_alignment_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/advanced_pipeline_layout">
