@@ -168,7 +168,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
             // (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
             // parameter in KConfig in NCS / Zephyr configuration and should also be supported
             // on Mynewt devices.
-            // Mind, that in Zephyr, before https://github.com/zephyrproject-rtos/zephyr/pull/41959
+            // Mind, that in Zephyr,  before https://github.com/zephyrproject-rtos/zephyr/pull/41959
             // was merged, the device required data to be sent with memory alignment. Otherwise,
             // the device would ignore uneven bytes and reply with lower than expected offset
             // causing multiple packets to be sent again dropping the speed instead of increasing it.
