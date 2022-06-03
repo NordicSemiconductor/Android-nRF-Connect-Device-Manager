@@ -31,13 +31,13 @@ dependencies {
     api project(':mcumgr-core')
 
     // Import the BLE Library
-    api 'no.nordicsemi.android:ble:2.4.1'
+    api 'no.nordicsemi.android:ble:2.5.0'
 
     // Logging
     implementation 'org.slf4j:slf4j-api:1.7.35'
 
     // Kotlin
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1"
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
