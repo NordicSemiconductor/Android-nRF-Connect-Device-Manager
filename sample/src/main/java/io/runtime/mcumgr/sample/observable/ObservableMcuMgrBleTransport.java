@@ -8,22 +8,29 @@ package io.runtime.mcumgr.sample.observable;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
+import no.nordicsemi.android.ble.annotation.PhyValue;
+import no.nordicsemi.android.ble.callback.PhyCallback;
 import no.nordicsemi.android.ble.observer.BondingObserver;
 
 public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     private final MutableLiveData<ConnectionState> connectionState;
     private final MutableLiveData<BondingState> bondingState;
+    private final MutableLiveData<ConnectionParameters> connectionParameters;
 
     @Nullable
     private OnReleaseCallback onReleaseCallback;
+
+    @PhyValue
+    private int txPhy = PhyCallback.PHY_LE_1M, rxPhy = PhyCallback.PHY_LE_1M;
 
     public interface OnReleaseCallback {
         void onReleased();
@@ -99,7 +106,30 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                 bondingState.postValue(BondingState.NOT_BONDED);
             }
         });
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            connectionParameters = new MutableLiveData<>(null);
+            setConnectionParametersListener((d, interval, latency, timeout) -> {
+                final ConnectionParameters parameters = new ConnectionParameters(
+                        interval, latency, timeout,
+                        getMtu(), getMaxPacketLength(),
+                        txPhy, rxPhy);
+                connectionParameters.postValue(parameters);
+            });
+        } else {
+            connectionParameters = null;
+        }
         setLoggingEnabled(true);
+    }
+
+    @Override
+    protected void initializeAdditionalServices() {
+        readPhy()
+            .with((device, txPhy, rxPhy) -> {
+                this.txPhy = txPhy;
+                this.rxPhy = rxPhy;
+            })
+            .enqueue();
     }
 
     @NonNull
@@ -110,6 +140,12 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     @NonNull
     public LiveData<BondingState> getBondingState() {
         return bondingState;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @NonNull
+    public MutableLiveData<ConnectionParameters> getConnectionParameters() {
+        return connectionParameters;
     }
 
     public void setOnReleasedCallback(@Nullable final OnReleaseCallback callback) {

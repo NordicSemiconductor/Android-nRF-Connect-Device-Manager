@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
@@ -39,6 +40,7 @@ import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragment;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
+import io.runtime.mcumgr.sample.observable.ConnectionParameters;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUpgradeViewModel;
@@ -216,21 +218,36 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 binding.graph.setVisibility(View.VISIBLE);
                 binding.graph.addProgress(
                         throughputData.progress,
-                        throughputData.instantaneousThroughput,
                         throughputData.averageThroughput
                 );
             }
         });
+        final LiveData<ConnectionParameters> parametersLiveData = viewModel.getConnectionParameters();
+        if (parametersLiveData != null) {
+            parametersLiveData.observe(getViewLifecycleOwner(), parameters -> {
+                if (parameters != null) {
+                    binding.graph.setConnectionParameters(
+                            parameters.getIntervalInMs(),
+                            parameters.getMtu(),
+                            parameters.getBufferSize(),
+                            parameters.getTxPhy(),
+                            parameters.getRxPhy()
+                    );
+                }
+            });
+        }
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            binding.actionSelectFile.setVisibility(View.VISIBLE);
-            binding.actionStart.setVisibility(View.VISIBLE);
-            binding.actionCancel.setVisibility(View.GONE);
-            binding.actionPauseResume.setVisibility(View.GONE);
-            binding.advancedEraseSettings.setEnabled(true);
-            binding.advancedSwapTimeLayout.setEnabled(true);
-            binding.advancedPipelineLayout.setEnabled(true);
-            binding.advancedMemoryAlignmentLayout.setEnabled(true);
-            printError(error);
+            if (error != null) {
+                binding.actionSelectFile.setVisibility(View.VISIBLE);
+                binding.actionStart.setVisibility(View.VISIBLE);
+                binding.actionCancel.setVisibility(View.GONE);
+                binding.actionPauseResume.setVisibility(View.GONE);
+                binding.advancedEraseSettings.setEnabled(true);
+                binding.advancedSwapTimeLayout.setEnabled(true);
+                binding.advancedPipelineLayout.setEnabled(true);
+                binding.advancedMemoryAlignmentLayout.setEnabled(true);
+                printError(error);
+            }
         });
         viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
             binding.status.setText(R.string.image_upgrade_status_cancelled);

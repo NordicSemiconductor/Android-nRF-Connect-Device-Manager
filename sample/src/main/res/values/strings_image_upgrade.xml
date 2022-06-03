@@ -13,9 +13,11 @@
     <string name="image_upgrade_hash">Hash:</string>
     <string name="image_upgrade_status">State:</string>
     <string name="image_upgrade_speed">%.1f kB/s</string>
+    <string name="image_upgrade_ci">MTU: %d\nPHY: %s\nINTV: %.2f ms</string>
+    <string name="image_upgrade_ci_sar">MTU: %d (SAR: %d B)\nPHY: %s\nINTV: %.2f ms</string>
     <string name="image_upgrade_erase_storage">Erase application settings</string>
     <string name="image_upgrade_erase_storage_descr">About erase application settings feature</string>
-    <string name="image_upgrade_swap_time">Estimated swap time (in seconds)</string>
+    <string name="image_upgrade_swap_time">Estimated swap time</string>
     <string name="image_upgrade_swap_time_descr">About estimated swap time</string>
     <string name="image_upgrade_pipeline">Number of mcumgr buffers</string>
     <string name="image_upgrade_pipeline_descr">About pipelining</string>
