@@ -61,11 +61,11 @@ dependencies {
     implementation 'com.google.android.material:material:1.7.0-alpha02'
 
     // Dagger 2
-    implementation 'com.google.dagger:dagger:2.40.5'
-    implementation 'com.google.dagger:dagger-android:2.40.5'
-    implementation 'com.google.dagger:dagger-android-support:2.40.5'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.40.5'
-    annotationProcessor 'com.google.dagger:dagger-android-processor:2.40.5'
+    implementation 'com.google.dagger:dagger:2.42'
+    implementation 'com.google.dagger:dagger-android:2.42'
+    implementation 'com.google.dagger:dagger-android-support:2.42'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.42'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.42'
 
     // Brings the new BluetoothLeScanner API to older platforms
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
@@ -78,7 +78,7 @@ dependencies {
     implementation project(':mcumgr-ble')
 
     // GSON
-    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.code.gson:gson:2.9.0'
 
     // Test
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
