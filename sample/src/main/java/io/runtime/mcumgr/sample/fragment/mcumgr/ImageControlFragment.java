@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.sample.fragment.mcumgr;
 
 import android.animation.LayoutTransition;
+import android.annotation.SuppressLint;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -151,27 +152,32 @@ public class ImageControlFragment extends Fragment implements Injectable,
         }
     }
 
+    @SuppressLint("StringFormatMatches")
     private void printImageSlotInfo(@Nullable final McuMgrImageStateResponse response) {
         if (response != null) {
             final SpannableStringBuilder builder = new SpannableStringBuilder();
             builder.append(getString(R.string.image_control_split_status, response.splitStatus));
             builder.setSpan(new StyleSpan(Typeface.BOLD),
                     0, builder.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-            for (final McuMgrImageStateResponse.ImageSlot slot : response.images) {
-                builder.append("\n");
-                final int index = builder.length();
-                final String imageSlot = getString(R.string.image_control_image_slot,
-                        slot.image, slot.slot);
-                builder.append(imageSlot);
-                builder.setSpan(new StyleSpan(Typeface.BOLD),
-                        index, index + imageSlot.length(),
-                        Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                builder.append("\n");
-                builder.append(getString(R.string.image_control_flags,
-                        slot.version,
-                        StringUtils.toHex(slot.hash),
-                        slot.bootable, slot.pending, slot.confirmed,
-                        slot.active, slot.permanent));
+            if (response.images != null) {
+                for (final McuMgrImageStateResponse.ImageSlot slot : response.images) {
+                    builder.append("\n");
+                    final int index = builder.length();
+                    final String imageSlot = getString(R.string.image_control_image_slot,
+                            slot.image, slot.slot);
+                    builder.append(imageSlot);
+                    builder.setSpan(new StyleSpan(Typeface.BOLD),
+                            index, index + imageSlot.length(),
+                            Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                    builder.append("\n");
+                    builder.append(getString(R.string.image_control_flags,
+                            slot.version,
+                            StringUtils.toHex(slot.hash),
+                            slot.bootable, slot.pending, slot.confirmed,
+                            slot.active, slot.permanent));
+                }
+            } else {
+                builder.append("\nNo image information");
             }
             binding.imageControlValue.setText(builder);
             binding.imageControlError.setVisibility(View.GONE);
