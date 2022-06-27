@@ -722,6 +722,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             mSmpProtocol = null;
             mSmpCharacteristicWrite = null;
             mSmpCharacteristicNotify = null;
+            mMaxPacketLength = 0;
             McuMgrBleTransport.this.onServicesInvalidated();
             runOnCallbackThread(McuMgrBleTransport.this::notifyDisconnected);
         }
