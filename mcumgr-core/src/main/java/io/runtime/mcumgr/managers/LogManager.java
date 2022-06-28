@@ -88,7 +88,7 @@ public class LogManager extends McuManager {
                 payloadMap.put("ts", dateToString(minTimestamp, null));
             }
         }
-        send(OP_READ, ID_READ, payloadMap, McuMgrLogResponse.class, callback);
+        send(OP_READ, ID_READ, payloadMap, SHORT_TIMEOUT, McuMgrLogResponse.class, callback);
     }
 
     /**
@@ -124,7 +124,7 @@ public class LogManager extends McuManager {
                 payloadMap.put("ts", dateToString(minTimestamp, null));
             }
         }
-        return send(OP_READ, ID_READ, payloadMap, McuMgrLogResponse.class);
+        return send(OP_READ, ID_READ, payloadMap, SHORT_TIMEOUT, McuMgrLogResponse.class);
     }
 
     /**
@@ -133,7 +133,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void clear(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_CLEAR, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -144,7 +144,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse clear() throws McuMgrException {
-        return send(OP_WRITE, ID_CLEAR, null, McuMgrResponse.class);
+        return send(OP_WRITE, ID_CLEAR, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -155,7 +155,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void moduleList(@NotNull McuMgrCallback<McuMgrModuleListResponse> callback) {
-        send(OP_READ, ID_MODULE_LIST, null, McuMgrModuleListResponse.class, callback);
+        send(OP_READ, ID_MODULE_LIST, null, SHORT_TIMEOUT, McuMgrModuleListResponse.class, callback);
     }
 
     /**
@@ -168,7 +168,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrModuleListResponse moduleList() throws McuMgrException {
-        return send(OP_READ, ID_MODULE_LIST, null, McuMgrModuleListResponse.class);
+        return send(OP_READ, ID_MODULE_LIST, null, SHORT_TIMEOUT, McuMgrModuleListResponse.class);
     }
 
     /**
@@ -177,7 +177,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void levelList(@NotNull McuMgrCallback<McuMgrLevelListResponse> callback) {
-        send(OP_READ, ID_LEVEL_LIST, null, McuMgrLevelListResponse.class, callback);
+        send(OP_READ, ID_LEVEL_LIST, null, SHORT_TIMEOUT, McuMgrLevelListResponse.class, callback);
     }
 
     /**
@@ -188,7 +188,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrLevelListResponse levelList() throws McuMgrException {
-        return send(OP_READ, ID_LEVEL_LIST, null, McuMgrLevelListResponse.class);
+        return send(OP_READ, ID_LEVEL_LIST, null, SHORT_TIMEOUT, McuMgrLevelListResponse.class);
     }
 
     /**
@@ -199,7 +199,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void logsList(@NotNull McuMgrCallback<McuMgrLogListResponse> callback) {
-        send(OP_READ, ID_LOGS_LIST, null, McuMgrLogListResponse.class, callback);
+        send(OP_READ, ID_LOGS_LIST, null, SHORT_TIMEOUT, McuMgrLogListResponse.class, callback);
     }
 
     /**
@@ -212,7 +212,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrLogListResponse logsList() throws McuMgrException {
-        return send(OP_READ, ID_LOGS_LIST, null, McuMgrLogListResponse.class);
+        return send(OP_READ, ID_LOGS_LIST, null, SHORT_TIMEOUT, McuMgrLogListResponse.class);
     }
 
     /**
@@ -226,7 +226,7 @@ public class LogManager extends McuManager {
         try {
             // Get available logs
             McuMgrLogListResponse logListResponse = logsList();
-            LOG.debug("Available logs: {}", logListResponse.toString());
+            LOG.debug("Available logs: {}", logListResponse);
 
             if (logListResponse.log_list == null) {
                 LOG.warn("No logs available on this device");

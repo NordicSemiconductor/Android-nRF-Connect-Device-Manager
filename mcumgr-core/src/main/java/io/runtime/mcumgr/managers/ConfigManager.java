@@ -45,7 +45,7 @@ public class ConfigManager extends McuManager {
                      @NotNull McuMgrCallback<McuMgrConfigReadResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
-        send(OP_READ, ID_CONFIG, payloadMap, McuMgrConfigReadResponse.class, callback);
+        send(OP_READ, ID_CONFIG, payloadMap, SHORT_TIMEOUT, McuMgrConfigReadResponse.class, callback);
     }
 
     /**
@@ -59,7 +59,7 @@ public class ConfigManager extends McuManager {
     public McuMgrConfigReadResponse read(@Nullable String name) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
-        return send(OP_READ, ID_CONFIG, payloadMap, McuMgrConfigReadResponse.class);
+        return send(OP_READ, ID_CONFIG, payloadMap, SHORT_TIMEOUT, McuMgrConfigReadResponse.class);
     }
 
     /**
@@ -77,7 +77,7 @@ public class ConfigManager extends McuManager {
         payloadMap.put("name", name);
         payloadMap.put("val", value);
         payloadMap.put("save", save);
-        send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_CONFIG, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -97,6 +97,6 @@ public class ConfigManager extends McuManager {
         payloadMap.put("name", name);
         payloadMap.put("val", value);
         payloadMap.put("save", save);
-        return send(OP_WRITE, ID_CONFIG, payloadMap, McuMgrResponse.class);
+        return send(OP_WRITE, ID_CONFIG, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 }

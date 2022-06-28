@@ -64,7 +64,7 @@ public class FsManager extends TransferManager {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("off", offset);
-        send(OP_READ, ID_FILE, payloadMap, McuMgrFsDownloadResponse.class, callback);
+        send(OP_READ, ID_FILE, payloadMap, SHORT_TIMEOUT, McuMgrFsDownloadResponse.class, callback);
     }
 
     /**
@@ -84,7 +84,7 @@ public class FsManager extends TransferManager {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("off", offset);
-        return send(OP_READ, ID_FILE, payloadMap, McuMgrFsDownloadResponse.class);
+        return send(OP_READ, ID_FILE, payloadMap, SHORT_TIMEOUT, McuMgrFsDownloadResponse.class);
     }
 
     /**
@@ -106,7 +106,7 @@ public class FsManager extends TransferManager {
     public void upload(@NotNull String name, byte @NotNull [] data, int offset,
                        @NotNull McuMgrCallback<McuMgrFsUploadResponse> callback) {
         HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset);
-        send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class, callback);
+        send(OP_WRITE, ID_FILE, payloadMap, SHORT_TIMEOUT, McuMgrFsUploadResponse.class, callback);
     }
 
     /**
@@ -129,7 +129,7 @@ public class FsManager extends TransferManager {
     public McuMgrFsUploadResponse upload(@NotNull String name, byte @NotNull [] data, int offset)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset);
-        return send(OP_WRITE, ID_FILE, payloadMap, McuMgrFsUploadResponse.class);
+        return send(OP_WRITE, ID_FILE, payloadMap, SHORT_TIMEOUT, McuMgrFsUploadResponse.class);
     }
 
     /*

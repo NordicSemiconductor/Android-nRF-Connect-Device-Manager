@@ -2,6 +2,7 @@ package io.runtime.mcumgr.transfer
 
 import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.exception.InsufficientMtuException
+import io.runtime.mcumgr.exception.McuMgrTimeoutException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -116,11 +117,27 @@ abstract class Uploader(
                         }
                     }
                 }.onErrorOrFailure { failure ->
+                    // On insufficient MTU, the uploader will be restarted with proper MTU set.
+                    // The proper MTU value is embedded in the exception.
                     if (failure is InsufficientMtuException) {
                         throw failure
                     }
+
+                    // If a packet times out, the notification might have been lost, but the
+                    // packet delivery could have, actually, succeed. Let's check if the current
+                    // offset (which wouldn't increase if the packet was lost indeed) got bigger.
+                    if (failure is McuMgrTimeoutException) {
+                        // As the timeout for sending a packet is quite long (1 sec), some following
+                        // packets may have been sent before the time run out, and those could have
+                        // got the ack.
+                        if (currentOffset > chunk.offset) {
+                            log.warn("A notification for chunk with offset=${chunk.offset} was lost, but the chunk was ack-ed by later chunk (confirmed offset=$currentOffset)")
+                            return@onErrorOrFailure
+                        }
+                    }
+
                     // Request failure, resend failed chunk.
-                    log.warn("Uploader write failure for chunk with offset ${chunk.offset}: $failure")
+                    log.warn("Uploader write failure for chunk with offset=${chunk.offset}: $failure")
                     // Track the number of times a chunk has failed. If the
                     // chunk has failed more times than the threshold,
                     // throw the exception to fail the upload entirely.

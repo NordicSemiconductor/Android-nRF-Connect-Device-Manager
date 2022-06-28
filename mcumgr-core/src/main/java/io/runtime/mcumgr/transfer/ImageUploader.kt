@@ -146,7 +146,7 @@ internal class ImageUploader(
 private fun ImageManager.uploadAsync(
     requestMap: Map<String, Any>,
     callback: (UploadResult) -> Unit
-) = send(OP_WRITE, ID_UPLOAD, requestMap, UploadResponse::class.java,
+) = send(OP_WRITE, ID_UPLOAD, requestMap, 1000, UploadResponse::class.java,
     object : McuMgrCallback<UploadResponse> {
         override fun onResponse(response: UploadResponse) {
             callback(UploadResult.Response(response, response.returnCode))

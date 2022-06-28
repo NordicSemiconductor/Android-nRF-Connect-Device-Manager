@@ -38,6 +38,9 @@ public abstract class McuManager {
     /** Maximum length of a single SMP packet. */
     private final static int DEFAULT_MTU = 0xFFFF + 8; // Header size + max packet size.
 
+    protected final static long DEFAULT_TIMEOUT = 30_000; // ms
+    protected final static long SHORT_TIMEOUT = 1_000; // ms
+
     // Date format
     private final static String MCUMGR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ";
 
@@ -170,12 +173,14 @@ public abstract class McuManager {
      * @param respType   the response type.
      * @param callback   the response callback.
      * @param <T>        the response type.
+     * @deprecated Use {@link #send(int, int, Map, long, Class, McuMgrCallback)} instead.
      */
+    @Deprecated
     public <T extends McuMgrResponse> void send(int op, int commandId,
                                                 @Nullable Map<String, Object> payloadMap,
                                                 @NotNull Class<T> respType,
                                                 @NotNull McuMgrCallback<T> callback) {
-        send(op, 0, 0, commandId, payloadMap, respType, callback);
+        send(op, 0, 0, commandId, payloadMap, DEFAULT_TIMEOUT, respType, callback);
     }
 
     /**
@@ -192,13 +197,15 @@ public abstract class McuManager {
      * @param <T>        the response type.
      * @return The McuMgrResponse or null if an error occurred.
      * @throws McuMgrException on transport error. See exception cause for more info.
+     * @deprecated Use {@link #send(int, int, Map, long, Class)} instead.
      */
+    @Deprecated
     @NotNull
     public <T extends McuMgrResponse> T send(int op, int commandId,
                                              @Nullable Map<String, Object> payloadMap,
                                              @NotNull Class<T> respType)
             throws McuMgrException {
-        return send(op, 0, 0, commandId, respType, payloadMap);
+        return send(op, 0, 0, commandId, payloadMap, DEFAULT_TIMEOUT, respType);
     }
 
     /**
@@ -215,18 +222,14 @@ public abstract class McuManager {
      * @param respType    the response type.
      * @param callback    asynchronous callback.
      * @param <T>         the response type.
+     * @deprecated Use {@link #send(int, int, int, int, Map, long, Class, McuMgrCallback)} instead.
      */
+    @Deprecated
     public <T extends McuMgrResponse> void send(int op, int flags, int sequenceNum, int commandId,
                                                 @Nullable Map<String, Object> payloadMap,
                                                 @NotNull Class<T> respType,
                                                 @NotNull McuMgrCallback<T> callback) {
-        try {
-            byte[] packet = buildPacket(getScheme(), op, flags, mGroupId, sequenceNum,
-                    commandId, payloadMap);
-            send(packet, respType, callback);
-        } catch (McuMgrException e) {
-            callback.onError(e);
-        }
+        send(op, flags, sequenceNum, commandId, payloadMap, DEFAULT_TIMEOUT, respType, callback);
     }
 
     /**
@@ -245,15 +248,123 @@ public abstract class McuManager {
      * @param <T>         the response type.
      * @return The Mcu Manager response.
      * @throws McuMgrException on transport error. See exception cause for more info.
+     * @deprecated Use {@link #send(int, int, int, int, Map, long, Class)} instead.
      */
+    @Deprecated
     @NotNull
     public <T extends McuMgrResponse> T send(int op, int flags, int sequenceNum,
                                              int commandId, @NotNull Class<T> respType,
                                              @Nullable Map<String, Object> payloadMap)
             throws McuMgrException {
+        return send(op, flags, sequenceNum, commandId, payloadMap, DEFAULT_TIMEOUT, respType);
+    }
+
+    /**
+     * Send an asynchronous Mcu Manager command.
+     * <p>
+     * Additionally builds the Mcu Manager header and formats the packet based on scheme before
+     * sending it to the transporter.
+     *
+     * @param op         the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE}).
+     * @param commandId  the ID of the command.
+     * @param timeout     timeout for the request, by default {@link #DEFAULT_TIMEOUT} ms.
+     * @param payloadMap the map of values to send along. This argument can be null if the header is
+     *                   the only required field.
+     * @param respType   the response type.
+     * @param callback   the response callback.
+     * @param <T>        the response type.
+     */
+    public <T extends McuMgrResponse> void send(int op, int commandId,
+                                                @Nullable Map<String, Object> payloadMap,
+                                                long timeout,
+                                                @NotNull Class<T> respType,
+                                                @NotNull McuMgrCallback<T> callback) {
+        send(op, 0, 0, commandId, payloadMap, timeout, respType, callback);
+    }
+
+    /**
+     * Send synchronous Mcu Manager command.
+     * <p>
+     * Additionally builds the Mcu Manager header and formats the packet based on scheme before
+     * sending it to the transporter.
+     *
+     * @param op         the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE}).
+     * @param commandId  the ID of the command.
+     * @param timeout     timeout for the request, by default {@link #DEFAULT_TIMEOUT} ms.
+     * @param payloadMap the map of values to send along. This argument can be null if the header is
+     *                   the only required field.
+     * @param respType   the response type.
+     * @param <T>        the response type.
+     * @return The McuMgrResponse or null if an error occurred.
+     * @throws McuMgrException on transport error. See exception cause for more info.
+     */
+    @NotNull
+    public <T extends McuMgrResponse> T send(int op, int commandId,
+                                             @Nullable Map<String, Object> payloadMap,
+                                             long timeout,
+                                             @NotNull Class<T> respType)
+            throws McuMgrException {
+        return send(op, 0, 0, commandId, payloadMap, timeout, respType);
+    }
+
+    /**
+     * Send an asynchronous Mcu Manager command.
+     * <p>
+     * Additionally builds the Mcu Manager header and formats the packet based on scheme before
+     * sending it to the transporter.
+     *
+     * @param op          the operation ({@link McuManager#OP_READ}, {@link McuManager#OP_WRITE})
+     * @param flags       additional flags.
+     * @param sequenceNum sequence number.
+     * @param commandId   ID of the command in the group.
+     * @param payloadMap  map of command's key-value pairs to construct a CBOR payload.
+     * @param timeout     timeout for the request, by default {@link #DEFAULT_TIMEOUT} ms.
+     * @param respType    the response type.
+     * @param callback    asynchronous callback.
+     * @param <T>         the response type.
+     */
+    public <T extends McuMgrResponse> void send(int op, int flags, int sequenceNum, int commandId,
+                                                @Nullable Map<String, Object> payloadMap,
+                                                long timeout,
+                                                @NotNull Class<T> respType,
+                                                @NotNull McuMgrCallback<T> callback) {
+        try {
+            byte[] packet = buildPacket(getScheme(), op, flags, mGroupId, sequenceNum,
+                    commandId, payloadMap);
+            send(packet, timeout, respType, callback);
+        } catch (McuMgrException e) {
+            callback.onError(e);
+        }
+    }
+
+    /**
+     * Send synchronous Mcu Manager command.
+     * <p>
+     * Additionally builds the Mcu Manager header and formats the packet based on scheme before
+     * sending it to the transporter.
+     *
+     * @param op          the operation ({@link McuManager#OP_READ},
+     *                    {@link McuManager#OP_WRITE}).
+     * @param flags       additional flags.
+     * @param sequenceNum sequence number.
+     * @param commandId   ID of the command in the group.
+     * @param payloadMap  map of payload key-value pairs.
+     * @param timeout     timeout for the request, by default {@link #DEFAULT_TIMEOUT} ms.
+     * @param respType    the response type.
+     * @param <T>         the response type.
+     * @return The Mcu Manager response.
+     * @throws McuMgrException on transport error. See exception cause for more info.
+     */
+    @NotNull
+    public <T extends McuMgrResponse> T send(int op, int flags, int sequenceNum,
+                                             int commandId,
+                                             @Nullable Map<String, Object> payloadMap,
+                                             long timeout,
+                                             @NotNull Class<T> respType)
+            throws McuMgrException {
         byte[] packet = buildPacket(getScheme(), op, flags, mGroupId, sequenceNum,
                 commandId, payloadMap);
-        return send(packet, respType);
+        return send(packet, timeout, respType);
     }
 
     /**
@@ -263,10 +374,13 @@ public abstract class McuManager {
      * @param respType the response type.
      * @param callback the response callback.
      * @param <T>      the response type.
+     * @deprecated Use {@link #send(byte[], long, Class, McuMgrCallback)} instead.
      */
-    public <T extends McuMgrResponse> void send(byte @NotNull [] data, @NotNull Class<T> respType,
+    @Deprecated
+    public <T extends McuMgrResponse> void send(byte @NotNull [] data,
+                                                @NotNull Class<T> respType,
                                                 @NotNull McuMgrCallback<T> callback) {
-        mTransporter.send(data, respType, callback);
+        send(data, DEFAULT_TIMEOUT, respType, callback);
     }
 
     /**
@@ -277,11 +391,47 @@ public abstract class McuManager {
      * @param <T>      the response type.
      * @return The Mcu Manager response.
      * @throws McuMgrException when an error occurs while sending the data.
+     * @deprecated Use {@link #send(byte[], long, Class)} instead.
      */
+    @Deprecated
     @NotNull
     public <T extends McuMgrResponse> T send(byte @NotNull [] data, @NotNull Class<T> respType)
             throws McuMgrException {
-        return mTransporter.send(data, respType);
+        return send(data, DEFAULT_TIMEOUT, respType);
+    }
+
+    /**
+     * Send data asynchronously using the transporter.
+     *
+     * @param data     the data to send.
+     * @param timeout  timeout for the request.
+     * @param respType the response type.
+     * @param callback the response callback.
+     * @param <T>      the response type.
+     */
+    public <T extends McuMgrResponse> void send(byte @NotNull [] data,
+                                                long timeout,
+                                                @NotNull Class<T> respType,
+                                                @NotNull McuMgrCallback<T> callback) {
+        mTransporter.send(data, timeout, respType, callback);
+    }
+
+    /**
+     * Send data synchronously using the transporter.
+     *
+     * @param data     the data to send.
+     * @param timeout  timeout for the request.
+     * @param respType the response type.
+     * @param <T>      the response type.
+     * @return The Mcu Manager response.
+     * @throws McuMgrException when an error occurs while sending the data.
+     */
+    @NotNull
+    public <T extends McuMgrResponse> T send(byte @NotNull [] data,
+                                             long timeout,
+                                             @NotNull Class<T> respType)
+            throws McuMgrException {
+        return mTransporter.send(data, timeout, respType);
     }
 
     /**

@@ -23,7 +23,9 @@ internal class SmpProtocolSession(
         const val TIMEOUT: Long = 30_000
     }
 
-    private data class Outgoing(val data: ByteArray, val transaction: SmpTransaction) {
+    private data class Outgoing(val data: ByteArray,
+                                val timeout: Long,
+                                val transaction: SmpTransaction) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -64,8 +66,8 @@ internal class SmpProtocolSession(
         }
     }
 
-    fun send(data: ByteArray, transaction: SmpTransaction) {
-        check(txChannel.trySend(Outgoing(data, transaction)).isSuccess) {
+    fun send(data: ByteArray, timeout: Long, transaction: SmpTransaction) {
+        check(txChannel.trySend(Outgoing(data, timeout, transaction)).isSuccess) {
             "Cannot send request, transmit channel buffer is full."
         }
     }
@@ -98,7 +100,7 @@ internal class SmpProtocolSession(
             outgoing.transaction.send(handler, outgoing.data)
 
             scope.launch {
-                delay(TIMEOUT)
+                delay(outgoing.timeout)
                 val transaction = getAndSetTransaction(sequenceNumber, null)
                 transaction?.onFailure(handler, TransactionTimeoutException(sequenceNumber))
             }

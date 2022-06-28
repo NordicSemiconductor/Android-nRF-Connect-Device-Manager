@@ -39,7 +39,7 @@ public class BasicManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void eraseStorage(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_ERASE_STORAGE, null, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -50,6 +50,6 @@ public class BasicManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse eraseStorage() throws McuMgrException {
-        return send(OP_WRITE, ID_ERASE_STORAGE, null, McuMgrResponse.class);
+        return send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
     }
 }
