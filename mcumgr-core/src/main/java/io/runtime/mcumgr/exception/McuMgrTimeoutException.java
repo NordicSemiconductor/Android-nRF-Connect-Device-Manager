@@ -11,4 +11,11 @@ package io.runtime.mcumgr.exception;
  * time run out.
  */
 public class McuMgrTimeoutException extends McuMgrException {
+
+	public McuMgrTimeoutException() {
+	}
+
+	public McuMgrTimeoutException(Throwable cause) {
+		super(cause);
+	}
 }

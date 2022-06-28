@@ -36,6 +36,7 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.callback.SmpMerger;
 import io.runtime.mcumgr.ble.callback.SmpProtocolSession;
 import io.runtime.mcumgr.ble.callback.SmpTransaction;
+import io.runtime.mcumgr.ble.callback.TransactionTimeoutException;
 import io.runtime.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
 import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
@@ -404,6 +405,8 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         public void onFailure(@NonNull Throwable e) {
                             if (e instanceof McuMgrException) {
                                 callback.onError((McuMgrException) e);
+                            } else if (e instanceof TransactionTimeoutException) {
+                                callback.onError(new McuMgrTimeoutException(e));
                             } else {
                                 callback.onError(new McuMgrException(e));
                             }
