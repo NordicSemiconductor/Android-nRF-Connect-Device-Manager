@@ -80,13 +80,16 @@ public interface McuMgrTransport {
      * response has been received or a error has occurred.
      *
      * @param payload      the request packet data to send to the device.
+     * @param timeout      the timeout for receiving a response for the packet, in milliseconds.
      * @param responseType the response type.
      * @param <T>          the response type.
      * @return The response.
      * @throws McuMgrException thrown on error. Set the cause of the error if caused by a different
      *                         type of exception.
      */
-    @NotNull <T extends McuMgrResponse> T send(byte @NotNull [] payload, @NotNull Class<T> responseType)
+    @NotNull <T extends McuMgrResponse> T send(byte @NotNull [] payload,
+                                               long timeout,
+                                               @NotNull Class<T> responseType)
             throws McuMgrException;
 
     /**
@@ -95,11 +98,14 @@ public interface McuMgrTransport {
      * be called.
      *
      * @param payload      the request packet data to send to the device.
+     * @param timeout      the timeout for receiving a response for the packet, in milliseconds.
      * @param responseType the response type.
      * @param callback     the callback to call on response or error.
      * @param <T>          the response type.
      */
-    <T extends McuMgrResponse> void send(byte @NotNull [] payload, @NotNull Class<T> responseType,
+    <T extends McuMgrResponse> void send(byte @NotNull [] payload,
+                                         long timeout,
+                                         @NotNull Class<T> responseType,
                                          @NotNull McuMgrCallback<T> callback);
 
     /**

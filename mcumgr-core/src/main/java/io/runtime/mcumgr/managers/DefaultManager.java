@@ -62,7 +62,7 @@ public class DefaultManager extends McuManager {
     public void echo(@Nullable String echo, @NotNull McuMgrCallback<McuMgrEchoResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("d", echo);
-        send(OP_WRITE, ID_ECHO, payloadMap, McuMgrEchoResponse.class, callback);
+        send(OP_WRITE, ID_ECHO, payloadMap, SHORT_TIMEOUT, McuMgrEchoResponse.class, callback);
     }
 
     /**
@@ -76,7 +76,7 @@ public class DefaultManager extends McuManager {
     public McuMgrEchoResponse echo(@Nullable String echo) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("d", echo);
-        return send(OP_WRITE, ID_ECHO, payloadMap, McuMgrEchoResponse.class);
+        return send(OP_WRITE, ID_ECHO, payloadMap, SHORT_TIMEOUT, McuMgrEchoResponse.class);
     }
 
     /**
@@ -88,7 +88,7 @@ public class DefaultManager extends McuManager {
     public void consoleEcho(boolean echo, @NotNull McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
-        send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -102,7 +102,7 @@ public class DefaultManager extends McuManager {
     public McuMgrResponse consoleEcho(boolean echo) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
-        return send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, McuMgrResponse.class);
+        return send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -111,7 +111,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void taskstats(@NotNull McuMgrCallback<McuMgrTaskStatResponse> callback) {
-        send(OP_READ, ID_TASKSTATS, null, McuMgrTaskStatResponse.class, callback);
+        send(OP_READ, ID_TASKSTATS, null, SHORT_TIMEOUT, McuMgrTaskStatResponse.class, callback);
     }
 
     /**
@@ -122,7 +122,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrTaskStatResponse taskstats() throws McuMgrException {
-        return send(OP_READ, ID_TASKSTATS, null, McuMgrTaskStatResponse.class);
+        return send(OP_READ, ID_TASKSTATS, null, SHORT_TIMEOUT, McuMgrTaskStatResponse.class);
     }
 
     /**
@@ -131,7 +131,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void mpstat(@NotNull McuMgrCallback<McuMgrMpStatResponse> callback) {
-        send(OP_READ, ID_MPSTATS, null, McuMgrMpStatResponse.class, callback);
+        send(OP_READ, ID_MPSTATS, null, SHORT_TIMEOUT, McuMgrMpStatResponse.class, callback);
     }
 
     /**
@@ -142,7 +142,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrMpStatResponse mpstat() throws McuMgrException {
-        return send(OP_READ, ID_MPSTATS, null, McuMgrMpStatResponse.class);
+        return send(OP_READ, ID_MPSTATS, null, SHORT_TIMEOUT, McuMgrMpStatResponse.class);
     }
 
     /**
@@ -151,7 +151,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void readDatetime(@NotNull McuMgrCallback<McuMgrReadDateTimeResponse> callback) {
-        send(OP_READ, ID_DATETIME_STR, null, McuMgrReadDateTimeResponse.class, callback);
+        send(OP_READ, ID_DATETIME_STR, null, SHORT_TIMEOUT, McuMgrReadDateTimeResponse.class, callback);
     }
 
     /**
@@ -162,7 +162,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrReadDateTimeResponse readDatetime() throws McuMgrException {
-        return send(OP_READ, ID_DATETIME_STR, null, McuMgrReadDateTimeResponse.class);
+        return send(OP_READ, ID_DATETIME_STR, null, SHORT_TIMEOUT, McuMgrReadDateTimeResponse.class);
     }
 
     /**
@@ -178,7 +178,7 @@ public class DefaultManager extends McuManager {
                               @NotNull McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("datetime", dateToString(date, timeZone));
-        send(OP_WRITE, ID_DATETIME_STR, payloadMap, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -196,7 +196,7 @@ public class DefaultManager extends McuManager {
             throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("datetime", dateToString(date, timeZone));
-        return send(OP_WRITE, ID_DATETIME_STR, payloadMap, McuMgrResponse.class);
+        return send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -205,7 +205,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void reset(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_RESET, null, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -216,7 +216,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse reset() throws McuMgrException {
-        return send(OP_WRITE, ID_RESET, null, McuMgrResponse.class);
+        return send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -225,7 +225,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void params(@NotNull McuMgrCallback<McuMgrParamsResponse> callback) {
-        send(OP_READ, ID_MCUMGR_PARAMS, null, McuMgrParamsResponse.class, callback);
+        send(OP_READ, ID_MCUMGR_PARAMS, null, SHORT_TIMEOUT, McuMgrParamsResponse.class, callback);
     }
 
     /**
@@ -236,6 +236,6 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse params() throws McuMgrException {
-        return send(OP_READ, ID_MCUMGR_PARAMS, null, McuMgrParamsResponse.class);
+        return send(OP_READ, ID_MCUMGR_PARAMS, null, SHORT_TIMEOUT, McuMgrParamsResponse.class);
     }
 }

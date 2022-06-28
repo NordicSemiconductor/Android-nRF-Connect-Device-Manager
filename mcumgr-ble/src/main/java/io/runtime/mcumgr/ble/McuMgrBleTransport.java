@@ -316,10 +316,11 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     @NonNull
     @Override
     public <T extends McuMgrResponse> T send(@NonNull final byte[] payload,
+                                             long timeout,
                                              @NonNull final Class<T> responseType)
             throws McuMgrException {
         final ResultCondition<T> condition = new ResultCondition<>(false);
-        send(payload, responseType, new McuMgrCallback<T>() {
+        send(payload, timeout, responseType, new McuMgrCallback<T>() {
             @Override
             public void onResponse(@NonNull T response) {
                 condition.open(response);
@@ -335,6 +336,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     @Override
     public <T extends McuMgrResponse> void send(@NonNull final byte[] payload,
+                                                final long timeout,
                                                 @NonNull final Class<T> responseType,
                                                 @NonNull final McuMgrCallback<T> callback) {
 
@@ -356,7 +358,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
                     // Send a new transaction to the protocol layer
                     final SmpProtocolSession session = mSmpProtocol;
-                    session.send(payload, new SmpTransaction() {
+                    session.send(payload, timeout, new SmpTransaction() {
                         @Override
                         public void send(@NonNull byte[] data) {
                             if (getMinLogPriority() <= Log.INFO) {
@@ -510,7 +512,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * Calling this method with priority {@link BluetoothGatt#CONNECTION_PRIORITY_HIGH} may
      * improve file transfer speed.
      * <p>
-     * Similarly to {@link #send(byte[], Class)}, this method will connect automatically
+     * Similarly to {@link #send(byte[], long, Class)}, this method will connect automatically
      * to the device if not connected.
      *
      * @param priority one of: {@link BluetoothGatt#CONNECTION_PRIORITY_HIGH},

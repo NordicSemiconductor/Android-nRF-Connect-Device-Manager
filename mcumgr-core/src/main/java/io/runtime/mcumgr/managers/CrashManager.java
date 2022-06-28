@@ -61,7 +61,7 @@ public class CrashManager extends McuManager {
     public McuMgrResponse test(@NotNull Test test) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("t", test.toString());
-        return send(OP_WRITE, ID_CRASH_TEST, payloadMap, McuMgrConfigReadResponse.class);
+        return send(OP_WRITE, ID_CRASH_TEST, payloadMap, SHORT_TIMEOUT, McuMgrConfigReadResponse.class);
     }
 
     /**
@@ -72,6 +72,6 @@ public class CrashManager extends McuManager {
     public void test(@NotNull Test test, @NotNull McuMgrCallback<McuMgrResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("t", test.toString());
-        send(OP_WRITE, ID_CRASH_TEST, payloadMap, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_CRASH_TEST, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 }

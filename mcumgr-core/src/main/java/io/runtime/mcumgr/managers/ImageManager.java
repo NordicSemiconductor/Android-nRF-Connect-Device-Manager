@@ -51,7 +51,7 @@ import io.runtime.mcumgr.util.CBOR;
  *
  * @see FirmwareUpgradeManager
  */
-@SuppressWarnings({"unused", "WeakerAccess", "deprecation", "DeprecatedIsStillUsed"})
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ImageManager extends TransferManager {
 
     private final static Logger LOG = LoggerFactory.getLogger(ImageManager.class);
@@ -85,7 +85,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void list(@NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
-        send(OP_READ, ID_STATE, null, McuMgrImageStateResponse.class, callback);
+        send(OP_READ, ID_STATE, null, SHORT_TIMEOUT, McuMgrImageStateResponse.class, callback);
     }
 
     /**
@@ -98,7 +98,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageStateResponse list() throws McuMgrException {
-        return send(OP_READ, ID_STATE, null, McuMgrImageStateResponse.class);
+        return send(OP_READ, ID_STATE, null, SHORT_TIMEOUT, McuMgrImageStateResponse.class);
     }
 
     /**
@@ -145,7 +145,7 @@ public class ImageManager extends TransferManager {
     public void upload(byte @NotNull [] data, int offset, int image,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
-        send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class, callback);
+        send(OP_WRITE, ID_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrImageUploadResponse.class, callback);
     }
 
     /**
@@ -191,7 +191,7 @@ public class ImageManager extends TransferManager {
     public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset, int image)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
-        return send(OP_WRITE, ID_UPLOAD, payloadMap, McuMgrImageUploadResponse.class);
+        return send(OP_WRITE, ID_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrImageUploadResponse.class);
     }
 
     /*
@@ -248,7 +248,7 @@ public class ImageManager extends TransferManager {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
-        send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class, callback);
+        send(OP_WRITE, ID_STATE, payloadMap, SHORT_TIMEOUT, McuMgrImageStateResponse.class, callback);
     }
 
     /**
@@ -266,7 +266,7 @@ public class ImageManager extends TransferManager {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
-        return send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class);
+        return send(OP_WRITE, ID_STATE, payloadMap, SHORT_TIMEOUT, McuMgrImageStateResponse.class);
     }
 
     /**
@@ -285,7 +285,7 @@ public class ImageManager extends TransferManager {
         if (hash != null) {
             payloadMap.put("hash", hash);
         }
-        send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class, callback);
+        send(OP_WRITE, ID_STATE, payloadMap, SHORT_TIMEOUT, McuMgrImageStateResponse.class, callback);
     }
 
     /**
@@ -306,7 +306,7 @@ public class ImageManager extends TransferManager {
         if (hash != null) {
             payloadMap.put("hash", hash);
         }
-        return send(OP_WRITE, ID_STATE, payloadMap, McuMgrImageStateResponse.class);
+        return send(OP_WRITE, ID_STATE, payloadMap, SHORT_TIMEOUT, McuMgrImageStateResponse.class);
     }
 
     /**
@@ -330,7 +330,7 @@ public class ImageManager extends TransferManager {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        send(OP_WRITE, ID_ERASE, payloadMap, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_ERASE, payloadMap, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -358,7 +358,7 @@ public class ImageManager extends TransferManager {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        return send(OP_WRITE, ID_ERASE, payloadMap, McuMgrResponse.class);
+        return send(OP_WRITE, ID_ERASE, payloadMap, DEFAULT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -382,7 +382,7 @@ public class ImageManager extends TransferManager {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        send(OP_WRITE, ID_ERASE_STATE, payloadMap, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_ERASE_STATE, payloadMap, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -410,7 +410,7 @@ public class ImageManager extends TransferManager {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        return send(OP_WRITE, ID_ERASE_STATE, payloadMap, McuMgrResponse.class);
+        return send(OP_WRITE, ID_ERASE_STATE, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -423,7 +423,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void coreList(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_READ, ID_CORELIST, null, McuMgrResponse.class, callback);
+        send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -438,7 +438,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrResponse coreList() throws McuMgrException {
-        return send(OP_READ, ID_CORELIST, null, McuMgrResponse.class);
+        return send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
@@ -450,7 +450,7 @@ public class ImageManager extends TransferManager {
     public void coreLoad(int offset, @NotNull McuMgrCallback<McuMgrCoreLoadResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
-        send(OP_READ, ID_CORELOAD, payloadMap, McuMgrCoreLoadResponse.class, callback);
+        send(OP_READ, ID_CORELOAD, payloadMap, SHORT_TIMEOUT, McuMgrCoreLoadResponse.class, callback);
     }
 
     /**
@@ -464,7 +464,7 @@ public class ImageManager extends TransferManager {
     public McuMgrCoreLoadResponse coreLoad(int offset) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
-        return send(OP_READ, ID_CORELOAD, payloadMap, McuMgrCoreLoadResponse.class);
+        return send(OP_READ, ID_CORELOAD, payloadMap, SHORT_TIMEOUT, McuMgrCoreLoadResponse.class);
     }
 
     /**
@@ -473,7 +473,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void coreErase(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -484,7 +484,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrResponse coreErase() throws McuMgrException {
-        return send(OP_WRITE, ID_CORELOAD, null, McuMgrResponse.class);
+        return send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
     }
 
     //******************************************************************
@@ -596,6 +596,7 @@ public class ImageManager extends TransferManager {
     private int mUploadState = STATE_NONE;
     private int mUploadOffset = 0;
     private byte[] mImageData;
+    @SuppressWarnings("deprecation")
     private ImageUploadCallback mUploadCallback;
 
 
@@ -609,6 +610,7 @@ public class ImageManager extends TransferManager {
      * @return True, if the upload has stared, false otherwise.
      * @deprecated Use the new transfer implementation's imageUpload(...) method
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     public synchronized boolean upload(byte @NotNull [] data, @NotNull ImageUploadCallback callback) {
         if (mUploadState == STATE_NONE) {
@@ -641,6 +643,7 @@ public class ImageManager extends TransferManager {
      * Cancel an image upload. Does nothing if an image upload is not in progress.
      * @deprecated Use the new transfer implementation's imageUpload(...) method
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public synchronized void cancelUpload() {
         if (mUploadState == STATE_NONE) {
@@ -687,9 +690,11 @@ public class ImageManager extends TransferManager {
         if (mUploadCallback != null) {
             mUploadCallback.onUploadFailed(error);
         }
+        //noinspection deprecation
         cancelUpload();
     }
 
+    @SuppressWarnings("deprecation")
     private synchronized void restartUpload() {
         if (mImageData == null || mUploadCallback == null) {
             LOG.error("Could not restart upload: image data or callback is null!");
@@ -847,6 +852,7 @@ public class ImageManager extends TransferManager {
      * Callback for upload command.
      * @deprecated Use the new transfer implementation's UploadCallback
      */
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public interface ImageUploadCallback {
 
