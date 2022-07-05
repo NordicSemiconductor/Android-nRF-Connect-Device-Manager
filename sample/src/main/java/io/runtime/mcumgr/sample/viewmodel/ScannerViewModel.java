@@ -221,7 +221,7 @@ public class ScannerViewModel extends AndroidViewModel {
         context.unregisterReceiver(bluetoothStateBroadcastReceiver);
 
         if (Utils.isMarshmallowOrAbove()) {
-            context.unregisterReceiver(bluetoothStateBroadcastReceiver);
+            context.unregisterReceiver(locationProviderChangedReceiver);
         }
     }
 
