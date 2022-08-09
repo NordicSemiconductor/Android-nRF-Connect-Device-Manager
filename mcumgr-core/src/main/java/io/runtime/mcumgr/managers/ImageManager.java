@@ -85,7 +85,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void list(@NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
-        send(OP_READ, ID_STATE, null, SHORT_TIMEOUT, McuMgrImageStateResponse.class, callback);
+        send(OP_READ, ID_STATE, null, MEDIUM_TIMEOUT, McuMgrImageStateResponse.class, callback);
     }
 
     /**
@@ -98,7 +98,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageStateResponse list() throws McuMgrException {
-        return send(OP_READ, ID_STATE, null, SHORT_TIMEOUT, McuMgrImageStateResponse.class);
+        return send(OP_READ, ID_STATE, null, MEDIUM_TIMEOUT, McuMgrImageStateResponse.class);
     }
 
     /**
@@ -145,7 +145,9 @@ public class ImageManager extends TransferManager {
     public void upload(byte @NotNull [] data, int offset, int image,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
-        send(OP_WRITE, ID_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrImageUploadResponse.class, callback);
+        // Timeout for the initial chunk is long, as the device may need to erase the flash.
+        final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
+        send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrImageUploadResponse.class, callback);
     }
 
     /**
@@ -191,7 +193,9 @@ public class ImageManager extends TransferManager {
     public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset, int image)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
-        return send(OP_WRITE, ID_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrImageUploadResponse.class);
+        // Timeout for the initial chunk is long, as the device may need to erase the flash.
+        final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
+        return send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrImageUploadResponse.class);
     }
 
     /*

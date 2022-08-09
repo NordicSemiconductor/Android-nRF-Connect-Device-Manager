@@ -49,8 +49,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         NONE, VALIDATE, UPLOAD, TEST, RESET, CONFIRM;
 
         public boolean isInProgress() {
-            return this == VALIDATE || this == UPLOAD || this == TEST ||
-                    this == RESET || this == CONFIRM;
+            return this != NONE;
         }
     }
 
@@ -347,8 +346,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * packets, trimmed to match the memory alignment. It will then wait for corresponding
      * notifications and continue to send until the complete image is sent.
      * <p>
-     * This value should match MCUMGR_BUF_COUNT (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
-     * in Zephyr KConfig, which is by default set to 4.
+     * This value should match MCUMGR_BUF_COUNT - 1
+     * (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
+     * in Zephyr KConfig, which is by default set to 4. One buffer is used for sending responses.
      * <p>
      * Mind, that the speed increases only if the returned offsets match the required offset
      * (initial offset + sent packet size). In other case the packets with unexpected offsets

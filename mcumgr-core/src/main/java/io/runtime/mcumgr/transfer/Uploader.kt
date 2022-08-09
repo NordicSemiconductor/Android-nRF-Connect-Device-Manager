@@ -57,6 +57,7 @@ abstract class Uploader(
     @Throws
     internal abstract fun write(
         requestMap: Map<String, Any>,
+        timeout: Long,
         callback: (UploadResult) -> Unit
     )
 
@@ -184,7 +185,9 @@ abstract class Uploader(
         callback: suspend (UploadResult) -> Unit
     ): Chunk {
         val resultChannel: Channel<UploadResult> = Channel(1)
-        write(prepareWrite(chunk.data, chunk.offset)) { result ->
+        // Timeout for the initial chunk is long, as the device may need to erase the flash.
+        val timeout = if (chunk.offset == 0) 30_000L else 1_000L
+        write(prepareWrite(chunk.data, chunk.offset), timeout) { result ->
             resultChannel.trySend(result)
         }
 
