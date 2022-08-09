@@ -85,7 +85,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void list(@NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
-        send(OP_READ, ID_STATE, null, SHORT_TIMEOUT, McuMgrImageStateResponse.class, callback);
+        send(OP_READ, ID_STATE, null, MEDIUM_TIMEOUT, McuMgrImageStateResponse.class, callback);
     }
 
     /**
@@ -98,7 +98,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageStateResponse list() throws McuMgrException {
-        return send(OP_READ, ID_STATE, null, SHORT_TIMEOUT, McuMgrImageStateResponse.class);
+        return send(OP_READ, ID_STATE, null, MEDIUM_TIMEOUT, McuMgrImageStateResponse.class);
     }
 
     /**

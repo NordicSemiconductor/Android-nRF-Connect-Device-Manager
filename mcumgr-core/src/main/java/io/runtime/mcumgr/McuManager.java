@@ -40,6 +40,7 @@ public abstract class McuManager {
 
     protected final static long DEFAULT_TIMEOUT = 30_000; // ms
     protected final static long SHORT_TIMEOUT = 1_000; // ms
+    protected final static long MEDIUM_TIMEOUT = 2_500; // ms
 
     // Date format
     private final static String MCUMGR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ";
