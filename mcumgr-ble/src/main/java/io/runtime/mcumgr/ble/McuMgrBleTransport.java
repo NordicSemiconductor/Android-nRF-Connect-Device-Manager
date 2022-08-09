@@ -586,7 +586,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                 0x00, // Flags
                 0x00, 0x01, // Len
                 0x00, 0x00, // McuManager.GROUP_DEFAULT
-                0x00, // Seq
+                (byte) 0xFF, // Seq
                 0x06, // DefaultManager.ID_MCUMGR_PARAMS
                 (byte) 0xA0, // Empty map(0) - an empty CBOR may be required for some implementations,
                              // otherwise the request is ignored and no notification is replied.
