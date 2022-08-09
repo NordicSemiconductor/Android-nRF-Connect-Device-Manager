@@ -11,8 +11,8 @@ import java.util.List;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Mode;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
@@ -23,7 +23,7 @@ import io.runtime.mcumgr.task.TaskManager;
 class Validate extends FirmwareUpgradeTask {
 	private final static Logger LOG = LoggerFactory.getLogger(Validate.class);
 
-	private static final int SLOT_PRIMARY = 0;
+	// private static final int SLOT_PRIMARY = 0;
 	private static final int SLOT_SECONDARY = 1;
 
 	@NotNull
@@ -59,7 +59,7 @@ class Validate extends FirmwareUpgradeTask {
 		manager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrImageStateResponse response) {
-				LOG.trace("Validation response: {}", response.toString());
+				LOG.trace("Validation response: {}", response);
 
 				// Check for an error return code.
 				if (!response.isSuccess()) {
@@ -70,7 +70,7 @@ class Validate extends FirmwareUpgradeTask {
 				// Initial validation.
 				McuMgrImageStateResponse.ImageSlot[] slots = response.images;
 				if (slots == null) {
-					LOG.error("Missing images information: {}", response.toString());
+					LOG.error("Missing images information: {}", response);
 					performer.onTaskFailed(Validate.this, new McuMgrException("Missing images information"));
 					return;
 				}
@@ -149,7 +149,7 @@ class Validate extends FirmwareUpgradeTask {
 					switch (mode) {
 						case TEST_AND_CONFIRM:
 							// If the image is not pending (test command has not been sent) and not
-							// confirmed (another image is under test), and isnt the currently
+							// confirmed (another image is under test), and isn't the currently
 							// running image, send test command and update the flag.
 							if (!pending && !confirmed && !active) {
 								performer.enqueue(new Test(mcuMgrImage.getHash()));
@@ -165,7 +165,7 @@ class Validate extends FirmwareUpgradeTask {
 							break;
 						case TEST_ONLY:
 							// If the image is not pending (test command has not been sent) and not
-							// confirmed (another image is under test), and isnt the currently
+							// confirmed (another image is under test), and isn't the currently
 							// running image, send test command and update the flag.
 							if (!pending && !confirmed && !active) {
 								performer.enqueue(new Test(mcuMgrImage.getHash()));

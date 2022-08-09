@@ -42,7 +42,7 @@ class Test extends FirmwareUpgradeTask {
 		manager.test(hash, new McuMgrCallback<McuMgrImageStateResponse>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrImageStateResponse response) {
-				LOG.trace("Test response: {}", response.toString());
+				LOG.trace("Test response: {}", response);
 				// Check for an error return code.
 				if (!response.isSuccess()) {
 					performer.onTaskFailed(Test.this, new McuMgrErrorException(response.getReturnCode()));
