@@ -57,14 +57,13 @@ public class McuMgrImageHeader {
     @NotNull
     public static McuMgrImageHeader fromBytes(byte @NotNull [] b, int offset) throws McuMgrException {
         if (b.length - offset < getSize()) {
-            throw new McuMgrException("The byte array is too short to be a McuMgrImageHeader");
+            throw new McuMgrException("The byte array is too short read McuMgr header");
         }
 
         int magic = ByteUtil.byteArrayToUnsignedInt(b, offset, Endian.LITTLE, 4);
 
         if (magic != IMG_HEADER_MAGIC && magic != IMG_HEADER_MAGIC_V1) {
-            throw new McuMgrException("Wrong magic number: header=" + magic + ", magic=" +
-                    IMG_HEADER_MAGIC + " or " + IMG_HEADER_MAGIC_V1);
+            throw new McuMgrException(String.format("Wrong magic number (found 0x%08X, expected 0x%08X or 0x%08X)", magic, IMG_HEADER_MAGIC, IMG_HEADER_MAGIC_V1));
         }
 
         int loadAddr = ByteUtil.byteArrayToUnsignedInt(b, 4 + offset, Endian.LITTLE, 4);

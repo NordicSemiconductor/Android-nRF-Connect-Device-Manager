@@ -98,7 +98,7 @@ public class McuMgrImage {
         }
         hash = tlv.getHash();
         if (hash == null) {
-            throw new McuMgrException("Image TLV trailer does not contain an image hash!");
+            throw new McuMgrException("Image TLV trailer does not contain an image hash");
         }
 
         return new McuMgrImage(header, protectedTlv, tlv, hash, data);
