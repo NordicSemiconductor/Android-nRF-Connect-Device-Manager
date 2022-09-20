@@ -114,13 +114,14 @@ public class ImageManager extends TransferManager {
      * using one command.
      *
      * @param data     image data.
+     * @param dataHash the SHA-256 hash for the image data
      * @param offset   the offset, from which the chunk will be sent.
      * @param callback the asynchronous callback.
      * @see #imageUpload(byte[], UploadCallback)
      */
-    public void upload(byte @NotNull [] data, int offset,
+    public void upload(byte @NotNull [] data, byte[] dataHash, int offset,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
-        upload(data, offset, 0, callback);
+        upload(data, dataHash, offset, 0, callback);
     }
 
     /**
@@ -137,14 +138,15 @@ public class ImageManager extends TransferManager {
      * using one command.
      *
      * @param data     image data.
+     * @param dataHash the SHA-256 hash for the image data
      * @param offset   the offset, from which the chunk will be sent.
      * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
      * @param callback the asynchronous callback.
      * @see #imageUpload(byte[], UploadCallback)
      */
-    public void upload(byte @NotNull [] data, int offset, int image,
+    public void upload(byte @NotNull [] data, byte[] dataHash, int offset, int image,
                        @NotNull McuMgrCallback<McuMgrImageUploadResponse> callback) {
-        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
+        HashMap<String, Object> payloadMap = buildUploadPayload(data, dataHash, offset, image);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
         send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrImageUploadResponse.class, callback);
@@ -162,13 +164,14 @@ public class ImageManager extends TransferManager {
      * using one command.
      *
      * @param data   image data.
+     * @param dataHash the SHA-256 hash for the image data
      * @param offset the offset, from which the chunk will be sent.
      * @return The upload response.
      * @see #imageUpload(byte[], UploadCallback)
      */
     @NotNull
-    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset) throws McuMgrException {
-        return upload(data, offset, 0);
+    public McuMgrImageUploadResponse upload(byte @NotNull [] data, byte[] dataHash, int offset) throws McuMgrException {
+        return upload(data, dataHash, offset, 0);
     }
 
     /**
@@ -183,16 +186,17 @@ public class ImageManager extends TransferManager {
      * Use {@link #imageUpload(byte[], UploadCallback)} to send the whole file asynchronously
      * using one command.
      *
-     * @param data   image data.
-     * @param offset the offset, from which the chunk will be sent.
+     * @param data     image data.
+     * @param dataHash the SHA-256 hash for the image data
+     * @param offset   the offset, from which the chunk will be sent.
      * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
      * @return The upload response.
      * @see #imageUpload(byte[], UploadCallback)
      */
     @NotNull
-    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset, int image)
+    public McuMgrImageUploadResponse upload(byte @NotNull [] data, byte[] dataHash, int offset, int image)
             throws McuMgrException {
-        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, image);
+        HashMap<String, Object> payloadMap = buildUploadPayload(data, dataHash, offset, image);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
         return send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrImageUploadResponse.class);
@@ -202,7 +206,7 @@ public class ImageManager extends TransferManager {
      * Build the upload payload.
      */
     @NotNull
-    private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, int offset, int image) {
+    private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, byte[] dataHash, int offset, int image) {
         // Get chunk of image data to send
         int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset, image), data.length - offset);
         byte[] sendBuffer = new byte[dataLength];
@@ -220,20 +224,10 @@ public class ImageManager extends TransferManager {
             }
             payloadMap.put("len", data.length);
 
-            /*
-             * Feature in Apache Mynewt: Device keeps track of unfinished uploads based on the
-             * SHA256 hash over the image data. When an upload request is received which contains
-             * the same hash of a partially finished upload, the device will send the offset to
-             * continue from. The hash is truncated to save packet
-             */
-            try {
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(data);
+            if(dataHash != null) {
                 // Truncate the hash to save space.
-                byte[] truncatedHash = Arrays.copyOf(hash, TRUNCATED_HASH_LEN);
+                byte[] truncatedHash = Arrays.copyOf(dataHash, TRUNCATED_HASH_LEN);
                 payloadMap.put("sha", truncatedHash);
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
             }
         }
         return payloadMap;
@@ -575,15 +569,29 @@ public class ImageManager extends TransferManager {
      */
     public class ImageUpload extends Upload {
         private final int mImage;
+        private byte[] mImageDataHash;
 
         protected ImageUpload(byte @NotNull [] imageData, int image, @NotNull UploadCallback callback) {
             super(imageData, callback);
             mImage = image;
+
+            /*
+             * Feature in Apache Mynewt: Device keeps track of unfinished uploads based on the
+             * SHA256 hash over the image data. When an upload request is received which contains
+             * the same hash of a partially finished upload, the device will send the offset to
+             * continue from. The hash is truncated to save packet
+             */
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                mImageDataHash = digest.digest(imageData);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
         protected UploadResponse write(byte @NotNull [] data, int offset) throws McuMgrException {
-            return upload(data, offset, mImage);
+            return upload(data, mImageDataHash, offset, mImage);
         }
     }
 
@@ -600,6 +608,7 @@ public class ImageManager extends TransferManager {
     private int mUploadState = STATE_NONE;
     private int mUploadOffset = 0;
     private byte[] mImageData;
+    private byte[] mImageDataHash;
     @SuppressWarnings("deprecation")
     private ImageUploadCallback mUploadCallback;
 
@@ -626,6 +635,23 @@ public class ImageManager extends TransferManager {
 
         mUploadCallback = callback;
         mImageData = data;
+
+        byte[] dataHash = null;
+
+        /*
+         * Feature in Apache Mynewt: Device keeps track of unfinished uploads based on the
+         * SHA256 hash over the image data. When an upload request is received which contains
+         * the same hash of a partially finished upload, the device will send the offset to
+         * continue from. The hash is truncated to save packet
+         */
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            dataHash = digest.digest(data);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        mImageDataHash = dataHash;
 
         sendNext(0);
         return true;
@@ -727,7 +753,8 @@ public class ImageManager extends TransferManager {
             LOG.debug("Image Manager is not in the UPLOADING state.");
             return;
         }
-        upload(mImageData, offset, mUploadCallbackImpl);
+
+        upload(mImageData, mImageDataHash, offset, mUploadCallbackImpl);
     }
 
     /**
