@@ -823,8 +823,8 @@ public class ImageManager extends TransferManager {
                 // The code below removes the need of calling an expensive method CBOR.toBytes(..)
                 // by calculating the overhead manually. Mind, that the data itself are not added.
                 int size = 2;  // map: 0xBF at the beginning and 0xFF at the end
-                size += 5 + cborUIntLength(data.length); // "data": 0x6464617461 + 3 for encoding length (as 16-bin positive int, worse case scenario) + NO DATA
-                size += 4 + cborUIntLength(offset); // "off": 0x636F6666 + 3 bytes for the offset (as 16-bin positive int, worse case scenario)
+                size += 5 + CBOR.uintLength(data.length); // "data": 0x6464617461 + 3 for encoding length (as 16-bin positive int, worse case scenario) + NO DATA
+                size += 4 + CBOR.uintLength(offset); // "off": 0x636F6666 + 3 bytes for the offset (as 16-bin positive int, worse case scenario)
                 if (offset == 0) {
                     if (image > 0) {
                         size += 6 + 1; // ""image": 0x65696D616765 + 1 byte positive int
@@ -838,18 +838,6 @@ public class ImageManager extends TransferManager {
             LOG.error("Error while calculating packet overhead", e);
         }
         return -1;
-    }
-
-    /**
-     * Calculates the size in bytes of a CBOR encoded unsigned integer.
-     */
-    private static int cborUIntLength(long n) {
-        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
-        if (n < 24) return 1;
-        if (n < 256) return 2; // 2^8
-        if (n < 65636) return 3; // 2^16
-        if (n < 4294967296L) return 5; // 2^32
-        return 9;
     }
 
     /**
