@@ -33,7 +33,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.35'
 
     // Kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
 
     // Import CBOR parser
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.3'
