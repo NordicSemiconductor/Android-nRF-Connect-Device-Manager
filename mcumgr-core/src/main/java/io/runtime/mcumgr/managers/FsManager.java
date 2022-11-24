@@ -621,13 +621,13 @@ public class FsManager extends TransferManager {
             } else {
                 // The code below removes the need of calling an expensive method CBOR.toBytes(..)
                 // by calculating the overhead manually. Mind, that the data itself are not added.
-                int size = 0;
-                size += 2; // map: 0xBF at the beginning and 0xFF at the end
-                size += 5 + 2 + name.getBytes().length; // "name": 0x646E616D65 + 2 for name length (assuming > 23 bytes, but <= 256) + name
+                int size = 2; // map: 0xBF at the beginning and 0xFF at the end
+                size += 5 + CBOR.stringLength(name); // "name": 0x646E616D65 + name length + name
                 size += 5 + 3; // "data": 0x6464617461 + 3 for encoding length (as 16-bin positive int, worse case scenario) + NO DATA
-                size += 4 + 3; // "off": 0x636F6666 + 3 bytes for the offset (as 16-bin positive int, worse case scenario)
+                size += 4 + CBOR.uintLength(offset); // "off": 0x636F6666 + offset
                 if (offset == 0) {
-                    size -= 2; // (offset = 0 requires just 1 byte, and we added 3 above)
+                    // len parameter contains the full length of the file, which at this moment
+                    // is unknown. This method is called only for a chunk.
                     size += 4 + 5; // "len": 0x636C656E + len (as 32-bit positive integer, worse case scenario)
                 }
                 return size + 8; // 8 additional bytes for the SMP header
