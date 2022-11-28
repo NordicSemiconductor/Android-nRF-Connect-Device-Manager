@@ -3,6 +3,7 @@ package io.runtime.mcumgr.transfer
 import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.exception.InsufficientMtuException
 import io.runtime.mcumgr.exception.McuMgrTimeoutException
+import io.runtime.mcumgr.util.CBOR
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -275,15 +276,15 @@ abstract class Uploader(
         val mapSize = 2
 
         // Size of the field name "data" utf8 string
-        val dataStringSize = cborStringLength("data")
+        val dataStringSize = CBOR.stringLength("data")
 
         // Size of the string "off" plus the length of the offset integer
-        val offsetSize = cborStringLength("off") + cborUIntLength(offset)
+        val offsetSize = CBOR.stringLength("off") + CBOR.uintLength(offset)
 
         // Size of the string "len" plus the length of the data size integer
         // "len" is sent only in the initial packet.
         val lengthSize = if (offset == 0) {
-            cborStringLength("len") + cborUIntLength(data.size)
+            CBOR.stringLength("len") + CBOR.uintLength(data.size)
         } else {
             0
         }
@@ -298,7 +299,7 @@ abstract class Uploader(
         // We have to take into account the few bytes of CBOR which describe the length of the data.
         // Even though we don't know the actual length at this point, the maxDataLength is guaranteed
         // to be larger than what we will eventually send, making this calculation always correct.
-        val maxDataUIntTokenSize = cborUIntLength(maxDataLength)
+        val maxDataUIntTokenSize = CBOR.uintLength(maxDataLength)
 
         // Final data chunk size
         val maxChunkSize = mtu - combinedSize - maxDataUIntTokenSize
@@ -324,24 +325,3 @@ abstract class Uploader(
      */
     internal open fun getAdditionalSize(offset: Int) = 0
 }
-
-/**
- * Calculates the size in bytes of a CBOR encoded string.
- */
-internal fun cborStringLength(s: String): Int {
-    val headerLength = cborUIntLength(s.length)
-    return headerLength + s.length
-}
-
-/**
- * Calculates the size in bytes of a CBOR encoded unsigned integer.
- */
-internal fun cborUIntLength(n: Int): Int =
-    when {
-        n < 0 -> throw IllegalArgumentException("n must be >= 0")
-        n < 24 -> 1
-        n < 256 -> 2        // 2^8
-        n < 65536 -> 3      // 2^16
-        n < 4294967296 -> 5 // 2^32
-        else -> 9
-    }

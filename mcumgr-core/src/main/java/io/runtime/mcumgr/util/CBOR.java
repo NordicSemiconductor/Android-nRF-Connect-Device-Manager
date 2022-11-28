@@ -74,4 +74,23 @@ public class CBOR {
         return mapper.readTree(data).get(key).asText();
     }
 
+    /**
+     * Calculates the size in bytes of a CBOR encoded unsigned integer.
+     */
+    public static int uintLength(int n) {
+        if (n < 0) throw new IllegalArgumentException("n must be >= 0");
+        if (n < 24) return 1;
+        if (n < 256) return 2; // 2^8
+        if (n < 65636) return 3; // 2^16
+        return 5; // 2^32
+        // For long values it could return 9, but this won't happen here.
+    }
+
+    /**
+     * Calculates the size in bytes of a CBOR encoded string.
+     */
+    public static int stringLength(@NotNull String s) {
+        return uintLength(s.length()) + s.length();
+    }
+
 }

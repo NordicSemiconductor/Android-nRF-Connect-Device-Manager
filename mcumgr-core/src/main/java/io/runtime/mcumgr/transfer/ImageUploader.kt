@@ -5,6 +5,7 @@ import io.runtime.mcumgr.exception.InsufficientMtuException
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.ImageManager
 import io.runtime.mcumgr.response.UploadResponse
+import io.runtime.mcumgr.util.CBOR
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -115,9 +116,9 @@ internal class ImageUploader(
         // "sha" and "image" params are only sent in the first packet.
         0 -> {
             val shaSize =
-                cborStringLength("sha") + cborUIntLength(TRUNCATED_HASH_LEN) + TRUNCATED_HASH_LEN
+                CBOR.stringLength("sha") + CBOR.uintLength(TRUNCATED_HASH_LEN) + TRUNCATED_HASH_LEN
             val imageSize = if (image > 0) {
-                cborStringLength("image") + cborUIntLength(image)
+                CBOR.stringLength("image") + CBOR.uintLength(image)
             } else 0
             shaSize + imageSize
         }
