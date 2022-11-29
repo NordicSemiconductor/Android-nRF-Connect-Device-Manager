@@ -7,7 +7,7 @@ import io.runtime.mcumgr.response.UploadResponse
 import io.runtime.mcumgr.util.CBOR
 
 private const val OP_WRITE = 2
-private const val ID_FILE = 1
+private const val ID_FILE = 0
 
 open class FileUploader(
     private val fsManager: FsManager,
