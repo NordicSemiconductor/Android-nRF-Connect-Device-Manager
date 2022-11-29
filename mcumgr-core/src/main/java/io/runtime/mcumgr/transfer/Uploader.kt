@@ -2,16 +2,17 @@ package io.runtime.mcumgr.transfer
 
 import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.exception.InsufficientMtuException
+import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.exception.McuMgrTimeoutException
 import io.runtime.mcumgr.util.CBOR
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -162,6 +163,74 @@ abstract class Uploader(
             if (nextChunk.offset < data.size) {
                 next.send(nextChunk)
             }
+        }
+    }
+
+    /**
+     * Uploads the data asynchronously.
+     */
+    @JvmOverloads fun uploadAsync(
+        callback: UploadCallback,
+        scope: CoroutineScope = GlobalScope,
+    ): TransferController {
+        val exceptionHandler = CoroutineExceptionHandler { _, t ->
+            log.error("Upload failed", t)
+        }
+        val job = scope.launch(exceptionHandler) {
+            val progress = progress.onEach { progress ->
+                callback.onUploadProgressChanged(
+                    progress.offset,
+                    progress.size,
+                    progress.timestamp,
+                )
+            }.launchIn(this)
+
+            val size = data.size
+            val start = System.currentTimeMillis()
+            uploadCatchMtu()
+            val duration = System.currentTimeMillis() - start
+            log.info("Upload completed. $size bytes sent in $duration ms with avg speed: ${size.toFloat() / (duration.toFloat() + 1f)} kBytes/s") // + 1 to prevent division by zero
+            progress.cancel()
+        }
+
+        job.invokeOnCompletion { throwable ->
+            throwable?.printStackTrace()
+            when (throwable) {
+                null -> callback.onUploadCompleted()
+                is CancellationException -> callback.onUploadCanceled()
+                is McuMgrException -> callback.onUploadFailed(throwable)
+                else -> callback.onUploadFailed(McuMgrException(throwable))
+            }
+        }
+
+        val uploader = this
+        return object : TransferController {
+            var paused: Job? = null
+
+            override fun pause() {
+                paused = scope.launch {
+                    uploader.pause()
+                    paused = null
+                }
+            }
+            override fun resume() {
+                uploader.resume()
+                paused = null
+            }
+            override fun cancel() {
+                paused?.cancel()
+                job.cancel()
+            }
+        }
+    }
+
+    // Catches an mtu exception, sets the new mtu and restarts the upload.
+    private suspend fun uploadCatchMtu() {
+        try {
+            upload()
+        } catch (e: InsufficientMtuException) {
+            mtu = e.mtu
+            upload()
         }
     }
 

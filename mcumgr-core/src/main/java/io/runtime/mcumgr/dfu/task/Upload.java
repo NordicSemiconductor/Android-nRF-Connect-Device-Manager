@@ -8,10 +8,9 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.task.TaskManager;
+import io.runtime.mcumgr.transfer.ImageUploader;
 import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.UploadCallback;
-
-import static io.runtime.mcumgr.transfer.ImageUploaderKt.windowUpload;
 
 class Upload extends FirmwareUpgradeTask {
 	private final McuMgrImage mcuMgrImage;
@@ -71,13 +70,12 @@ class Upload extends FirmwareUpgradeTask {
 		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(settings.transport);
 		if (settings.windowCapacity > 1) {
-			mUploadController = windowUpload(
+			mUploadController =	new ImageUploader(
 					manager,
 					mcuMgrImage.getData(), image,
 					settings.windowCapacity,
-					settings.memoryAlignment,
-					callback
-			);
+					settings.memoryAlignment
+			).uploadAsync(callback);
 		} else {
 			mUploadController = manager.imageUpload(mcuMgrImage.getData(), image, callback);
 		}
