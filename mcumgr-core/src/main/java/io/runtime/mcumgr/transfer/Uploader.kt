@@ -32,6 +32,24 @@ private data class Chunk(val data: ByteArray, val offset: Int) {
     override fun toString(): String {
         return "Chunk(offset=$offset, size=${data.size})"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chunk
+
+        if (!data.contentEquals(other.data)) return false
+        if (offset != other.offset) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = data.contentHashCode()
+        result = 31 * result + offset
+        return result
+    }
 }
 
 abstract class Uploader(
