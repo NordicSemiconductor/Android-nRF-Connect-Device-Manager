@@ -31,16 +31,11 @@ open class FileUploader(
         offset: Int,
         map: MutableMap<String, Any>
     ) {
-        map.takeIf { offset == 0 }?.apply {
-            put("name", name)
-        }
+        map["name"] = name
     }
 
-    override fun getAdditionalSize(offset: Int): Int = when (offset) {
-        // "name" param is only sent in the first packet.
-        0 -> CBOR.stringLength("name") + CBOR.stringLength(name)
-        else -> 0
-    }
+    override fun getAdditionalSize(offset: Int): Int =
+        CBOR.stringLength("name") + CBOR.stringLength(name)
 }
 
 private fun FsManager.uploadAsync(
