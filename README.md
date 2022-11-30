@@ -68,8 +68,10 @@ the library are:
 * **`DefaultManager`**: Contains commands relevant to the OS. This includes task and memory pool
   statistics, device time read & write, and device reset.
 * **`ImageManager`**: Manage image state on the device and perform image uploads.
+* **`BasicManager`**: Allows erasing application storage (factory reset) (NCS 2.0+).
 * **`StatsManager`**: Read stats from the device.
-* **`ConfigManager`**: Read/Write config values on the device.
+* **`CrashManager`**: Read crash logs from the device (not supported in Zephyr or NCS).
+* **`ConfigManager`**: Read/Write config values on the device (not supported in Zephyr or NCS).
 * **`LogManager`**: Collect logs from the device.
 * **`FsManager`**: Download/upload files from the device file system.
 * **`ShellManager`**: Execute shell commands.
@@ -132,11 +134,6 @@ Firmware upgrades are started using the `start(byte[] imageData, boolean eraseSt
 `start(List<Pair<Integer, byte[]>> images, boolean eraseStorage)` methods and can be paused,
 resumed, and canceled using `pause()`, `resume()`, and `cancel()` respectively.
 
-> Note: Pause and Resume does not work with window capacity set to anything greater than 1.
-
-> Note: The library can resume a previously stated upload if window capacity was set to 1. Otherwise
-  the upload will always start from the beginning.
-
 ### Firmware Upgrade Mode
 
 McuManager firmware upgrades can actually be performed in few different ways. These different upgrade
@@ -144,8 +141,9 @@ modes determine the commands sent after the upload step. The `FirmwareUpgradeMan
 configured to perform these different methods using `setMode(FirmwareUpgradeManager.Mode mode)`.
 The different firmware upgrade modes are as follows:
 
-* **`TEST_AND_CONFIRM`**: This mode is the **default and recommended mode** for performing upgrades
-  due to it's ability to recover from a bad firmware upgrade.
+* **`TEST_AND_CONFIRM`**: This mode is the **default and recommended mode** for performing upgrades 
+  due to it's ability to recover from a bad firmware upgrade. Note, that the device must support 
+  this feature. Currently, multi-core devices (based on nRF5340) do not support this mode.
   The process for this mode is `UPLOAD`, `TEST`, `RESET`, `CONFIRM`.
 * **`CONFIRM_ONLY`**: This mode may be used for devices with revert disabled. If the device fails
   to boot into the new image, it will not be able to recover and will need to be re-flashed.
@@ -154,6 +152,9 @@ The different firmware upgrade modes are as follows:
   confirming it manually as the primary boot image.
   This mode is recommended for devices that do not support reverting images, i.e. multi core devices.
   The process for this mode is `UPLOAD`, `TEST`, `RESET`.
+
+> Note: Devices based on nRF5340 SoC support only `CONFIRM_ONLY` mode because the image from the
+Network Core cannot be read from the Application Core, making it impossible to temporarily save it.
 
 ### Firmware Upgrade State
 
