@@ -1,15 +1,10 @@
 package io.runtime.mcumgr.transfer
 
 import io.runtime.mcumgr.McuMgrCallback
-import io.runtime.mcumgr.exception.InsufficientMtuException
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.ImageManager
 import io.runtime.mcumgr.response.UploadResponse
 import io.runtime.mcumgr.util.CBOR
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import org.slf4j.LoggerFactory
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
@@ -18,76 +13,26 @@ private const val OP_WRITE = 2
 private const val ID_UPLOAD = 1
 private const val TRUNCATED_HASH_LEN = 3
 
+@Deprecated(
+    message = "Use TransferManager.windowUpload instead",
+    replaceWith = ReplaceWith(
+        "ImageUploader(this, data, image, windowCapacity, memoryAlignment).uploadAsync(callback)",
+        "io.runtime.mcumgr.transfer.TransferManager.windowUpload"
+    )
+)
 fun ImageManager.windowUpload(
     data: ByteArray,
     image: Int,
     windowCapacity: Int,
     memoryAlignment: Int,
     callback: UploadCallback
-): TransferController {
-    val log = LoggerFactory.getLogger("ImageUploader")
-    val uploader = ImageUploader(data, image, this, windowCapacity, memoryAlignment)
+): TransferController =
+    ImageUploader(this, data, image, windowCapacity, memoryAlignment).uploadAsync(callback)
 
-    val exceptionHandler = CoroutineExceptionHandler { _, t ->
-        log.error("Upload failed", t)
-    }
-    val job = GlobalScope.launch(exceptionHandler) {
-        val progress = uploader.progress.onEach { progress ->
-            callback.onUploadProgressChanged(
-                progress.offset,
-                progress.size,
-                progress.timestamp,
-            )
-        }.launchIn(this)
-
-        val start = System.currentTimeMillis()
-        uploader.uploadCatchMtu()
-        val duration = System.currentTimeMillis() - start
-        log.info("Upload completed. ${data.size} bytes sent in $duration ms with avg speed: ${data.size.toFloat() / (duration.toFloat() + 1f)} kBytes/s") // + 1 to prevent division by zero
-        progress.cancel()
-    }
-
-    job.invokeOnCompletion { throwable ->
-        throwable?.printStackTrace()
-        when (throwable) {
-            null -> callback.onUploadCompleted()
-            is CancellationException -> callback.onUploadCanceled()
-            is McuMgrException -> callback.onUploadFailed(throwable)
-            else -> callback.onUploadFailed(McuMgrException(throwable))
-        }
-    }
-
-    return object : TransferController {
-        var paused: Job? = null
-
-        override fun pause() {
-            paused = GlobalScope.launch { uploader.pause() }
-        }
-        override fun resume() {
-            uploader.resume()
-            paused = null
-        }
-        override fun cancel() {
-            paused?.cancel()
-            job.cancel()
-        }
-    }
-}
-
-// Catches an mtu exception, sets the new mtu and restarts the upload.
-private suspend fun Uploader.uploadCatchMtu() {
-    try {
-        upload()
-    } catch (e: InsufficientMtuException) {
-        mtu = e.mtu
-        upload()
-    }
-}
-
-internal class ImageUploader(
+open class ImageUploader(
+    private val imageManager: ImageManager,
     imageData: ByteArray,
     private val image: Int,
-    private val imageManager: ImageManager,
     windowCapacity: Int = 1,
     memoryAlignment: Int = 1,
 ) : Uploader(
