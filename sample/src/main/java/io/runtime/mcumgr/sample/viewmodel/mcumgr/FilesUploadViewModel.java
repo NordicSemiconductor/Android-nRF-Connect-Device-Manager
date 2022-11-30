@@ -17,6 +17,7 @@ import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
+import io.runtime.mcumgr.transfer.FileUploader;
 import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.UploadCallback;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
@@ -98,7 +99,14 @@ public class FilesUploadViewModel extends McuMgrViewModel implements UploadCallb
         requestHighConnectionPriority();
         setLoggingEnabled(false);
         initialBytes = 0;
-        controller = manager.fileUpload(path, data, this);
+
+        // The previous way of uploading the file:
+        // controller = manager.fileUpload(path, data, this);
+
+        // Improved uploader which makes use of window upload mechanism
+        // (sending multiple packets without waiting for the response):
+        controller = new FileUploader(manager, path, data, 3, 4)
+                .uploadAsync(this);
     }
 
     public void pause() {
