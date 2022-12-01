@@ -154,6 +154,8 @@ abstract class Uploader(
                         if (currentOffset > chunk.offset) {
                             log.warn("A notification for chunk with offset=${chunk.offset} was lost, but the chunk was ack-ed by later chunk (confirmed offset=$currentOffset)")
                             return@onErrorOrFailure
+                        } else {
+                            log.warn("A notification for chunk with offset=${chunk.offset} was lost, current offset: $currentOffset")
                         }
                     }
 
@@ -274,7 +276,7 @@ abstract class Uploader(
     ): Chunk {
         val resultChannel: Channel<UploadResult> = Channel(1)
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
-        val timeout = if (chunk.offset == 0) 30_000L else 1_000L
+        val timeout = if (chunk.offset == 0) 40_000L else 2_500L
         write(prepareWrite(chunk.data, chunk.offset), timeout) { result ->
             resultChannel.trySend(result)
         }
