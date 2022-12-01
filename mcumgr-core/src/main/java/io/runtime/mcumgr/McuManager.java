@@ -38,9 +38,9 @@ public abstract class McuManager {
     /** Maximum length of a single SMP packet. */
     private final static int DEFAULT_MTU = 0xFFFF + 8; // Header size + max packet size.
 
-    protected final static long DEFAULT_TIMEOUT = 30_000; // ms
-    protected final static long SHORT_TIMEOUT = 1_000; // ms
-    protected final static long MEDIUM_TIMEOUT = 2_500; // ms
+    protected final static long DEFAULT_TIMEOUT = 40_000; // ms
+    protected final static long SHORT_TIMEOUT = 2_500; // ms
+    protected final static long MEDIUM_TIMEOUT = 5_000; // ms
 
     // Date format
     private final static String MCUMGR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ";
