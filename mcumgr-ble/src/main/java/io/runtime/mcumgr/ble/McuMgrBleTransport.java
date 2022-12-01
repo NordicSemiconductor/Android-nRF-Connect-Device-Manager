@@ -792,13 +792,16 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     characteristic.getPermissions());
             clone.addDescriptor(getNotifyCccd(characteristic));
             try {
-                Method setInstanceId = characteristic.getClass()
-                        .getDeclaredMethod("setInstanceId", int.class);
-                Method setService = characteristic.getClass()
-                        .getDeclaredMethod("setService", BluetoothGattService.class);
-                setService.setAccessible(true);
-                setInstanceId.invoke(clone, characteristic.getInstanceId());
-                setService.invoke(clone, characteristic.getService());
+                Method initCharacteristic = characteristic.getClass()
+                        .getDeclaredMethod("initCharacteristic", BluetoothGattService.class, UUID.class, int.class, int.class, int.class);
+                initCharacteristic.setAccessible(true);
+                initCharacteristic.invoke(clone,
+                        characteristic.getService(),
+                        characteristic.getUuid(),
+                        characteristic.getInstanceId(),
+                        characteristic.getProperties(),
+                        characteristic.getPermissions()
+                );
             } catch (Exception e) {
                 LOG.error("SMP characteristic clone failed", e);
                 clone = characteristic;
