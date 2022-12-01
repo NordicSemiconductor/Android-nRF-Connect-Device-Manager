@@ -790,7 +790,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     characteristic.getUuid(),
                     characteristic.getProperties(),
                     characteristic.getPermissions());
-            clone.addDescriptor(getNotifyCccd(characteristic));
             try {
                 Method initCharacteristic = characteristic.getClass()
                         .getDeclaredMethod("initCharacteristic", BluetoothGattService.class, UUID.class, int.class, int.class, int.class);
