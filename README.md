@@ -25,7 +25,7 @@ new version to get future updates. See [migration guide](#migration-from-the-ori
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library).
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:1.5.0'
+implementation 'no.nordicsemi.android:mcumgr-ble:1.5.1'
 ```
 
 The core module will be included automatically.
@@ -36,7 +36,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:1.5.0'
+implementation 'no.nordicsemi.android:mcumgr-core:1.5.1'
 ```
 
 > Latest version targeting API 30 (Android 11) is 0.13.0-beta07.
@@ -141,8 +141,8 @@ modes determine the commands sent after the upload step. The `FirmwareUpgradeMan
 configured to perform these different methods using `setMode(FirmwareUpgradeManager.Mode mode)`.
 The different firmware upgrade modes are as follows:
 
-* **`TEST_AND_CONFIRM`**: This mode is the **default and recommended mode** for performing upgrades 
-  due to it's ability to recover from a bad firmware upgrade. Note, that the device must support 
+* **`TEST_AND_CONFIRM`**: This mode is the **default and recommended mode** for performing upgrades
+  due to it's ability to recover from a bad firmware upgrade. Note, that the device must support
   this feature. Currently, multi-core devices (based on nRF5340) do not support this mode.
   The process for this mode is `UPLOAD`, `TEST`, `RESET`, `CONFIRM`.
 * **`CONFIRM_ONLY`**: This mode may be used for devices with revert disabled. If the device fails
@@ -154,7 +154,7 @@ The different firmware upgrade modes are as follows:
   The process for this mode is `UPLOAD`, `TEST`, `RESET`.
 
 > Note: Devices based on nRF5340 SoC support only `CONFIRM_ONLY` mode because the image from the
-Network Core cannot be read from the Application Core, making it impossible to temporarily save it.
+  Network Core cannot be read from the Application Core, making it impossible to temporarily save it.
 
 ### Firmware Upgrade State
 
