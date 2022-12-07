@@ -2,6 +2,7 @@ package io.runtime.mcumgr.mock.handlers
 
 import io.runtime.mcumgr.McuMgrErrorCode
 import io.runtime.mcumgr.McuMgrHeader
+import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.mock.McuMgrErrorResponse
 import io.runtime.mcumgr.mock.McuMgrHandler
 import io.runtime.mcumgr.mock.buildMockResponse
@@ -17,6 +18,7 @@ enum class McuMgrStatsCommand(val value: Int) {
 }
 
 class MockStatsHandler(
+    private val scheme: McuMgrScheme,
     private val stats: Map<String, Map<String, Long>> = allStats
 ): McuMgrHandler {
 
@@ -77,7 +79,7 @@ class MockStatsHandler(
     /**
      * Handle a request for the stats group
      */
-    override fun <T : McuMgrResponse?> handle(
+    override fun <T : McuMgrResponse> handle(
         header: McuMgrHeader,
         payload: ByteArray,
         responseType: Class<T>
@@ -92,7 +94,7 @@ class MockStatsHandler(
     /**
      * Handle a stats list request.
      */
-    private fun <T : McuMgrResponse?> handleStatsListRequest(
+    private fun <T : McuMgrResponse> handleStatsListRequest(
         header: McuMgrHeader,
         responseType: Class<T>
     ): T {
@@ -100,13 +102,13 @@ class MockStatsHandler(
             stat_list = stats.keys.toTypedArray()
         }
         val responsePayload = CBOR.toBytes(response)
-        return buildMockResponse(header.toResponse(), responsePayload, responseType)
+        return buildMockResponse(scheme, header.toResponse(), responsePayload, responseType)
     }
 
     /**
      * Handle a stats read request.
      */
-    private fun <T : McuMgrResponse?> handleStatsReadRequest(
+    private fun <T : McuMgrResponse> handleStatsReadRequest(
         header: McuMgrHeader,
         payload: ByteArray,
         responseType: Class<T>
@@ -123,6 +125,6 @@ class MockStatsHandler(
             McuMgrErrorResponse(McuMgrErrorCode.IN_VALUE)
         }
         val responsePayload = CBOR.toBytes(response)
-        return buildMockResponse(header.toResponse(), responsePayload, responseType)
+        return buildMockResponse(scheme, header.toResponse(), responsePayload, responseType)
     }
 }

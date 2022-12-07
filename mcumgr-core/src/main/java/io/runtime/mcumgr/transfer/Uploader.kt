@@ -353,7 +353,7 @@ abstract class Uploader(
      * out of bounds on the last chunk, if the calculated chunk size is greater than data.size -
      * offset, then the latter value is returned.
      */
-    private fun getMaxChunkSize(data: ByteArray, offset: Int): Int {
+    internal fun getMaxChunkSize(data: ByteArray, offset: Int): Int {
         // The size of the header is based on the scheme. CoAP scheme is larger because there are
         // 4 additional bytes of CBOR.
         val headerSize = when (protocol) {
