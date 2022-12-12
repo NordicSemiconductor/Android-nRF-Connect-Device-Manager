@@ -9,7 +9,7 @@ class McuMgrImageTest {
 
     @Test
     fun `parse image without protected tlvs success`() {
-        val inputStream = this::class.java.classLoader?.getResourceAsStream("slinky-no-prot-tlv.img")!!
+        val inputStream = this::class.java.classLoader?.getResourceAsStream("slinky-no-prot-tlv.img")
             ?: throw IllegalStateException("input stream is null")
         val imageData = toByteArray(inputStream)
         McuMgrImage.fromBytes(imageData)

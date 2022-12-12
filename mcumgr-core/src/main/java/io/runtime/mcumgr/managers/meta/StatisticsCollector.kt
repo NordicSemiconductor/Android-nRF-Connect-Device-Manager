@@ -135,6 +135,7 @@ private class StatCollection(
             }
 
             override fun onError(error: McuMgrException) {
+                error.printStackTrace()
                 callback(StatCollectionResult.Failure(error))
             }
         })

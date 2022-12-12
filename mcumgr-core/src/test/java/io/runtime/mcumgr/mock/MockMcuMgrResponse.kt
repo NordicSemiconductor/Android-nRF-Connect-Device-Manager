@@ -10,6 +10,7 @@ import io.runtime.mcumgr.util.CBOR
  * Build a mock error response.
  */
 fun <T: McuMgrResponse?> buildMockErrorResponse(
+    scheme: McuMgrScheme,
     errorCode: McuMgrErrorCode,
     responseHeader: McuMgrHeader,
     responseType: Class<T>,
@@ -17,35 +18,60 @@ fun <T: McuMgrResponse?> buildMockErrorResponse(
     codeDetail: Int = 5
 ): T {
     val responsePayload = CBOR.toBytes(McuMgrErrorResponse(errorCode))
-    return McuMgrResponse.buildCoapResponse(
-        McuMgrScheme.COAP_BLE,
-        responsePayload,
-        responseHeader.toBytes(),
-        responsePayload,
-        codeClass,
-        codeDetail,
-        responseType
-    )
+    when (scheme) {
+        McuMgrScheme.BLE ->
+            return McuMgrResponse.buildResponse(
+                McuMgrScheme.BLE,
+                responsePayload,
+                responseType
+            )
+        McuMgrScheme.COAP_BLE ->
+            return McuMgrResponse.buildCoapResponse(
+                McuMgrScheme.COAP_BLE,
+                responsePayload,
+                responseHeader.toBytes(),
+                responsePayload,
+                codeClass,
+                codeDetail,
+                responseType
+            )
+        else -> {
+            throw IllegalArgumentException("Unsupported scheme: $scheme")
+        }
+    }
 }
 
 /**
  * Build a mock response.
  */
-fun <T: McuMgrResponse?> buildMockResponse(
+fun <T: McuMgrResponse> buildMockResponse(
+    scheme: McuMgrScheme,
     responseHeader: McuMgrHeader,
     responsePayload: ByteArray,
     responseType: Class<T>,
     codeClass: Int = 2,
     codeDetail: Int = 5
-): T = McuMgrResponse.buildCoapResponse(
-    McuMgrScheme.COAP_BLE,
-    responsePayload,
-    responseHeader.toBytes(),
-    responsePayload,
-    codeClass,
-    codeDetail,
-    responseType
-)
+): T = when (scheme) {
+    McuMgrScheme.BLE ->
+        McuMgrResponse.buildResponse(
+            McuMgrScheme.BLE,
+            responseHeader.toBytes() + responsePayload,
+            responseType
+        )
+    McuMgrScheme.COAP_BLE ->
+        McuMgrResponse.buildCoapResponse(
+            McuMgrScheme.COAP_BLE,
+            responsePayload,
+            responseHeader.toBytes(),
+            responsePayload,
+            codeClass,
+            codeDetail,
+            responseType
+        )
+    else -> {
+        throw IllegalArgumentException("Unsupported scheme: $scheme")
+    }
+}
 
 /**
  * Helper class for building an mcumgr error response.

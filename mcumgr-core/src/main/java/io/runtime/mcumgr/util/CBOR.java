@@ -81,7 +81,7 @@ public class CBOR {
         if (n < 0) throw new IllegalArgumentException("n must be >= 0");
         if (n < 24) return 1;
         if (n < 256) return 2; // 2^8
-        if (n < 65636) return 3; // 2^16
+        if (n < 65535) return 3; // 2^16
         return 5; // 2^32
         // For long values it could return 9, but this won't happen here.
     }

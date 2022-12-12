@@ -4,7 +4,8 @@ import io.runtime.mcumgr.exception.McuMgrErrorException
 import io.runtime.mcumgr.managers.StatsManager
 import io.runtime.mcumgr.managers.meta.StatCollectionResult
 import io.runtime.mcumgr.managers.meta.StatisticsCollector
-import io.runtime.mcumgr.mock.MockMcuMgrTransport
+import io.runtime.mcumgr.mock.MockBleMcuMgrTransport
+import io.runtime.mcumgr.mock.MockCoapMcuMgrTransport
 import io.runtime.mcumgr.mock.handlers.MockStatsHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
@@ -52,11 +53,11 @@ class StatisticsCollectorTest {
     @Test
     fun `collect all stats success`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.COAP_BLE, allStats)
+        val statsManager = StatsManager(MockCoapMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         statsCollector.collectAll { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         val result = resultLock.receive()
         require(result is StatCollectionResult.Success) {
@@ -68,11 +69,11 @@ class StatisticsCollectorTest {
     @Test
     fun `collect group success`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.COAP_BLE, allStats)
+        val statsManager = StatsManager(MockCoapMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         statsCollector.collect(GROUP1) { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         val result = resultLock.receive()
         require(result is StatCollectionResult.Success) {
@@ -84,15 +85,15 @@ class StatisticsCollectorTest {
     @Test
     fun `collect multiple groups success`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.BLE, allStats)
+        val statsManager = StatsManager(MockBleMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         statsCollector.collectGroups(listOf(GROUP1, GROUP2)) { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         val result = resultLock.receive()
         require(result is StatCollectionResult.Success) {
-            "Expected stat collection result success, was ${result::class.java.canonicalName}"
+            "Expected stat collection result success, was $result"
         }
         assertEquals(group1Stats + group2Stats, result.statistics)
     }
@@ -100,11 +101,11 @@ class StatisticsCollectorTest {
     @Test
     fun `collect all with filter success`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.BLE, allStats)
+        val statsManager = StatsManager(MockBleMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         statsCollector.collectAll(setOf(GROUP1)) { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         val result = resultLock.receive()
         require(result is StatCollectionResult.Success) {
@@ -116,11 +117,11 @@ class StatisticsCollectorTest {
     @Test
     fun `collect all with bad filter failure`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.COAP_BLE, allStats)
+        val statsManager = StatsManager(MockCoapMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         statsCollector.collectAll(setOf("asdf")) { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         val result = resultLock.receive()
         require(result is StatCollectionResult.Failure) {
@@ -131,11 +132,11 @@ class StatisticsCollectorTest {
     @Test
     fun `collect all cancel success`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.COAP_BLE, allStats)
+        val statsManager = StatsManager(MockCoapMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         val cancellable = statsCollector.collectAll { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         cancellable.cancel()
         val result = resultLock.receive()
@@ -147,11 +148,11 @@ class StatisticsCollectorTest {
     @Test
     fun `collect all fail stat read`() = runBlocking {
         val resultLock = Channel<StatCollectionResult>(Channel.CONFLATED)
-        val statsHandler = MockStatsHandler(allStats)
-        val statsManager = StatsManager(MockMcuMgrTransport(statsHandler))
+        val statsHandler = MockStatsHandler(McuMgrScheme.COAP_BLE, allStats)
+        val statsManager = StatsManager(MockCoapMcuMgrTransport(statsHandler))
         val statsCollector = StatisticsCollector(statsManager)
         val cancellable = statsCollector.collect("asdf") { result ->
-            resultLock.offer(result)
+            resultLock.trySend(result)
         }
         cancellable.cancel()
         val result = resultLock.receive()
