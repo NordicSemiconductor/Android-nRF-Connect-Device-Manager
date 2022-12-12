@@ -19,7 +19,7 @@ internal class UploaderTest {
     fun `test image Uploader`() {
         // Parameters
         val data = ByteArray(100000) { 0 } // keep it > 64k
-        val mtu = 249
+        val mtu = 245
         val image = 1
 
         // Test values
@@ -33,7 +33,7 @@ internal class UploaderTest {
                 responseType: Class<T>
             ): T {
                 assert(payload.size + McuMgrHeader.HEADER_LENGTH <= mtu) {
-                    "Payload size is too big (${payload.size + McuMgrHeader.HEADER_LENGTH} / $mtu) at $received"
+                    "Payload size is too big (${payload.size + McuMgrHeader.HEADER_LENGTH} bytes, mtu = $mtu) at $received"
                 }
 
                 val map = CBOR.toObjectMap(payload)
