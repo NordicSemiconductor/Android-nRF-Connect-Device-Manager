@@ -461,12 +461,12 @@ public class FsManager extends TransferManager {
      * In this case, the MTU is set to the MTU in the exception and the upload is restarted.
      */
     private final McuMgrCallback<McuMgrFsUploadResponse> mUploadCallbackImpl =
-            new McuMgrCallback<McuMgrFsUploadResponse>() {
+            new McuMgrCallback<>() {
                 @Override
                 public void onResponse(@NotNull McuMgrFsUploadResponse response) {
                     // Check for a McuManager error
                     if (response.rc != 0) {
-                        LOG.error("Upload failed due to McuManager error: {}",  response.rc);
+                        LOG.error("Upload failed due to McuManager error: {}", response.rc);
                         fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
@@ -530,7 +530,7 @@ public class FsManager extends TransferManager {
      * in the response. On error, the transfer is failed.
      */
     private final McuMgrCallback<McuMgrFsDownloadResponse> mDownloadCallbackImpl =
-            new McuMgrCallback<McuMgrFsDownloadResponse>() {
+            new McuMgrCallback<>() {
                 @Override
                 public void onResponse(@NotNull McuMgrFsDownloadResponse response) {
                     // Check for a McuManager error.
