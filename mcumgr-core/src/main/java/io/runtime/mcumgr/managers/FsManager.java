@@ -693,6 +693,7 @@ public class FsManager extends TransferManager {
          * @param timestamp       the timestamp of when the response was received.
          * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
+        @Deprecated
         void onProgressChanged(int bytesDownloaded, int imageSize, long timestamp);
 
         /**
@@ -701,12 +702,14 @@ public class FsManager extends TransferManager {
          * @param error the error. See the cause for more info.
          * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
+        @Deprecated
         void onDownloadFailed(@NotNull McuMgrException error);
 
         /**
          * Called when the download has been canceled.
          * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
+        @Deprecated
         void onDownloadCanceled();
 
         /**
@@ -716,6 +719,7 @@ public class FsManager extends TransferManager {
          * @param data file data.
          * @deprecated Old implementation. See {@link #fileUpload} and {@link #fileDownload}
          */
+        @Deprecated
         void onDownloadFinished(@NotNull String name, byte @NotNull [] data);
     }
 }
