@@ -207,12 +207,6 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         return mDevice;
     }
 
-    @NonNull
-    @Override
-    protected BleManagerGattCallback getGattCallback() {
-        return new McuMgrGattCallback();
-    }
-
     //*******************************************************************************************
     // Maximum SMP packet length.
     //*******************************************************************************************
@@ -572,165 +566,165 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * device has disconnected, Service Changed indication was received, or
      * {@link BleManager#refreshDeviceCache()} request was executed, which has invalidated cached
      * services.
-     * @since 1.1
+     *
+     * In version 1.6.0 this method was renamed from {@link #onServicesInvalidated()}, which is now
+     * final. This is due to migration to Android BLE Library 2.6.0.
+     * @since 1.6.0
      */
-    protected void onServicesInvalidated() {
+    protected void onAdditionalServicesInvalidated() {
         // Empty default implementation.
     }
 
-    private class McuMgrGattCallback extends BleManagerGattCallback {
+    /** The bytes of {@link io.runtime.mcumgr.managers.DefaultManager#params()} command. */
+    private final byte[] READ_MCU_MGR_PARAMS = new byte[] {
+            0x00, // McuManager.OP_READ
+            0x00, // Flags
+            0x00, 0x01, // Len
+            0x00, 0x00, // McuManager.GROUP_DEFAULT
+            (byte) 0xFF, // Seq
+            0x06, // DefaultManager.ID_MCUMGR_PARAMS
+            (byte) 0xA0, // Empty map(0) - an empty CBOR may be required for some implementations,
+                         // otherwise the request is ignored and no notification is replied.
+    };
 
-        /** The bytes of {@link io.runtime.mcumgr.managers.DefaultManager#params()} command. */
-        private final byte[] READ_MCU_MGR_PARAMS = new byte[] {
-                0x00, // McuManager.OP_READ
-                0x00, // Flags
-                0x00, 0x01, // Len
-                0x00, 0x00, // McuManager.GROUP_DEFAULT
-                (byte) 0xFF, // Seq
-                0x06, // DefaultManager.ID_MCUMGR_PARAMS
-                (byte) 0xA0, // Empty map(0) - an empty CBOR may be required for some implementations,
-                             // otherwise the request is ignored and no notification is replied.
-        };
-
-        // Determines whether the device supports the SMP Service
-        @Override
-        protected boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
-            BluetoothGattService smpService = gatt.getService(mUUIDConfig.getServiceUuid());
-            if (smpService == null) {
-                LOG.error("Device does not support SMP service");
+    // Determines whether the device supports the SMP Service
+    @Override
+    protected final boolean isRequiredServiceSupported(@NonNull BluetoothGatt gatt) {
+        BluetoothGattService smpService = gatt.getService(mUUIDConfig.getServiceUuid());
+        if (smpService == null) {
+            LOG.error("Device does not support SMP service");
+            return false;
+        }
+        mSmpCharacteristicNotify = smpService.getCharacteristic(mUUIDConfig.getCharacteristicUuid());
+        if (mSmpCharacteristicNotify == null) {
+            LOG.error("Device does not support SMP characteristic");
+            return false;
+        } else {
+            final int rxProperties = mSmpCharacteristicNotify.getProperties();
+            boolean write = (rxProperties &
+                    BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0;
+            boolean notify = (rxProperties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0;
+            if (!write || !notify) {
+                LOG.error("SMP characteristic does not support either write ({}) or notify ({})", write, notify);
                 return false;
             }
-            mSmpCharacteristicNotify = smpService.getCharacteristic(mUUIDConfig.getCharacteristicUuid());
-            if (mSmpCharacteristicNotify == null) {
-                LOG.error("Device does not support SMP characteristic");
-                return false;
-            } else {
-                final int rxProperties = mSmpCharacteristicNotify.getProperties();
-                boolean write = (rxProperties &
-                        BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0;
-                boolean notify = (rxProperties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0;
-                if (!write || !notify) {
-                    LOG.error("SMP characteristic does not support either write ({}) or notify ({})", write, notify);
-                    return false;
-                }
-            }
-
-            // We must clone the characteristic in order to ensure no race conditions with
-            // BluetoothGattCharacteristic's getValue() function when writing to and receiving
-            // notifications from the same characteristic. Me must write to the clone and
-            // receive from the original in order to ensure that the OS selects the correct
-            // characteristic object from the service's list.
-            //
-            // More info:
-            // https://stackoverflow.com/questions/38922639/how-could-i-achieve-maximum-thread-safety-with-a-read-write-ble-gatt-characteris
-            mSmpCharacteristicWrite = cloneCharacteristic(mSmpCharacteristicNotify);
-            return isAdditionalServiceSupported(gatt);
         }
 
-        // Called once the connection has been established and services discovered. This method
-        // adds a queue of requests necessary to set up the SMP service to begin writing
-        // commands and receiving responses. Once these actions have completed onDeviceReady is
-        // called.
-        @Override
-        protected void initialize() {
-            mSmpProtocol = new SmpProtocolSession(mHandler);
+        // We must clone the characteristic in order to ensure no race conditions with
+        // BluetoothGattCharacteristic's getValue() function when writing to and receiving
+        // notifications from the same characteristic. Me must write to the clone and
+        // receive from the original in order to ensure that the OS selects the correct
+        // characteristic object from the service's list.
+        //
+        // More info:
+        // https://stackoverflow.com/questions/38922639/how-could-i-achieve-maximum-thread-safety-with-a-read-write-ble-gatt-characteris
+        mSmpCharacteristicWrite = cloneCharacteristic(mSmpCharacteristicNotify);
+        return isAdditionalServiceSupported(gatt);
+    }
 
-            // Request as high MTU as possible. As SMP protocol is fairly slow, requires a
-            // notification for each packet sent, make sure the packets are as big as possible.
-            // If Data Length Extension (DLE) is enabled, a single Link Layer packet can contain 251
-            // bytes, which give 247 bytes for the payload. MTU equal to 498 allows sending max
-            // data that fits into two LL packets of maximum size.
-            // Maximum supported MTU is 517, but that would mean the third packet is small.
-            // If the packet could not be sent in the same connection interval as 2 big packets,
-            // that would waste the whole connection interval for just around 20 bytes.
-            requestMtu(498)
-                    .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
-                    .fail((device, status) -> {
-                        if (getMinLogPriority() <= Log.WARN) {
-                            log(Log.WARN, "Failed to negotiate MTU, disconnecting...");
-                        }
-                        disconnect().enqueue();
-                    }).enqueue();
+    // Called once the connection has been established and services discovered. This method
+    // adds a queue of requests necessary to set up the SMP service to begin writing
+    // commands and receiving responses. Once these actions have completed onDeviceReady is
+    // called.
+    @Override
+    protected final void initialize() {
+        mSmpProtocol = new SmpProtocolSession(mHandler);
 
-            // Enable notifications on the clone of SMP characteristic. This is a hack that
-            // allows having a single characteristic for writing and receiving, as Android API
-            // would lead to race conditions and the outgoing data being overwritten by incoming
-            // data.
-            enableNotifications(mSmpCharacteristicNotify).enqueue();
+        // Request as high MTU as possible. As SMP protocol is fairly slow, requires a
+        // notification for each packet sent, make sure the packets are as big as possible.
+        // If Data Length Extension (DLE) is enabled, a single Link Layer packet can contain 251
+        // bytes, which give 247 bytes for the payload. MTU equal to 498 allows sending max
+        // data that fits into two LL packets of maximum size.
+        // Maximum supported MTU is 517, but that would mean the third packet is small.
+        // If the packet could not be sent in the same connection interval as 2 big packets,
+        // that would waste the whole connection interval for just around 20 bytes.
+        requestMtu(498)
+                .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
+                .fail((device, status) -> {
+                    if (getMinLogPriority() <= Log.WARN) {
+                        log(Log.WARN, "Failed to negotiate MTU, disconnecting...");
+                    }
+                    disconnect().enqueue();
+                }).enqueue();
 
-            // Before we set the notification callback, let's first read the McuMgr params.
-            // See: https://github.com/zephyrproject-rtos/zephyr/pull/44643
-            // This allows the transport layer to send SMP packets longer than MTU-3.
-            // The longer packets are split into MTU-3 chunks in Ble Library by using MtuSlitter.
+        // Enable notifications on the clone of SMP characteristic. This is a hack that
+        // allows having a single characteristic for writing and receiving, as Android API
+        // would lead to race conditions and the outgoing data being overwritten by incoming
+        // data.
+        enableNotifications(mSmpCharacteristicNotify).enqueue();
 
-            // Let's set one time notification callback...
-            waitForNotification(mSmpCharacteristicNotify)
-                    // ...and send the hardcoded request.
-                    .trigger(
-                            writeCharacteristic(mSmpCharacteristicWrite, READ_MCU_MGR_PARAMS,
-                                    BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
-                    )
-                    // The response should be received immediately.
-                    .timeout(1000 /* ms */)
-                    .with((device, data) -> {
-                        final byte[] bytes = data.getValue();
-                        // If the response is 14 bytes or shorter, that means the McuMgr Params
-                        // request is not supported. Let's pretend nothing happened.
-                        if (bytes != null && bytes.length > 14) {
-                            try {
-                                final McuMgrParamsResponse response = McuMgrResponse
-                                        .buildResponse(McuMgrScheme.BLE, bytes, McuMgrParamsResponse.class);
-                                if (getMinLogPriority() <= Log.INFO) {
-                                    log(Log.INFO, "SMP reassembly supported with buffer size: " + response.bufSize + " bytes and count: " + response.bufCount);
-                                }
-                                mMaxPacketLength = response.bufSize;
-                            } catch (final Exception e) {
-                                // Ignore
+        // Before we set the notification callback, let's first read the McuMgr params.
+        // See: https://github.com/zephyrproject-rtos/zephyr/pull/44643
+        // This allows the transport layer to send SMP packets longer than MTU-3.
+        // The longer packets are split into MTU-3 chunks in Ble Library by using MtuSlitter.
+
+        // Let's set one time notification callback...
+        waitForNotification(mSmpCharacteristicNotify)
+                // ...and send the hardcoded request.
+                .trigger(
+                        writeCharacteristic(mSmpCharacteristicWrite, READ_MCU_MGR_PARAMS,
+                                BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+                )
+                // The response should be received immediately.
+                .timeout(1000 /* ms */)
+                .with((device, data) -> {
+                    final byte[] bytes = data.getValue();
+                    // If the response is 14 bytes or shorter, that means the McuMgr Params
+                    // request is not supported. Let's pretend nothing happened.
+                    if (bytes != null && bytes.length > 14) {
+                        try {
+                            final McuMgrParamsResponse response = McuMgrResponse
+                                    .buildResponse(McuMgrScheme.BLE, bytes, McuMgrParamsResponse.class);
+                            if (getMinLogPriority() <= Log.INFO) {
+                                log(Log.INFO, "SMP reassembly supported with buffer size: " + response.bufSize + " bytes and count: " + response.bufCount);
                             }
+                            mMaxPacketLength = response.bufSize;
+                        } catch (final Exception e) {
+                            // Ignore
                         }
-                    })
-                    .enqueue();
+                    }
+                })
+                .enqueue();
 
-            // Registered as a callback for all notifications from the SMP characteristic.
-            // Forwards the merged data packets to the protocol layer to be matched to a request.
-            setNotificationCallback(mSmpCharacteristicNotify)
-                    .merge(mSMPMerger)
-                    .with((device, data) -> {
-                        final SmpProtocolSession session = mSmpProtocol;
-                        final byte[] bytes = data.getValue();
-                        if (bytes == null || session == null) {
-                            return;
+        // Registered as a callback for all notifications from the SMP characteristic.
+        // Forwards the merged data packets to the protocol layer to be matched to a request.
+        setNotificationCallback(mSmpCharacteristicNotify)
+                .merge(mSMPMerger)
+                .with((device, data) -> {
+                    final SmpProtocolSession session = mSmpProtocol;
+                    final byte[] bytes = data.getValue();
+                    if (bytes == null || session == null) {
+                        return;
+                    }
+                    if (getMinLogPriority() <= Log.INFO) {
+                        try {
+                            log(Log.INFO, "Received "
+                                    + McuMgrHeader.fromBytes(bytes) + " CBOR "
+                                    + CBOR.toString(bytes, McuMgrHeader.HEADER_LENGTH));
+                        } catch (Exception e) {
+                            // Ignore
                         }
-                        if (getMinLogPriority() <= Log.INFO) {
-                            try {
-                                log(Log.INFO, "Received "
-                                        + McuMgrHeader.fromBytes(bytes) + " CBOR "
-                                        + CBOR.toString(bytes, McuMgrHeader.HEADER_LENGTH));
-                            } catch (Exception e) {
-                                // Ignore
-                            }
-                        }
-                        session.receive(bytes);
-                    });
+                    }
+                    session.receive(bytes);
+                });
 
-            // Initialize additional services.
-            initializeAdditionalServices();
+        // Initialize additional services.
+        initializeAdditionalServices();
+    }
+
+    // Called when the device has disconnected. This method nulls the services and
+    // characteristic variables.
+    @Override
+    protected final void onServicesInvalidated() {
+        if (mSmpProtocol != null) {
+            mSmpProtocol.close(new McuMgrDisconnectedException());
         }
-
-        // Called when the device has disconnected. This method nulls the services and
-        // characteristic variables.
-        @Override
-        protected void onServicesInvalidated() {
-            if (mSmpProtocol != null) {
-                mSmpProtocol.close(new McuMgrDisconnectedException());
-            }
-            mSmpProtocol = null;
-            mSmpCharacteristicWrite = null;
-            mSmpCharacteristicNotify = null;
-            mMaxPacketLength = 0;
-            McuMgrBleTransport.this.onServicesInvalidated();
-            runOnCallbackThread(McuMgrBleTransport.this::notifyDisconnected);
-        }
+        mSmpProtocol = null;
+        mSmpCharacteristicWrite = null;
+        mSmpCharacteristicNotify = null;
+        mMaxPacketLength = 0;
+        onAdditionalServicesInvalidated();
+        runOnCallbackThread(this::notifyDisconnected);
     }
 
     //*******************************************************************************************
