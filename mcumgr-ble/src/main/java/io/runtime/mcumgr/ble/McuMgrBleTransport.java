@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -123,6 +124,11 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * Splitting packets must be supported by SMP Server on the target device.
      */
     private int mMaxPacketLength;
+
+    /**
+     * The initial MTU size to be requested upon connection.
+     */
+    private int mInitialMtu = 498;
 
     /**
      * Flag indicating should low-level logging be enabled. Default to false.
@@ -240,6 +246,22 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      */
     public final int getMaxPacketLength() {
         return mMaxPacketLength;
+    }
+
+    /**
+     * Sets the initial MTU size to be requested upon connection.
+     *
+     * In general, it is the device side that should decide the MTU size. However, if the device
+     * claims support for higher MTU than in fact it does, this method can be used to lower the MTU.
+     *
+     * By default, this is set to 498. This MTU will be requested when connecting to the device.
+     * If the device supports lower MTU, it will be used instead.
+     *
+     * This method should be called before connecting to the device and has no affect after.
+     * @param mtu The initial MTU size to be requested upon connection.
+     */
+    public void setInitialMtu(final @IntRange(from = 23, to = 517) int mtu) {
+        this.mInitialMtu = mtu;
     }
 
     /**
@@ -638,14 +660,15 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Maximum supported MTU is 517, but that would mean the third packet is small.
         // If the packet could not be sent in the same connection interval as 2 big packets,
         // that would waste the whole connection interval for just around 20 bytes.
-        requestMtu(498)
+        requestMtu(mInitialMtu)
                 .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
                 .fail((device, status) -> {
                     if (getMinLogPriority() <= Log.WARN) {
                         log(Log.WARN, "Failed to negotiate MTU, disconnecting...");
                     }
                     disconnect().enqueue();
-                }).enqueue();
+                })
+                .enqueue();
 
         // Enable notifications on the clone of SMP characteristic. This is a hack that
         // allows having a single characteristic for writing and receiving, as Android API
