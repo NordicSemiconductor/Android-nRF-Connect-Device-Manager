@@ -77,7 +77,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
         // This is called also from BLE thread after erase(), therefore postValue, not setValue.
         postBusy();
         errorLiveData.postValue(null);
-        manager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
+        manager.list(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 hashes[0] = hashes[1] = null;
@@ -107,7 +107,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
         setBusy();
         errorLiveData.setValue(null);
-        manager.test(hashes[image], new McuMgrCallback<McuMgrImageStateResponse>() {
+        manager.test(hashes[image], new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 postReady(response);
@@ -127,7 +127,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
         setBusy();
         errorLiveData.setValue(null);
-        manager.confirm(hashes[image], new McuMgrCallback<McuMgrImageStateResponse>() {
+        manager.confirm(hashes[image], new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 postReady(response);
@@ -147,7 +147,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
         setBusy();
         errorLiveData.setValue(null);
-        manager.erase(image, new McuMgrCallback<McuMgrResponse>() {
+        manager.erase(image, new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrResponse response) {
                 read();

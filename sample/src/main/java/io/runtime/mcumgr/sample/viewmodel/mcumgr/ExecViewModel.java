@@ -51,7 +51,7 @@ public class ExecViewModel extends McuMgrViewModel {
     public void exec(@NonNull final String command, @Nullable final String[] argv) {
         setBusy();
         commandLiveData.postValue(command);
-        manager.exec(command, argv, new McuMgrCallback<McuMgrExecResponse>() {
+        manager.exec(command, argv, new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrExecResponse response) {
                 outputLiveData.postValue(response.o);

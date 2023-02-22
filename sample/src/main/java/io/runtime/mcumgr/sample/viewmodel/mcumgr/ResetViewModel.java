@@ -37,7 +37,7 @@ public class ResetViewModel extends McuMgrViewModel {
 
     public void reset() {
         setBusy();
-        manager.reset(new McuMgrCallback<McuMgrResponse>() {
+        manager.reset(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrResponse response) {
                 manager.getTransporter().addObserver(new McuMgrTransport.ConnectionObserver() {

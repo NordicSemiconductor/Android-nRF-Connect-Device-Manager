@@ -35,7 +35,7 @@ class EraseStorage extends FirmwareUpgradeTask {
 	public void start(final @NotNull TaskManager<Settings, State> performer) {
 		final Settings settings = performer.getSettings();
 		final BasicManager manager = new BasicManager(settings.transport);
-		manager.eraseStorage(new McuMgrCallback<McuMgrResponse>() {
+		manager.eraseStorage(new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrResponse response) {
 				LOG.trace("Erase storage response: {}", response);

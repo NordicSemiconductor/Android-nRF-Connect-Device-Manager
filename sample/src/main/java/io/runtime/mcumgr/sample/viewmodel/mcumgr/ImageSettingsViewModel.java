@@ -37,7 +37,7 @@ public class ImageSettingsViewModel extends McuMgrViewModel {
     public void eraseSettings() {
         setBusy();
         errorLiveData.setValue(null);
-        manager.eraseStorage(new McuMgrCallback<McuMgrResponse>() {
+        manager.eraseStorage(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrResponse response) {
                 errorLiveData.postValue(null);

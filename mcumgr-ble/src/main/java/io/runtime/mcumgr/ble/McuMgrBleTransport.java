@@ -321,7 +321,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                                              @NonNull final Class<T> responseType)
             throws McuMgrException {
         final ResultCondition<T> condition = new ResultCondition<>(false);
-        send(payload, timeout, responseType, new McuMgrCallback<T>() {
+        send(payload, timeout, responseType, new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull T response) {
                 condition.open(response);

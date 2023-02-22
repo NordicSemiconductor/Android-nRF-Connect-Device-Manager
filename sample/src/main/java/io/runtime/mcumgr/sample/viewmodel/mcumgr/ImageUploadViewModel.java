@@ -112,12 +112,12 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         }
 
         requestHighConnectionPriority();
-        manager.list(new McuMgrCallback<McuMgrImageStateResponse>() {
+        manager.list(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
                 // Check if the fw has already been sent before.
                 McuMgrImageStateResponse.ImageSlot theSameImage = null;
-                for (final McuMgrImageStateResponse.ImageSlot image: response.images) {
+                for (final McuMgrImageStateResponse.ImageSlot image : response.images) {
                     if (Arrays.equals(hash, image.hash)) {
                         theSameImage = image;
                         break;
@@ -139,7 +139,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                 stateLiveData.postValue(State.UPLOADING);
                 initialBytes = 0;
                 setLoggingEnabled(false);
-                controller = manager.imageUpload(data, image,ImageUploadViewModel.this);
+                controller = manager.imageUpload(data, image, ImageUploadViewModel.this);
             }
 
             @Override

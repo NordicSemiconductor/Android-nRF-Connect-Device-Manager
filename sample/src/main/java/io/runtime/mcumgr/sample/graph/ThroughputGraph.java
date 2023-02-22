@@ -367,7 +367,7 @@ public class ThroughputGraph extends View {
 			dest.writeInt(showMetadata ? 1 : 0);
 		}
 
-		public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
+		public static final Creator<SavedState> CREATOR = new Creator<>() {
 			@Override
 			public SavedState createFromParcel(Parcel in) {
 				return new SavedState(in);

@@ -39,7 +39,7 @@ class Confirm extends FirmwareUpgradeTask {
 	public void start(final @NotNull TaskManager<Settings, State> performer) {
 		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(settings.transport);
-		manager.confirm(hash, new McuMgrCallback<McuMgrImageStateResponse>() {
+		manager.confirm(hash, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrImageStateResponse response) {
 				LOG.trace("Confirm response: {}", response);

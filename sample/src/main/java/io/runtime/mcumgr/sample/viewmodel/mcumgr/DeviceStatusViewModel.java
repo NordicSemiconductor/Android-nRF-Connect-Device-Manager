@@ -31,11 +31,11 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
     private final LiveData<BondingState> bondStateLiveData;
 
     private final MutableLiveData<McuMgrBufferParams> bufferLiveData = new MutableLiveData<>();
-    private final Observer<ConnectionState> connectionStateObserver = new Observer<ConnectionState>() {
+    private final Observer<ConnectionState> connectionStateObserver = new Observer<>() {
         @Override
         public void onChanged(final ConnectionState connectionState) {
             if (connectionState == ConnectionState.READY) {
-                defaultManager.params(new McuMgrCallback<McuMgrParamsResponse>() {
+                defaultManager.params(new McuMgrCallback<>() {
                     @Override
                     public void onResponse(@NotNull final McuMgrParamsResponse response) {
                         bufferLiveData.postValue(new McuMgrBufferParams(response));

@@ -138,7 +138,7 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         return 0;
     }
 
-    public static final Creator<DiscoveredBluetoothDevice> CREATOR = new Creator<DiscoveredBluetoothDevice>() {
+    public static final Creator<DiscoveredBluetoothDevice> CREATOR = new Creator<>() {
         @Override
         public DiscoveredBluetoothDevice createFromParcel(final Parcel source) {
             return new DiscoveredBluetoothDevice(source);

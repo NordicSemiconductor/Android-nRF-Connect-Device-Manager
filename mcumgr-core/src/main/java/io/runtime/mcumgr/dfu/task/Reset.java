@@ -75,7 +75,7 @@ class Reset extends FirmwareUpgradeTask {
 		});
 
 		final DefaultManager manager = new DefaultManager(transport);
-		manager.reset(new McuMgrCallback<McuMgrResponse>() {
+		manager.reset(new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrResponse response) {
 				// Check for an error return code.

@@ -739,7 +739,7 @@ public class ImageManager extends TransferManager {
      * In this case, the MTU is set to the MTU in the exception and the upload is restarted.
      */
     private final McuMgrCallback<McuMgrImageUploadResponse> mUploadCallbackImpl =
-            new McuMgrCallback<McuMgrImageUploadResponse>() {
+            new McuMgrCallback<>() {
                 @Override
                 public void onResponse(@NotNull McuMgrImageUploadResponse response) {
                     // Check for a McuManager error.

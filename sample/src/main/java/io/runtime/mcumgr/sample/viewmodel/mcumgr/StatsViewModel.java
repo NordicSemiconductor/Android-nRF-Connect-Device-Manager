@@ -46,14 +46,14 @@ public class StatsViewModel extends McuMgrViewModel {
     public void readStats() {
         setBusy();
         errorLiveData.setValue(null);
-        manager.list(new McuMgrCallback<McuMgrStatListResponse>() {
+        manager.list(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrStatListResponse listResponse) {
                 final List<McuMgrStatResponse> list = new ArrayList<>(listResponse.stat_list.length);
 
                 // Request stats for each module
                 for (final String module : listResponse.stat_list) {
-                    manager.read(module, new McuMgrCallback<McuMgrStatResponse>() {
+                    manager.read(module, new McuMgrCallback<>() {
                         @Override
                         public void onResponse(@NonNull final McuMgrStatResponse response) {
                             list.add(response);

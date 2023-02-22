@@ -49,7 +49,7 @@ public class EchoViewModel extends McuMgrViewModel {
     public void echo(final String echo) {
         setBusy();
         requestLiveData.postValue(echo);
-        manager.echo(echo, new McuMgrCallback<McuMgrEchoResponse>() {
+        manager.echo(echo, new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrEchoResponse response) {
                 responseLiveData.postValue(response.r);
