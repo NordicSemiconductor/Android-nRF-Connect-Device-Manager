@@ -170,6 +170,12 @@ has been set). If the uploaded image is already active, and confirmed in slot 0,
 succeed immediately. The `VALIDATE` state makes it easy to reattempt an upgrade without needing to
 re-upload the image or manually determine where to start.
 
+## Related libraries
+
+### Flutter
+
+A library for both iOS and Android that is based on this library is available for Flutter: [mcumgr_flutter](https://pub.dev/packages/mcumgr_flutter).
+
 ## License
 
 This library is licensed under the Apache 2.0 license. For more info, see the `LICENSE` file.
