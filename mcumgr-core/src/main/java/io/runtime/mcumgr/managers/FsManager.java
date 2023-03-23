@@ -488,7 +488,7 @@ public class FsManager extends TransferManager {
                             System.currentTimeMillis());
 
                     // Check if the upload has finished.
-                    if (mOffset == mFileData.length) {
+                    if (mOffset >= mFileData.length) {
                         LOG.info("Upload finished");
                         resetTransfer();
                         mUploadCallback.onUploadFinished();
@@ -566,7 +566,7 @@ public class FsManager extends TransferManager {
                             System.currentTimeMillis());
 
                     // Check if the download has finished.
-                    if (mOffset == mFileData.length) {
+                    if (mOffset >= mFileData.length) {
                         LOG.info("Download finished");
                         byte[] data = mFileData;
                         String fileName = mFileName;
