@@ -668,6 +668,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                 )
                 // The response should be received immediately.
                 .timeout(1000 /* ms */)
+                .merge(new SmpMerger())
                 .with((device, data) -> {
                     final byte[] bytes = data.getValue();
                     // If the response is 14 bytes or shorter, that means the McuMgr Params
