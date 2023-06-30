@@ -250,13 +250,13 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     /**
      * Sets the initial MTU size to be requested upon connection.
-     *
+     * <p>
      * In general, it is the device side that should decide the MTU size. However, if the device
      * claims support for higher MTU than in fact it does, this method can be used to lower the MTU.
-     *
+     * <p>
      * By default, this is set to 498. This MTU will be requested when connecting to the device.
      * If the device supports lower MTU, it will be used instead.
-     *
+     * <p>
      * This method should be called before connecting to the device and has no affect after.
      * @param mtu The initial MTU size to be requested upon connection.
      */
@@ -266,7 +266,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     /**
      * Sets the maximum packet length for the transport.
-     *
+     * <p>
      * Starting from version 1.3 the library can automatically obtain the value from a device build
      * on nRF Connect SDK 2.0+ using the new {@link DefaultManager#params()} command. If the feature
      * is not supported on the device the maximum length defaults to MTU-3 bytes.
@@ -300,23 +300,11 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     @Override
     public void log(int priority, @NonNull String message) {
         switch (priority) {
-            case Log.DEBUG:
-                LOG.debug(message);
-                break;
-            case Log.INFO:
-                LOG.info(message);
-                break;
-            case Log.WARN:
-                LOG.warn(message);
-                break;
-            case Log.ERROR:
-            case Log.ASSERT:
-                LOG.error(message);
-                break;
-            case Log.VERBOSE:
-            default:
-                LOG.trace(message);
-                break;
+            case Log.DEBUG -> LOG.debug(message);
+            case Log.INFO -> LOG.info(message);
+            case Log.WARN -> LOG.warn(message);
+            case Log.ERROR, Log.ASSERT -> LOG.error(message);
+            case Log.VERBOSE -> LOG.trace(message);
         }
     }
 
@@ -430,30 +418,25 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     });
                 }).fail((device, status) -> {
                     switch (status) {
-                        case FailCallback.REASON_REQUEST_FAILED:
-                            // This could be thrown only if the manager was requested to connect for
-                            // a second time and to a different device than the one that's already
-                            // connected. This may not happen here, as the device is given in the
-                            // constructor.
-                            // This may also happen if service discovery ends with an error, which
-                            // will trigger disconnection.
-                        case FailCallback.REASON_DEVICE_DISCONNECTED:
-                        case FailCallback.REASON_CANCELLED:
-                            callback.onError(new McuMgrDisconnectedException());
-                            break;
-                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
-                            callback.onError(new McuMgrNotSupportedException());
-                            break;
-                        case FailCallback.REASON_TIMEOUT:
+                        // This could be thrown only if the manager was requested to connect for
+                        // a second time and to a different device than the one that's already
+                        // connected. This may not happen here, as the device is given in the
+                        // constructor.
+                        // This may also happen if service discovery ends with an error, which
+                        // will trigger disconnection.
+                        case FailCallback.REASON_REQUEST_FAILED,
+                             FailCallback.REASON_DEVICE_DISCONNECTED,
+                             FailCallback.REASON_CANCELLED ->
+                                callback.onError(new McuMgrDisconnectedException());
+                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED ->
+                                callback.onError(new McuMgrNotSupportedException());
+                        case FailCallback.REASON_TIMEOUT ->
                             // Called after receiving error 133 after 30 seconds.
-                            callback.onError(new McuMgrTimeoutException());
-                            break;
-                        case FailCallback.REASON_BLUETOOTH_DISABLED:
-                            callback.onError(new McuMgrBluetoothDisabledException());
-                            break;
-                        default:
-                            callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
-                            break;
+                                callback.onError(new McuMgrTimeoutException());
+                        case FailCallback.REASON_BLUETOOTH_DISABLED ->
+                                callback.onError(new McuMgrBluetoothDisabledException());
+                        default ->
+                                callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
                     }
                 })
         .retry(3, 500)
@@ -482,30 +465,25 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         return;
                     }
                     switch (status) {
-                        case FailCallback.REASON_REQUEST_FAILED:
-                            // This could be thrown only if the manager was requested to connect for
-                            // a second time and to a different device than the one that's already
-                            // connected. This may not happen here, as the device is given in the
-                            // constructor.
-                            // This may also happen if service discovery ends with an error, which
-                            // will trigger disconnection.
-                        case FailCallback.REASON_DEVICE_DISCONNECTED:
-                        case FailCallback.REASON_CANCELLED:
-                            callback.onError(new McuMgrDisconnectedException());
-                            break;
-                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED:
-                            callback.onError(new McuMgrNotSupportedException());
-                            break;
-                        case FailCallback.REASON_TIMEOUT:
+                        // This could be thrown only if the manager was requested to connect for
+                        // a second time and to a different device than the one that's already
+                        // connected. This may not happen here, as the device is given in the
+                        // constructor.
+                        // This may also happen if service discovery ends with an error, which
+                        // will trigger disconnection.
+                        case FailCallback.REASON_REQUEST_FAILED,
+                             FailCallback.REASON_DEVICE_DISCONNECTED,
+                             FailCallback.REASON_CANCELLED ->
+                                callback.onError(new McuMgrDisconnectedException());
+                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED ->
+                                callback.onError(new McuMgrNotSupportedException());
+                        case FailCallback.REASON_TIMEOUT ->
                             // Called after receiving error 133 after 30 seconds.
-                            callback.onError(new McuMgrTimeoutException());
-                            break;
-                        case FailCallback.REASON_BLUETOOTH_DISABLED:
-                            callback.onError(new McuMgrBluetoothDisabledException());
-                            break;
-                        default:
-                            callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
-                            break;
+                                callback.onError(new McuMgrTimeoutException());
+                        case FailCallback.REASON_BLUETOOTH_DISABLED ->
+                                callback.onError(new McuMgrBluetoothDisabledException());
+                        default ->
+                                callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
                     }
                 })
                 .enqueue();
@@ -588,7 +566,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * device has disconnected, Service Changed indication was received, or
      * {@link BleManager#refreshDeviceCache()} request was executed, which has invalidated cached
      * services.
-     *
+     * <p>
      * In version 1.6.0 this method was renamed from {@link #onServicesInvalidated()}, which is now
      * final. This is due to migration to Android BLE Library 2.6.0.
      * @since 1.6.0

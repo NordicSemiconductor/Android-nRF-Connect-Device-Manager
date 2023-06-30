@@ -18,8 +18,10 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -49,7 +51,6 @@ public class ImageFragment extends Fragment implements Injectable {
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
 
         viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(McuMgrViewModel.class);
@@ -64,47 +65,6 @@ public class ImageFragment extends Fragment implements Injectable {
         outState.putBoolean(SIS_MODE_ADVANCED, modeAdvanced);
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull final Menu menu, @NonNull final MenuInflater inflater) {
-        inflater.inflate(R.menu.image_mode, menu);
-
-        menu.findItem(R.id.action_switch_to_advanced)
-                .setVisible(!modeAdvanced)
-                .setEnabled(!operationInProgress);
-        menu.findItem(R.id.action_switch_to_basic)
-                .setVisible(modeAdvanced)
-                .setEnabled(!operationInProgress);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_switch_to_advanced:
-                modeAdvanced = true;
-                getChildFragmentManager().beginTransaction()
-                        .show(imageUploadFragment)
-                        .show(imageControlFragment)
-                        .show(imageSettingsFragment)
-                        .show(resetFragment)
-                        .hide(imageUpgradeFragment)
-                        .commit();
-                requireActivity().invalidateOptionsMenu();
-                return true;
-            case R.id.action_switch_to_basic:
-                modeAdvanced = false;
-                getChildFragmentManager().beginTransaction()
-                        .show(imageUpgradeFragment)
-                        .hide(imageUploadFragment)
-                        .hide(imageControlFragment)
-                        .hide(imageSettingsFragment)
-                        .hide(resetFragment)
-                        .commit();
-                requireActivity().invalidateOptionsMenu();
-                return true;
-        }
-        return false;
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -116,6 +76,52 @@ public class ImageFragment extends Fragment implements Injectable {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        requireActivity().addMenuProvider(new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull final Menu menu, @NonNull final MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.image_mode, menu);
+            }
+
+            @Override
+            public void onPrepareMenu(@NonNull final Menu menu) {
+                menu.findItem(R.id.action_switch_to_advanced)
+                        .setVisible(isVisible() && !modeAdvanced)
+                        .setEnabled(!operationInProgress);
+                menu.findItem(R.id.action_switch_to_basic)
+                        .setVisible(isVisible() && modeAdvanced)
+                        .setEnabled(!operationInProgress);
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull final MenuItem menuItem) {
+                final int itemId = menuItem.getItemId();
+                if (itemId == R.id.action_switch_to_advanced) {
+                    modeAdvanced = true;
+                    getChildFragmentManager().beginTransaction()
+                            .show(imageUploadFragment)
+                            .show(imageControlFragment)
+                            .show(imageSettingsFragment)
+                            .show(resetFragment)
+                            .hide(imageUpgradeFragment)
+                            .commit();
+                    requireActivity().invalidateOptionsMenu();
+                    return true;
+                }
+                if (itemId == R.id.action_switch_to_basic) {
+                    modeAdvanced = false;
+                    getChildFragmentManager().beginTransaction()
+                            .show(imageUpgradeFragment)
+                            .hide(imageUploadFragment)
+                            .hide(imageControlFragment)
+                            .hide(imageSettingsFragment)
+                            .hide(resetFragment)
+                            .commit();
+                    requireActivity().invalidateOptionsMenu();
+                    return true;
+                }
+                return false;
+            }
+        }, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         final FragmentManager fm = getChildFragmentManager();
         imageUpgradeFragment = fm.findFragmentById(R.id.fragment_image_upgrade);

@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity
             if (id == R.id.nav_fs) t.show(filesFragment); else t.hide(filesFragment);
             if (id == R.id.nav_stats) t.show(logsStatsFragment); else t.hide(logsStatsFragment);
             if (id == R.id.nav_shell) t.show(shellFragment); else t.hide(shellFragment);
+            t.runOnCommit(this::invalidateMenu);
             t.commit();
             return true;
         });
