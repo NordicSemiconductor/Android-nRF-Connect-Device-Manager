@@ -25,7 +25,7 @@ new version to get future updates. See [migration guide](#migration-from-the-ori
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library).
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:1.6.0'
+implementation 'no.nordicsemi.android:mcumgr-ble:1.7.0'
 ```
 
 The core module will be included automatically.
@@ -36,7 +36,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:1.6.0'
+implementation 'no.nordicsemi.android:mcumgr-core:1.7.0'
 ```
 
 > Latest version targeting API 30 (Android 11) is 0.13.0-beta07.
@@ -169,12 +169,6 @@ device, the `State` will skip `UPLOAD` and move directly to `TEST` (or `CONFIRM`
 has been set). If the uploaded image is already active, and confirmed in slot 0, the upgrade will
 succeed immediately. The `VALIDATE` state makes it easy to reattempt an upgrade without needing to
 re-upload the image or manually determine where to start.
-
-## Related libraries
-
-### Flutter
-
-A library for both iOS and Android that is based on this library is available for Flutter: [mcumgr_flutter](https://pub.dev/packages/mcumgr_flutter).
 
 ## License
 
