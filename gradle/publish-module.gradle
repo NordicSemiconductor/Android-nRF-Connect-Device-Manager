@@ -11,10 +11,6 @@ task androidSourcesJar(type: Jar) {
     // from android.sourceSets.main.kotlin.srcDirs
 }
 
-artifacts {
-    archives androidSourcesJar
-}
-
 afterEvaluate {
     publishing {
         publications {
