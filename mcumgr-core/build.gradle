@@ -66,3 +66,9 @@ if (rootProject.file('gradle/publish-module.gradle').exists()) {
     }
     apply from: rootProject.file('gradle/publish-module.gradle')
 }
+
+//Quick fix for Gihtub Actions issue:
+//Reason: Task ':mcumgr-core:generateMetadataFileForReleasePublication' uses this output of task ':mcumgr-core:androidSourcesJar' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+afterEvaluate {
+    generateMetadataFileForReleasePublication.dependsOn androidSourcesJar
+}
