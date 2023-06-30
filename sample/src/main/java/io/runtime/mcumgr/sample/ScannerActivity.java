@@ -7,7 +7,6 @@
 package io.runtime.mcumgr.sample;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
@@ -202,22 +201,23 @@ public class ScannerActivity extends AppCompatActivity
         return true;
     }
 
-    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.filter_uuid:
-                item.setChecked(!item.isChecked());
-                scannerViewModel.filterByUuid(item.isChecked());
-                return true;
-            case R.id.filter_nearby:
-                item.setChecked(!item.isChecked());
-                scannerViewModel.filterByDistance(item.isChecked());
-                return true;
-            case R.id.menu_about:
-                final Intent launchIntro = new Intent(this, IntroActivity.class);
-                startActivity(launchIntro);
-                return true;
+        final int itemId = item.getItemId();
+        if (itemId == R.id.filter_uuid) {
+            item.setChecked(!item.isChecked());
+            scannerViewModel.filterByUuid(item.isChecked());
+            return true;
+        }
+        if (itemId == R.id.filter_nearby) {
+            item.setChecked(!item.isChecked());
+            scannerViewModel.filterByDistance(item.isChecked());
+            return true;
+        }
+        if (itemId == R.id.menu_about) {
+            final Intent launchIntro = new Intent(this, IntroActivity.class);
+            startActivity(launchIntro);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

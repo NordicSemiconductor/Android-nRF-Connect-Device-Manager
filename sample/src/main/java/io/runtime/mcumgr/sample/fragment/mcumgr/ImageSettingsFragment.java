@@ -14,7 +14,6 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -22,7 +21,6 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -38,7 +36,7 @@ import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageSettingsViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
-public class ImageSettingsFragment extends Fragment implements Injectable, Toolbar.OnMenuItemClickListener {
+public class ImageSettingsFragment extends Fragment implements Injectable {
 
     @Inject
     McuMgrViewModelFactory viewModelFactory;
@@ -61,7 +59,16 @@ public class ImageSettingsFragment extends Fragment implements Injectable, Toolb
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentCardImageEraseSettingsBinding.inflate(inflater, container, false);
         binding.toolbar.inflateMenu(R.menu.help);
-        binding.toolbar.setOnMenuItemClickListener(this);
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_help) {
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.image_settings_dialog_help_title,
+                        R.string.image_settings_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+            }
+            return false;
+        });
         return  binding.getRoot();
     }
 
@@ -86,19 +93,6 @@ public class ImageSettingsFragment extends Fragment implements Injectable, Toolb
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    @Override
-    public boolean onMenuItemClick(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_help:
-                final DialogFragment dialog = HelpDialogFragment.getInstance(
-                        R.string.image_settings_dialog_help_title,
-                        R.string.image_settings_dialog_help_message);
-                dialog.show(getChildFragmentManager(), null);
-                return true;
-        }
-        return false;
     }
 
     private void printError(@Nullable final McuMgrException error) {

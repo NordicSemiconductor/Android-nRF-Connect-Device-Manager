@@ -10,11 +10,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
+    namespace "io.runtime.mcumgr"
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 33
+        targetSdkVersion 34
     }
 
     buildTypes {
@@ -25,8 +26,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
@@ -35,10 +36,10 @@ dependencies {
     implementation 'org.jetbrains:annotations:24.0.0'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
 
     // Kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1'
 
     // Import CBOR parser
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.14.2'

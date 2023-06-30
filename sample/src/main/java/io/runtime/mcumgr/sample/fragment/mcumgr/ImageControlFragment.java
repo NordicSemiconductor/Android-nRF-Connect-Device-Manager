@@ -16,20 +16,17 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import javax.inject.Inject;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-
-import javax.inject.Inject;
-
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -43,8 +40,7 @@ import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageControlViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
-public class ImageControlFragment extends Fragment implements Injectable,
-        Toolbar.OnMenuItemClickListener, SelectImageDialogFragment.OnImageSelectedListener {
+public class ImageControlFragment extends Fragment implements Injectable, SelectImageDialogFragment.OnImageSelectedListener {
     private static final int REQUEST_TEST    = 1;
     private static final int REQUEST_CONFIRM = 2;
     private static final int REQUEST_ERASE   = 3;
@@ -70,7 +66,16 @@ public class ImageControlFragment extends Fragment implements Injectable,
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentCardImageControlBinding.inflate(inflater, container, false);
         binding.toolbar.inflateMenu(R.menu.help);
-        binding.toolbar.setOnMenuItemClickListener(this);
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_help) {
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.image_control_dialog_help_title,
+                        R.string.image_control_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+            }
+            return false;
+        });
         return  binding.getRoot();
     }
 
@@ -115,30 +120,11 @@ public class ImageControlFragment extends Fragment implements Injectable,
     }
 
     @Override
-    public boolean onMenuItemClick(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_help:
-                final DialogFragment dialog = HelpDialogFragment.getInstance(
-                        R.string.image_control_dialog_help_title,
-                        R.string.image_control_dialog_help_message);
-                dialog.show(getChildFragmentManager(), null);
-                return true;
-        }
-        return false;
-    }
-
-    @Override
     public void onImageSelected(final int requestId, final int image) {
         switch (requestId) {
-            case REQUEST_TEST:
-                viewModel.test(image);
-                break;
-            case REQUEST_CONFIRM:
-                viewModel.confirm(image);
-                break;
-            case REQUEST_ERASE:
-                viewModel.erase(image);
-                break;
+            case REQUEST_TEST -> viewModel.test(image);
+            case REQUEST_CONFIRM -> viewModel.confirm(image);
+            case REQUEST_ERASE -> viewModel.erase(image);
         }
     }
 

@@ -13,19 +13,16 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import javax.inject.Inject;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
-
-import javax.inject.Inject;
-
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.R;
@@ -37,8 +34,7 @@ import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
-public class ImageUploadFragment extends FileBrowserFragment implements Injectable,
-        Toolbar.OnMenuItemClickListener, SelectImageDialogFragment.OnImageSelectedListener {
+public class ImageUploadFragment extends FileBrowserFragment implements Injectable, SelectImageDialogFragment.OnImageSelectedListener {
     private static final int REQUEST_UPLOAD = 0;
 
     @Inject
@@ -62,7 +58,16 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentCardImageUploadBinding.inflate(inflater, container, false);
         binding.toolbar.inflateMenu(R.menu.help);
-        binding.toolbar.setOnMenuItemClickListener(this);
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_help) {
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.image_upload_dialog_help_title,
+                        R.string.image_upload_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+            }
+            return false;
+        });
         return binding.getRoot();
     }
 
@@ -83,20 +88,14 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             binding.actionPauseResume.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
             // Update status
             switch (state) {
-                case VALIDATING:
-                    binding.status.setText(R.string.image_upload_status_validating);
-                    break;
-                case UPLOADING:
-                    binding.status.setText(R.string.image_upload_status_uploading);
-                    break;
-                case PAUSED:
-                    binding.status.setText(R.string.image_upload_status_paused);
-                    break;
-                case COMPLETE:
+                case VALIDATING -> binding.status.setText(R.string.image_upload_status_validating);
+                case UPLOADING -> binding.status.setText(R.string.image_upload_status_uploading);
+                case PAUSED -> binding.status.setText(R.string.image_upload_status_paused);
+                case COMPLETE -> {
                     clearFileContent();
                     binding.status.setText(R.string.image_upload_status_completed);
                     binding.speed.setText(null);
-                    break;
+                }
             }
         });
         viewModel.getTransferSpeed().observe(getViewLifecycleOwner(), speed ->
@@ -155,19 +154,6 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    @Override
-    public boolean onMenuItemClick(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_help:
-                final DialogFragment dialog = HelpDialogFragment.getInstance(
-                        R.string.image_upload_dialog_help_title,
-                        R.string.image_upload_dialog_help_message);
-                dialog.show(getChildFragmentManager(), null);
-                return true;
-        }
-        return false;
     }
 
     @Override
