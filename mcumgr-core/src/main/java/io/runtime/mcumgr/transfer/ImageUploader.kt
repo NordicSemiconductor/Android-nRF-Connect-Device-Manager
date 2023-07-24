@@ -7,11 +7,11 @@ import io.runtime.mcumgr.response.UploadResponse
 import io.runtime.mcumgr.util.CBOR
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.*
 
 private const val OP_WRITE = 2
 private const val ID_UPLOAD = 1
-private const val TRUNCATED_HASH_LEN = 3
+
+private const val IMG_HASH_LEN = 32
 
 @Deprecated(
     message = "Use TransferManager.windowUpload instead",
@@ -61,7 +61,7 @@ open class ImageUploader(
         // "sha" and "image" params are only sent in the first packet.
         0 -> {
             val shaSize =
-                CBOR.stringLength("sha") + CBOR.uintLength(TRUNCATED_HASH_LEN) + TRUNCATED_HASH_LEN
+                CBOR.stringLength("sha") + CBOR.uintLength(IMG_HASH_LEN) + IMG_HASH_LEN
             val imageSize = if (image > 0) {
                 CBOR.stringLength("image") + CBOR.uintLength(image)
             } else 0
@@ -80,9 +80,7 @@ open class ImageUploader(
     private fun sha(data: ByteArray): ByteArray? {
         return try {
             val digest = MessageDigest.getInstance("SHA-256")
-            val hash = digest.digest(data)
-            // Truncate the hash to save space.
-            Arrays.copyOf(hash, TRUNCATED_HASH_LEN)
+            digest.digest(data)
         } catch (e: NoSuchAlgorithmException) {
             null
         }

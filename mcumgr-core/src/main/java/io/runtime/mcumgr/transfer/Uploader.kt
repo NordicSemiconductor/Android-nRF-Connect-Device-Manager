@@ -341,7 +341,7 @@ abstract class Uploader(
         if (offset == 0) {
             it["len"] = this.data.size // NOT data.size, as data is just a chunk of this.data
         }
-        getAdditionalData(data, offset, it)
+        getAdditionalData(this.data, offset, it)
     }
 
     /**
