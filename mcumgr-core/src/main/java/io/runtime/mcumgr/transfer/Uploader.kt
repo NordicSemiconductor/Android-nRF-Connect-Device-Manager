@@ -140,6 +140,11 @@ abstract class Uploader(
                         }
                     }
                 }.onErrorOrFailure { failure ->
+                    // If a non-success response was returned abort sending the file.
+                    if (failure is McuMgrErrorException) {
+                        throw failure
+                    }
+
                     // On insufficient MTU, the uploader will be restarted with proper MTU set.
                     // The proper MTU value is embedded in the exception.
                     if (failure is InsufficientMtuException) {
@@ -192,6 +197,7 @@ abstract class Uploader(
                 next.send(nextChunk)
             }
         }
+        window.release()
     }
 
     /**
