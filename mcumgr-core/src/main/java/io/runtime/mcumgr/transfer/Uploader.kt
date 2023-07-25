@@ -2,6 +2,7 @@ package io.runtime.mcumgr.transfer
 
 import io.runtime.mcumgr.McuMgrScheme
 import io.runtime.mcumgr.exception.InsufficientMtuException
+import io.runtime.mcumgr.exception.McuMgrErrorException
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.exception.McuMgrTimeoutException
 import io.runtime.mcumgr.util.CBOR
@@ -18,6 +19,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import org.slf4j.LoggerFactory
+import java.security.DigestException
 import kotlin.math.min
 
 const val MAX_CHUNK_FAILURES = 5
@@ -141,6 +143,12 @@ abstract class Uploader(
                     // On insufficient MTU, the uploader will be restarted with proper MTU set.
                     // The proper MTU value is embedded in the exception.
                     if (failure is InsufficientMtuException) {
+                        throw failure
+                    }
+
+                    // This error may be thrown after sending all data when reported digest does
+                    // not match the data sent.
+                    if (failure is DigestException) {
                         throw failure
                     }
 

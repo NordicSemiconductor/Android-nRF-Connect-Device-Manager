@@ -3,8 +3,9 @@ package io.runtime.mcumgr.transfer
 import io.runtime.mcumgr.McuMgrCallback
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.ImageManager
-import io.runtime.mcumgr.response.UploadResponse
+import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse
 import io.runtime.mcumgr.util.CBOR
+import java.security.DigestException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
@@ -91,9 +92,18 @@ private fun ImageManager.uploadAsync(
     requestMap: Map<String, Any>,
     timeout: Long,
     callback: (UploadResult) -> Unit
-) = send(OP_WRITE, ID_UPLOAD, requestMap, timeout, UploadResponse::class.java,
-    object : McuMgrCallback<UploadResponse> {
-        override fun onResponse(response: UploadResponse) {
+) = send(OP_WRITE, ID_UPLOAD, requestMap, timeout, McuMgrImageUploadResponse::class.java,
+    object : McuMgrCallback<McuMgrImageUploadResponse> {
+        override fun onResponse(response: McuMgrImageUploadResponse) {
+            // Since NCS 2.4 if the first packet of a image upload contains a 32-byte SHA-256
+            // parameter, the last packet (where reported offset is equal to the image size)
+            // will contain a "match" parameter with a flag whether the received file matches
+            // previously sent digest. This parameter is only sent in the last packet and
+            // omitted otherwise.
+            if (response.match == false) {
+                callback(UploadResult.Failure(DigestException("Image digest does not match, try again.")))
+                return
+            }
             callback(UploadResult.Response(response, response.returnCode))
         }
 
