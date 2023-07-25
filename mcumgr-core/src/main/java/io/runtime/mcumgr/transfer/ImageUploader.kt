@@ -3,15 +3,16 @@ package io.runtime.mcumgr.transfer
 import io.runtime.mcumgr.McuMgrCallback
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.ImageManager
-import io.runtime.mcumgr.response.UploadResponse
+import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse
 import io.runtime.mcumgr.util.CBOR
+import java.security.DigestException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.*
 
 private const val OP_WRITE = 2
 private const val ID_UPLOAD = 1
-private const val TRUNCATED_HASH_LEN = 3
+
+private const val IMG_HASH_LEN = 32
 
 @Deprecated(
     message = "Use TransferManager.windowUpload instead",
@@ -61,7 +62,7 @@ open class ImageUploader(
         // "sha" and "image" params are only sent in the first packet.
         0 -> {
             val shaSize =
-                CBOR.stringLength("sha") + CBOR.uintLength(TRUNCATED_HASH_LEN) + TRUNCATED_HASH_LEN
+                CBOR.stringLength("sha") + CBOR.uintLength(IMG_HASH_LEN) + IMG_HASH_LEN
             val imageSize = if (image > 0) {
                 CBOR.stringLength("image") + CBOR.uintLength(image)
             } else 0
@@ -80,9 +81,7 @@ open class ImageUploader(
     private fun sha(data: ByteArray): ByteArray? {
         return try {
             val digest = MessageDigest.getInstance("SHA-256")
-            val hash = digest.digest(data)
-            // Truncate the hash to save space.
-            Arrays.copyOf(hash, TRUNCATED_HASH_LEN)
+            digest.digest(data)
         } catch (e: NoSuchAlgorithmException) {
             null
         }
@@ -93,9 +92,18 @@ private fun ImageManager.uploadAsync(
     requestMap: Map<String, Any>,
     timeout: Long,
     callback: (UploadResult) -> Unit
-) = send(OP_WRITE, ID_UPLOAD, requestMap, timeout, UploadResponse::class.java,
-    object : McuMgrCallback<UploadResponse> {
-        override fun onResponse(response: UploadResponse) {
+) = send(OP_WRITE, ID_UPLOAD, requestMap, timeout, McuMgrImageUploadResponse::class.java,
+    object : McuMgrCallback<McuMgrImageUploadResponse> {
+        override fun onResponse(response: McuMgrImageUploadResponse) {
+            // Since nRF Connect SDK (NCS) 2.3 if the first packet of a image upload contains a
+            // 32-byte SHA-256 parameter, the last packet (where reported offset is equal to the
+            // image size) will contain a "match" parameter with a flag whether the received file
+            // matches previously sent digest. This parameter is only sent in the last packet and
+            // omitted otherwise.
+            if (response.match == false) {
+                callback(UploadResult.Failure(DigestException("Image digest does not match, try again.")))
+                return
+            }
             callback(UploadResult.Response(response, response.returnCode))
         }
 
