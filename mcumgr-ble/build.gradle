@@ -44,7 +44,7 @@ dependencies {
     api 'no.nordicsemi.android:ble:2.6.0'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
 
     // Kotlin
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1'
