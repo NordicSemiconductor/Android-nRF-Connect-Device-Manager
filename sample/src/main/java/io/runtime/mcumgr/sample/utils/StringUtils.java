@@ -52,6 +52,10 @@ public class StringUtils {
         } else if (error instanceof McuMgrTimeoutException) {
             return context.getString(R.string.status_connection_timeout);
         }
-        return error != null ? error.getMessage() : null;
+        return error != null ?
+                error.getCause() != null ?
+                        error.getCause().getMessage() :
+                        error.getMessage() :
+                null;
     }
 }
