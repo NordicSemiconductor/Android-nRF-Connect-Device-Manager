@@ -17,6 +17,9 @@ import org.jetbrains.annotations.NotNull;
  * determined based on the request and error code. Since McuManager errors are vague and often the
  * same error code could be caused by different reasons, the best way to debug errors here is
  * step through the handler on the device to determine the cause.
+ * <p>
+ * List of possible error codes may be found
+ * <a href="https://github.com/nrfconnect/sdk-zephyr/blob/main/include/zephyr/mgmt/mcumgr/mgmt/mgmt.h">here</a>.
  */
 public enum McuMgrErrorCode {
     /**
@@ -56,6 +59,21 @@ public enum McuMgrErrorCode {
      * Command is not supported.
      */
     NOT_SUPPORTED(8),
+    /**
+     * Corrupt.
+     */
+    CORRUPT(9),
+    /**
+     * Command blocked by processing of other command.
+     */
+    BUSY(10),
+    /**
+     * Access to specific function, command or resource denied.
+     */
+    ACCESS_DENIED(11),
+    /**
+     * User errors defined from 256 onwards.
+     */
     PER_USER(256);
 
     private final int mCode;
@@ -68,6 +86,7 @@ public enum McuMgrErrorCode {
         return mCode;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return super.toString() + " (" + mCode + ")";
@@ -75,29 +94,21 @@ public enum McuMgrErrorCode {
 
     @NotNull
     public static McuMgrErrorCode valueOf(int error) {
-        switch (error) {
-            case 0:
-                return OK;
-            case 1:
-                return UNKNOWN;
-            case 2:
-                return NO_MEMORY;
-            case 3:
-                return IN_VALUE;
-            case 4:
-                return TIMEOUT;
-            case 5:
-                return NO_ENTRY;
-            case 6:
-                return BAD_STATE;
-            case 7:
-                return TOO_LARGE;
-            case 8:
-                return NOT_SUPPORTED;
-            case 256:
-                return PER_USER;
-            default:
-                return UNKNOWN;
-        }
+        return switch (error) {
+            case 0 -> OK;
+            // case 1 is equal to default case
+            case 2 -> NO_MEMORY;
+            case 3 -> IN_VALUE;
+            case 4 -> TIMEOUT;
+            case 5 -> NO_ENTRY;
+            case 6 -> BAD_STATE;
+            case 7 -> TOO_LARGE;
+            case 8 -> NOT_SUPPORTED;
+            case 9 -> CORRUPT;
+            case 10 -> BUSY;
+            case 11 -> ACCESS_DENIED;
+            case 256 -> PER_USER;
+            default -> UNKNOWN;
+        };
     }
 }
