@@ -16,6 +16,9 @@
 		<item>Bad state (6)</item>
 		<item>Too large (7)</item>
 		<item>Not supported (8)</item>
+		<item>Corrupt (9)</item>
+		<item>Busy (10)</item>
+		<item>Access Denied (11)</item>
 	</string-array>
 	<string name="mcu_mgr_error_other">Unknown error (%d)</string>
 </resources>
