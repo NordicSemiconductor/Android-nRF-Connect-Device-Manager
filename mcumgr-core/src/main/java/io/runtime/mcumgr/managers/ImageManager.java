@@ -229,7 +229,7 @@ public class ImageManager extends TransferManager {
                 byte[] hash = digest.digest(data);
                 payloadMap.put("sha", hash);
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                LOG.error("SHA-256 not found", e);
             }
         }
         return payloadMap;

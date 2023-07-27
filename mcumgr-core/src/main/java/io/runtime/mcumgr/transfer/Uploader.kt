@@ -228,7 +228,6 @@ abstract class Uploader(
         }
 
         job.invokeOnCompletion { throwable ->
-            throwable?.printStackTrace()
             when (throwable) {
                 null -> callback.onUploadCompleted()
                 is CancellationException -> callback.onUploadCanceled()
