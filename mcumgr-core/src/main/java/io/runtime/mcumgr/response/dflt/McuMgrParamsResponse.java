@@ -9,9 +9,7 @@ package io.runtime.mcumgr.response.dflt;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.runtime.mcumgr.response.McuMgrResponse;
-
-public class McuMgrParamsResponse extends McuMgrResponse {
+public class McuMgrParamsResponse extends McuMgrOsResponse {
     /** The McuMgr buffer size. */
     @JsonProperty("buf_size")
     public int bufSize;

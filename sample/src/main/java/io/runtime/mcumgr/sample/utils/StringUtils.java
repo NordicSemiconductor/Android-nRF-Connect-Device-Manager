@@ -18,6 +18,7 @@ import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
+import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.sample.R;
 
 public class StringUtils {
@@ -38,8 +39,25 @@ public class StringUtils {
 
     @Nullable
     public static String toString(@NonNull final Context context, @Nullable final McuMgrException error) {
-        if (error instanceof McuMgrErrorException) {
-            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
+        if (error instanceof McuMgrErrorException e) {
+            final HasReturnCode.GroupReturnCode groupCode = e.getGroupCode();
+            if (groupCode != null) {
+                int arrayId = switch (groupCode.group) {
+                    case 0 -> R.array.mcu_mgr_os_error;
+                    case 1 -> R.array.mcu_mgr_img_error;
+                    case 8 -> R.array.mcu_mgr_fs_error;
+                    case 9 -> R.array.mcu_mgr_shell_error;
+                    case 63 -> R.array.mcu_mgr_zephyr_basic_error;
+                    default -> -1;
+                };
+                if (arrayId != -1) {
+                    final String[] errors = context.getResources().getStringArray(arrayId);
+                    if (groupCode.rc < errors.length)
+                        return errors[groupCode.rc];
+                }
+                return context.getString(R.string.mcu_mgr_group_error_other, groupCode.rc, groupCode.group);
+            }
+            final McuMgrErrorCode code = e.getCode();
             final String[] errors = context.getResources().getStringArray(R.array.mcu_mgr_error);
             if (code.value() < errors.length)
                 return errors[code.value()];

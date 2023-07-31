@@ -7,18 +7,76 @@
 package io.runtime.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrGroupReturnCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.zephyr.basic.McuMgrZephyrBasicResponse;
 
 /**
  * Basic command group manager for Zephyr-based devices.
  */
 @SuppressWarnings("unused")
 public class BasicManager extends McuManager {
+    public enum ReturnCode implements McuMgrGroupReturnCode {
+        /** No error, this is implied if there is no ret value in the response */
+        OK(0),
+
+        /** Unknown error occurred. */
+        UNKNOWN(1),
+
+        /** Opening of the flash area has failed. */
+        FLASH_OPEN_FAILED(2),
+
+        /** Querying the flash area parameters has failed. */
+        FLASH_CONFIG_QUERY_FAIL(3),
+
+        /** Erasing the flash area has failed. */
+        FLASH_ERASE_FAILED(4);
+
+        private final int mCode;
+
+        ReturnCode(int code) {
+            mCode = code;
+        }
+
+        public int value() {
+            return mCode;
+        }
+
+        public static @Nullable BasicManager.ReturnCode valueOf(@Nullable McuMgrResponse.GroupReturnCode returnCode) {
+            if (returnCode == null || returnCode.group != GROUP_BASIC) {
+                return null;
+            }
+            for (BasicManager.ReturnCode code : values()) {
+                if (code.value() == returnCode.rc) {
+                    return code;
+                }
+            }
+            return UNKNOWN;
+        }
+    }
+
+    public interface Response extends HasReturnCode {
+
+        @Nullable
+        default BasicManager.ReturnCode getOsReturnCode() {
+            McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
+            if (groupReturnCode == null) {
+                if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
+                    return BasicManager.ReturnCode.OK;
+                }
+                return BasicManager.ReturnCode.UNKNOWN;
+            }
+            return BasicManager.ReturnCode.valueOf(groupReturnCode);
+        }
+    }
 
     // Command IDs
     // https://github.com/nrfconnect/sdk-zephyr/blob/master/include/mgmt/mcumgr/zephyr_groups.h
@@ -38,8 +96,8 @@ public class BasicManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void eraseStorage(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
+    public void eraseStorage(@NotNull McuMgrCallback<McuMgrZephyrBasicResponse> callback) {
+        send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrZephyrBasicResponse.class, callback);
     }
 
     /**
@@ -49,7 +107,7 @@ public class BasicManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse eraseStorage() throws McuMgrException {
-        return send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
+    public McuMgrZephyrBasicResponse eraseStorage() throws McuMgrException {
+        return send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrZephyrBasicResponse.class);
     }
 }

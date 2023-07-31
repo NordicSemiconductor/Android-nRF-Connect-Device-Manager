@@ -11,7 +11,7 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.BasicManager;
-import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.zephyr.basic.McuMgrZephyrBasicResponse;
 import io.runtime.mcumgr.task.TaskManager;
 
 class EraseStorage extends FirmwareUpgradeTask {
@@ -37,7 +37,7 @@ class EraseStorage extends FirmwareUpgradeTask {
 		final BasicManager manager = new BasicManager(settings.transport);
 		manager.eraseStorage(new McuMgrCallback<>() {
 			@Override
-			public void onResponse(@NotNull final McuMgrResponse response) {
+			public void onResponse(@NotNull final McuMgrZephyrBasicResponse response) {
 				LOG.trace("Erase storage response: {}", response);
 
 				// Fix: If this feature is not supported on the device, this should not cause fail
@@ -55,9 +55,8 @@ class EraseStorage extends FirmwareUpgradeTask {
 			public void onError(@NotNull McuMgrException e) {
 				// If Erase is not supported, proceed with the update.
 				// Erase Storage has been added in NCS 1.8.
-				if (e instanceof McuMgrErrorException) {
-					final McuMgrErrorException error = (McuMgrErrorException) e;
-					if (error.getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
+				if (e instanceof McuMgrErrorException error) {
+					if (error.getCode() == McuMgrErrorCode.NOT_SUPPORTED || error.getGroupCode() != null) {
 						performer.onTaskCompleted(EraseStorage.this);
 						return;
 					}

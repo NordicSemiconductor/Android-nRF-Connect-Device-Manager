@@ -177,8 +177,8 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         binding.fileResult.setVisibility(View.VISIBLE);
 
         String message = StringUtils.toString(requireContext(), error);
-        if (error instanceof McuMgrErrorException) {
-            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
+        if (error instanceof McuMgrErrorException e) {
+            final McuMgrErrorCode code = e.getCode();
             if (code == McuMgrErrorCode.UNKNOWN) {
                 message = getString(R.string.files_download_error_file_not_found);
             }

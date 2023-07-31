@@ -174,8 +174,8 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
 
     private void printError(@Nullable final McuMgrException error) {
         String message = StringUtils.toString(requireContext(), error);
-        if (error instanceof McuMgrErrorException) {
-            final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
+        if (error instanceof McuMgrErrorException e) {
+            final McuMgrErrorCode code = e.getCode();
             if (code == McuMgrErrorCode.UNKNOWN) {
                 // User tried to test a firmware with hash equal to the hash of the
                 // active firmware. This would result in changing the permanent flag

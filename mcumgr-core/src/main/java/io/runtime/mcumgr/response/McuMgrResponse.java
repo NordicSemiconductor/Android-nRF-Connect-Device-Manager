@@ -28,7 +28,7 @@ import io.runtime.mcumgr.util.CBOR;
 
 @SuppressWarnings("unused")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class McuMgrResponse {
+public class McuMgrResponse implements HasReturnCode {
 
     private final static Logger LOG = LoggerFactory.getLogger(McuMgrResponse.class);
 
@@ -38,6 +38,26 @@ public class McuMgrResponse {
      */
     @JsonProperty("rc")
     public int rc = 0;
+
+    /**
+     * Since version 2 of the SMP protocol, a more detailed return code is returned in the response.
+     * The "rc" field is still present, but is reserved for the manager and returns parsing errors,
+     * lack of requested group, etc, while the "ret" field contains the return code from the group.
+     * <p>
+     * Each group defines its own error codes, which may describe the issue in more detail than before.
+     */
+    @JsonProperty("err")
+    private GroupReturnCode groupReturnCode = null;
+
+    @JsonProperty("ret")
+    private GroupReturnCode groupReturnCodeOld = null;
+
+    @Override
+    public GroupReturnCode getGroupReturnCode() {
+        if (groupReturnCode != null)
+            return groupReturnCode;
+        return groupReturnCodeOld;
+    }
 
     /**
      * Scheme of the transport which produced this response.
@@ -101,6 +121,7 @@ public class McuMgrResponse {
      *
      * @return Mcu Manager return code.
      */
+    @Override
     public int getReturnCodeValue() {
         return rc;
     }
@@ -110,6 +131,7 @@ public class McuMgrResponse {
      *
      * @return The return code enum.
      */
+    @Override
     public McuMgrErrorCode getReturnCode() {
         return McuMgrErrorCode.valueOf(rc);
     }
@@ -121,7 +143,9 @@ public class McuMgrResponse {
      * @return return true if the command was a success, false otherwise
      */
     public boolean isSuccess() {
-        return rc == McuMgrErrorCode.OK.value();
+        return rc == McuMgrErrorCode.OK.value() &&
+              (groupReturnCode == null || groupReturnCode.rc == 0) &&
+              (groupReturnCodeOld == null || groupReturnCodeOld.rc == 0);
     }
 
     /**
@@ -341,7 +365,7 @@ public class McuMgrResponse {
             final int lowerBits = payload[offset++] & 0x1F;
 
             switch (type) {
-                case 0: // positive int
+                case 0 -> { // positive int
                     // Values 23 or lower can be read as they are.
                     int value = -1;
                     if (lowerBits <= 23) {
@@ -349,19 +373,19 @@ public class McuMgrResponse {
                     } else {
                         // This fast method supports only 8, 16 and 32-bit positive integers.
                         switch (lowerBits - 24) {
-                            case 0:
+                            case 0 -> {
                                 if (payload.length > offset) {
                                     value = payload[offset] & 0xFF;
                                 }
                                 offset += 1;
-                                break;
-                            case 1:
+                            }
+                            case 1 -> {
                                 if (payload.length > offset + 1) {
                                     value = ((payload[offset] & 0xFF) << 8) | (payload[offset + 1] & 0xFF);
                                 }
                                 offset += 2;
-                                break;
-                            case 2:
+                            }
+                            case 2 -> {
                                 if (payload.length > offset + 3) {
                                     value = ((payload[offset] & 0xFF) << 24) | ((payload[offset + 1] & 0xFF) << 16) | ((payload[offset + 2] & 0xFF) << 8) | (payload[offset + 3] & 0xFF);
                                     if (value < 0) {
@@ -369,11 +393,11 @@ public class McuMgrResponse {
                                     }
                                 }
                                 offset += 4;
-                                break;
-                            case 3:
-                                // unsupported
-                            default:
+                            }
+                            // unsupported
+                            default -> {
                                 return null;
+                            }
                         }
                     }
                     if (value >= 0) {
@@ -383,26 +407,27 @@ public class McuMgrResponse {
                             off = value;
                         currentToken = -1;
                     }
-                    break;
-                case 3: // string
+                }
+                case 3 -> { // string
                     // We are only looking for "rc" and "off", which have lengths 2 and 3.
                     // The below code will return null if a longer token is found.
                     switch (lowerBits) {
-                        case 2: // "rc"
+                        case 2 -> { // "rc"
                             if (payload.length > offset + 1 && payload[offset] == 0x72 && payload[offset + 1] == 0x63) {
                                 currentToken = 0;
                             }
-                            break;
-                        case 3: // "off"
+                        }
+                        case 3 -> { // "off"
                             if (payload.length > offset + 2 && payload[offset] == 0x6F && payload[offset + 1] == 0x66 && payload[offset + 2] == 0x66) {
                                 currentToken = 1;
                             }
-                            break;
-                        default:
+                        }
+                        default -> {
                             return null;
+                        }
                     }
                     offset += lowerBits;
-                    break;
+                }
             }
         }
         final UploadResponse response = responseType.newInstance();

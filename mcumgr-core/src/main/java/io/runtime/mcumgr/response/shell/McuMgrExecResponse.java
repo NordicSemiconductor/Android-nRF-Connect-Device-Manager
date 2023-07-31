@@ -4,14 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.response.dflt;
+package io.runtime.mcumgr.response.shell;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.runtime.mcumgr.managers.ShellManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
-public class McuMgrExecResponse extends McuMgrResponse {
+public class McuMgrExecResponse extends McuMgrResponse implements ShellManager.Response {
     /** The command response. */
     @JsonProperty("o")
     public String o;

@@ -11,9 +11,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
+import io.runtime.mcumgr.managers.StatsManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
-public class McuMgrStatResponse extends McuMgrResponse {
+public class McuMgrStatResponse extends McuMgrResponse implements StatsManager.Response {
     /** Module name. */
     @JsonProperty("name")
     public String name;

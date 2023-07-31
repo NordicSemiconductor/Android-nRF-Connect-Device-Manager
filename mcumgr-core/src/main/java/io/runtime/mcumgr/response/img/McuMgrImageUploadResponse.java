@@ -11,9 +11,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.Nullable;
 
+import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.UploadResponse;
 
-public class McuMgrImageUploadResponse extends UploadResponse {
+public class McuMgrImageUploadResponse extends UploadResponse implements ImageManager.Response {
 
     /**
      * Since NCS 2.4 the SMP server expects 32-byte 'sha' of the image sent with the

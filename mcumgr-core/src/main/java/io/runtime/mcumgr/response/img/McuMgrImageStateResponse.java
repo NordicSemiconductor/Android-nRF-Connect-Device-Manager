@@ -8,10 +8,11 @@ package io.runtime.mcumgr.response.img;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 @SuppressWarnings("unused")
-public class McuMgrImageStateResponse extends McuMgrResponse {
+public class McuMgrImageStateResponse extends McuMgrResponse implements ImageManager.Response {
     // For Mynewt see:
     // https://github.com/apache/mynewt-core/blob/master/boot/split/include/split/split.h
     public static final int SPLIT_STATUS_INVALID = 0;

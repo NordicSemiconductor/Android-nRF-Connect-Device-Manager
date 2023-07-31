@@ -6,17 +6,18 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.ImageManager;
-import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.img.McuMgrImageResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 
 public class ImageControlViewModel extends McuMgrViewModel {
@@ -149,7 +150,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
         errorLiveData.setValue(null);
         manager.erase(image, new McuMgrCallback<>() {
             @Override
-            public void onResponse(@NonNull final McuMgrResponse response) {
+            public void onResponse(@NonNull final McuMgrImageResponse response) {
                 read();
             }
 

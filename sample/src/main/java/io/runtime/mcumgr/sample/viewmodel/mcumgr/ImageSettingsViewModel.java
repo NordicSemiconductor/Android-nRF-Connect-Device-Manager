@@ -6,16 +6,17 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.BasicManager;
-import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.zephyr.basic.McuMgrZephyrBasicResponse;
 
 public class ImageSettingsViewModel extends McuMgrViewModel {
     private final BasicManager manager;
@@ -39,7 +40,7 @@ public class ImageSettingsViewModel extends McuMgrViewModel {
         errorLiveData.setValue(null);
         manager.eraseStorage(new McuMgrCallback<>() {
             @Override
-            public void onResponse(@NonNull final McuMgrResponse response) {
+            public void onResponse(@NonNull final McuMgrZephyrBasicResponse response) {
                 errorLiveData.postValue(null);
                 postReady();
             }

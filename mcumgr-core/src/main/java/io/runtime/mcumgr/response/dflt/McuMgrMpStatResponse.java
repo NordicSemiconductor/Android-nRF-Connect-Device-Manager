@@ -12,10 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
-import io.runtime.mcumgr.response.McuMgrResponse;
-
 @SuppressWarnings("unused")
-public class McuMgrMpStatResponse extends McuMgrResponse {
+public class McuMgrMpStatResponse extends McuMgrOsResponse {
     // For Mynewt see:
     // https://github.com/apache/mynewt-core/blob/master/kernel/os/include/os/os_mempool.h
 
