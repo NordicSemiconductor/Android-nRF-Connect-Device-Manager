@@ -42,22 +42,16 @@ public class McuMgrResponse implements HasReturnCode {
     /**
      * Since version 2 of the SMP protocol, a more detailed return code is returned in the response.
      * The "rc" field is still present, but is reserved for the manager and returns parsing errors,
-     * lack of requested group, etc, while the "ret" field contains the return code from the group.
+     * lack of requested group, etc, while the "err" field contains the return code from the group.
      * <p>
      * Each group defines its own error codes, which may describe the issue in more detail than before.
+     * <p>
+     * Note: In NCS 2.4 nd Zephyr 3.4 this field is encoded as "ret" instead or "err".
+     * The {@link #buildResponse(McuMgrScheme, byte[], Class)} method replaces the "ret" with
+     * "err" before decoding the response to avoid compatibility issues.
      */
     @JsonProperty("err")
-    private GroupReturnCode groupReturnCode = null;
-
-    @JsonProperty("ret")
-    private GroupReturnCode groupReturnCodeOld = null;
-
-    @Override
-    public GroupReturnCode getGroupReturnCode() {
-        if (groupReturnCode != null)
-            return groupReturnCode;
-        return groupReturnCodeOld;
-    }
+    public GroupReturnCode groupReturnCode = null;
 
     /**
      * Scheme of the transport which produced this response.
@@ -137,6 +131,16 @@ public class McuMgrResponse implements HasReturnCode {
     }
 
     /**
+     * Return the Group return code as Group - Return Code pair.
+     *
+     * @return The group return code, or null if no error or the device is using SMP v1.
+     */
+    @Override
+    public GroupReturnCode getGroupReturnCode() {
+        return groupReturnCode;
+    }
+
+    /**
      * Returns true if the response payload contains a return code of 0 or no return code. In other
      * words, return true if the command was a success, false otherwise.
      *
@@ -144,8 +148,7 @@ public class McuMgrResponse implements HasReturnCode {
      */
     public boolean isSuccess() {
         return rc == McuMgrErrorCode.OK.value() &&
-              (groupReturnCode == null || groupReturnCode.rc == 0) &&
-              (groupReturnCodeOld == null || groupReturnCodeOld.rc == 0);
+              (groupReturnCode == null || groupReturnCode.rc == 0);
     }
 
     /**
@@ -267,11 +270,71 @@ public class McuMgrResponse implements HasReturnCode {
             }
         }
 
+        // Below is a workaround (hack) for handling new parameter "ret", added in Zephyr 3.4 and
+        // NCS 2.4. The "ret" parameter in SMP v2 returns response code from a Group (manager),
+        // i.e. FS Manager. The "rc" parameter is reserved for the McuManager responses where the
+        // request could not be delivered to the Group, i.e. the Group is not present.
+        //
+        // The issue is, that the name "ret" was colliding with already existing "ret" parameter
+        // used in Shell Manager. The Shell Manager returns the return code of the executed command.
+        // This was later solved by replacing the "ret" parameter with "err", keeping the same SMP
+        // version number: https://github.com/zephyrproject-rtos/zephyr/pull/60984
+        //
+        // As a workaround, the code below goes through the payload byte array and replaces "ret"
+        // with "err". To avoid false-positive replacements, the code checks if the payload is
+        // shorted than 21 bytes and "ret" is followed by 0xBF (map(*)).
+        //
+        // There are some hidden assumptions here:
+        // 1. If "ret" is returned as a Response Code, it is always the only field in the response.
+        //    Therefore, assuming map(*) encoding as BF..FF and even quite long group and error numbers,
+        //    the maximum length of the response is calculated to be 21 bytes.
+        // 2. The map encoded as BF..FF instead of Ax. This looks to be the case in zcbor library
+        //    used in Zephyr. The "BF" has to be checked to skip replacing when the "ret" field is
+        //    returned from a Shell Manager and indicates an integer value.
+        if (((bytes[0] >> 3) & 0b11) == 0b01 && payload.length <= 21) {
+            final byte[] find = new byte[] { 0x63, 0x72, 0x65, 0x74, (byte) 0xBF }; // String, len: 3, "ret"
+            final byte[] replace = new byte[] { 0x63, 0x65, 0x72, 0x72, (byte) 0xBF }; // String, len: 3, "err"
+            int index = indexOf(payload, find);
+            if (index != -1) {
+                byte[] result = new byte[payload.length - find.length + replace.length];
+                System.arraycopy(payload, 0, result, 0, index);
+                System.arraycopy(replace, 0, result, index, replace.length);
+                System.arraycopy(payload, index + find.length,
+                        result, index + replace.length,
+                        payload.length - index - find.length);
+                payload = result;
+            }
+        }
+
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
         response.initFields(scheme, bytes, header, payload);
 
         return response;
+    }
+
+    /**
+     * Searches for 'what' in `where` and returns the index of the first occurrence,
+     * or -1 if not found.
+     *
+     * @param where The array in which to search.
+     * @param what The array to search for.
+     * @return The index of the first occurrence of 'what' in 'where', or -1 if not found.
+     */
+    private static int indexOf(byte @NotNull [] where, byte @NotNull [] what) {
+        for (int i = 0; i < where.length - what.length + 1; i++) {
+            boolean found = true;
+            for (int j = 0; j < what.length; j++) {
+                if (where[i + j] != what[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

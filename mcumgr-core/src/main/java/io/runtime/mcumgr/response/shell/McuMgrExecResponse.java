@@ -13,9 +13,13 @@ import io.runtime.mcumgr.managers.ShellManager;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 public class McuMgrExecResponse extends McuMgrResponse implements ShellManager.Response {
-    /** The command response. */
+    /** The command output. */
     @JsonProperty("o")
     public String o;
+
+    /** Return code from shell command execution. */
+    @JsonProperty("ret")
+    public int ret;
 
     @JsonCreator
     public McuMgrExecResponse() {}
