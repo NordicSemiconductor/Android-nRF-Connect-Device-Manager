@@ -314,18 +314,18 @@ public class McuMgrResponse implements HasReturnCode {
     }
 
     /**
-     * Searches for 'what' in `where` and returns the index of the first occurrence,
+     * Searches for a 'needle' in a `haystack` and returns the index of the first occurrence,
      * or -1 if not found.
      *
-     * @param where The array in which to search.
-     * @param what The array to search for.
-     * @return The index of the first occurrence of 'what' in 'where', or -1 if not found.
+     * @param haystack The array in which to search.
+     * @param needle The array to search for.
+     * @return The index of the first occurrence of 'needle' in 'haystack', or -1 if not found.
      */
-    private static int indexOf(byte @NotNull [] where, byte @NotNull [] what) {
-        for (int i = 0; i < where.length - what.length + 1; i++) {
+    private static int indexOf(byte @NotNull [] haystack, byte @NotNull [] needle) {
+        for (int i = 0; i < haystack.length - needle.length + 1; i++) {
             boolean found = true;
-            for (int j = 0; j < what.length; j++) {
-                if (where[i + j] != what[j]) {
+            for (int j = 0; j < needle.length; j++) {
+                if (haystack[i + j] != needle[j]) {
                     found = false;
                     break;
                 }
