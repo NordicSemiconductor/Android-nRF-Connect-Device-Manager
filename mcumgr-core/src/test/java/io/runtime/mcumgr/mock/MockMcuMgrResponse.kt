@@ -91,5 +91,5 @@ fun McuMgrHeader.toResponse(): McuMgrHeader {
         McuMgrOperation.WRITE.value -> McuMgrOperation.WRITE_RESPONSE.value
         else -> op
     }
-    return McuMgrHeader(newOp, flags, len, groupId, sequenceNum, commandId)
+    return McuMgrHeader(version, newOp, flags, len, groupId, sequenceNum, commandId)
 }
