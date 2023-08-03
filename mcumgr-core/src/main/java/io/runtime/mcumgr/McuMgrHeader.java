@@ -23,6 +23,7 @@ public class McuMgrHeader {
 
     public final static int HEADER_LENGTH = 8;
 
+    private int mVersion;
     private int mOp;
     private int mFlags;
     private int mLen;
@@ -30,7 +31,8 @@ public class McuMgrHeader {
     private int mSequenceNum;
     private int mCommandId;
 
-    public McuMgrHeader(int op, int flags, int len, int groupId, int sequenceNum, int commandId) {
+    public McuMgrHeader(int version, int op, int flags, int len, int groupId, int sequenceNum, int commandId) {
+        mVersion = version;
         mOp = op;
         mFlags = flags;
         mLen = len;
@@ -40,7 +42,15 @@ public class McuMgrHeader {
     }
 
     public byte @NotNull [] toBytes() {
-        return build(mOp, mFlags, mLen, mGroupId, mSequenceNum, mCommandId);
+        return build(mVersion, mOp, mFlags, mLen, mGroupId, mSequenceNum, mCommandId);
+    }
+
+    public int getVersion() {
+        return mVersion;
+    }
+
+    public void setVersion(int version) {
+        this.mVersion = version;
     }
 
     public int getOp() {
@@ -94,7 +104,7 @@ public class McuMgrHeader {
     @NotNull
     @Override
     public String toString() {
-        return "Header (Op: " + mOp + ", Flags: " + mFlags + ", Len: " + mLen + ", Group: " +
+        return "Header (Version: " + mVersion + ", Op: " + mOp + ", Flags: " + mFlags + ", Len: " + mLen + ", Group: " +
                 mGroupId + ", Seq: " + mSequenceNum + ", Command: " + mCommandId + ")";
     }
 
@@ -111,18 +121,24 @@ public class McuMgrHeader {
         if (header.length < HEADER_LENGTH) {
             throw new IllegalArgumentException("Failed to parse mcumgr header from bytes; too short - length=" + header.length);
         }
-        int op          = ByteUtil.byteArrayToUnsignedInt(header, 0, Endian.BIG, 1);
+        int meta        = ByteUtil.byteArrayToUnsignedInt(header, 0, Endian.BIG, 1);
+        int version     = (meta >> 3) & 0b11;
+        int op          = meta & 0b111;
         int flags       = ByteUtil.byteArrayToUnsignedInt(header, 1, Endian.BIG, 1);
         int len         = ByteUtil.byteArrayToUnsignedInt(header, 2, Endian.BIG, 2);
         int groupId     = ByteUtil.byteArrayToUnsignedInt(header, 4, Endian.BIG, 2);
         int sequenceNum = ByteUtil.byteArrayToUnsignedInt(header, 6, Endian.BIG, 1);
         int commandId   = ByteUtil.byteArrayToUnsignedInt(header, 7, Endian.BIG, 1);
-        return new McuMgrHeader(op, flags, len, groupId, sequenceNum, commandId);
+        return new McuMgrHeader(version, op, flags, len, groupId, sequenceNum, commandId);
     }
 
     /**
      * Builds a new manager header.
      *
+     * @param version  this indicates the version of the protocol being used, this should be set to
+     *                 0b01 to use the newer SMP transport where error codes are more detailed and
+     *                 returned in the map, otherwise left as 0b00 to use the legacy SMP protocol.
+     *                 Versions 0b10 and 0b11 are reserved for future use and should not be used.
      * @param op       the operation for this packet: ({@link McuManager#OP_READ OP_READ},
      *                 {@link McuManager#OP_READ_RSP OP_READ_RSP}, {@link McuManager#OP_WRITE OP_WRITE},
      *                 {@link McuManager#OP_WRITE_RSP OP_WRITE_RSP}).
@@ -134,9 +150,9 @@ public class McuMgrHeader {
      * @param id       the sub-command ID for certain groups.
      * @return The built newt manager header.
      */
-    public static byte @NotNull [] build(int op, int flags, int len, int group, int sequence, int id) {
+    public static byte @NotNull [] build(int version, int op, int flags, int len, int group, int sequence, int id) {
         return new byte[]{
-                (byte) op,
+                (byte) ((op & 0b111) | ((version & 0b11) << 3)),
                 (byte) flags,
                 (byte) (len >>> 8), (byte) len,
                 (byte) (group >>> 8), (byte) group,

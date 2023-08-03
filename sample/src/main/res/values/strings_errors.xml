@@ -20,5 +20,87 @@
 		<item>Busy (10)</item>
 		<item>Access Denied (11)</item>
 	</string-array>
+
+	<string-array name="mcu_mgr_os_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Invalid format (2)</item>
+	</string-array>
+
+	<string-array name="mcu_mgr_img_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Flash config query fail (2)</item>
+		<item>No image (3)</item>
+		<item>No TLVs (4)</item>
+		<item>Invalid TLV (5)</item>
+		<item>TLV: Multiple hashes found (6)</item>
+		<item>TLV: Invalid size (7)</item>
+		<item>Hash not found (8)</item>
+		<item>No free slot (9)</item>
+		<item>Flash open failed (10)</item>
+		<item>Flash read failed (11)</item>
+		<item>Flash write failed (12)</item>
+		<item>Flash erase failed (13)</item>
+		<item>Invalid slot (14)</item>
+		<item>No free memory (15)</item>
+		<item>Flash context already set (16)</item>
+		<item>Flash context not set (17)</item>
+		<item>The device for the flash area is NULL (18)</item>
+		<item>Invalid page offset (19)</item>
+		<item>Invalid offset (20)</item>
+		<item>Invalid length (21)</item>
+		<item>Invalid image header (22)</item>
+		<item>Invalid image header magic (23)</item>
+		<item>Invalid hash (24)</item>
+		<item>Invalid flash address (25)</item>
+		<item>Version get failed (26)</item>
+		<item>Current version is newer (27)</item>
+		<item>Image already pending (28)</item>
+		<item>Invalid image vector table (29)</item>
+	</string-array>
+
+	<string-array name="mcu_mgr_stats_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Invalid group (2)</item>
+		<item>Invalid stat name (3)</item>
+		<item>Invalid stat size (4)</item>
+		<item>Walk aborted (5)</item>
+	</string-array>
+
+	<string-array name="mcu_mgr_fs_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Invalid name (2)</item>
+		<item>File not found (3)</item>
+		<item>Specified file is a directory, not a file (4)</item>
+		<item>Open failed (5)</item>
+		<item>Seek failed (6)</item>
+		<item>Read failed (7)</item>
+		<item>Truncate failed (8)</item>
+		<item>Delete failed (9)</item>
+		<item>Write failed (10)</item>
+		<item>Offset not valid (11)</item>
+		<item>Offset larger than file (12)</item>
+		<item>Checksum or hash not found or not supported (13)</item>
+	</string-array>
+
+	<string-array name="mcu_mgr_shell_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Command too long (2)</item>
+		<item>Command empty (3)</item>
+	</string-array>
+
+	<string-array name="mcu_mgr_zephyr_basic_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Open flash area failed (2)</item>
+		<item>Querying flash area parameters failed (3)</item>
+		<item>Erasing flash failed (4)</item>
+	</string-array>
+
 	<string name="mcu_mgr_error_other">Unknown error (%d)</string>
+	<string name="mcu_mgr_group_error_other">Unknown error (%d, group %d)</string>
 </resources>

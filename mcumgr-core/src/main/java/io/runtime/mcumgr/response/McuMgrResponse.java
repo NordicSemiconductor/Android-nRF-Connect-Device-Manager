@@ -28,7 +28,7 @@ import io.runtime.mcumgr.util.CBOR;
 
 @SuppressWarnings("unused")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class McuMgrResponse {
+public class McuMgrResponse implements HasReturnCode {
 
     private final static Logger LOG = LoggerFactory.getLogger(McuMgrResponse.class);
 
@@ -38,6 +38,20 @@ public class McuMgrResponse {
      */
     @JsonProperty("rc")
     public int rc = 0;
+
+    /**
+     * Since version 2 of the SMP protocol, a more detailed return code is returned in the response.
+     * The "rc" field is still present, but is reserved for the manager and returns parsing errors,
+     * lack of requested group, etc, while the "err" field contains the return code from the group.
+     * <p>
+     * Each group defines its own error codes, which may describe the issue in more detail than before.
+     * <p>
+     * Note: In NCS 2.4 nd Zephyr 3.4 this field is encoded as "ret" instead or "err".
+     * The {@link #buildResponse(McuMgrScheme, byte[], Class)} method replaces the "ret" with
+     * "err" before decoding the response to avoid compatibility issues.
+     */
+    @JsonProperty("err")
+    public GroupReturnCode groupReturnCode = null;
 
     /**
      * Scheme of the transport which produced this response.
@@ -101,6 +115,7 @@ public class McuMgrResponse {
      *
      * @return Mcu Manager return code.
      */
+    @Override
     public int getReturnCodeValue() {
         return rc;
     }
@@ -110,8 +125,19 @@ public class McuMgrResponse {
      *
      * @return The return code enum.
      */
+    @Override
     public McuMgrErrorCode getReturnCode() {
         return McuMgrErrorCode.valueOf(rc);
+    }
+
+    /**
+     * Return the Group return code as Group - Return Code pair.
+     *
+     * @return The group return code, or null if no error or the device is using SMP v1.
+     */
+    @Override
+    public GroupReturnCode getGroupReturnCode() {
+        return groupReturnCode;
     }
 
     /**
@@ -121,7 +147,8 @@ public class McuMgrResponse {
      * @return return true if the command was a success, false otherwise
      */
     public boolean isSuccess() {
-        return rc == McuMgrErrorCode.OK.value();
+        return rc == McuMgrErrorCode.OK.value() &&
+              (groupReturnCode == null || groupReturnCode.rc == 0);
     }
 
     /**
@@ -220,12 +247,12 @@ public class McuMgrResponse {
         // Try decoding response for Image Manager and FS Manager UPLOAD commands really quickly.
         Class<? extends UploadResponse> responseClass = null;
         if (type == McuMgrImageUploadResponse.class
-                && bytes[0] == 0x03                     // OP_WRITE_RSP
+                && (bytes[0] & 0b111) == 0x03                     // OP_WRITE_RSP
                 && bytes[4] == 0x00 && bytes[5] == 0x01 // GROUP_IMAGE
                 && bytes[7] == 0x01) {                  // ID_UPLOAD
            responseClass = McuMgrImageUploadResponse.class;
         } else if (type == McuMgrFsUploadResponse.class
-                && bytes[0] == 0x03                     // OP_WRITE_RSP
+                && (bytes[0] & 0b111) == 0x03                     // OP_WRITE_RSP
                 && bytes[4] == 0x00 && bytes[5] == 0x08 // GROUP_FS
                 && bytes[7] == 0x00) {                  // ID_FILE
             responseClass = McuMgrFsUploadResponse.class;
@@ -243,11 +270,71 @@ public class McuMgrResponse {
             }
         }
 
+        // Below is a workaround (hack) for handling new parameter "ret", added in Zephyr 3.4 and
+        // NCS 2.4. The "ret" parameter in SMP v2 returns response code from a Group (manager),
+        // i.e. FS Manager. The "rc" parameter is reserved for the McuManager responses where the
+        // request could not be delivered to the Group, i.e. the Group is not present.
+        //
+        // The issue is, that the name "ret" was colliding with already existing "ret" parameter
+        // used in Shell Manager. The Shell Manager returns the return code of the executed command.
+        // This was later solved by replacing the "ret" parameter with "err", keeping the same SMP
+        // version number: https://github.com/zephyrproject-rtos/zephyr/pull/60984
+        //
+        // As a workaround, the code below goes through the payload byte array and replaces "ret"
+        // with "err". To avoid false-positive replacements, the code checks if the payload is
+        // shorted than 21 bytes and "ret" is followed by 0xBF (map(*)).
+        //
+        // There are some hidden assumptions here:
+        // 1. If "ret" is returned as a Response Code, it is always the only field in the response.
+        //    Therefore, assuming map(*) encoding as BF..FF and even quite long group and error numbers,
+        //    the maximum length of the response is calculated to be 21 bytes.
+        // 2. The map encoded as BF..FF instead of Ax. This looks to be the case in zcbor library
+        //    used in Zephyr. The "BF" has to be checked to skip replacing when the "ret" field is
+        //    returned from a Shell Manager and indicates an integer value.
+        if (((bytes[0] >> 3) & 0b11) == 0b01 && payload.length <= 21) {
+            final byte[] find = new byte[] { 0x63, 0x72, 0x65, 0x74, (byte) 0xBF }; // String, len: 3, "ret"
+            final byte[] replace = new byte[] { 0x63, 0x65, 0x72, 0x72, (byte) 0xBF }; // String, len: 3, "err"
+            int index = indexOf(payload, find);
+            if (index != -1) {
+                byte[] result = new byte[payload.length - find.length + replace.length];
+                System.arraycopy(payload, 0, result, 0, index);
+                System.arraycopy(replace, 0, result, index, replace.length);
+                System.arraycopy(payload, index + find.length,
+                        result, index + replace.length,
+                        payload.length - index - find.length);
+                payload = result;
+            }
+        }
+
         // Initialize response and set fields
         T response = CBOR.toObject(payload, type);
         response.initFields(scheme, bytes, header, payload);
 
         return response;
+    }
+
+    /**
+     * Searches for a 'needle' in a `haystack` and returns the index of the first occurrence,
+     * or -1 if not found.
+     *
+     * @param haystack The array in which to search.
+     * @param needle The array to search for.
+     * @return The index of the first occurrence of 'needle' in 'haystack', or -1 if not found.
+     */
+    private static int indexOf(byte @NotNull [] haystack, byte @NotNull [] needle) {
+        for (int i = 0; i < haystack.length - needle.length + 1; i++) {
+            boolean found = true;
+            for (int j = 0; j < needle.length; j++) {
+                if (haystack[i + j] != needle[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -317,14 +404,19 @@ public class McuMgrResponse {
      * This method tries decoding response for Image Manager UPLOAD command really quickly, skipping
      * using {@link CBOR#toObject(byte[], Class)}, which is very slow. For a message to be properly
      * parsed it can be encoded as map(*) or map(2) with "rc" and "off" parameters in any order.
+     * <p>
+     * The "rc" parameter may be skipped. The "off" parameter must be present.
+     * <p>
+     * SMP 2: If a "ret" (NCS 2.4) or "err" (NCS 2.5+) parameter is present (indicating an error),
+     * this method returns null and leaves parsing to the CBOR parser.
      *
      * @param payload the CBOR payload as bytes.
      * @return the decoded message, or null.
      */
     private static <T extends UploadResponse> UploadResponse tryDecoding(final byte @NotNull [] payload, Class<T> responseType)
             throws IllegalAccessException, InstantiationException {
-        // The response must have "rc" and "off" encoded. The minimum number of bytes is 10.
-        if (payload.length < 10)
+        // The response must have "off" encoded. When the "rc" is omitted, the minimum number of bytes is 6.
+        if (payload.length < 6)
             return null;
 
         int offset = 0;
@@ -341,7 +433,7 @@ public class McuMgrResponse {
             final int lowerBits = payload[offset++] & 0x1F;
 
             switch (type) {
-                case 0: // positive int
+                case 0 -> { // positive int
                     // Values 23 or lower can be read as they are.
                     int value = -1;
                     if (lowerBits <= 23) {
@@ -349,19 +441,19 @@ public class McuMgrResponse {
                     } else {
                         // This fast method supports only 8, 16 and 32-bit positive integers.
                         switch (lowerBits - 24) {
-                            case 0:
+                            case 0 -> {
                                 if (payload.length > offset) {
                                     value = payload[offset] & 0xFF;
                                 }
                                 offset += 1;
-                                break;
-                            case 1:
+                            }
+                            case 1 -> {
                                 if (payload.length > offset + 1) {
                                     value = ((payload[offset] & 0xFF) << 8) | (payload[offset + 1] & 0xFF);
                                 }
                                 offset += 2;
-                                break;
-                            case 2:
+                            }
+                            case 2 -> {
                                 if (payload.length > offset + 3) {
                                     value = ((payload[offset] & 0xFF) << 24) | ((payload[offset + 1] & 0xFF) << 16) | ((payload[offset + 2] & 0xFF) << 8) | (payload[offset + 3] & 0xFF);
                                     if (value < 0) {
@@ -369,11 +461,11 @@ public class McuMgrResponse {
                                     }
                                 }
                                 offset += 4;
-                                break;
-                            case 3:
-                                // unsupported
-                            default:
+                            }
+                            // unsupported
+                            default -> {
                                 return null;
+                            }
                         }
                     }
                     if (value >= 0) {
@@ -383,26 +475,35 @@ public class McuMgrResponse {
                             off = value;
                         currentToken = -1;
                     }
-                    break;
-                case 3: // string
+                }
+                case 3 -> { // string
                     // We are only looking for "rc" and "off", which have lengths 2 and 3.
                     // The below code will return null if a longer token is found.
                     switch (lowerBits) {
-                        case 2: // "rc"
+                        case 2 -> {
+                            // "rc"
                             if (payload.length > offset + 1 && payload[offset] == 0x72 && payload[offset + 1] == 0x63) {
                                 currentToken = 0;
                             }
-                            break;
-                        case 3: // "off"
+                        }
+                        case 3 -> {
+                            // "off"
                             if (payload.length > offset + 2 && payload[offset] == 0x6F && payload[offset + 1] == 0x66 && payload[offset + 2] == 0x66) {
                                 currentToken = 1;
                             }
-                            break;
-                        default:
+                            // "err" or "ret"
+                            if (payload.length > offset + 2 && (
+                                    (payload[offset] == 0x72 && payload[offset + 1] == 0x65 && payload[offset + 2] == 0x74) ||
+                                    (payload[offset] == 0x65 && payload[offset + 1] == 0x72 && payload[offset + 2] == 0x72))) {
+                                return null;
+                            }
+                        }
+                        default -> {
                             return null;
+                        }
                     }
                     offset += lowerBits;
-                    break;
+                }
             }
         }
         final UploadResponse response = responseType.newInstance();
@@ -411,4 +512,3 @@ public class McuMgrResponse {
         return response;
     }
 }
-

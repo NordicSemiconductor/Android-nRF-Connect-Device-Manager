@@ -16,7 +16,7 @@ import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.ShellManager;
-import io.runtime.mcumgr.response.dflt.McuMgrExecResponse;
+import io.runtime.mcumgr.response.shell.McuMgrExecResponse;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
 
 public class ExecViewModel extends McuMgrViewModel {

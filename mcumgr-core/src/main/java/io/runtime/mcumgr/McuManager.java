@@ -55,6 +55,8 @@ public abstract class McuManager {
     protected final static int OP_WRITE = 2;
     protected final static int OP_WRITE_RSP = 3;
 
+    private final static int SMP_VERSION = 0b01;
+
     // Mcu Manager groups
     protected final static int GROUP_DEFAULT = 0;
     protected final static int GROUP_IMAGE = 1;
@@ -470,7 +472,7 @@ public abstract class McuManager {
             int len = cborPayload.length;
 
             // Build header
-            byte[] header = McuMgrHeader.build(op, flags, len, groupId, sequenceNum, commandId);
+            byte[] header = McuMgrHeader.build(SMP_VERSION, op, flags, len, groupId, sequenceNum, commandId);
 
             // Build the packet based on scheme
             if (scheme.isCoap()) {

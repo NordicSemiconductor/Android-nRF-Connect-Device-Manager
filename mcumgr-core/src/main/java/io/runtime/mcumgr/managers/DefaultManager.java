@@ -16,11 +16,15 @@ import java.util.TimeZone;
 
 import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrGroupReturnCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrEchoResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrMpStatResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrParamsResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrReadDateTimeResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrTaskStatResponse;
@@ -30,6 +34,53 @@ import io.runtime.mcumgr.response.dflt.McuMgrTaskStatResponse;
  */
 @SuppressWarnings("unused")
 public class DefaultManager extends McuManager {
+    public enum ReturnCode implements McuMgrGroupReturnCode {
+        /** No error, this is implied if there is no ret value in the response */
+       OK(0),
+
+        /** Unknown error occurred. */
+       UNKNOWN(1),
+
+        /** The provided format value is not valid. */
+       INVALID_FORMAT(2);
+
+        private final int mCode;
+
+        ReturnCode(int code) {
+            mCode = code;
+        }
+
+        public int value() {
+            return mCode;
+        }
+
+        public static @Nullable DefaultManager.ReturnCode valueOf(@Nullable McuMgrResponse.GroupReturnCode returnCode) {
+            if (returnCode == null || returnCode.group != GROUP_DEFAULT) {
+                return null;
+            }
+            for (DefaultManager.ReturnCode code : values()) {
+                if (code.value() == returnCode.rc) {
+                    return code;
+                }
+            }
+            return UNKNOWN;
+        }
+    }
+
+    public interface Response extends HasReturnCode {
+
+        @Nullable
+        default DefaultManager.ReturnCode getOsReturnCode() {
+            McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
+            if (groupReturnCode == null) {
+                if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
+                    return DefaultManager.ReturnCode.OK;
+                }
+                return DefaultManager.ReturnCode.UNKNOWN;
+            }
+            return DefaultManager.ReturnCode.valueOf(groupReturnCode);
+        }
+    }
 
     // Command IDs
     private final static int ID_ECHO = 0;
@@ -85,10 +136,10 @@ public class DefaultManager extends McuManager {
      * @param echo     whether or not to echo to the console.
      * @param callback the asynchronous callback.
      */
-    public void consoleEcho(boolean echo, @NotNull McuMgrCallback<McuMgrResponse> callback) {
+    public void consoleEcho(boolean echo, @NotNull McuMgrCallback<McuMgrOsResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
-        send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
     }
 
     /**
@@ -99,10 +150,10 @@ public class DefaultManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse consoleEcho(boolean echo) throws McuMgrException {
+    public McuMgrOsResponse consoleEcho(boolean echo) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
-        return send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
+        return send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class);
     }
 
     /**
@@ -175,10 +226,10 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone,
-                              @NotNull McuMgrCallback<McuMgrResponse> callback) {
+                              @NotNull McuMgrCallback<McuMgrOsResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("datetime", dateToString(date, timeZone));
-        send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
     }
 
     /**
@@ -192,11 +243,11 @@ public class DefaultManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone)
+    public McuMgrOsResponse writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("datetime", dateToString(date, timeZone));
-        return send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
+        return send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class);
     }
 
     /**
@@ -204,8 +255,8 @@ public class DefaultManager extends McuManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void reset(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+    public void reset(@NotNull McuMgrCallback<McuMgrOsResponse> callback) {
+        send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
     }
 
     /**
@@ -215,8 +266,8 @@ public class DefaultManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse reset() throws McuMgrException {
-        return send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrResponse.class);
+    public McuMgrOsResponse reset() throws McuMgrException {
+        return send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrOsResponse.class);
     }
 
     /**

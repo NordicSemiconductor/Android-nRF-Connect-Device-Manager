@@ -9,9 +9,10 @@ package io.runtime.mcumgr.response.fs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.response.UploadResponse;
 
-public class McuMgrFsUploadResponse extends UploadResponse {
+public class McuMgrFsUploadResponse extends UploadResponse implements FsManager.Response {
     @JsonCreator
     public McuMgrFsUploadResponse() {}
 }

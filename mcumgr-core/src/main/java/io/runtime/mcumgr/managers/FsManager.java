@@ -8,6 +8,7 @@
 package io.runtime.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +17,14 @@ import java.util.HashMap;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrGroupReturnCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.DownloadResponse;
+import io.runtime.mcumgr.response.HasReturnCode;
+import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.UploadResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsDownloadResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsUploadResponse;
@@ -34,6 +38,93 @@ import io.runtime.mcumgr.util.CBOR;
 
 @SuppressWarnings({"WeakerAccess", "unused", "DeprecatedIsStillUsed", "deprecation"})
 public class FsManager extends TransferManager {
+
+    public enum ReturnCode implements McuMgrGroupReturnCode {
+        /** No error, this is implied if there is no ret value in the response */
+        OK(0),
+
+        /** Unknown error occurred. */
+        UNKNOWN(1),
+
+        /** The specified file name is not valid. */
+        INVALID_NAME(2),
+
+        /** The specified file does not exist. */
+        NOT_FOUND(3),
+
+        /** The specified file is a directory, not a file. */
+        IS_DIRECTORY(4),
+
+        /** Error occurred whilst attempting to open a file. */
+        OPEN_FAILED(5),
+
+        /** Error occurred whilst attempting to seek to an offset in a file. */
+        SEEK_FAILED(6),
+
+        /** Error occurred whilst attempting to read data from a file. */
+        READ_FAILED(7),
+
+        /** Error occurred whilst trying to truncate file. */
+        TRUNCATE_FAILED(8),
+
+        /** Error occurred whilst trying to delete file. */
+        DELETE_FAILED(9),
+
+        /** Error occurred whilst attempting to write data to a file. */
+        WRITE_FAILED(10),
+
+        /**
+         * The specified data offset is not valid, this could indicate that the file on the device
+         * has changed since the previous command. The length of the current file on the device is
+         * returned as "len", the user application needs to decide how to handle this (e.g. the
+         * hash of the file could be requested and compared with the hash of the length of the
+         * file being uploaded to see if they match or not).
+         */
+        OFFSET_NOT_VALID(11),
+
+        /** The requested offset is larger than the size of the file on the device. */
+        OFFSET_LARGER_THAN_FILE(12),
+
+        /** The requested checksum or hash type was not found or is not supported by this build. */
+        CHECKSUM_HASH_NOT_FOUND(13);
+
+        private final int mCode;
+
+        ReturnCode(int code) {
+            mCode = code;
+        }
+
+        public int value() {
+            return mCode;
+        }
+
+        public static @Nullable ReturnCode valueOf(@Nullable McuMgrResponse.GroupReturnCode returnCode) {
+            if (returnCode == null || returnCode.group != GROUP_FS) {
+                return null;
+            }
+            for (ReturnCode code : values()) {
+                if (code.value() == returnCode.rc) {
+                    return code;
+                }
+            }
+            return UNKNOWN;
+        }
+    }
+
+    public interface Response extends HasReturnCode {
+
+        @Nullable
+        default FsManager.ReturnCode getFsReturnCode() {
+            McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
+            if (groupReturnCode == null) {
+                if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
+                    return FsManager.ReturnCode.OK;
+                }
+                return FsManager.ReturnCode.UNKNOWN;
+            }
+            return FsManager.ReturnCode.valueOf(groupReturnCode);
+        }
+    }
 
     private final static Logger LOG = LoggerFactory.getLogger(FsManager.class);
 
@@ -503,8 +594,7 @@ public class FsManager extends TransferManager {
                 @Override
                 public void onError(@NotNull McuMgrException error) {
                     // Check if the exception is due to an insufficient MTU.
-                    if (error instanceof InsufficientMtuException) {
-                        InsufficientMtuException mtuErr = (InsufficientMtuException) error;
+                    if (error instanceof InsufficientMtuException mtuErr) {
 
                         // Set the MTU to the value specified in the error response.
                         int mtu = mtuErr.getMtu();
@@ -583,8 +673,7 @@ public class FsManager extends TransferManager {
                 @Override
                 public void onError(@NotNull McuMgrException error) {
                     // Check if the exception is due to an insufficient MTU.
-                    if (error instanceof InsufficientMtuException) {
-                        InsufficientMtuException mtuErr = (InsufficientMtuException) error;
+                    if (error instanceof InsufficientMtuException mtuErr) {
 
                         // Set the MTU to the value specified in the error response.
                         int mtu = mtuErr.getMtu();

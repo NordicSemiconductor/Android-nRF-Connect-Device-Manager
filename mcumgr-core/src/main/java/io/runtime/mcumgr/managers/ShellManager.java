@@ -7,12 +7,67 @@ import java.util.HashMap;
 
 import io.runtime.mcumgr.McuManager;
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrGroupReturnCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.response.dflt.McuMgrExecResponse;
+import io.runtime.mcumgr.response.HasReturnCode;
+import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.shell.McuMgrExecResponse;
 
 @SuppressWarnings("unused")
 public class ShellManager extends McuManager {
+	public enum ReturnCode implements McuMgrGroupReturnCode {
+		/** No error, this is implied if there is no ret value in the response */
+		OK(0),
+
+		/** Unknown error occurred. */
+		UNKNOWN(1),
+
+		/** The provided command to execute is too long. */
+		COMMAND_TOO_LONG(2),
+
+		/** No command to execute was provided. */
+		EMPTY_COMMAND(3);
+
+		private final int mCode;
+
+		ReturnCode(int code) {
+			mCode = code;
+		}
+
+		public int value() {
+			return mCode;
+		}
+
+		public static @Nullable ShellManager.ReturnCode valueOf(@Nullable McuMgrResponse.GroupReturnCode returnCode) {
+			if (returnCode == null || returnCode.group != GROUP_SHELL) {
+				return null;
+			}
+			for (ShellManager.ReturnCode code : values()) {
+				if (code.value() == returnCode.rc) {
+					return code;
+				}
+			}
+			return UNKNOWN;
+		}
+	}
+
+	public interface Response extends HasReturnCode {
+
+		@Nullable
+		default BasicManager.ReturnCode getOsReturnCode() {
+			McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
+			if (groupReturnCode == null) {
+				if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
+					return BasicManager.ReturnCode.OK;
+				}
+				return BasicManager.ReturnCode.UNKNOWN;
+			}
+			return BasicManager.ReturnCode.valueOf(groupReturnCode);
+		}
+	}
+
 
 	// Command IDs
 	// https://github.com/zephyrproject-rtos/zephyr/blob/main/subsys/mgmt/mcumgr/lib/cmd/shell_mgmt/include/shell_mgmt/shell_mgmt.h

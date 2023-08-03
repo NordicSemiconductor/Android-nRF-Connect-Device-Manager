@@ -24,9 +24,10 @@ package io.runtime.mcumgr.response.img;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.DownloadResponse;
 
-public class McuMgrCoreLoadResponse extends DownloadResponse {
+public class McuMgrCoreLoadResponse extends DownloadResponse implements ImageManager.Response {
     @JsonCreator
     public McuMgrCoreLoadResponse() {}
 }

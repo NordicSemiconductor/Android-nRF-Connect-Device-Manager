@@ -19,6 +19,7 @@ import java.util.HashMap;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
+import io.runtime.mcumgr.McuMgrGroupReturnCode;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.crash.CoreDump;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
@@ -26,9 +27,11 @@ import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.DownloadResponse;
+import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.UploadResponse;
 import io.runtime.mcumgr.response.img.McuMgrCoreLoadResponse;
+import io.runtime.mcumgr.response.img.McuMgrImageResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.transfer.Download;
@@ -52,6 +55,135 @@ import io.runtime.mcumgr.util.CBOR;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ImageManager extends TransferManager {
+
+    public enum ReturnCode implements McuMgrGroupReturnCode {
+        /** No error, this is implied if there is no ret value in the response */
+        OK(0),
+
+        /** Unknown error occurred. */
+        UNKNOWN(1),
+
+        /** Failed to query flash area configuration. */
+        FLASH_CONFIG_QUERY_FAIL(2),
+
+        /** There is no image in the slot. */
+        NO_IMAGE(3),
+
+        /** The image in the slot has no TLVs (tag, length, value). */
+        NO_TLVS(4),
+
+        /** The image in the slot has an invalid TLV type and/or length. */
+        INVALID_TLV(5),
+
+        /** The image in the slot has multiple hash TLVs, which is invalid. */
+        TLV_MULTIPLE_HASHES_FOUND(6),
+
+        /** The image in the slot has an invalid TLV size. */
+        TLV_INVALID_SIZE(7),
+
+        /** The image in the slot does not have a hash TLV, which is required.  */
+        HASH_NOT_FOUND(8),
+
+        /** There is no free slot to place the image. */
+        NO_FREE_SLOT(9),
+
+        /** Flash area opening failed. */
+        FLASH_OPEN_FAILED(10),
+
+        /** Flash area reading failed. */
+        FLASH_READ_FAILED(11),
+
+        /** Flash area writing failed. */
+        FLASH_WRITE_FAILED(12),
+
+        /** Flash area erase failed. */
+        FLASH_ERASE_FAILED(13),
+
+        /** The provided slot is not valid. */
+        INVALID_SLOT(14),
+
+        /** Insufficient heap memory (malloc failed). */
+        NO_FREE_MEMORY(15),
+
+        /** The flash context is already set. */
+        FLASH_CONTEXT_ALREADY_SET(16),
+
+        /** The flash context is not set. */
+        FLASH_CONTEXT_NOT_SET(17),
+
+        /** The device for the flash area is NULL. */
+        FLASH_AREA_DEVICE_NULL(18),
+
+        /** The offset for a page number is invalid. */
+        INVALID_PAGE_OFFSET(19),
+
+        /** The offset parameter was not provided and is required. */
+        INVALID_OFFSET(20),
+
+        /** The length parameter was not provided and is required. */
+        INVALID_LENGTH(21),
+
+        /** The image length is smaller than the size of an image header. */
+        INVALID_IMAGE_HEADER(22),
+
+        /** The image header magic value does not match the expected value. */
+        INVALID_IMAGE_HEADER_MAGIC(23),
+
+        /** The hash parameter provided is not valid. */
+        INVALID_HASH(24),
+
+        /** The image load address does not match the address of the flash area. */
+        INVALID_FLASH_ADDRESS(25),
+
+        /** Failed to get version of currently running application. */
+        VERSION_GET_FAILED(26),
+
+        /** The currently running application is newer than the version being uploaded. */
+        CURRENT_VERSION_IS_NEWER(27),
+
+        /** There is already an image operating pending. */
+        IMAGE_ALREADY_PENDING(28),
+
+        /** The image vector table is invalid. */
+        INVALID_IMAGE_VECTOR_TABLE(29);
+
+        private final int mCode;
+
+        ReturnCode(int code) {
+            mCode = code;
+        }
+
+        public int value() {
+            return mCode;
+        }
+
+        public static @Nullable ImageManager.ReturnCode valueOf(@Nullable McuMgrResponse.GroupReturnCode returnCode) {
+            if (returnCode == null || returnCode.group != GROUP_IMAGE) {
+                return null;
+            }
+            for (ImageManager.ReturnCode code : values()) {
+                if (code.value() == returnCode.rc) {
+                    return code;
+                }
+            }
+            return UNKNOWN;
+        }
+    }
+
+    public interface Response extends HasReturnCode {
+
+        @Nullable
+        default ImageManager.ReturnCode getImageReturnCode() {
+            McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
+            if (groupReturnCode == null) {
+                if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
+                    return ImageManager.ReturnCode.OK;
+                }
+                return ImageManager.ReturnCode.UNKNOWN;
+            }
+            return ImageManager.ReturnCode.valueOf(groupReturnCode);
+        }
+    }
 
     private final static Logger LOG = LoggerFactory.getLogger(ImageManager.class);
 
@@ -314,7 +446,7 @@ public class ImageManager extends TransferManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void erase(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+    public void erase(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
         erase(0, callback);
     }
 
@@ -324,13 +456,13 @@ public class ImageManager extends TransferManager {
      * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
      * @param callback the asynchronous callback.
      */
-    public void erase(int image, @NotNull McuMgrCallback<McuMgrResponse> callback) {
+    public void erase(int image, @NotNull McuMgrCallback<McuMgrImageResponse> callback) {
         HashMap<String, Object> payloadMap = null;
         if (image > 0) {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        send(OP_WRITE, ID_ERASE, payloadMap, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_ERASE, payloadMap, DEFAULT_TIMEOUT, McuMgrImageResponse.class, callback);
     }
 
     /**
@@ -340,7 +472,7 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse erase() throws McuMgrException {
+    public McuMgrImageResponse erase() throws McuMgrException {
         return erase(0);
     }
 
@@ -352,13 +484,13 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse erase(int image) throws McuMgrException {
+    public McuMgrImageResponse erase(int image) throws McuMgrException {
         HashMap<String, Object> payloadMap = null;
         if (image > 0) {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        return send(OP_WRITE, ID_ERASE, payloadMap, DEFAULT_TIMEOUT, McuMgrResponse.class);
+        return send(OP_WRITE, ID_ERASE, payloadMap, DEFAULT_TIMEOUT, McuMgrImageResponse.class);
     }
 
     /**
@@ -366,7 +498,7 @@ public class ImageManager extends TransferManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void eraseState(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+    public void eraseState(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
         eraseState(0, callback);
     }
 
@@ -376,13 +508,13 @@ public class ImageManager extends TransferManager {
      * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
      * @param callback the asynchronous callback.
      */
-    public void eraseState(int image, @NotNull McuMgrCallback<McuMgrResponse> callback) {
+    public void eraseState(int image, @NotNull McuMgrCallback<McuMgrImageResponse> callback) {
         HashMap<String, Object> payloadMap = null;
         if (image > 0) {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        send(OP_WRITE, ID_ERASE_STATE, payloadMap, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_ERASE_STATE, payloadMap, DEFAULT_TIMEOUT, McuMgrImageResponse.class, callback);
     }
 
     /**
@@ -392,7 +524,7 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse eraseState() throws McuMgrException {
+    public McuMgrImageResponse eraseState() throws McuMgrException {
         return eraseState(0);
     }
 
@@ -404,13 +536,13 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse eraseState(int image) throws McuMgrException {
+    public McuMgrImageResponse eraseState(int image) throws McuMgrException {
         HashMap<String, Object> payloadMap = null;
         if (image > 0) {
             payloadMap = new HashMap<>();
             payloadMap.put("image", image);
         }
-        return send(OP_WRITE, ID_ERASE_STATE, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
+        return send(OP_WRITE, ID_ERASE_STATE, payloadMap, SHORT_TIMEOUT, McuMgrImageResponse.class);
     }
 
     /**
@@ -422,8 +554,8 @@ public class ImageManager extends TransferManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void coreList(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+    public void coreList(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
+        send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrImageResponse.class, callback);
     }
 
     /**
@@ -437,8 +569,8 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse coreList() throws McuMgrException {
-        return send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrResponse.class);
+    public McuMgrImageResponse coreList() throws McuMgrException {
+        return send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrImageResponse.class);
     }
 
     /**
@@ -472,8 +604,8 @@ public class ImageManager extends TransferManager {
      *
      * @param callback the asynchronous callback.
      */
-    public void coreErase(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
+    public void coreErase(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
+        send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrImageResponse.class, callback);
     }
 
     /**
@@ -483,8 +615,8 @@ public class ImageManager extends TransferManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse coreErase() throws McuMgrException {
-        return send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
+    public McuMgrImageResponse coreErase() throws McuMgrException {
+        return send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrImageResponse.class);
     }
 
     //******************************************************************
@@ -777,9 +909,7 @@ public class ImageManager extends TransferManager {
                 @Override
                 public void onError(@NotNull McuMgrException error) {
                     // Check if the exception is due to an insufficient MTU.
-                    if (error instanceof InsufficientMtuException) {
-                        InsufficientMtuException mtuErr = (InsufficientMtuException) error;
-
+                    if (error instanceof InsufficientMtuException mtuErr) {
                         // Set the MTU to the value specified in the error response.
                         int mtu = mtuErr.getMtu();
                         if (mMtu == mtu)

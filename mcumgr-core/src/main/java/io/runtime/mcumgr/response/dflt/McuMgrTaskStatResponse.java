@@ -11,10 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
-import io.runtime.mcumgr.response.McuMgrResponse;
-
 @SuppressWarnings({"PointlessBitwiseExpression", "unused"})
-public class McuMgrTaskStatResponse extends McuMgrResponse {
+public class McuMgrTaskStatResponse extends McuMgrOsResponse {
     // For Zephyr see:
     // https://github.com/zephyrproject-rtos/zephyr/blob/master/kernel/include/kernel_structs.h
     /** Not a real thread */

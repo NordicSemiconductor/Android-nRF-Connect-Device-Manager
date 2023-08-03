@@ -14,7 +14,7 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.DefaultManager;
-import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
 import io.runtime.mcumgr.task.TaskManager;
 
 class Reset extends FirmwareUpgradeTask {
@@ -77,7 +77,7 @@ class Reset extends FirmwareUpgradeTask {
 		final DefaultManager manager = new DefaultManager(transport);
 		manager.reset(new McuMgrCallback<>() {
 			@Override
-			public void onResponse(@NotNull final McuMgrResponse response) {
+			public void onResponse(@NotNull final McuMgrOsResponse response) {
 				// Check for an error return code.
 				if (!response.isSuccess()) {
 					performer.onTaskFailed(Reset.this, new McuMgrErrorException(response.getReturnCode()));

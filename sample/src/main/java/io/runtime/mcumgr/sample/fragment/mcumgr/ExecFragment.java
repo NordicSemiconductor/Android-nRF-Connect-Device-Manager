@@ -7,13 +7,8 @@
 package io.runtime.mcumgr.sample.fragment.mcumgr;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -21,19 +16,17 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import java.util.Arrays;
 import java.util.Set;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import io.runtime.mcumgr.McuMgrErrorCode;
-import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardExecBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -85,16 +78,7 @@ public class ExecFragment extends Fragment implements Injectable {
         );
         viewModel.getError().observe(
                 getViewLifecycleOwner(),
-                error -> {
-                    if (error instanceof McuMgrErrorException) {
-                        final McuMgrErrorCode code = ((McuMgrErrorException) error).getCode();
-                        if (code == McuMgrErrorCode.UNKNOWN) {
-                            printOutput(getString(R.string.exec_unknown));
-                            return;
-                        }
-                    }
-                    printOutput(StringUtils.toString(requireContext(), error));
-                }
+                error -> printOutput(StringUtils.toString(requireContext(), error))
         );
         binding.actionHistory.setOnClickListener(v -> {
             final PopupMenu popupMenu = new PopupMenu(requireContext(), v);

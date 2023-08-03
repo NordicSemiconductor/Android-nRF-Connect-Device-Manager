@@ -6,17 +6,18 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.DefaultManager;
-import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
 
 public class ResetViewModel extends McuMgrViewModel {
     private final DefaultManager manager;
@@ -39,7 +40,7 @@ public class ResetViewModel extends McuMgrViewModel {
         setBusy();
         manager.reset(new McuMgrCallback<>() {
             @Override
-            public void onResponse(@NonNull final McuMgrResponse response) {
+            public void onResponse(@NonNull final McuMgrOsResponse response) {
                 manager.getTransporter().addObserver(new McuMgrTransport.ConnectionObserver() {
                     @Override
                     public void onConnected() {
