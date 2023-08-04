@@ -345,7 +345,7 @@ public class DefaultManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse params(@Nullable String format) throws McuMgrException {
+    public McuMgrResponse appInfo(@Nullable String format) throws McuMgrException {
         HashMap<String, Object> payloadMap = null;
         if (format != null) {
             payloadMap = new HashMap<>();
