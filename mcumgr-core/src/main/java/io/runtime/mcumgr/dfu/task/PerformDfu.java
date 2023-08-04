@@ -1,15 +1,11 @@
 package io.runtime.mcumgr.dfu.task;
 
-import android.util.Pair;
-
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
 import io.runtime.mcumgr.task.TaskManager;
 
 /**
@@ -19,14 +15,14 @@ import io.runtime.mcumgr.task.TaskManager;
 public class PerformDfu extends FirmwareUpgradeTask {
 
 	@NotNull
-	private final List<Pair<Integer, McuMgrImage>> images;
+	private final McuMgrImageSet images;
 	@NotNull
 	private final FirmwareUpgradeManager.Mode mode;
 
 	private final boolean eraseSettings;
 
 	public PerformDfu(final @NotNull FirmwareUpgradeManager.Mode mode,
-					  final @NotNull List<Pair<Integer, McuMgrImage>> images,
+					  final @NotNull McuMgrImageSet images,
 					  final boolean eraseSettings) {
 		this.mode = mode;
 		this.images = images;

@@ -1,21 +1,17 @@
 package io.runtime.mcumgr.dfu;
 
-import android.util.Pair;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Mode;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
 import io.runtime.mcumgr.dfu.task.FirmwareUpgradeTask;
 import io.runtime.mcumgr.dfu.task.PerformDfu;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.task.Task;
 import io.runtime.mcumgr.task.TaskPerformer;
 
@@ -41,7 +37,7 @@ public class FirmwareUpgradePerformer extends TaskPerformer<Settings, State> {
 
 	void start(@NotNull final Settings settings,
 			   @NotNull final Mode mode,
-			   @NotNull final List<Pair<Integer, McuMgrImage>> images,
+			   @NotNull final McuMgrImageSet images,
 			   final boolean eraseSettings) {
 		LOG.trace("Starting DFU, mode: {}", mode.name());
 		super.start(settings, new PerformDfu(mode, images, eraseSettings));

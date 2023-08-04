@@ -9,16 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
 import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
+import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.image.McuMgrImage;
-
-// TODO Add retries for each step
 
 /**
  * Manages a McuManager firmware upgrade. Once initialized, <b>this object can only perform a single
@@ -347,14 +344,14 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * notifications and continue to send until the complete image is sent.
      * <p>
      * This value should match MCUMGR_BUF_COUNT - 1
-     * (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
+     * (<a href="https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550">link</a>)
      * in Zephyr KConfig, which is by default set to 4. One buffer is used for sending responses.
      * <p>
      * Mind, that the speed increases only if the returned offsets match the required offset
      * (initial offset + sent packet size). In other case the packets with unexpected offsets
      * are dropped by the device causing teh packets to be resent, which actually makes the upload
      * slower.
-     *
+     * <p>
      * Pause and resume will throw an exception when window upload is used.
      * @param windowCapacity the maximum number of concurrent upload requests at any time.
      */
@@ -380,8 +377,8 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * first one would have to be sent again, not with slightly decremented offset.
      * By trimming to memory alignment, this library makes sure that all bytes sent are consumed.
      * <p>
-     * With https://github.com/zephyrproject-rtos/zephyr/pull/41959 PR merged, you can set the
-     * alignment to 1 (disabled), as the flash manager itself takes care of alignment.
+     * With <a href="https://github.com/zephyrproject-rtos/zephyr/pull/41959">PR merged</a>, you
+     * can set the alignment to 1 (disabled), as the flash manager itself takes care of alignment.
      */
     public void setMemoryAlignment(final int alignment) {
         if (alignment < 1) {
@@ -405,8 +402,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * automatically.
      */
     public synchronized void start(final byte @NotNull [] imageData) throws McuMgrException {
-        final Pair<Integer, byte[]> image = new Pair<>(0, imageData);
-        start(Collections.singletonList(image), false);
+        start(new McuMgrImageSet().add(imageData), false);
     }
 
     /**
@@ -423,27 +419,46 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      *
      * @param images       list of images with image index.
      * @param eraseStorage should the app settings be erased, or not (default true).
+     * @deprecated Use {@link #start(McuMgrImageSet, boolean)} instead.
      */
+    @Deprecated(since = "1.8")
     public synchronized void start(@NotNull final List<Pair<Integer, byte[]>> images,
+                                   final boolean eraseStorage) throws McuMgrException {
+        start(new McuMgrImageSet().add(images), eraseStorage);
+    }
+
+    /**
+     * Starts an upgrade with given image set. The targets define the image index and
+     * slot to which the binary should be sent.
+     * <p>
+     * This method can be used for mutli-core devices (each core is identified by
+     * {@link McuMgrTargetImage#imageIndex}) with and without Direct XIP feature.
+     * <p>
+     * Direct XIP is a feature added in NCS 2.5 allowing to boot a device from a non-primary slot.
+     * For such devices the correct image has to be sent (compiled for that specific slot), depending
+     * on the slot number with the active image. This feature removes the need for a swap after an
+     * update, as the newly uploaded image is already in the correct slot.
+     *
+     * @param images       set of images. For direct XIP this set should contain images compiled
+     *                     for both slots. The correct image will be chosen automatically.
+     * @param eraseStorage should the app settings be erased, or not (default true).
+     * @since 1.8
+     */
+    public synchronized void start(@NotNull final McuMgrImageSet images,
                                    final boolean eraseStorage) throws McuMgrException {
         if (mPerformer.isBusy()) {
             LOG.info("Firmware upgrade is already in progress");
             return;
         }
-        // Store images to be sent.
-        final List<Pair<Integer, McuMgrImage>> mcuMgrImages = new ArrayList<>(images.size());
-        for (final Pair<Integer, byte[]> image: images) {
-            mcuMgrImages.add(new Pair<>(image.first, McuMgrImage.fromBytes(image.second)));
-        }
 
         // Start upgrade.
         mInternalCallback.onUpgradeStarted(this);
         final Settings settings = new Settings.Builder(mTransport)
-            .setEstimatedSwapTime(mEstimatedSwapTime)
-            .setWindowCapacity(mWindowCapacity)
-            .setMemoryAlignment(mMemoryAlignment)
-            .build();
-        mPerformer.start(settings, mMode, mcuMgrImages, eraseStorage);
+                .setEstimatedSwapTime(mEstimatedSwapTime)
+                .setWindowCapacity(mWindowCapacity)
+                .setMemoryAlignment(mMemoryAlignment)
+                .build();
+        mPerformer.start(settings, mMode, images, eraseStorage);
     }
 
     //******************************************************************
