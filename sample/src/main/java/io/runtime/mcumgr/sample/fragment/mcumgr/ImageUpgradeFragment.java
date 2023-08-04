@@ -115,12 +115,11 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         binding.advancedMemoryAlignment.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.drop_down_item, items));
         binding.advancedMemoryAlignment.setOnItemClickListener((parent, view, position, id) -> {
             switch (position) {
-                case 1: memoryAlignment = 2; break;
-                case 2: memoryAlignment = 4; break;
-                case 3: memoryAlignment = 8; break;
-                case 4: memoryAlignment = 16; break;
-                case 0:
-                default:memoryAlignment = 1; break;
+                case 1 -> memoryAlignment = 2;
+                case 2 -> memoryAlignment = 4;
+                case 3 -> memoryAlignment = 8;
+                case 4 -> memoryAlignment = 16;
+                default -> memoryAlignment = 1;
             }
         });
 
@@ -131,15 +130,13 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.advancedSwapTime.setText(getString(R.string.value_int, preferences.getInt(PREF_ESTIMATED_SWAP_TIME, 10)));
             binding.advancedWindowCapacity.setText(getString(R.string.value_int, preferences.getInt(PREF_WINDOW_CAPACITY, 4)));
             memoryAlignment = preferences.getInt(PREF_MEMORY_ALIGNMENT, 4);
-            int position;
-            switch (memoryAlignment) {
-                case 2: position = 1; break;
-                case 4: position = 2; break;
-                case 8: position = 3; break;
-                case 16: position = 4; break;
-                case 0:
-                default: position = 0; break;
-            }
+            int position = switch (memoryAlignment) {
+                case 2 -> 1;
+                case 4 -> 2;
+                case 8 -> 3;
+                case 16 -> 4;
+                default -> 0;
+            };
             binding.advancedMemoryAlignment.setText(items[position], false);
         }
 
@@ -179,35 +176,25 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.actionPauseResume.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
             // Update status
             switch (state) {
-                case VALIDATING:
+                case VALIDATING -> {
                     binding.status.setText(R.string.image_upgrade_status_validating);
                     binding.advancedEraseSettings.setEnabled(false);
                     binding.advancedSwapTimeLayout.setEnabled(false);
                     binding.advancedPipelineLayout.setEnabled(false);
                     binding.advancedMemoryAlignmentLayout.setEnabled(false);
-                    break;
-                case UPLOADING:
-                    binding.status.setText(R.string.image_upgrade_status_uploading);
-                    break;
-                case PAUSED:
-                    binding.status.setText(R.string.image_upgrade_status_paused);
-                    break;
-                case TESTING:
-                    binding.status.setText(R.string.image_upgrade_status_testing);
-                    break;
-                case CONFIRMING:
-                    binding.status.setText(R.string.image_upgrade_status_confirming);
-                    break;
-                case RESETTING:
-                    binding.status.setText(R.string.image_upgrade_status_resetting);
-                    break;
-                case COMPLETE:
+                }
+                case UPLOADING -> binding.status.setText(R.string.image_upgrade_status_uploading);
+                case PAUSED -> binding.status.setText(R.string.image_upgrade_status_paused);
+                case TESTING -> binding.status.setText(R.string.image_upgrade_status_testing);
+                case CONFIRMING -> binding.status.setText(R.string.image_upgrade_status_confirming);
+                case RESETTING -> binding.status.setText(R.string.image_upgrade_status_resetting);
+                case COMPLETE -> {
                     binding.status.setText(R.string.image_upgrade_status_completed);
                     binding.advancedEraseSettings.setEnabled(true);
                     binding.advancedSwapTimeLayout.setEnabled(true);
                     binding.advancedPipelineLayout.setEnabled(true);
                     binding.advancedMemoryAlignmentLayout.setEnabled(true);
-                    break;
+                }
             }
         });
         viewModel.getProgress().observe(getViewLifecycleOwner(), throughputData -> {

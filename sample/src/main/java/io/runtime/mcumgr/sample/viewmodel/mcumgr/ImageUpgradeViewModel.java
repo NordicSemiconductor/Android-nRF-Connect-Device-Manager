@@ -234,22 +234,20 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
     {
         setLoggingEnabled(newState != FirmwareUpgradeManager.State.UPLOAD);
         switch (newState) {
-            case UPLOAD:
+            case UPLOAD -> {
                 Timber.i("Uploading firmware...");
                 bytesSentSinceUploadStated = NOT_STARTED;
                 stateLiveData.postValue(State.UPLOADING);
-                break;
-            case TEST:
+            }
+            case TEST -> {
                 handler.removeCallbacks(graphUpdater);
                 stateLiveData.postValue(State.TESTING);
-                break;
-            case CONFIRM:
+            }
+            case CONFIRM -> {
                 handler.removeCallbacks(graphUpdater);
                 stateLiveData.postValue(State.CONFIRMING);
-                break;
-            case RESET:
-                stateLiveData.postValue(State.RESETTING);
-                break;
+            }
+            case RESET -> stateLiveData.postValue(State.RESETTING);
         }
     }
 
@@ -354,16 +352,14 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
     private void requestHighConnectionPriority() {
         final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof McuMgrBleTransport) {
-            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+        if (transporter instanceof final McuMgrBleTransport bleTransporter) {
             bleTransporter.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
     }
 
     private void setLoggingEnabled(final boolean enabled) {
         final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof McuMgrBleTransport) {
-            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+        if (transporter instanceof final McuMgrBleTransport bleTransporter) {
             bleTransporter.setLoggingEnabled(enabled);
         }
     }
