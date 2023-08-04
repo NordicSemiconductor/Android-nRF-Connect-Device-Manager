@@ -17,8 +17,6 @@ import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
 import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 
-// TODO Add retries for each step
-
 /**
  * Manages a McuManager firmware upgrade. Once initialized, <b>this object can only perform a single
  * firmware upgrade for a single device to completion</b>. In other words, the same
@@ -346,14 +344,14 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * notifications and continue to send until the complete image is sent.
      * <p>
      * This value should match MCUMGR_BUF_COUNT - 1
-     * (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
+     * (<a href="https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550">link</a>)
      * in Zephyr KConfig, which is by default set to 4. One buffer is used for sending responses.
      * <p>
      * Mind, that the speed increases only if the returned offsets match the required offset
      * (initial offset + sent packet size). In other case the packets with unexpected offsets
      * are dropped by the device causing teh packets to be resent, which actually makes the upload
      * slower.
-     *
+     * <p>
      * Pause and resume will throw an exception when window upload is used.
      * @param windowCapacity the maximum number of concurrent upload requests at any time.
      */
@@ -379,8 +377,8 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * first one would have to be sent again, not with slightly decremented offset.
      * By trimming to memory alignment, this library makes sure that all bytes sent are consumed.
      * <p>
-     * With https://github.com/zephyrproject-rtos/zephyr/pull/41959 PR merged, you can set the
-     * alignment to 1 (disabled), as the flash manager itself takes care of alignment.
+     * With <a href="https://github.com/zephyrproject-rtos/zephyr/pull/41959">PR merged</a>, you
+     * can set the alignment to 1 (disabled), as the flash manager itself takes care of alignment.
      */
     public void setMemoryAlignment(final int alignment) {
         if (alignment < 1) {
