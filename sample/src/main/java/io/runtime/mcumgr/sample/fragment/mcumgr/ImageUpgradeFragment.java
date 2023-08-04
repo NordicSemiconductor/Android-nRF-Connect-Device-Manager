@@ -13,14 +13,11 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-
-import org.jetbrains.annotations.NotNull;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,11 +25,14 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 
-import androidx.preference.PreferenceManager;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.R;
@@ -367,24 +367,25 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 final ZipPackage zip = new ZipPackage(data);
                 final StringBuilder sizeBuilder = new StringBuilder();
                 final StringBuilder hashBuilder = new StringBuilder();
-                for (final Pair<Integer, byte[]> binary: zip.getBinaries()) {
-                    final byte[] hash = McuMgrImage.getHash(binary.second);
+                for (final McuMgrTargetImage binary: zip.getBinaries().getImages()) {
+                    final byte[] hash = binary.image.getHash();
                     hashBuilder
                             .append(StringUtils.toHex(hash));
                     sizeBuilder
-                            .append(getString(R.string.image_upgrade_size_value, binary.second.length));
-                    switch (binary.first) {
-                        case 0:
+                            .append(getString(R.string.image_upgrade_size_value, binary.image.getData().length));
+                    switch (binary.imageIndex) {
+                        case 0 -> {
                             hashBuilder.append(" (app core)");
                             sizeBuilder.append(" (app core)");
-                            break;
-                        case 1:
+                        }
+                        case 1 -> {
                             hashBuilder.append(" (net core)");
                             sizeBuilder.append(" (net core)");
-                            break;
-                        default:
-                            hashBuilder.append(" (unknown core (").append(binary.first).append(")");
-                            sizeBuilder.append(" (unknown core (").append(binary.first).append(")");
+                        }
+                        default -> {
+                            hashBuilder.append(" (unknown core (").append(binary.imageIndex).append(")");
+                            sizeBuilder.append(" (unknown core (").append(binary.imageIndex).append(")");
+                        }
                     }
                     hashBuilder.append("\n");
                     sizeBuilder.append("\n");

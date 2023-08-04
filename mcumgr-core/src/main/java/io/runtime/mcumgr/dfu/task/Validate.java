@@ -1,18 +1,17 @@
 package io.runtime.mcumgr.dfu.task;
 
-import android.util.Pair;
-
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.List;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Mode;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
+import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
@@ -23,18 +22,15 @@ import io.runtime.mcumgr.task.TaskManager;
 class Validate extends FirmwareUpgradeTask {
 	private final static Logger LOG = LoggerFactory.getLogger(Validate.class);
 
-	// private static final int SLOT_PRIMARY = 0;
-	private static final int SLOT_SECONDARY = 1;
-
 	@NotNull
-	private final List<Pair<Integer, McuMgrImage>> images;
+	private final McuMgrImageSet images;
 	@NotNull
 	private final Mode mode;
 
 	private final boolean eraseSettings;
 
 	Validate(final @NotNull Mode mode,
-			 final @NotNull List<Pair<Integer, McuMgrImage>> images,
+			 final @NotNull McuMgrImageSet images,
 			 final boolean eraseSettings) {
 		this.mode = mode;
 		this.images = images;
@@ -84,18 +80,20 @@ class Validate extends FirmwareUpgradeTask {
 				boolean initialResetRequired = false;
 
 				// For each image that is to be sent, check if the same image has already been sent.
-				for (final Pair<Integer, McuMgrImage> pair : images) {
-					final int image = pair.first;
-					final McuMgrImage mcuMgrImage = pair.second;
+				for (final McuMgrTargetImage image : images.getImages()) {
+					final int imageIndex = image.imageIndex;
+					final McuMgrImage mcuMgrImage = image.image;
 
 					// The following flags will be updated based on the received slot information.
-					boolean found = false;
+					boolean found = false;     // An image with the same hash was found on the device
+					boolean skip = false;	   // When this flag is set the image will not be uploaded
 					boolean pending = false;   // TEST command was sent
 					boolean permanent = false; // CONFIRM command was sent
 					boolean confirmed = false; // Image has booted and confirmed itself
-					boolean active = false; // Image has booted
+					boolean active = false;    // Image is currently running
 					for (final McuMgrImageStateResponse.ImageSlot slot : slots) {
-						if (slot.image != image)
+						// Skip slots of a different core than the image is for.
+						if (slot.image != imageIndex)
 							continue;
 
 						// If the same image was found in any of the slots, the upload will not be
@@ -110,12 +108,21 @@ class Validate extends FirmwareUpgradeTask {
 							// If the image has been found on the secondary slot and it's confirmed,
 							// we just need to restart the device in order for it to be swapped back to
 							// primary slot.
-							if (confirmed && slot.slot == SLOT_SECONDARY) {
+							if (confirmed && slot.slot == image.slot) {
 								resetRequired = true;
 							}
 							break;
 						} else {
-							if (slot.slot == SLOT_SECONDARY) {
+							if (slot.slot == image.slot) {
+								// The `image.slot` determines to which slot the image will be uploaded.
+								// If the image on the target slot is active, we cannot send there
+								// anything, so we skip this image. It will not be uploaded.
+								// This can happen on the primary slot or, when Direct XIP feature
+								// is enabled, also on the secondary slot.
+								if (slot.active) {
+									skip = true;
+									continue;
+								}
 								// A different image in the secondary slot of required image may be found
 								// in 3 cases:
 
@@ -143,11 +150,14 @@ class Validate extends FirmwareUpgradeTask {
 							}
 						}
 					}
+					if (skip) {
+						continue;
+					}
 					if (!found) {
-						performer.enqueue(new Upload(mcuMgrImage, image));
+						performer.enqueue(new Upload(mcuMgrImage, imageIndex));
 					}
 					switch (mode) {
-						case TEST_AND_CONFIRM:
+						case TEST_AND_CONFIRM -> {
 							// If the image is not pending (test command has not been sent) and not
 							// confirmed (another image is under test), and isn't the currently
 							// running image, send test command and update the flag.
@@ -162,8 +172,8 @@ class Validate extends FirmwareUpgradeTask {
 							if (!permanent && !confirmed) {
 								performer.enqueue(new ConfirmAfterReset(mcuMgrImage.getHash()));
 							}
-							break;
-						case TEST_ONLY:
+						}
+						case TEST_ONLY -> {
 							// If the image is not pending (test command has not been sent) and not
 							// confirmed (another image is under test), and isn't the currently
 							// running image, send test command and update the flag.
@@ -175,8 +185,8 @@ class Validate extends FirmwareUpgradeTask {
 							if (pending) {
 								resetRequired = true;
 							}
-							break;
-						case CONFIRM_ONLY:
+						}
+						case CONFIRM_ONLY -> {
 							// If the firmware is not confirmed yet, confirm t.
 							if (!permanent && !confirmed) {
 								performer.enqueue(new Confirm(mcuMgrImage.getHash()));
@@ -185,7 +195,7 @@ class Validate extends FirmwareUpgradeTask {
 							if (permanent) {
 								resetRequired = true;
 							}
-							break;
+						}
 					}
 				}
 				// To make sure the reset command are added just once, they're added based on flags.

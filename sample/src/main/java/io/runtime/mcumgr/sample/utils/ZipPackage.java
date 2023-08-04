@@ -1,6 +1,7 @@
 package io.runtime.mcumgr.sample.utils;
 
-import android.util.Pair;
+import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -11,15 +12,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import androidx.annotation.Keep;
-import androidx.annotation.NonNull;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
+import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
+import io.runtime.mcumgr.exception.McuMgrException;
 import timber.log.Timber;
 
 public final class ZipPackage {
@@ -33,17 +33,45 @@ public final class ZipPackage {
 
 		@Keep
 		private static class File {
+			/**
+			 * The version number of the image. This is a string in the format "X.Y.Z-text".
+			 */
 			private String version;
+			/**
+			 * The name of the image file.
+			 */
 			private String file;
+			/**
+			 * The size of the image file in bytes. This is declared size and does not have to
+			 * be equal to the actual file size.
+			 */
 			private int size;
-			private int imageIndex;
+			/**
+			 * Image index is used for multi-core devices. Index 0 is the main core (app core),
+			 * index 1 is secondary core (net core), etc.
+			 * <p>
+			 * For single-core devices this is not present in the manifest file and defaults to 0.
+			 */
+			private int imageIndex = 0;
+			/**
+			 * The slot number where the image is to be sent. By default images are sent to the
+			 * secondary slot and then swapped to the primary slot after the image is confirmed
+			 * and the device is reset.
+			 * <p>
+			 * However, if the device supports Direct XIP feature it is possible to run an app
+			 * from a secondary slot. The image has to be compiled for this slot. A ZIP package
+			 * can contain images for both slots. Only the one targeting the available one will
+			 * be sent.
+			 * @since NCS v 2.5, nRF Connect Device Manager 1.8.
+			 */
+			private int slot = McuMgrTargetImage.SLOT_SECONDARY;
 		}
 	}
 
 	private Manifest manifest;
-	private final List<Pair<Integer, byte[]>> binaries;
+	private final McuMgrImageSet binaries;
 
-	public ZipPackage(@NonNull final byte[] data) throws IOException {
+	public ZipPackage(@NonNull final byte[] data) throws IOException, McuMgrException {
 		ZipEntry ze;
 		Map<String, byte[]> entries = new HashMap<>();
 
@@ -68,7 +96,7 @@ public final class ZipPackage {
 			}
 		}
 
-		binaries = new ArrayList<>(2);
+		binaries = new McuMgrImageSet();
 
 		// Search for images.
 		for (final Manifest.File file: manifest.files) {
@@ -77,11 +105,11 @@ public final class ZipPackage {
 			if (content == null)
 				throw new IOException("File not found: " + name);
 
-			binaries.add(new Pair<>(file.imageIndex, content));
+			binaries.add(new McuMgrTargetImage(file.imageIndex, file.slot, content));
 		}
 	}
 
-	public List<Pair<Integer, byte[]>> getBinaries() {
+	public McuMgrImageSet getBinaries() {
 		return binaries;
 	}
 

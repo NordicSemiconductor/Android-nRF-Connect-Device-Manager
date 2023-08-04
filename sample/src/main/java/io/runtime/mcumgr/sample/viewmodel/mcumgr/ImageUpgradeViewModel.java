@@ -7,26 +7,24 @@
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
 import android.os.Build;
-import android.util.Pair;
-
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
-import java.util.Collections;
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Named;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.observable.ConnectionParameters;
@@ -152,11 +150,11 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                         final int estimatedSwapTime,
                         final int windowCapacity,
                         final int memoryAlignment) {
-        List<Pair<Integer, byte[]>> images;
+        McuMgrImageSet images;
         try {
             // Check if the BIN file is valid.
             McuMgrImage.getHash(data);
-            images = Collections.singletonList(new Pair<>(0, data));
+            images = new McuMgrImageSet().add(data);
         } catch (final Exception e) {
             try {
                 final ZipPackage zip = new ZipPackage(data);

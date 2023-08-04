@@ -9,14 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 
 import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
+import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.image.McuMgrImage;
 
 // TODO Add retries for each step
 
@@ -405,8 +404,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * automatically.
      */
     public synchronized void start(final byte @NotNull [] imageData) throws McuMgrException {
-        final Pair<Integer, byte[]> image = new Pair<>(0, imageData);
-        start(Collections.singletonList(image), false);
+        start(new McuMgrImageSet().add(imageData), false);
     }
 
     /**
@@ -423,27 +421,46 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      *
      * @param images       list of images with image index.
      * @param eraseStorage should the app settings be erased, or not (default true).
+     * @deprecated Use {@link #start(McuMgrImageSet, boolean)} instead.
      */
+    @Deprecated(since = "1.8")
     public synchronized void start(@NotNull final List<Pair<Integer, byte[]>> images,
+                                   final boolean eraseStorage) throws McuMgrException {
+        start(new McuMgrImageSet().add(images), eraseStorage);
+    }
+
+    /**
+     * Starts an upgrade with given image set. The targets define the image index and
+     * slot to which the binary should be sent.
+     * <p>
+     * This method can be used for mutli-core devices (each core is identified by
+     * {@link McuMgrTargetImage#imageIndex}) with and without Direct XIP feature.
+     * <p>
+     * Direct XIP is a feature added in NCS 2.5 allowing to boot a device from a non-primary slot.
+     * For such devices the correct image has to be sent (compiled for that specific slot), depending
+     * on the slot number with the active image. This feature removes the need for a swap after an
+     * update, as the newly uploaded image is already in the correct slot.
+     *
+     * @param images       set of images. For direct XIP this set should contain images compiled
+     *                     for both slots. The correct image will be chosen automatically.
+     * @param eraseStorage should the app settings be erased, or not (default true).
+     * @since 1.8
+     */
+    public synchronized void start(@NotNull final McuMgrImageSet images,
                                    final boolean eraseStorage) throws McuMgrException {
         if (mPerformer.isBusy()) {
             LOG.info("Firmware upgrade is already in progress");
             return;
         }
-        // Store images to be sent.
-        final List<Pair<Integer, McuMgrImage>> mcuMgrImages = new ArrayList<>(images.size());
-        for (final Pair<Integer, byte[]> image: images) {
-            mcuMgrImages.add(new Pair<>(image.first, McuMgrImage.fromBytes(image.second)));
-        }
 
         // Start upgrade.
         mInternalCallback.onUpgradeStarted(this);
         final Settings settings = new Settings.Builder(mTransport)
-            .setEstimatedSwapTime(mEstimatedSwapTime)
-            .setWindowCapacity(mWindowCapacity)
-            .setMemoryAlignment(mMemoryAlignment)
-            .build();
-        mPerformer.start(settings, mMode, mcuMgrImages, eraseStorage);
+                .setEstimatedSwapTime(mEstimatedSwapTime)
+                .setWindowCapacity(mWindowCapacity)
+                .setMemoryAlignment(mMemoryAlignment)
+                .build();
+        mPerformer.start(settings, mMode, images, eraseStorage);
     }
 
     //******************************************************************
