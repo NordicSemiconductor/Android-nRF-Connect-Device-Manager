@@ -22,6 +22,7 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrAppInfoResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrEchoResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrMpStatResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
@@ -90,6 +91,7 @@ public class DefaultManager extends McuManager {
     private final static int ID_DATETIME_STR = 4;
     private final static int ID_RESET = 5;
     private final static int ID_MCUMGR_PARAMS = 6;
+    private final static int ID_APP_INFO = 7;
 
     /**
      * Construct an default manager.
@@ -288,5 +290,67 @@ public class DefaultManager extends McuManager {
     @NotNull
     public McuMgrResponse params() throws McuMgrException {
         return send(OP_READ, ID_MCUMGR_PARAMS, null, SHORT_TIMEOUT, McuMgrParamsResponse.class);
+    }
+
+    /**
+     * Reads OS/Application Info (asynchronous).
+     *
+     * @param format Format specifier of returned response, fields are appended in their natural
+     *               ascending index order, not the order of characters that are received by the command.
+     *               Format specifiers:
+     *               <ul>
+     *                   <li><b>s</b> Kernel name</li>
+     *                   <li><b>n</b> Node name</li>
+     *                   <li><b>r</b> Kernel release</li>
+     *                   <li><b>v</b> Kernel version</li>
+     *                   <li><b>b</b> Build date and time</li>
+     *                   <li><b>m</b> Machine</li>
+     *                   <li><b>p</b> Processor</li>
+     *                   <li><b>i</b> Hardware platform</li>
+     *                   <li><b>o</b> Operating system</li>
+     *                   <li><b>a</b> All fields (shorthand for all above options)</li>
+     *               </ul>
+     *               If this option is not provided, the <b>s</b> Kernel name option will be used.
+     * @param callback the asynchronous callback.
+     */
+    public void appInfo(@Nullable String format, @NotNull McuMgrCallback<McuMgrAppInfoResponse> callback) {
+        HashMap<String, Object> payloadMap = null;
+        if (format != null) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("format", format);
+        }
+        send(OP_READ, ID_APP_INFO, payloadMap, SHORT_TIMEOUT, McuMgrAppInfoResponse.class, callback);
+    }
+
+    /**
+     * Reads OS/Application Info (synchronous).
+     *
+     * @param format Format specifier of returned response, fields are appended in their natural
+     *               ascending index order, not the order of characters that are received by the command.
+     *               Format specifiers:
+     *               <ul>
+     *                   <li><b>s</b> Kernel name</li>
+     *                   <li><b>n</b> Node name</li>
+     *                   <li><b>r</b> Kernel release</li>
+     *                   <li><b>v</b> Kernel version</li>
+     *                   <li><b>b</b> Build date and time</li>
+     *                   <li><b>m</b> Machine</li>
+     *                   <li><b>p</b> Processor</li>
+     *                   <li><b>i</b> Hardware platform</li>
+     *                   <li><b>o</b> Operating system</li>
+     *                   <li><b>a</b> All fields (shorthand for all above options)</li>
+     *               </ul>
+     *               If this option is not provided, the <b>s</b> Kernel name option will be used.
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     */
+    @NotNull
+    public McuMgrResponse params(@Nullable String format) throws McuMgrException {
+        HashMap<String, Object> payloadMap = null;
+        if (format != null) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("format", format);
+        }
+        return send(OP_READ, ID_APP_INFO, payloadMap, SHORT_TIMEOUT, McuMgrParamsResponse.class);
     }
 }
