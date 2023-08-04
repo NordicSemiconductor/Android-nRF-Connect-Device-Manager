@@ -9,9 +9,7 @@ package io.runtime.mcumgr.response.dflt;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.runtime.mcumgr.managers.DefaultManager;
-
-public class McuMgrEchoResponse extends McuMgrOsResponse implements DefaultManager.Response {
+public class McuMgrEchoResponse extends McuMgrOsResponse {
     /** The echo response. */
     @JsonProperty("r")
     public String r;
