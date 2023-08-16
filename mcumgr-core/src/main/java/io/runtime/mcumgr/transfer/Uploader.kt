@@ -125,6 +125,14 @@ abstract class Uploader(
                         // chunk. We need to resend the chunk at the offset
                         // requested by the device.
                         log.warn("Chunk with offset ${chunk.offset} has been lost (expected offset=${chunk.offset + chunk.data.size}, received=${response.off})")
+                        val fails = failureDirectoryMutex.withLock {
+                            val fails = (failureDirectory[chunk.offset] ?: 0) + 1
+                            failureDirectory[chunk.offset] = fails
+                            fails
+                        }
+                        if (fails >= MAX_CHUNK_FAILURES) {
+                            throw McuMgrException("Chunk with offset ${chunk.offset} has not been acknowledged too many times")
+                        }
                         failures.send(newChunk(response.off))
                     } else {
                         // Success, update the progress.
