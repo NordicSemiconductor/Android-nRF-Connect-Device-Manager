@@ -300,11 +300,27 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     @Override
     public void log(int priority, @NonNull String message) {
         switch (priority) {
-            case Log.DEBUG -> LOG.debug(message);
-            case Log.INFO -> LOG.info(message);
-            case Log.WARN -> LOG.warn(message);
-            case Log.ERROR, Log.ASSERT -> LOG.error(message);
-            case Log.VERBOSE -> LOG.trace(message);
+            case Log.DEBUG: {
+                LOG.debug(message);
+                break;
+            }
+            case Log.INFO: {
+                LOG.info(message);
+                break;
+            }
+            case Log.WARN: {
+                LOG.warn(message);
+                break;
+            }
+            case Log.ASSERT:
+            case Log.ERROR: {
+                LOG.error(message);
+                break;
+            }
+            case Log.VERBOSE: {
+                LOG.trace(message);
+                break;
+            }
         }
     }
 
@@ -424,20 +440,29 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         // constructor.
                         // This may also happen if service discovery ends with an error, which
                         // will trigger disconnection.
-                        case FailCallback.REASON_REQUEST_FAILED,
-                             FailCallback.REASON_DEVICE_DISCONNECTED,
-                             FailCallback.REASON_CANCELLED ->
-                                callback.onError(new McuMgrDisconnectedException());
-                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED ->
-                                callback.onError(new McuMgrNotSupportedException());
-                        case FailCallback.REASON_TIMEOUT ->
+                        case FailCallback.REASON_REQUEST_FAILED:
+                            case FailCallback.REASON_DEVICE_DISCONNECTED:
+                        case     FailCallback.REASON_CANCELLED: {
+                            callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        }
+                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED: {
+                            callback.onError(new McuMgrNotSupportedException());
+                            break;
+                        }
+                        case FailCallback.REASON_TIMEOUT: {
                             // Called after receiving error 133 after 30 seconds.
-                                callback.onError(new McuMgrTimeoutException());
-                        case FailCallback.REASON_BLUETOOTH_DISABLED ->
-                                callback.onError(new McuMgrBluetoothDisabledException());
-                        default ->
-                                callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
-                    }
+                            callback.onError(new McuMgrTimeoutException());
+                            break;
+                        }
+                        case FailCallback.REASON_BLUETOOTH_DISABLED: {
+                            callback.onError(new McuMgrBluetoothDisabledException());
+                            break;
+                        }
+                        default: {
+                            callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                            break;
+                        }                    }
                 })
         .retry(3, 500)
         .enqueue();
@@ -471,19 +496,28 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         // constructor.
                         // This may also happen if service discovery ends with an error, which
                         // will trigger disconnection.
-                        case FailCallback.REASON_REQUEST_FAILED,
-                             FailCallback.REASON_DEVICE_DISCONNECTED,
-                             FailCallback.REASON_CANCELLED ->
-                                callback.onError(new McuMgrDisconnectedException());
-                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED ->
-                                callback.onError(new McuMgrNotSupportedException());
-                        case FailCallback.REASON_TIMEOUT ->
-                            // Called after receiving error 133 after 30 seconds.
-                                callback.onError(new McuMgrTimeoutException());
-                        case FailCallback.REASON_BLUETOOTH_DISABLED ->
-                                callback.onError(new McuMgrBluetoothDisabledException());
-                        default ->
-                                callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                        case FailCallback.REASON_REQUEST_FAILED:
+                        case FailCallback.REASON_DEVICE_DISCONNECTED:
+                        case FailCallback.REASON_CANCELLED: {
+                            callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        }
+                        case FailCallback.REASON_DEVICE_NOT_SUPPORTED: {
+                            callback.onError(new McuMgrNotSupportedException());
+                            break;
+                        }
+                        case FailCallback.REASON_TIMEOUT: {                            // Called after receiving error 133 after 30 seconds.
+                            callback.onError(new McuMgrTimeoutException());
+                            break;
+                        }
+                        case FailCallback.REASON_BLUETOOTH_DISABLED: {
+                            callback.onError(new McuMgrBluetoothDisabledException());
+                            break;
+                        }
+                        default: {
+                            callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                            break;
+                        }
                     }
                 })
                 .enqueue();

@@ -909,7 +909,9 @@ public class ImageManager extends TransferManager {
                 @Override
                 public void onError(@NotNull McuMgrException error) {
                     // Check if the exception is due to an insufficient MTU.
-                    if (error instanceof InsufficientMtuException mtuErr) {
+                    if (error instanceof InsufficientMtuException) {
+                        final InsufficientMtuException mtuErr = (InsufficientMtuException) error;
+
                         // Set the MTU to the value specified in the error response.
                         int mtu = mtuErr.getMtu();
                         if (mMtu == mtu)

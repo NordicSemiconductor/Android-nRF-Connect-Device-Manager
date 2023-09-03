@@ -208,7 +208,7 @@ class Validate extends FirmwareUpgradeTask {
 					}
 					if (allowRevert && mode != Mode.NONE) {
 						switch (mode) {
-							case TEST_AND_CONFIRM -> {
+							case TEST_AND_CONFIRM: {
 								// If the image is not pending (test command has not been sent) and not
 								// confirmed (another image is under test), and isn't the currently
 								// running image, send test command and update the flag.
@@ -223,8 +223,9 @@ class Validate extends FirmwareUpgradeTask {
 								if (!permanent && !confirmed) {
 									performer.enqueue(new ConfirmAfterReset(mcuMgrImage.getHash()));
 								}
+								break;
 							}
-							case TEST_ONLY -> {
+							case TEST_ONLY: {
 								// If the image is not pending (test command has not been sent) and not
 								// confirmed (another image is under test), and isn't the currently
 								// running image, send test command and update the flag.
@@ -236,8 +237,9 @@ class Validate extends FirmwareUpgradeTask {
 								if (pending) {
 									resetRequired = true;
 								}
+								break;
 							}
-							case CONFIRM_ONLY -> {
+							case CONFIRM_ONLY: {
 								// If the firmware is not confirmed yet, confirm t.
 								if (!permanent && !confirmed) {
 									performer.enqueue(new Confirm(mcuMgrImage.getHash()));
@@ -246,6 +248,7 @@ class Validate extends FirmwareUpgradeTask {
 								if (permanent) {
 									resetRequired = true;
 								}
+								break;
 							}
 						}
 					}

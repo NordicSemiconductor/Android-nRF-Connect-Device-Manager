@@ -433,7 +433,7 @@ public class McuMgrResponse implements HasReturnCode {
             final int lowerBits = payload[offset++] & 0x1F;
 
             switch (type) {
-                case 0 -> { // positive int
+                case 0: { // positive int
                     // Values 23 or lower can be read as they are.
                     int value = -1;
                     if (lowerBits <= 23) {
@@ -441,19 +441,21 @@ public class McuMgrResponse implements HasReturnCode {
                     } else {
                         // This fast method supports only 8, 16 and 32-bit positive integers.
                         switch (lowerBits - 24) {
-                            case 0 -> {
+                            case 0: {
                                 if (payload.length > offset) {
                                     value = payload[offset] & 0xFF;
                                 }
                                 offset += 1;
+                                break;
                             }
-                            case 1 -> {
+                            case 1: {
                                 if (payload.length > offset + 1) {
                                     value = ((payload[offset] & 0xFF) << 8) | (payload[offset + 1] & 0xFF);
                                 }
                                 offset += 2;
+                                break;
                             }
-                            case 2 -> {
+                            case 2: {
                                 if (payload.length > offset + 3) {
                                     value = ((payload[offset] & 0xFF) << 24) | ((payload[offset + 1] & 0xFF) << 16) | ((payload[offset + 2] & 0xFF) << 8) | (payload[offset + 3] & 0xFF);
                                     if (value < 0) {
@@ -461,9 +463,10 @@ public class McuMgrResponse implements HasReturnCode {
                                     }
                                 }
                                 offset += 4;
+                                break;
                             }
                             // unsupported
-                            default -> {
+                            default: {
                                 return null;
                             }
                         }
@@ -475,18 +478,20 @@ public class McuMgrResponse implements HasReturnCode {
                             off = value;
                         currentToken = -1;
                     }
+                    break;
                 }
-                case 3 -> { // string
+                case 3: { // string
                     // We are only looking for "rc" and "off", which have lengths 2 and 3.
                     // The below code will return null if a longer token is found.
                     switch (lowerBits) {
-                        case 2 -> {
+                        case 2: {
                             // "rc"
                             if (payload.length > offset + 1 && payload[offset] == 0x72 && payload[offset + 1] == 0x63) {
                                 currentToken = 0;
                             }
+                            break;
                         }
-                        case 3 -> {
+                        case 3: {
                             // "off"
                             if (payload.length > offset + 2 && payload[offset] == 0x6F && payload[offset + 1] == 0x66 && payload[offset + 2] == 0x66) {
                                 currentToken = 1;
@@ -497,12 +502,14 @@ public class McuMgrResponse implements HasReturnCode {
                                     (payload[offset] == 0x65 && payload[offset + 1] == 0x72 && payload[offset + 2] == 0x72))) {
                                 return null;
                             }
+                            break;
                         }
-                        default -> {
+                        default: {
                             return null;
                         }
                     }
                     offset += lowerBits;
+                    break;
                 }
             }
         }
