@@ -23,6 +23,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrAppInfoResponse;
+import io.runtime.mcumgr.response.dflt.McuMgrBootloaderInfoResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrEchoResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrMpStatResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
@@ -43,7 +44,10 @@ public class DefaultManager extends McuManager {
        UNKNOWN(1),
 
         /** The provided format value is not valid. */
-       INVALID_FORMAT(2);
+       INVALID_FORMAT(2),
+
+        /** Query was not recognized. */
+       QUERY_YIELDS_NO_ANSWER(3);
 
         private final int mCode;
 
@@ -92,6 +96,7 @@ public class DefaultManager extends McuManager {
     private final static int ID_RESET = 5;
     private final static int ID_MCUMGR_PARAMS = 6;
     private final static int ID_APP_INFO = 7;
+    private final static int ID_BOOTLOADER_INFO = 8;
 
     /**
      * Construct an default manager.
@@ -352,5 +357,57 @@ public class DefaultManager extends McuManager {
             payloadMap.put("format", format);
         }
         return send(OP_READ, ID_APP_INFO, payloadMap, SHORT_TIMEOUT, McuMgrParamsResponse.class);
+    }
+
+    /**
+     * When used as query in {@link #bootloaderInfo(String)} command, returns string representing
+     * bootloader name.
+     */
+    public static String BOOTLOADER_INFO_QUERY_BOOTLOADER = null;
+    /**
+     * For bootloader with name "MCUboot" returns the bootloader mode.
+     */
+    public static String BOOTLOADER_INFO_MCUBOOT_QUERY_MODE = "mode";
+
+    /**
+     * Reads the Bootloader info (asynchronous).
+     *
+     * @param query Allows to query MCUmgr about bootloader used by device and various bootloader
+     * 	            parameters. Use {@link #BOOTLOADER_INFO_QUERY_BOOTLOADER} to get string
+     * 	            representing bootloader name.
+     * 	            For bootloader named "MCUboot" use {@link #BOOTLOADER_INFO_MCUBOOT_QUERY_MODE} to get
+     * 	            the bootloader mode. If query yields no answer, the response will contain
+     * 	            an {@link ReturnCode#QUERY_YIELDS_NO_ANSWER} error.
+     * @param callback the asynchronous callback.
+     */
+    public void bootloaderInfo(@Nullable String query, @NotNull McuMgrCallback<McuMgrBootloaderInfoResponse> callback) {
+        HashMap<String, Object> payloadMap = null;
+        if (query != null) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("query", query);
+        }
+        send(OP_READ, ID_BOOTLOADER_INFO, payloadMap, SHORT_TIMEOUT, McuMgrBootloaderInfoResponse.class, callback);
+    }
+
+    /**
+     * Reads the Bootloader info (synchronous).
+     *
+     * @param query Allows to query MCUmgr about bootloader used by device and various bootloader
+     * 	            parameters. Use {@link #BOOTLOADER_INFO_QUERY_BOOTLOADER} to get string
+     * 	            representing bootloader name.
+     * 	            For bootloader named "MCUboot" use {@link #BOOTLOADER_INFO_MCUBOOT_QUERY_MODE} to get
+     * 	            the bootloader mode. If query yields no answer, the response will contain
+     * 	            an {@link ReturnCode#QUERY_YIELDS_NO_ANSWER} error.
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     */
+    @NotNull
+    public McuMgrBootloaderInfoResponse bootloaderInfo(@Nullable String query) throws McuMgrException {
+        HashMap<String, Object> payloadMap = null;
+        if (query != null) {
+            payloadMap = new HashMap<>();
+            payloadMap.put("query", query);
+        }
+        return send(OP_READ, ID_BOOTLOADER_INFO, payloadMap, SHORT_TIMEOUT, McuMgrBootloaderInfoResponse.class);
     }
 }
