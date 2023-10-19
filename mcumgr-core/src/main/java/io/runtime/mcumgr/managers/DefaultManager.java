@@ -293,7 +293,7 @@ public class DefaultManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse params() throws McuMgrException {
+    public McuMgrParamsResponse params() throws McuMgrException {
         return send(OP_READ, ID_MCUMGR_PARAMS, null, SHORT_TIMEOUT, McuMgrParamsResponse.class);
     }
 
@@ -350,13 +350,13 @@ public class DefaultManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse appInfo(@Nullable String format) throws McuMgrException {
+    public McuMgrAppInfoResponse appInfo(@Nullable String format) throws McuMgrException {
         HashMap<String, Object> payloadMap = null;
         if (format != null) {
             payloadMap = new HashMap<>();
             payloadMap.put("format", format);
         }
-        return send(OP_READ, ID_APP_INFO, payloadMap, SHORT_TIMEOUT, McuMgrParamsResponse.class);
+        return send(OP_READ, ID_APP_INFO, payloadMap, SHORT_TIMEOUT, McuMgrAppInfoResponse.class);
     }
 
     /**
