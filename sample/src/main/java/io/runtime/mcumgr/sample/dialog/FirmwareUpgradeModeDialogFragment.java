@@ -56,6 +56,8 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
 
     private FirmwareUpgradeManager.Mode getMode() {
         switch (selectedItem) {
+            case 3:
+                return FirmwareUpgradeManager.Mode.NONE;
             case 2:
                 return FirmwareUpgradeManager.Mode.CONFIRM_ONLY;
             case 1:

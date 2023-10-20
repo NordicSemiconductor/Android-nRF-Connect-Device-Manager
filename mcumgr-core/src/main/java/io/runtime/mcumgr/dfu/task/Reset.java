@@ -28,7 +28,10 @@ class Reset extends FirmwareUpgradeTask {
 	 */
 	private long mResetResponseTime;
 
-	Reset() {
+	private final boolean mNoSwap;
+
+	Reset(final boolean noSwap) {
+		this.mNoSwap = noSwap;
 	}
 
 	@Override
@@ -58,6 +61,12 @@ class Reset extends FirmwareUpgradeTask {
 				LOG.info("Device disconnected");
 
 				transport.removeObserver(this);
+
+				// If there is no swap, we're done. No need to wait anything.
+				if (mNoSwap) {
+					performer.onTaskCompleted(Reset.this);
+					return;
+				}
 
 				// Calculate the delay need that we need to wait until the swap is complete.
 				long now = SystemClock.elapsedRealtime();

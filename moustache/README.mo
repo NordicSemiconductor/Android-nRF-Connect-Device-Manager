@@ -103,8 +103,8 @@ dfuManager.setWindowUploadCapacity(mcumgrBuffers);
 // devices. Each packet sent will be trimmed to have number of bytes dividable by given value.
 // Since NCS 1.9 the flash implementation can buffer unaligned data instead of discarding.
 dfuManager.setMemoryAlignment(memoryAlignment);
-// Set a mode: Confirm only, Test only, or Test & Confirm. For multi-core update only the first is
-// supported. See details below.
+// Set a mode: Confirm only, Test only, Test & Confirm or None.
+// For multi-core update only the first one is supported. See details below.
 dfuManager.setMode(mode);
 
 // Start the firmware upgrade with the image data.
@@ -152,9 +152,17 @@ The different firmware upgrade modes are as follows:
   confirming it manually as the primary boot image.
   This mode is recommended for devices that do not support reverting images, i.e. multi core devices.
   The process for this mode is `UPLOAD`, `TEST`, `RESET`.
+* **`NONE`**: This mode should be used if the bootloader does not support reverting images.
+  The process for this mode is `UPLOAD`, `RESET`. If the device supports bootloader information
+  command, and the bootloader is in DirectXIP without revert mode, this mode will be selected
+  automatically. This mode was added in library version 1.8.
 
-> Note: Devices based on nRF5340 SoC support only `CONFIRM_ONLY` mode because the image from the
+> **Note**
+> Devices based on nRF5340 SoC support only `CONFIRM_ONLY` mode because the image from the
   Network Core cannot be read from the Application Core, making it impossible to temporarily save it.
+
+> **Note**
+> Read about MCUboot modes [here](https://docs.mcuboot.com/design.html#image-slots).
 
 ### Firmware Upgrade State
 

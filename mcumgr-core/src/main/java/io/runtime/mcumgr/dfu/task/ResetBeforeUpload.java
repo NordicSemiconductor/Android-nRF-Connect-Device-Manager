@@ -2,7 +2,8 @@ package io.runtime.mcumgr.dfu.task;
 
 class ResetBeforeUpload extends Reset {
 
-	ResetBeforeUpload() {
+	ResetBeforeUpload(final boolean noSwap) {
+		super(noSwap);
 	}
 
 	@Override

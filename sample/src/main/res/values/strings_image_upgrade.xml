@@ -42,9 +42,10 @@
 
     <string name="image_upgrade_mode">Select Mode</string>
     <string-array name="image_upgrade_mode_options">
-        <item>Test and confirm</item>
+        <item>Test and Confirm</item>
         <item>Test only</item>
         <item>Confirm only</item>
+        <item>No Revert</item>
     </string-array>
 
     <string name="image_upgrade_status_ready">READY</string>

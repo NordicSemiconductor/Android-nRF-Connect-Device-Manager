@@ -80,7 +80,21 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
          * Use this mode when the new image supports SMP service and you want to test it
          * before confirming.
          */
-        TEST_AND_CONFIRM
+        TEST_AND_CONFIRM,
+
+        /**
+         * When this flag is set, the manager will immediately send the reset command after
+         * the upload is complete. The device will reboot and will run the new image on its next
+         * boot.
+         * <p>
+         * This mode should be used with "Direct XIP without Revert" bootloader mode
+         * or when the confirm or test modes are not supported.
+         * <p>
+         * If the device supports <a href="https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/services/device_mgmt/smp_groups/smp_group_0.html#bootloader-information">Bootloader Information</a>
+         * command, the manager will check if the device is in "Direct XIP without Revert" mode
+         * and will use this mode automatically.
+         */
+        NONE
     }
 
     //******************************************************************
@@ -310,9 +324,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * The mode may be set only before calling {@link #start(byte[])} method.
      *
      * @param mode the manager mode.
-     * @see Mode#TEST_ONLY TEST_ONLY
-     * @see Mode#CONFIRM_ONLY CONFIRM_ONLY
-     * @see Mode#TEST_AND_CONFIRM TEST_AND_CONFIRM
+     * @see Mode#TEST_ONLY
+     * @see Mode#CONFIRM_ONLY
+     * @see Mode#TEST_AND_CONFIRM
+     * @see Mode#NONE
      */
     public void setMode(@NotNull final Mode mode) {
         if (mPerformer.isBusy()) {
@@ -326,6 +341,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * Sets the estimated time required to swap images after uploading the image successfully.
      * If the mode was set to {@link Mode#TEST_AND_CONFIRM}, the manager will wait this long
      * before trying to reconnect to the device.
+     * <p>
+     * For DFU modes without swapping, i.e. Direct XIP with or without revert, this value can be
+     * set to 0, as there is no swap.
      *
      * @param swapTime estimated time required for swapping images, in milliseconds. 0 by default.
      */
