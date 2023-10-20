@@ -99,6 +99,32 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                 binding.mcumgrBufferSize.setText(R.string.status_unknown);
             }
         });
+        viewModel.getBootloaderName().observe(getViewLifecycleOwner(), name -> {
+            if (name != null) {
+                binding.bootloaderName.setText(name);
+            } else {
+                binding.bootloaderName.setText(R.string.status_unknown);
+            }
+        });
+        viewModel.getBootloaderMode().observe(getViewLifecycleOwner(), mode -> {
+            if (mode != null) {
+                final CharSequence[] modes = getResources().getTextArray(R.array.bootloader_modes);
+                if (mode >= 0 && mode < modes.length) {
+                    binding.bootloaderMode.setText(modes[mode]);
+                } else {
+                    binding.bootloaderMode.setText(getString(R.string.status_unknown_value, mode));
+                }
+            } else {
+                binding.bootloaderMode.setText(R.string.status_unknown);
+            }
+        });
+        viewModel.getAppInfo().observe(getViewLifecycleOwner(), kernel -> {
+            if (kernel != null) {
+                binding.kernel.setText(kernel);
+            } else {
+                binding.kernel.setText(R.string.status_unknown);
+            }
+        });
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
                 binding.workIndicator.setVisibility(busy ? View.VISIBLE : View.GONE));
     }
