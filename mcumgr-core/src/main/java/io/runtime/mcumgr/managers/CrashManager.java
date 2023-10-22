@@ -9,7 +9,7 @@ import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
-import io.runtime.mcumgr.response.config.McuMgrConfigReadResponse;
+import io.runtime.mcumgr.response.settings.McuMgrSettingsReadResponse;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class CrashManager extends McuManager {
@@ -61,7 +61,7 @@ public class CrashManager extends McuManager {
     public McuMgrResponse test(@NotNull Test test) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("t", test.toString());
-        return send(OP_WRITE, ID_CRASH_TEST, payloadMap, SHORT_TIMEOUT, McuMgrConfigReadResponse.class);
+        return send(OP_WRITE, ID_CRASH_TEST, payloadMap, SHORT_TIMEOUT, McuMgrSettingsReadResponse.class);
     }
 
     /**

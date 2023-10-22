@@ -61,7 +61,7 @@ public abstract class McuManager {
     protected final static int GROUP_DEFAULT = 0;
     protected final static int GROUP_IMAGE = 1;
     protected final static int GROUP_STATS = 2;
-    protected final static int GROUP_CONFIG = 3;
+    protected final static int GROUP_SETTINGS = 3;
     protected final static int GROUP_LOGS = 4;
     protected final static int GROUP_CRASH = 5;
     protected final static int GROUP_SPLIT = 6;
