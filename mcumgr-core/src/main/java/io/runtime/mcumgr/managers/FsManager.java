@@ -86,7 +86,16 @@ public class FsManager extends TransferManager {
         OFFSET_LARGER_THAN_FILE(12),
 
         /** The requested checksum or hash type was not found or is not supported by this build. */
-        CHECKSUM_HASH_NOT_FOUND(13);
+        CHECKSUM_HASH_NOT_FOUND(13),
+
+        /** The specified mount point was not found or is not mounted. */
+        MOUNT_POINT_NOT_FOUND(14),
+
+        /** The specified mount point is that of a read-only filesystem. */
+        READ_ONLY_FILESYSTEM(15),
+
+        /** The operation cannot be performed because the file is empty with no contents. */
+        FILE_EMPTY(16);
 
         private final int mCode;
 

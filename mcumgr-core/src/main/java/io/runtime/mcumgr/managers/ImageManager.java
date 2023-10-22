@@ -145,7 +145,18 @@ public class ImageManager extends TransferManager {
         IMAGE_ALREADY_PENDING(28),
 
         /** The image vector table is invalid. */
-        INVALID_IMAGE_VECTOR_TABLE(29);
+        INVALID_IMAGE_VECTOR_TABLE(29),
+        /** The image it too large to fit. */
+        INVALID_IMAGE_TOO_LARGE(30),
+
+        /** The amount of data sent is larger than the provided image size. */
+        INVALID_IMAGE_DATA_OVERRUN(31),
+
+        /** Confirmation of image has been denied */
+        IMAGE_CONFIRMATION_DENIED(32),
+
+        /** Setting test to active slot is not allowed */
+        IMAGE_SETTING_TEST_TO_ACTIVE_DENIED(33);
 
         private final int mCode;
 
