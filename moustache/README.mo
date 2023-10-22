@@ -71,7 +71,7 @@ the library are:
 * **`BasicManager`**: Allows erasing application storage (factory reset) (NCS 2.0+).
 * **`StatsManager`**: Read stats from the device.
 * **`CrashManager`**: Read crash logs from the device (not supported in Zephyr or NCS).
-* **`ConfigManager`**: Read/Write config values on the device (not supported in Zephyr or NCS).
+* **`SettingsManager`**: Read/Write settings values on the device.
 * **`LogManager`**: Collect logs from the device.
 * **`FsManager`**: Download/upload files from the device file system.
 * **`ShellManager`**: Execute shell commands.

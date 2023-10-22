@@ -11,7 +11,7 @@ import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.managers.BasicManager;
-import io.runtime.mcumgr.managers.ConfigManager;
+import io.runtime.mcumgr.managers.SettingsManager;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.managers.ImageManager;
@@ -25,8 +25,8 @@ public class McuMgrManagerModule {
 
     @Provides
     @McuMgrScope
-    static ConfigManager provideConfigManager(final McuMgrTransport transport) {
-        return new ConfigManager(transport);
+    static SettingsManager provideConfigManager(final McuMgrTransport transport) {
+        return new SettingsManager(transport);
     }
 
     @Provides
