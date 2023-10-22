@@ -59,7 +59,7 @@ class SmpProtocolSessionTest {
             0, 0, 0, 0, 0,
             mapOf("d" to echo)
         )
-        session.send(request, echoTransaction)
+        session.send(request, 40_000, echoTransaction)
         val responseData = echoTransaction.result.receive()
         val response = McuMgrResponse.buildResponse(
             McuMgrScheme.BLE,
@@ -77,7 +77,7 @@ class SmpProtocolSessionTest {
             0, 0, 0, 0, 0,
             mapOf("d" to echo)
         )
-        session.send(request, echoTransaction)
+        session.send(request, 40_000, echoTransaction)
         val responseData = echoTransaction.result.receive()
         val response = McuMgrResponse.buildResponse(
             McuMgrScheme.BLE,
@@ -93,7 +93,7 @@ class SmpProtocolSessionTest {
         val echo = "Hello!"
         val request = newEchoRequest(echo)
         repeat(256) { i ->
-            session.send(request, echoTransaction)
+            session.send(request, 40_000, echoTransaction)
             val responseData = echoTransaction.result.receive()
             val response = McuMgrResponse.buildResponse(
                 McuMgrScheme.BLE,
@@ -117,7 +117,7 @@ class SmpProtocolSessionTest {
         val transaction = object : TestTransaction() {
             override fun send(data: ByteArray) {}
         }
-        session.send(request, transaction)
+        session.send(request, 40_000, transaction)
         assertFailsWith(TransactionTimeoutException::class) {
             transaction.result.receive()
         }
@@ -131,7 +131,7 @@ class SmpProtocolSessionTest {
         val transaction = object : TestTransaction() {
             override fun send(data: ByteArray) {}
         }
-        session.send(request, transaction)
+        session.send(request, 40_000, transaction)
         launch {
             delay(1000)
             session.close(DeviceDisconnectedException())
@@ -155,12 +155,12 @@ class SmpProtocolSessionTest {
         // fills the channel buffer to capacity
         repeat(257) {
             launch {
-                session.send(request, transaction)
+                session.send(request, 40_000, transaction)
             }
         }
         launch {
             assertFailsWith(IllegalStateException::class) {
-                session.send(request, transaction)
+                session.send(request, 40_000, transaction)
             }
         }
         Unit

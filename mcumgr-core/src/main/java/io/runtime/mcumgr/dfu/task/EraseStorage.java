@@ -55,7 +55,8 @@ class EraseStorage extends FirmwareUpgradeTask {
 			public void onError(@NotNull McuMgrException e) {
 				// If Erase is not supported, proceed with the update.
 				// Erase Storage has been added in NCS 1.8.
-				if (e instanceof McuMgrErrorException error) {
+				if (e instanceof McuMgrErrorException) {
+					final McuMgrErrorException error = (McuMgrErrorException) e;
 					if (error.getCode() == McuMgrErrorCode.NOT_SUPPORTED || error.getGroupCode() != null) {
 						performer.onTaskCompleted(EraseStorage.this);
 						return;

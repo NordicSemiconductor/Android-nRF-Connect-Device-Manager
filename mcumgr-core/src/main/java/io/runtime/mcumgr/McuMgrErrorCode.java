@@ -94,21 +94,47 @@ public enum McuMgrErrorCode {
 
     @NotNull
     public static McuMgrErrorCode valueOf(int error) {
-        return switch (error) {
-            case 0 -> OK;
+        switch (error) {
+            case 0: {
+                return OK;
+            }
             // case 1 is equal to default case
-            case 2 -> NO_MEMORY;
-            case 3 -> IN_VALUE;
-            case 4 -> TIMEOUT;
-            case 5 -> NO_ENTRY;
-            case 6 -> BAD_STATE;
-            case 7 -> TOO_LARGE;
-            case 8 -> NOT_SUPPORTED;
-            case 9 -> CORRUPT;
-            case 10 -> BUSY;
-            case 11 -> ACCESS_DENIED;
-            case 256 -> PER_USER;
-            default -> UNKNOWN;
-        };
+            case 2: {
+                return NO_MEMORY;
+            }
+            case 3: {
+                return IN_VALUE;
+            }
+            case 4: {
+                return TIMEOUT;
+            }
+            case 5: {
+                return NO_ENTRY;
+            }
+            case 6: {
+                return BAD_STATE;
+            }
+            case 7: {
+                return TOO_LARGE;
+            }
+            case 8: {
+                return NOT_SUPPORTED;
+            }
+            case 9: {
+                return CORRUPT;
+            }
+            case 10: {
+                return BUSY;
+            }
+            case 11: {
+                return ACCESS_DENIED;
+            }
+            case 256: {
+                return PER_USER;
+            }
+            default: {
+                return UNKNOWN;
+            }
+        }
     }
 }
