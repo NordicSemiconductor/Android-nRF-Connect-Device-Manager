@@ -41,11 +41,11 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
         if (connectionState == ConnectionState.READY) {
             // Read sequentially:
             // 1. MCU Manager parameters
-            // 2. Application info (parameter: "s" will return the kernel name)
+            // 2. Application info (parameter: "sv" will return the kernel name and version)
             // 3. Bootloader name
             // and, if the bootloader is "MCUboot":
             // 4. Bootloader mode
-            readMcuMgrParams(() -> readAppInfo("s", () -> readBootloaderName((name) -> {
+            readMcuMgrParams(() -> readAppInfo("sv", () -> readBootloaderName((name) -> {
                 if ("MCUboot".equals(name)) {
                     readMcuBootMode(null);
                 }
