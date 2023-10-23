@@ -322,25 +322,6 @@ public class FsManager extends TransferManager {
     }
 
     /**
-     * Start image upload.
-     * <p>
-     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
-     * downloads executed from {@link #fileUpload}.
-     * <p>
-     * The upload may be controlled using the {@link TransferController} returned by this method.
-     *
-     * @param callback Receives callbacks from the upload.
-     * @return The object used to control this upload.
-     * @see TransferController
-     * @deprecated Use {@link #fileDownload(String, DownloadCallback)} instead.
-     */
-    @Deprecated
-    @NotNull
-    public TransferController fileDownload(@NotNull String name, byte @NotNull [] data, @NotNull DownloadCallback callback) {
-        return fileDownload(name, callback);
-    }
-
-    /**
      * File Download Implementation
      */
     public class FileDownload extends Download {
