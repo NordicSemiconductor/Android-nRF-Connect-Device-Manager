@@ -84,7 +84,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/file_path_label"
-            tools:text="/lfs/a_very_long_file_name_indeed_very_very_long.img"/>
+            tools:text="/lfs1/a_very_long_file_name_indeed_very_very_long.img"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/file_size"
