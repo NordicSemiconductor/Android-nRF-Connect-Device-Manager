@@ -25,6 +25,7 @@
 		<item>Success</item>
 		<item>Unknown error (1)</item>
 		<item>Invalid format (2)</item>
+		<item>Yields no answer (3)</item>
 	</string-array>
 
 	<string-array name="mcu_mgr_img_error">
@@ -58,6 +59,21 @@
 		<item>Current version is newer (27)</item>
 		<item>Image already pending (28)</item>
 		<item>Invalid image vector table (29)</item>
+		<item>Image too large (30)</item>
+		<item>Data overrun (31)</item>
+		<item>Confirmation denied (32)</item>
+		<item>Testing active slot denied (33)</item>
+	</string-array>
+
+	<string-array name="mcu_mgr_settings_error">
+		<item>Success</item>
+		<item>Unknown error (1)</item>
+		<item>Key too long (2)</item>
+		<item>Key not found (3)</item>
+		<item>Read not supported (4)</item>
+		<item>Root key not found (5)</item>
+		<item>Write not supported (6)</item>
+		<item>Delete not supported (7)</item>
 	</string-array>
 
 	<string-array name="mcu_mgr_stats_error">
@@ -84,6 +100,9 @@
 		<item>Offset not valid (11)</item>
 		<item>Offset larger than file (12)</item>
 		<item>Checksum or hash not found or not supported (13)</item>
+		<item>Mount point not found (14)</item>
+		<item>Read-only file system (15)</item>
+		<item>File empty (16)</item>
 	</string-array>
 
 	<string-array name="mcu_mgr_shell_error">

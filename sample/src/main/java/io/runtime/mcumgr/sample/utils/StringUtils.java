@@ -45,6 +45,7 @@ public class StringUtils {
                 int arrayId = switch (groupCode.group) {
                     case 0 -> R.array.mcu_mgr_os_error;
                     case 1 -> R.array.mcu_mgr_img_error;
+                    case 3 -> R.array.mcu_mgr_settings_error;
                     case 8 -> R.array.mcu_mgr_fs_error;
                     case 9 -> R.array.mcu_mgr_shell_error;
                     case 63 -> R.array.mcu_mgr_zephyr_basic_error;
