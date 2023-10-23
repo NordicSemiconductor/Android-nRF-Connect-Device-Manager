@@ -26,7 +26,10 @@ import io.runtime.mcumgr.response.DownloadResponse;
 import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.UploadResponse;
+import io.runtime.mcumgr.response.fs.McuMgrFsCrc32Response;
 import io.runtime.mcumgr.response.fs.McuMgrFsDownloadResponse;
+import io.runtime.mcumgr.response.fs.McuMgrFsSha256Response;
+import io.runtime.mcumgr.response.fs.McuMgrFsStatusResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsUploadResponse;
 import io.runtime.mcumgr.transfer.Download;
 import io.runtime.mcumgr.transfer.DownloadCallback;
@@ -138,6 +141,10 @@ public class FsManager extends TransferManager {
     private final static Logger LOG = LoggerFactory.getLogger(FsManager.class);
 
     private final static int ID_FILE = 0;
+    private final static int ID_STAT = 1;
+    private final static int ID_HASH_CHECKSUM = 2;
+    private final static int ID_SUPPORTED_HASH_CHECKSUM = 3;
+    private final static int ID_FILE_CLOSE = 4;
 
     /**
      * Construct a McuManager instance.
@@ -259,6 +266,191 @@ public class FsManager extends TransferManager {
         return payloadMap;
     }
 
+    /**
+     * Command allows to retrieve status of an existing file from specified path of a target device
+     * (asynchronous).
+     *
+     * @param name the file name.
+     * @param callback the asynchronous callback.
+     */
+    public void status(@NotNull String name, @NotNull McuMgrCallback<McuMgrFsStatusResponse> callback) {
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("name", name);
+        send(OP_READ, ID_STAT, payloadMap, SHORT_TIMEOUT, McuMgrFsStatusResponse.class, callback);
+    }
+
+    /**
+     * Command allows to retrieve status of an existing file from specified path of a target device
+     * (synchronous).
+     *
+     * @param name the file name.
+     */
+    public McuMgrFsStatusResponse status(@NotNull String name) throws McuMgrException {
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("name", name);
+        return send(OP_READ, ID_STAT, payloadMap, SHORT_TIMEOUT, McuMgrFsStatusResponse.class);
+    }
+
+    /**
+     * Command allows to generate a checksum of an existing file at a specified path on a target
+     * device (asynchronous).
+     *
+     * @param name the file name.
+     * @param callback the asynchronous callback.
+     */
+    public void crc32(@NotNull String name,
+                      @NotNull McuMgrCallback<McuMgrFsCrc32Response> callback) {
+        crc32(name, 0, 0, callback);
+    }
+
+    /**
+     * Command allows to generate a checksum of an existing file at a specified path on a target
+     * device (asynchronous).
+     *
+     * @param name the file name.
+     * @param offset offset to start checksum calculation at.
+     * @param length maximum length of data to read from file to generate checksum with
+     *               (optional, full file size if set to 0).
+     * @param callback the asynchronous callback.
+     */
+    public void crc32(@NotNull String name,
+                      int offset, int length,
+                      @NotNull McuMgrCallback<McuMgrFsCrc32Response> callback) {
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("name", name);
+        payloadMap.put("type", "crc32");
+        if (offset > 0) {
+            payloadMap.put("off", offset);
+        }
+        if (length > 0) {
+            payloadMap.put("len", length);
+        }
+        send(OP_READ, ID_HASH_CHECKSUM, payloadMap, MEDIUM_TIMEOUT, McuMgrFsCrc32Response.class, callback);
+    }
+
+    /**
+     * Command allows to generate a checksum of an existing file at a specified path on a target
+     * device (synchronous).
+     *
+     * @param name the file name.
+     */
+    public McuMgrFsStatusResponse crc32(@NotNull String name) throws McuMgrException {
+        return crc32(name, 0, 0);
+    }
+
+    /**
+     * Command allows to generate a checksum of an existing file at a specified path on a target
+     * device (synchronous).
+     *
+     * @param name the file name.
+     * @param offset offset to start checksum calculation at.
+     * @param length maximum length of data to read from file to generate checksum with
+     *               (optional, full file size if set to 0).
+     */
+    public McuMgrFsStatusResponse crc32(@NotNull String name, int offset, int length) throws McuMgrException {
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("name", name);
+        payloadMap.put("type", "crc32");
+        if (offset > 0) {
+            payloadMap.put("off", offset);
+        }
+        if (length > 0) {
+            payloadMap.put("len", length);
+        }
+        return send(OP_READ, ID_HASH_CHECKSUM, payloadMap, SHORT_TIMEOUT, McuMgrFsStatusResponse.class);
+    }
+
+    /**
+     * Command allows to generate a hash of an existing file at a specified path on a target
+     * device (asynchronous).
+     *
+     * @param name the file name.
+     * @param callback the asynchronous callback.
+     */
+    public void sha256(@NotNull String name,
+                       @NotNull McuMgrCallback<McuMgrFsSha256Response> callback) {
+        sha256(name, 0, 0, callback);
+    }
+
+    /**
+     * Command allows to generate a hash of an existing file at a specified path on a target
+     * device (asynchronous).
+     *
+     * @param name the file name.
+     * @param offset offset to start hash calculation at.
+     * @param length maximum length of data to read from file to generate hash with
+     *               (optional, full file size if set to 0).
+     * @param callback the asynchronous callback.
+     */
+    public void sha256(@NotNull String name,
+                       int offset, int length,
+                       @NotNull McuMgrCallback<McuMgrFsSha256Response> callback) {
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("name", name);
+        payloadMap.put("type", "sha256");
+        if (offset > 0) {
+            payloadMap.put("off", offset);
+        }
+        if (length > 0) {
+            payloadMap.put("len", length);
+        }
+        send(OP_READ, ID_HASH_CHECKSUM, payloadMap, MEDIUM_TIMEOUT, McuMgrFsSha256Response.class, callback);
+    }
+
+    /**
+     * Command allows to generate a hash of an existing file at a specified path on a target
+     * device (synchronous).
+     *
+     * @param name the file name.
+     */
+    public McuMgrFsSha256Response sha256(@NotNull String name) throws McuMgrException {
+        return sha256(name, 0, 0);
+    }
+
+    /**
+     * Command allows to generate a hash of an existing file at a specified path on a target
+     * device (synchronous).
+     *
+     * @param name the file name.
+     * @param offset offset to start checksum calculation at.
+     * @param length maximum length of data to read from file to generate hash with
+     *               (optional, full file size if set to 0).
+     */
+    public McuMgrFsSha256Response sha256(@NotNull String name, int offset, int length) throws McuMgrException {
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("name", name);
+        payloadMap.put("type", "sha256");
+        if (offset > 0) {
+            payloadMap.put("off", offset);
+        }
+        if (length > 0) {
+            payloadMap.put("len", length);
+        }
+        return send(OP_READ, ID_HASH_CHECKSUM, payloadMap, SHORT_TIMEOUT, McuMgrFsSha256Response.class);
+    }
+
+    // Supported file hash/checksum types commands are not available due to the dynamic types
+    // they use.
+    // Link: https://docs.zephyrproject.org/latest/services/device_mgmt/smp_groups/smp_group_8.html#supported-file-hash-checksum-types
+
+    /**
+     * Command allows closing any open file handles held by fs_mgmt upload/download requests that
+     * might have stalled or be incomplete (asynchronous).
+     *
+     * @param callback the asynchronous callback.
+     */
+    public void closeAll(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        send(OP_WRITE, ID_FILE_CLOSE, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+    }
+
+    /**
+     * Command allows closing any open file handles held by fs_mgmt upload/download requests that
+     * might have stalled or be incomplete (synchronous).
+     */
+    public McuMgrResponse closeAll() throws McuMgrException {
+        return send(OP_WRITE, ID_FILE_CLOSE, null, SHORT_TIMEOUT, McuMgrResponse.class);
+    }
+
     //******************************************************************
     // File Upload
     //******************************************************************
@@ -319,25 +511,6 @@ public class FsManager extends TransferManager {
     @NotNull
     public TransferController fileDownload(@NotNull String name, @NotNull DownloadCallback callback) {
         return startDownload(new FileDownload(name, callback));
-    }
-
-    /**
-     * Start image upload.
-     * <p>
-     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
-     * downloads executed from {@link #fileUpload}.
-     * <p>
-     * The upload may be controlled using the {@link TransferController} returned by this method.
-     *
-     * @param callback Receives callbacks from the upload.
-     * @return The object used to control this upload.
-     * @see TransferController
-     * @deprecated Use {@link #fileDownload(String, DownloadCallback)} instead.
-     */
-    @Deprecated
-    @NotNull
-    public TransferController fileDownload(@NotNull String name, byte @NotNull [] data, @NotNull DownloadCallback callback) {
-        return fileDownload(name, callback);
     }
 
     /**
