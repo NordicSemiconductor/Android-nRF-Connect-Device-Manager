@@ -170,7 +170,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
         if (response != null && response.images != null) {
             for (McuMgrImageStateResponse.ImageSlot image: response.images) {
                 // Skip slots with active fw.
-                if (image.slot == 0)
+                if (image.active)
                     continue;
                 // Test should be enabled if at least one image has PENDING = false.
                 if (!image.pending)
