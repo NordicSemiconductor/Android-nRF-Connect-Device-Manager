@@ -969,7 +969,7 @@ public class ImageManager extends TransferManager {
                         size += 6 + 1; // ""image": 0x65696D616765 + 1 byte positive int
                     }
                     size += 4 + 5; // "len": 0x636C656E + len as 32-bit positive integer
-                    size += 4 + 4; // "sha": 0x63736861 + 0x43 + 3 bytes
+                    size += 4 + 2 + 32; // "sha": 0x63736861 + 0x5820 + 32 bytes
                 }
                 return size + 8; // 8 additional bytes for the SMP header
             }
