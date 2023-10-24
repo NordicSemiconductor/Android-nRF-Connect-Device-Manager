@@ -93,6 +93,13 @@ class Validate extends FirmwareUpgradeTask {
 		});
 	}
 
+	/**
+	 * Validates the current firmware on the device and adds the required tasks to the queue.
+	 *
+	 * @param performer The task performer.
+	 * @param noSwap Whether the bootloader is in Direct XIP mode and there will be no swapping.
+	 * @param allowRevert Whether the bootloader requires confirming images.
+	 */
 	private void validate(@NotNull final TaskManager<Settings, State> performer,
 						  final boolean noSwap,
 						  final boolean allowRevert) {
