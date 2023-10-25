@@ -357,25 +357,16 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 for (final McuMgrTargetImage binary: zip.getBinaries().getImages()) {
                     final byte[] hash = binary.image.getHash();
                     hashBuilder
-                            .append(StringUtils.toHex(hash));
+                            .append(StringUtils.toHex(hash))
+                            .append("\n");
                     sizeBuilder
                             .append(getString(R.string.image_upgrade_size_value, binary.image.getData().length));
                     switch (binary.imageIndex) {
-                        case 0 -> {
-                            hashBuilder.append(" (app core)");
-                            sizeBuilder.append(" (app core)");
-                        }
-                        case 1 -> {
-                            hashBuilder.append(" (net core)");
-                            sizeBuilder.append(" (net core)");
-                        }
-                        default -> {
-                            hashBuilder.append(" (unknown core (").append(binary.imageIndex).append(")");
-                            sizeBuilder.append(" (unknown core (").append(binary.imageIndex).append(")");
-                        }
+                        case 0 -> sizeBuilder.append(" (app core");
+                        case 1 -> sizeBuilder.append(" (net core");
+                        default -> sizeBuilder.append(" (unknown core (").append(binary.imageIndex);
                     }
-                    hashBuilder.append("\n");
-                    sizeBuilder.append("\n");
+                    sizeBuilder.append(", slot: ").append(binary.slot).append(")\n");
                 }
                 hashBuilder.setLength(hashBuilder.length() - 1);
                 sizeBuilder.setLength(sizeBuilder.length() - 1);
