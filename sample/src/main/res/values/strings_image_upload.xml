@@ -31,7 +31,7 @@
 
     <string name="image_upload_dialog_help_title">Help</string>
     <string name="image_upload_dialog_help_message"><b>Firmware Update</b> card lets you send
-		a new firmware image onto the device to slot&#160;1. After sending the image,
+		a new firmware image onto the device to the available slot. After sending the image,
 		use <b>Images</b> card to test or confirm it, and the <b>Reset</b> card to reboot
 		the device.</string>
 </resources>

@@ -6,8 +6,6 @@
   -->
 
 <resources>
-
 	<string name="app_name">Device Manager</string>
 	<string name="feature_name">DEVICE MANAGER</string>
-
 </resources>
