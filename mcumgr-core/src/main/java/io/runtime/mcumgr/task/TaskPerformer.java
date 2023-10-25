@@ -175,7 +175,7 @@ public abstract class TaskPerformer<S, State> {
 			currentTask = null;
 			paused = false;
 			cancelled = false;
-			TaskPerformer.this.manager = null;
+			TaskPerformer.this.cleanUp();
 		}
 	}
 
