@@ -72,4 +72,9 @@ public class McuMgrImageVersion {
     public int getBuildNum() {
         return mBuildNum;
     }
+
+    @Override
+    public String toString() {
+        return "" + mMajor + "." + mMinor + "." + mRevision + ", build: " + mBuildNum;
+    }
 }
