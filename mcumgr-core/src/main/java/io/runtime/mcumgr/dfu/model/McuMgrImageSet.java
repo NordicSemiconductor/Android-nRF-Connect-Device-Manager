@@ -57,4 +57,14 @@ public class McuMgrImageSet {
             this.images.add(new McuMgrTargetImage(image.first, image.second));
         return this;
     }
+
+    public McuMgrImageSet removeImagesWithImageIndex(int imageIndex) {
+        for (int i = 0; i < images.size(); i++) {
+            if (images.get(i).imageIndex == imageIndex) {
+                images.remove(i);
+                i--;
+            }
+        }
+        return this;
+    }
 }

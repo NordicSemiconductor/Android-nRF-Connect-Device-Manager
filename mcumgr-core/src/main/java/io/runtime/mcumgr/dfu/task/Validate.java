@@ -93,6 +93,13 @@ class Validate extends FirmwareUpgradeTask {
 		});
 	}
 
+	/**
+	 * Validates the current firmware on the device and adds the required tasks to the queue.
+	 *
+	 * @param performer The task performer.
+	 * @param noSwap Whether the bootloader is in Direct XIP mode and there will be no swapping.
+	 * @param allowRevert Whether the bootloader requires confirming images.
+	 */
 	private void validate(@NotNull final TaskManager<Settings, State> performer,
 						  final boolean noSwap,
 						  final boolean allowRevert) {
@@ -116,6 +123,35 @@ class Validate extends FirmwareUpgradeTask {
 					LOG.error("Missing images information: {}", response);
 					performer.onTaskFailed(Validate.this, new McuMgrException("Missing images information"));
 					return;
+				}
+
+				// For each core (image index) there may be one or two images given.
+				// One, if the image will be placed in the secondary slot and swapped on reboot,
+				// or two, if the MCUboot is in Direct XIP mode (with or without revert) and each
+				// image targets its own slot. Depending on the active slot, the image will be
+				// sent to the other one.
+				// However, it may happen, that the firmware that the user is trying to send is
+				// already running, that is the hash of the active slot is equal to the hash of
+				// one of the images. In that case, we need to remove images for this image index,
+				// as that core is already up-to-date.
+				if (images.getImages().size() > 1) {
+					// Iterate over all slots looking for active ones.
+					for (final McuMgrImageStateResponse.ImageSlot slot : slots) {
+						if (slot.active) {
+							// Check if any of the images has the same hash as the image on the active slot.
+							for (final McuMgrTargetImage image : images.getImages()) {
+								final McuMgrImage mcuMgrImage = image.image;
+								if (slot.image == image.imageIndex && Arrays.equals(slot.hash, mcuMgrImage.getHash())) {
+									// The image was found on an active slot, which means that core
+									// does not need to be updated.
+									images.removeImagesWithImageIndex(image.imageIndex);
+									// Note: This break is important, as we just modified list that
+									//       we're iterating over.
+									break;
+								}
+							}
+						}
+					}
 				}
 
 				// The following code adds Erase, Upload, Test, Reset and Confirm operations
