@@ -1,5 +1,6 @@
 package io.runtime.mcumgr.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,9 @@ public interface HasReturnCode {
         /** The return code from the group. */
         @JsonProperty("rc")
         public int rc;
+
+        @JsonCreator
+        public GroupReturnCode() {}
 
         @Override
         @NotNull
