@@ -153,6 +153,10 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
              * it actually working correctly. This is important with
              * {@link FirmwareUpgradeManager.Mode#TEST_AND_CONFIRM} mode, which
              * reconnects to the device after it resets.
+             * <p>
+             * This value is ignored when the target device supports SUIT (Software Update for
+             * Internet of Things).
+             * </p>
              * @param time the swap time in milliseconds.
              * @return The builder.
              */
@@ -322,6 +326,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     /**
      * Sets the manager mode. By default the {@link Mode#TEST_AND_CONFIRM} mode is used.
      * The mode may be set only before calling {@link #start(byte[])} method.
+     * <p>
+     * This value is ignored when the target device supports SUIT (Software Update for
+     * Internet of Things).
      *
      * @param mode the manager mode.
      * @see Mode#TEST_ONLY
@@ -344,6 +351,9 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * <p>
      * For DFU modes without swapping, i.e. Direct XIP with or without revert, this value can be
      * set to 0, as there is no swap.
+     * <p>
+     * This value is ignored when the target device supports SUIT (Software Update for
+     * Internet of Things).
      *
      * @param swapTime estimated time required for swapping images, in milliseconds. 0 by default.
      */
@@ -418,6 +428,8 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * boot with the new firmware. The manager will try to connect to the SMP server on the new
      * firmware and confirm the new images if they were not confirmed before, or they didn't confirm
      * automatically.
+     * <p>
+     * This method should be used for SUIT files.
      */
     public synchronized void start(final byte @NotNull [] imageData) throws McuMgrException {
         start(new McuMgrImageSet().add(imageData), false);
@@ -436,7 +448,8 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * automatically.
      *
      * @param images       list of images with image index.
-     * @param eraseStorage should the app settings be erased, or not (default true).
+     * @param eraseStorage should the app settings be erased, or not (default true). This param
+     *                     is ignored in case of SUIT files.
      * @deprecated Use {@link #start(McuMgrImageSet, boolean)} instead.
      */
     @Deprecated(since = "1.8")
@@ -459,7 +472,8 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      *
      * @param images       set of images. For direct XIP this set should contain images compiled
      *                     for both slots. The correct image will be chosen automatically.
-     * @param eraseStorage should the app settings be erased, or not (default true).
+     * @param eraseStorage should the app settings be erased, or not (default true). This param
+     *      *              is ignored in case of SUIT files.
      * @since 1.8
      */
     public synchronized void start(@NotNull final McuMgrImageSet images,
