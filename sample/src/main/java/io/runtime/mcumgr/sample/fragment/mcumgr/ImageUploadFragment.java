@@ -45,6 +45,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     private FragmentCardImageUploadBinding binding;
 
     private ImageUploadViewModel viewModel;
+    private boolean requiresImageSelection;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -137,8 +138,12 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
         // Restore UPLOAD action state after rotation
         binding.actionUpload.setEnabled(isFileLoaded());
         binding.actionUpload.setOnClickListener(v -> {
-            final DialogFragment dialog = SelectImageDialogFragment.getInstance(REQUEST_UPLOAD);
-            dialog.show(getChildFragmentManager(), null);
+            if (requiresImageSelection) {
+                final DialogFragment dialog = SelectImageDialogFragment.getInstance(REQUEST_UPLOAD);
+                dialog.show(getChildFragmentManager(), null);
+            } else {
+                onImageSelected(REQUEST_UPLOAD, 0);
+            }
         });
 
         // Cancel and Pause/Resume buttons
@@ -176,6 +181,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             binding.fileHash.setText(StringUtils.toHex(hash));
             binding.actionUpload.setEnabled(true);
             binding.status.setText(R.string.image_upgrade_status_ready);
+            requiresImageSelection = true;
         } catch (final McuMgrException e) {
             // Support for SUIT (Software Update for Internet of Things) format.
             try {
@@ -184,6 +190,7 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
                 binding.fileHash.setText(StringUtils.toHex(hash));
                 binding.actionUpload.setEnabled(true);
                 binding.status.setText(R.string.image_upgrade_status_ready);
+                requiresImageSelection = false;
             } catch (final Exception e2) {
                 binding.fileHash.setText(null);
                 clearFileContent();
@@ -199,7 +206,10 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
 
     @Override
     public void onImageSelected(final int requestId, final int image) {
-        viewModel.upload(getFileContent(), image);
+        final byte[] data = getFileContent();
+        if (data != null) {
+            viewModel.upload(data, image);
+        }
     }
 
     private void printError(@Nullable final McuMgrException error) {
