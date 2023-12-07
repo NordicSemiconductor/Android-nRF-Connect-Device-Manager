@@ -61,6 +61,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
 
     private ImageUpgradeViewModel viewModel;
     private int memoryAlignment;
+    private boolean requiresModeSelection;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -260,9 +261,14 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         // Restore START action state after rotation
         binding.actionStart.setEnabled(isFileLoaded());
         binding.actionStart.setOnClickListener(v -> {
-            // Show a mode picker. When mode is selected, the upgrade(Mode) method will be called.
-            final DialogFragment dialog = FirmwareUpgradeModeDialogFragment.getInstance();
-            dialog.show(getChildFragmentManager(), null);
+            if (requiresModeSelection) {
+                // Show a mode picker. When mode is selected, the upgrade(Mode) method will be called.
+                final DialogFragment dialog = FirmwareUpgradeModeDialogFragment.getInstance();
+                dialog.show(getChildFragmentManager(), null);
+            } else {
+                // The mode doesn't matter for SUIT files as it's ignored.
+                start(FirmwareUpgradeManager.Mode.NONE);
+            }
         });
 
         // Cancel and Pause/Resume buttons
@@ -349,6 +355,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.fileHash.setText(StringUtils.toHex(hash));
             binding.actionStart.setEnabled(true);
             binding.status.setText(R.string.image_upgrade_status_ready);
+            requiresModeSelection = true;
         } catch (final McuMgrException e) {
             // For multi-core devices images are bundled in a ZIP file.
             try {
@@ -375,6 +382,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 binding.fileSize.setText(sizeBuilder.toString());
                 binding.actionStart.setEnabled(true);
                 binding.status.setText(R.string.image_upgrade_status_ready);
+                requiresModeSelection = true;
             } catch (final Exception e1) {
                 // Support for SUIT (Software Update for Internet of Things) format.
                 try {
@@ -383,6 +391,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     binding.fileHash.setText(StringUtils.toHex(hash));
                     binding.actionStart.setEnabled(true);
                     binding.status.setText(R.string.image_upgrade_status_ready);
+                    requiresModeSelection = false;
                 } catch (final Exception e2) {
                     binding.fileHash.setText(null);
                     clearFileContent();
