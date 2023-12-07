@@ -17,7 +17,7 @@ android {
         targetSdkVersion 34
         versionCode getVersionCodeFromTags()
         versionName getVersionNameFromTags()
-        resConfigs 'en'
+        resourceConfigurations += ['en']
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -62,7 +62,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.preference:preference:1.2.1'
     implementation 'androidx.core:core-splashscreen:1.0.1'
-    implementation 'com.google.android.material:material:1.12.0-alpha01'
+    implementation 'com.google.android.material:material:1.12.0-alpha02'
 
     // Dagger 2
     implementation 'com.google.dagger:dagger:2.48.1'
