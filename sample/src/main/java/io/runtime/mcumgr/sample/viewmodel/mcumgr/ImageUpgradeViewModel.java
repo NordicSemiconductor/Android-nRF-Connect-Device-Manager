@@ -26,7 +26,6 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.sample.observable.ConnectionParameters;
 import io.runtime.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 import io.runtime.mcumgr.sample.utils.ZipPackage;
