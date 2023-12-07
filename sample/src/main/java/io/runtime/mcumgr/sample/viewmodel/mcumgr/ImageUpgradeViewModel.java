@@ -152,8 +152,6 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                         final int memoryAlignment) {
         McuMgrImageSet images;
         try {
-            // Check if the BIN file is valid.
-            McuMgrImage.getHash(data);
             images = new McuMgrImageSet().add(data);
         } catch (final Exception e) {
             try {

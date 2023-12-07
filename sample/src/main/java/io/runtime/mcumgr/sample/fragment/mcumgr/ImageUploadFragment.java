@@ -16,15 +16,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import javax.inject.Inject;
+
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.image.SUITImage;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageUploadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -175,8 +177,18 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             binding.actionUpload.setEnabled(true);
             binding.status.setText(R.string.image_upgrade_status_ready);
         } catch (final McuMgrException e) {
-            clearFileContent();
-            onFileLoadingFailed(R.string.image_error_file_not_valid);
+            // Support for SUIT (Software Update for Internet of Things) format.
+            try {
+                // Try parsing SUIT file.
+                final byte[] hash = SUITImage.getHash(data);
+                binding.fileHash.setText(StringUtils.toHex(hash));
+                binding.actionUpload.setEnabled(true);
+                binding.status.setText(R.string.image_upgrade_status_ready);
+            } catch (final Exception e2) {
+                binding.fileHash.setText(null);
+                clearFileContent();
+                onFileLoadingFailed(R.string.image_error_file_not_valid);
+            }
         }
     }
 

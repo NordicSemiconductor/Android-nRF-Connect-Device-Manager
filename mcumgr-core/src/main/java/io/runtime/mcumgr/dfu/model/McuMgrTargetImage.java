@@ -3,7 +3,9 @@ package io.runtime.mcumgr.dfu.model;
 import org.jetbrains.annotations.NotNull;
 
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.image.ImageWithHash;
 import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.image.SUITImage;
 
 /** @noinspection unused*/
 public class McuMgrTargetImage {
@@ -29,7 +31,7 @@ public class McuMgrTargetImage {
      * Currently only MCUboot images are supported. Valid images contain a header with a MAGIC
      * number and a version number.
      */
-    public final McuMgrImage image;
+    public final ImageWithHash image;
 
     /**
      * This constructor creates a basic image target. It will be sent to the secondary slot (slot = 1)
@@ -41,11 +43,13 @@ public class McuMgrTargetImage {
      * @throws McuMgrException when the image does not have a valid mcu header
      */
     public McuMgrTargetImage(byte @NotNull [] data) throws McuMgrException {
-        // Default or single core.
-        this.imageIndex = 0;
-        // If not specified, the image will be sent to the secondary slot.
-        this.slot = SLOT_SECONDARY;
-        this.image = McuMgrImage.fromBytes(data);
+        this(
+            // Default or single core.
+            0,
+            // If not specified, the image will be sent to the secondary slot.
+            SLOT_SECONDARY,
+            data
+        );
     }
 
     /**
@@ -59,10 +63,12 @@ public class McuMgrTargetImage {
      * @throws McuMgrException when the image does not have a valid mcu header
      */
     public McuMgrTargetImage(int imageIndex, byte @NotNull [] data) throws McuMgrException {
-        this.imageIndex = imageIndex;
-        // If not specified, the image will be sent to the secondary slot.
-        this.slot = SLOT_SECONDARY;
-        this.image = McuMgrImage.fromBytes(data);
+        this(
+            imageIndex,
+            // If not specified, the image will be sent to the secondary slot.
+            SLOT_SECONDARY,
+            data
+        );
     }
 
     /**
@@ -78,6 +84,16 @@ public class McuMgrTargetImage {
     public McuMgrTargetImage(int imageIndex, int slot, byte @NotNull [] data) throws McuMgrException {
         this.imageIndex = imageIndex;
         this.slot = slot;
-        this.image = McuMgrImage.fromBytes(data);
+        ImageWithHash tmp;
+        try {
+            tmp = McuMgrImage.fromBytes(data);
+        } catch (McuMgrException e) {
+            try {
+                tmp = SUITImage.fromBytes(data);
+            } catch (McuMgrException e2) {
+                throw new McuMgrException("The image does not have a valid mcu header");
+            }
+        }
+        this.image = tmp;
     }
 }

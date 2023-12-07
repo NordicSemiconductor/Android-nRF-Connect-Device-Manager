@@ -22,7 +22,7 @@ import io.runtime.mcumgr.image.tlv.McuMgrImageTlv;
  * <a href="https://juullabs-oss.github.io/mcuboot/design.html">https://juullabs-oss.github.io/mcuboot/design.html</a>
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class McuMgrImage {
+public class McuMgrImage implements ImageWithHash {
     public final static int IMG_HASH_LEN = 32;
 
     @NotNull
@@ -57,6 +57,7 @@ public class McuMgrImage {
         mData = image.mData;
     }
 
+    @Override
     public byte @NotNull [] getData() {
         return mData;
     }
@@ -76,8 +77,17 @@ public class McuMgrImage {
         return mTlv;
     }
 
+    @Override
     public byte @NotNull [] getHash() {
         return mHash;
+    }
+
+    @Override
+    public boolean needsConfirmation() {
+        // Actually, not all images require confirmation, but all require a reset.
+        // If an  image is sent to a MCUboot in "DirectXIP without revert" mode if doesn't get
+        // confirmed, but the Reset command is sent after uploading the image.
+        return true;
     }
 
     public static byte @NotNull [] getHash(byte @NotNull [] data) throws McuMgrException {

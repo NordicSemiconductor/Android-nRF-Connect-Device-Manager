@@ -35,6 +35,7 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.image.SUITImage;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -375,8 +376,18 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 binding.actionStart.setEnabled(true);
                 binding.status.setText(R.string.image_upgrade_status_ready);
             } catch (final Exception e1) {
-                clearFileContent();
-                onFileLoadingFailed(R.string.image_error_file_not_valid);
+                // Support for SUIT (Software Update for Internet of Things) format.
+                try {
+                    // Try parsing SUIT file.
+                    final byte[] hash = SUITImage.getHash(data);
+                    binding.fileHash.setText(StringUtils.toHex(hash));
+                    binding.actionStart.setEnabled(true);
+                    binding.status.setText(R.string.image_upgrade_status_ready);
+                } catch (final Exception e2) {
+                    binding.fileHash.setText(null);
+                    clearFileContent();
+                    onFileLoadingFailed(R.string.image_error_file_not_valid);
+                }
             }
         }
     }

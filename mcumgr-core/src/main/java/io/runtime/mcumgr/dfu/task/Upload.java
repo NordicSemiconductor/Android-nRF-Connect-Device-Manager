@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.task.TaskManager;
 import io.runtime.mcumgr.transfer.ImageUploader;
@@ -13,7 +12,7 @@ import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.UploadCallback;
 
 class Upload extends FirmwareUpgradeTask {
-	private final McuMgrImage mcuMgrImage;
+	private final byte[] data;
 	private final int image;
 
 	/**
@@ -21,8 +20,8 @@ class Upload extends FirmwareUpgradeTask {
 	 */
 	private TransferController mUploadController;
 
-	Upload(@NotNull final McuMgrImage mcuMgrImage, final int image) {
-		this.mcuMgrImage = mcuMgrImage;
+	Upload(final byte @NotNull [] data, final int image) {
+		this.data = data;
 		this.image = image;
 	}
 
@@ -72,12 +71,12 @@ class Upload extends FirmwareUpgradeTask {
 		if (settings.windowCapacity > 1) {
 			mUploadController =	new ImageUploader(
 					manager,
-					mcuMgrImage.getData(), image,
+					data, image,
 					settings.windowCapacity,
 					settings.memoryAlignment
 			).uploadAsync(callback);
 		} else {
-			mUploadController = manager.imageUpload(mcuMgrImage.getData(), image, callback);
+			mUploadController = manager.imageUpload(data, image, callback);
 		}
 	}
 
