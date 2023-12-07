@@ -25,7 +25,7 @@ new version to get future updates. See [migration guide](#migration-from-the-ori
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library).
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:1.8.2'
+implementation 'no.nordicsemi.android:mcumgr-ble:1.9.0'
 ```
 
 The core module will be included automatically.
@@ -36,7 +36,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:1.8.2'
+implementation 'no.nordicsemi.android:mcumgr-core:1.9.0'
 ```
 
 > Latest version targeting API 30 (Android 11) is 0.13.0-beta07.
@@ -157,12 +157,17 @@ The different firmware upgrade modes are as follows:
   command, and the bootloader is in DirectXIP without revert mode, this mode will be selected
   automatically. This mode was added in library version 1.8.
 
-> **Note**
+> [!Note]
 > Devices based on nRF5340 SoC support only `CONFIRM_ONLY` mode because the image from the
   Network Core cannot be read from the Application Core, making it impossible to temporarily save it.
 
-> **Note**
+> [!Note]
 > Read about MCUboot modes [here](https://docs.mcuboot.com/design.html#image-slots).
+
+### Software Update for Internet of Things (SUIT)
+
+Starting from version 1.9, the library supports SUIT (Software Update for Internet of Things) files.
+In this case the selected mode is ignored. The process of upgrading is embedded in the SUIT file.
 
 ### Firmware Upgrade State
 
