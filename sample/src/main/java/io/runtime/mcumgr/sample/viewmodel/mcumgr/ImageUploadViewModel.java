@@ -19,6 +19,7 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.image.SUITImage;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
@@ -103,13 +104,18 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         setBusy();
         stateLiveData.setValue(State.VALIDATING);
 
-        byte[] hash;
+        byte[] tmpHash;
         try {
-            hash = McuMgrImage.getHash(data);
+            tmpHash = McuMgrImage.getHash(data);
         } catch (final McuMgrException e) {
-            errorLiveData.setValue(e);
-            return;
+            try {
+                tmpHash = SUITImage.getHash(data);
+            } catch (final McuMgrException e2) {
+                errorLiveData.setValue(e);
+                return;
+            }
         }
+        final byte[] hash = tmpHash;
 
         requestHighConnectionPriority();
         manager.list(new McuMgrCallback<>() {

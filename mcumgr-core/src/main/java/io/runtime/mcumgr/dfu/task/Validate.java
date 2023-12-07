@@ -14,7 +14,7 @@ import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
 import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
-import io.runtime.mcumgr.image.McuMgrImage;
+import io.runtime.mcumgr.image.ImageWithHash;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.dflt.McuMgrBootloaderInfoResponse;
@@ -140,7 +140,7 @@ class Validate extends FirmwareUpgradeTask {
 						if (slot.active) {
 							// Check if any of the images has the same hash as the image on the active slot.
 							for (final McuMgrTargetImage image : images.getImages()) {
-								final McuMgrImage mcuMgrImage = image.image;
+								final ImageWithHash mcuMgrImage = image.image;
 								if (slot.image == image.imageIndex && Arrays.equals(slot.hash, mcuMgrImage.getHash())) {
 									// The image was found on an active slot, which means that core
 									// does not need to be updated.
@@ -165,7 +165,7 @@ class Validate extends FirmwareUpgradeTask {
 				// For each image that is to be sent, check if the same image has already been sent.
 				for (final McuMgrTargetImage image : images.getImages()) {
 					final int imageIndex = image.imageIndex;
-					final McuMgrImage mcuMgrImage = image.image;
+					final ImageWithHash mcuMgrImage = image.image;
 
 					// The following flags will be updated based on the received slot information.
 					boolean found = false;     // An image with the same hash was found on the device
@@ -191,7 +191,7 @@ class Validate extends FirmwareUpgradeTask {
 							// If the image has been found on its target slot and it's confirmed,
 							// we just need to restart the device in order for it to be swapped back to
 							// primary slot.
-							if (confirmed && slot.slot == image.slot && !noSwap) {
+							if (mcuMgrImage.needsConfirmation() && confirmed && slot.slot == image.slot && !noSwap) {
 								resetRequired = true;
 							}
 							break;
@@ -237,10 +237,13 @@ class Validate extends FirmwareUpgradeTask {
 						continue;
 					}
 					if (!found) {
-						performer.enqueue(new Upload(mcuMgrImage, imageIndex));
-						if (!allowRevert || mode == Mode.NONE) {
+						performer.enqueue(new Upload(mcuMgrImage.getData(), imageIndex));
+						if (mcuMgrImage.needsConfirmation() && !allowRevert || mode == Mode.NONE) {
 							resetRequired = true;
 						}
+					}
+					if (!mcuMgrImage.needsConfirmation()) {
+						continue;
 					}
 					if (allowRevert && mode != Mode.NONE) {
 						switch (mode) {
