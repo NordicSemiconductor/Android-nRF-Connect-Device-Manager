@@ -238,7 +238,7 @@ class Validate extends FirmwareUpgradeTask {
 					}
 					if (!found) {
 						performer.enqueue(new Upload(mcuMgrImage.getData(), imageIndex));
-						if (mcuMgrImage.needsConfirmation() && !allowRevert || mode == Mode.NONE) {
+						if (mcuMgrImage.needsConfirmation() && (!allowRevert || mode == Mode.NONE)) {
 							resetRequired = true;
 						}
 					}
