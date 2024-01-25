@@ -51,10 +51,11 @@ dependencies {
     // Kotlin
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
 
-    // Import CBOR parser
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.14.2'
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
+    // Import CBOR parser - version 2.14+ requires Android 8
+    // See: https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager/issues/135
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.5' // don't update
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.13.5' // don't update
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5' // don't update
 
     // Test
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
