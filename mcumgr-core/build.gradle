@@ -46,7 +46,7 @@ dependencies {
     implementation 'org.jetbrains:annotations:24.0.0'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-api:1.7.36' // don't update
 
     // Kotlin
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
