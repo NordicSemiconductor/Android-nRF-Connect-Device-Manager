@@ -35,3 +35,6 @@
      @com.fasterxml.jackson.annotation.JsonCreator *;
      @com.fasterxml.jackson.annotation.JsonProperty *;
 }
+
+# SLF4J
+-dontwarn org.slf4j.impl.StaticLoggerBinder
