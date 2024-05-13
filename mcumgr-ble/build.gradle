@@ -28,7 +28,7 @@ android {
 
     compileOptions {
         // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
-        // java11 so as to ensure that we dont break the "classic xamarin (mono)" toolchain for C# android-java-bindings
+        // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
         // which employs an outdated version of r8 that can only handle java11 bytecode
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -36,7 +36,7 @@ android {
 
     kotlinOptions {
         // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
-        // java11 so as to ensure that we dont break the "classic xamarin (mono)" toolchain for C# android-java-bindings
+        // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
         // which employs an outdated version of r8 that can only handle java11 bytecode
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
@@ -47,13 +47,13 @@ dependencies {
     api project(':mcumgr-core')
 
     // Import the BLE Library
-    api 'no.nordicsemi.android:ble:2.7.2'
+    api 'no.nordicsemi.android:ble:2.7.5'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-api:1.7.36' // don't update
 
     // Kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
@@ -71,6 +71,10 @@ if (rootProject.file('gradle/publish-module.gradle').exists()) {
     apply from: rootProject.file('gradle/publish-module.gradle')
 }
 
+// Quick fix for GitHub Actions issue:
+// Reason: Task ':mcumgr-ble:generateMetadataFileForReleasePublication' uses this output of task
+// ':mcumgr-ble:androidSourcesJar' without declaring an explicit or implicit dependency.
+// This can lead to incorrect results being produced, depending on what order the tasks are executed.
 afterEvaluate {
     generateMetadataFileForReleasePublication.dependsOn androidSourcesJar
 }

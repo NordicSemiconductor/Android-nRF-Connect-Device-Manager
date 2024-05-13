@@ -27,7 +27,7 @@ android {
 
     compileOptions {
         // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
-        // java11 so as to ensure that we dont break the "classic xamarin (mono)" toolchain for C# android-java-bindings
+        // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
         // which employs an outdated version of r8 that can only handle java11 bytecode
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -35,7 +35,7 @@ android {
 
     kotlinOptions {
         // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
-        // java11 so as to ensure that we dont break the "classic xamarin (mono)" toolchain for C# android-java-bindings
+        // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
         // which employs an outdated version of r8 that can only handle java11 bytecode
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
@@ -43,23 +43,23 @@ android {
 
 dependencies {
     // Annotations
-    implementation 'org.jetbrains:annotations:24.0.0'
+    implementation 'org.jetbrains:annotations:24.1.0'
 
     // Logging
     implementation 'org.slf4j:slf4j-api:1.7.36' // don't update
 
     // Kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 
     // Import CBOR parser - version 2.14+ requires Android 8
     // See: https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager/issues/135
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.5' // don't update
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.13.5' // don't update
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5' // don't update
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.17.1' // don't update
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.17.1' // don't update
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1' // don't update
 
     // Test
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
 // === Maven Central configuration ===
@@ -74,8 +74,10 @@ if (rootProject.file('gradle/publish-module.gradle').exists()) {
     apply from: rootProject.file('gradle/publish-module.gradle')
 }
 
-//Quick fix for Gihtub Actions issue:
-//Reason: Task ':mcumgr-core:generateMetadataFileForReleasePublication' uses this output of task ':mcumgr-core:androidSourcesJar' without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+// Quick fix for GitHub Actions issue:
+// Reason: Task ':mcumgr-core:generateMetadataFileForReleasePublication' uses this output of task
+// ':mcumgr-core:androidSourcesJar' without declaring an explicit or implicit dependency.
+// This can lead to incorrect results being produced, depending on what order the tasks are executed.
 afterEvaluate {
     generateMetadataFileForReleasePublication.dependsOn androidSourcesJar
 }
