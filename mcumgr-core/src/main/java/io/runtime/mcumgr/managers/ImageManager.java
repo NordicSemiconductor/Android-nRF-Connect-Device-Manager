@@ -961,7 +961,7 @@ public class ImageManager extends TransferManager {
             } else {
                 // The code below removes the need of calling an expensive method CBOR.toBytes(..)
                 // by calculating the overhead manually. Mind, that the data itself are not added.
-                int size = 2;  // map: 0xBF at the beginning and 0xFF at the end
+                int size = 1;  // map: 0xAn (or 0xBn) - Map in a canonical form (max 23 pairs)
                 size += 5 + CBOR.uintLength(data.length); // "data": 0x6464617461 + 3 for encoding length (as 16-bin positive int, worse case scenario) + NO DATA
                 size += 4 + CBOR.uintLength(offset); // "off": 0x636F6666 + 3 bytes for the offset (as 16-bin positive int, worse case scenario)
                 if (offset == 0) {

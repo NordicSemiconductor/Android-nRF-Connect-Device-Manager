@@ -382,8 +382,8 @@ abstract class Uploader(
             else -> 8 + 4
         }
 
-        // Size of the indefinite length map tokens (bf, ff)
-        val mapSize = 2
+        // A map token with 5-bit length (A0-AF or B0-B7) - map size of max 23 pairs
+        val mapSize = 1
 
         // Size of the field name "data" utf8 string
         val dataStringSize = CBOR.stringLength("data")

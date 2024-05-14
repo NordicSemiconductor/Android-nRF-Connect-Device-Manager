@@ -8,6 +8,7 @@ package io.runtime.mcumgr.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,14 @@ public class CBOR {
 
     public static byte[] toBytes(Object obj) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
+
+        // Add canonical serializer for maps. This one will be used instead
+        // of the default one.
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(new CanonicalMapSerializer());
+        mapper.registerModule(module);
+        // TODO: Similar could be added for arrays, but they aren't used.
+
         return mapper.writeValueAsBytes(obj);
     }
 
