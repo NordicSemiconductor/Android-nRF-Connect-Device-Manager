@@ -70,6 +70,7 @@ public abstract class McuManager {
     protected final static int GROUP_SHELL = 9;
     // https://github.com/nrfconnect/sdk-zephyr/blob/master/include/mgmt/mcumgr/zephyr_groups.h
     protected final static int GROUP_BASIC = 63;
+    protected final static int GROUP_SUIT = 66; // TODO This should be changed to 62 at some point
 
     // User defined groups should start from GROUP_PERUSER.
     protected final static int GROUP_PERUSER = 64;
