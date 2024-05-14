@@ -11,7 +11,7 @@ import io.runtime.mcumgr.exception.McuMgrException;
 
 public class TransferCallable implements Callable<Transfer>, TransferController {
 
-    private enum State {
+    public enum State {
         NONE, TRANSFER, PAUSED, CLOSED
     }
 
