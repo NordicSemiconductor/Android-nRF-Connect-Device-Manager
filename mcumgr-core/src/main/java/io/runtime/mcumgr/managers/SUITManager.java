@@ -12,6 +12,11 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
 
+/**
+ * The SUIT Manager provides API to access SUIT manifests on supported devices, as well as
+ * perform firmware update. Comparing to {@link ImageManager} it provides more granular control
+ * over the running firmware split into several domains.
+ */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SUITManager extends McuManager {
 
@@ -37,7 +42,8 @@ public class SUITManager extends McuManager {
 
     /**
      * Command allows to get information about roles of manifests supported by the device.
-     * @return The response
+     * @return The response with the list of manifest roles. Use {@link #getManifestState(int)}
+     * to get more information about the manifest.
      * @throws McuMgrException on failure.
      */
     @NotNull
@@ -47,6 +53,9 @@ public class SUITManager extends McuManager {
 
     /**
      * Command allows to get information about roles of manifests supported by the device.
+     * <p>
+     * The response contains the list of manifest roles. Use {@link #getManifestState(int, McuMgrCallback)}
+     * to get more information about the manifest.
      * @param callback The response callback.
      */
     public void listManifests(@NotNull McuMgrCallback<McuMgrManifestListResponse> callback) {
