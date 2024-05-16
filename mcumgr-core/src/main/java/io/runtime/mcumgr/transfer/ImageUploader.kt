@@ -15,10 +15,10 @@ private const val ID_UPLOAD = 1
 private const val IMG_HASH_LEN = 32
 
 @Deprecated(
-    message = "Use TransferManager.windowUpload instead",
+    message = "Use ImageUploader.uploadAsync instead",
     replaceWith = ReplaceWith(
         "ImageUploader(this, data, image, windowCapacity, memoryAlignment).uploadAsync(callback)",
-        "io.runtime.mcumgr.transfer.TransferManager.windowUpload"
+        "io.runtime.mcumgr.transfer.ImageUploader"
     )
 )
 fun ImageManager.windowUpload(
