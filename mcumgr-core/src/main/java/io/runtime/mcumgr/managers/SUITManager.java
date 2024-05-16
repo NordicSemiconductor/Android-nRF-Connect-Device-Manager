@@ -17,7 +17,10 @@ import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.response.suit.McuMgrEnvelopeUploadResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
+import io.runtime.mcumgr.transfer.UploadCallback;
+import io.runtime.mcumgr.transfer.EnvelopeUploader;
 import io.runtime.mcumgr.util.CBOR;
+import kotlinx.coroutines.CoroutineScope;
 
 /**
  * The SUIT Manager provides API to access SUIT manifests on supported devices, as well as
@@ -113,6 +116,9 @@ public class SUITManager extends McuManager {
      * with {@link InsufficientMtuException} error will be returned.
      * Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
      * pass it to {@link #setUploadMtu(int)} and try again.
+     * <p>
+     * Use {@link EnvelopeUploader#uploadAsync(UploadCallback)} to
+     * upload the whole envelope.
      *
      * @param data     image data.
      * @param offset   the offset, from which the chunk will be sent.
@@ -135,18 +141,21 @@ public class SUITManager extends McuManager {
      * {@link #setUploadMtu(int)} is too large, the {@link InsufficientMtuException} error will be
      * thrown. Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
      * pass it to {@link #setUploadMtu(int)} and try again.
+     * <p>
+     * Use {@link EnvelopeUploader#uploadAsync(UploadCallback, CoroutineScope)}
+     * to upload the whole envelope.
      *
      * @param data   image data.
      * @param offset the offset, from which the chunk will be sent.
      * @return The upload response.
      */
     @NotNull
-    public McuMgrImageUploadResponse upload(byte @NotNull [] data, int offset)
+    public McuMgrEnvelopeUploadResponse upload(byte @NotNull [] data, int offset)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
-        return send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrImageUploadResponse.class);
+        return send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrEnvelopeUploadResponse.class);
     }
 
     /*
