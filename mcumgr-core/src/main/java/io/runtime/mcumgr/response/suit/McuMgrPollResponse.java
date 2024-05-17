@@ -12,20 +12,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
-import java.util.List;
 
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 /** @noinspection unused*/
 public class McuMgrPollResponse extends McuMgrResponse {
 
-
     /**
      * Session identifier. Non-zero value, unique for image request.
      * Not provided if there is no pending image request.
      */
     @JsonProperty("stream_session_id")
-    public int streamSessionId;
+    public int sessionId;
 
     /**
      * Resource identifier, typically in form of a URI.
@@ -40,7 +38,7 @@ public class McuMgrPollResponse extends McuMgrResponse {
      * false otherwise.
      */
     public boolean isRequestingResource() {
-        return streamSessionId != 0;
+        return sessionId != 0;
     }
 
     /**

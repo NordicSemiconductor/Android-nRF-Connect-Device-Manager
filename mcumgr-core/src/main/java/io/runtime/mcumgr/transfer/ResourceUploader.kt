@@ -4,6 +4,7 @@ import io.runtime.mcumgr.McuMgrCallback
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.SUITManager
 import io.runtime.mcumgr.response.suit.McuMgrUploadResponse
+import io.runtime.mcumgr.response.suit.McuMgrPollResponse
 import io.runtime.mcumgr.util.CBOR
 
 private const val OP_WRITE = 2
@@ -15,6 +16,15 @@ private const val ID_RESOURCE_UPLOAD = 4
  *
  * After sending a SUIT Envelope using [EnvelopeUploader], use [SUITManager.poll] to check if any
  * resource is requested.
+ *
+ * @property suitManager The SUIT Manager.
+ * @property sessionId The session ID received in [McuMgrPollResponse] using [SUITManager.poll].
+ * @param data The resource data, as bytes.
+ * @param windowCapacity Number of buffers available for sending data, defaults to 1. The more buffers
+ * are available, the more packets can be sent without awaiting notification with response, thus
+ * accelerating upload process.
+ * @param memoryAlignment The memory alignment of the device, defaults to 1. Some memory
+ * implementations may require bytes to be aligned to a certain value before saving them.
  */
 open class ResourceUploader(
     private val suitManager: SUITManager,
