@@ -13,11 +13,12 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
-import io.runtime.mcumgr.response.suit.McuMgrEnvelopeUploadResponse;
+import io.runtime.mcumgr.response.suit.McuMgrUploadResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
 import io.runtime.mcumgr.response.suit.McuMgrPollResponse;
 import io.runtime.mcumgr.transfer.EnvelopeUploader;
+import io.runtime.mcumgr.transfer.ResourceUploader;
 import io.runtime.mcumgr.transfer.UploadCallback;
 import io.runtime.mcumgr.util.CBOR;
 import kotlinx.coroutines.CoroutineScope;
@@ -45,7 +46,7 @@ public class SUITManager extends McuManager {
     /**
      * Command delivers a packet of a SUIT envelope to the device.
      */
-    private final static int ID_UPLOAD = 2;
+    private final static int ID_ENVELOPE_UPLOAD = 2;
 
     /**
      * SUIT command sequence has the ability of conditional execution of directives, i.e. based
@@ -57,6 +58,11 @@ public class SUITManager extends McuManager {
      * and lack of server-sent notifications, implementation bases on polling.
      */
     private final static int ID_POLL_IMAGE_STATE = 3;
+
+    /**
+     * Command delivers a packet of a resource requested by the target device.
+     */
+    private final static int ID_RESOURCE_UPLOAD = 4;
 
     /**
      * Construct a McuManager instance.
@@ -136,11 +142,11 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void upload(byte @NotNull [] data, int offset,
-                       @NotNull McuMgrCallback<McuMgrEnvelopeUploadResponse> callback) {
+                       @NotNull McuMgrCallback<McuMgrUploadResponse> callback) {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
-        send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrEnvelopeUploadResponse.class, callback);
+        send(OP_WRITE, ID_ENVELOPE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class, callback);
     }
 
     /**
@@ -161,12 +167,12 @@ public class SUITManager extends McuManager {
      * @return The upload response.
      */
     @NotNull
-    public McuMgrEnvelopeUploadResponse upload(byte @NotNull [] data, int offset)
+    public McuMgrUploadResponse upload(byte @NotNull [] data, int offset)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
-        return send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrEnvelopeUploadResponse.class);
+        return send(OP_WRITE, ID_ENVELOPE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class);
     }
 
     /**
@@ -211,13 +217,71 @@ public class SUITManager extends McuManager {
         return send(OP_READ, ID_POLL_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class);
     }
 
+    /**
+     * Command delivers a part of the requested resource to the device (asynchronous).
+     * <p>
+     * After sending a SUIT Envelope using {@link #upload(byte[], int, McuMgrCallback)}, the device
+     * may request a resource to be delivered. To get the session ID and the resource ID, use
+     * {@link #poll(McuMgrCallback)}.
+     * <p>
+     * Use {@link ResourceUploader#uploadAsync(UploadCallback)} to
+     * upload the whole file.
+     *
+     * @param sessionId the non-zero session ID obtained using {@link #poll()}.
+     * @param data     image data.
+     * @param offset   the offset, from which the chunk will be sent.
+     * @param callback the asynchronous callback.
+     */
+    public void uploadResource(int sessionId, byte @NotNull [] data, int offset,
+                       @NotNull McuMgrCallback<McuMgrUploadResponse> callback) {
+        if (sessionId <= 0) {
+            throw new IllegalArgumentException("Session ID must be greater than 0");
+        }
+        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, sessionId);
+        // Timeout for the initial chunk is long, as the device may need to erase the flash.
+        final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
+        send(OP_WRITE, ID_RESOURCE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class, callback);
+    }
+
+    /**
+     * Command delivers a part of the requested resource to the device (synchronous).
+     * <p>
+     * After sending a SUIT Envelope using {@link #upload(byte[], int)}, the device
+     * may request a resource to be delivered. To get the session ID and the resource ID, use
+     * {@link #poll()}.
+     * <p>
+     * Use {@link ResourceUploader#uploadAsync(UploadCallback, CoroutineScope)}
+     * to upload the whole envelope.
+     *
+     * @param sessionId the non-zero session ID obtained using {@link #poll()}.
+     * @param data   image data.
+     * @param offset the offset, from which the chunk will be sent.
+     * @return The upload response.
+     */
+    @NotNull
+    public McuMgrUploadResponse uploadResource(int sessionId, byte @NotNull [] data, int offset)
+            throws McuMgrException {
+        if (sessionId <= 0) {
+            throw new IllegalArgumentException("Session ID must be greater than 0");
+        }
+        HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, sessionId);
+        // Timeout for the initial chunk is long, as the device may need to erase the flash.
+        final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
+        return send(OP_WRITE, ID_RESOURCE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class);
+    }
+
     /*
      * Build the upload payload.
      */
     @NotNull
     private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, int offset) {
+        return buildUploadPayload(data, offset, -1);
+    }
+
+    @NotNull
+    private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, int offset, int sessionId) {
         // Get chunk of image data to send
-        int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset), data.length - offset);
+        int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset, sessionId), data.length - offset);
         byte[] sendBuffer = new byte[dataLength];
         System.arraycopy(data, offset, sendBuffer, 0, dataLength);
 
@@ -227,11 +291,14 @@ public class SUITManager extends McuManager {
         payloadMap.put("off", offset);
         if (offset == 0) {
             payloadMap.put("len", data.length);
+            if (sessionId > 0) {
+                payloadMap.put("stream_session_id", sessionId);
+            }
         }
         return payloadMap;
     }
 
-    private int calculatePacketOverhead(byte @NotNull [] data, int offset) {
+    private int calculatePacketOverhead(byte @NotNull [] data, int offset, int sessionId) {
         try {
             if (getScheme().isCoap()) {
                 HashMap<String, Object> overheadTestMap = new HashMap<>();
@@ -239,6 +306,9 @@ public class SUITManager extends McuManager {
                 overheadTestMap.put("off", offset);
                 if (offset == 0) {
                     overheadTestMap.put("len", data.length);
+                    if (sessionId > 0) {
+                        overheadTestMap.put("stream_session_id", sessionId);
+                    }
                 }
                 byte[] header = {0, 0, 0, 0, 0, 0, 0, 0};
                 overheadTestMap.put("_h", header);
@@ -249,10 +319,13 @@ public class SUITManager extends McuManager {
                 // The code below removes the need of calling an expensive method CBOR.toBytes(..)
                 // by calculating the overhead manually. Mind, that the data itself are not added.
                 int size = 1;  // map: 0xAn (or 0xBn) - Map in a canonical form (max 23 pairs)
-                size += 5 + CBOR.uintLength(data.length); // "data": 0x6464617461 + 3 for encoding length (as 16-bin positive int, worse case scenario) + NO DATA
-                size += 4 + CBOR.uintLength(offset); // "off": 0x636F6666 + 3 bytes for the offset (as 16-bin positive int, worse case scenario)
+                size += 5 + CBOR.uintLength(data.length); // "data": 0x6464617461 + length + NO DATA
+                size += 4 + CBOR.uintLength(offset); // "off": 0x636F6666 + offset
                 if (offset == 0) {
                     size += 4 + 5; // "len": 0x636C656E + len as 32-bit positive integer
+                    if (sessionId > 0) {
+                        size += 18 + CBOR.uintLength(sessionId); // "stream_session_id": 0x73747265616D5F73657373696F6E5F6964 + session ID
+                    }
                 }
                 return size + 8; // 8 additional bytes for the SMP header
             }

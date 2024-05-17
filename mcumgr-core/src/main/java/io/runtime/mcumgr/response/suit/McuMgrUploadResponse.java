@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 import io.runtime.mcumgr.response.UploadResponse;
 
-public class McuMgrEnvelopeUploadResponse extends UploadResponse {
+public class McuMgrUploadResponse extends UploadResponse {
 
     @JsonCreator
-    public McuMgrEnvelopeUploadResponse() {}
+    public McuMgrUploadResponse() {}
 }
