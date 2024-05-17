@@ -13,12 +13,12 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
-import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.response.suit.McuMgrEnvelopeUploadResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
-import io.runtime.mcumgr.transfer.UploadCallback;
+import io.runtime.mcumgr.response.suit.McuMgrPollResponse;
 import io.runtime.mcumgr.transfer.EnvelopeUploader;
+import io.runtime.mcumgr.transfer.UploadCallback;
 import io.runtime.mcumgr.util.CBOR;
 import kotlinx.coroutines.CoroutineScope;
 
@@ -46,6 +46,17 @@ public class SUITManager extends McuManager {
      * Command delivers a packet of a SUIT envelope to the device.
      */
     private final static int ID_UPLOAD = 2;
+
+    /**
+     * SUIT command sequence has the ability of conditional execution of directives, i.e. based
+     * on the digest of installed image. That opens scenario where SUIT candidate envelope contains
+     * only SUIT manifests, images (those required to be updated) are fetched by the device only
+     * if it is necessary. In that case, the device informs the SMP client that specific image
+     * is required (and this is what this command implements), and then the SMP client delivers
+     * requested image in chunks. Due to the fact that SMP is designed in clients-server pattern
+     * and lack of server-sent notifications, implementation bases on polling.
+     */
+    private final static int ID_POLL_IMAGE_STATE = 3;
 
     /**
      * Construct a McuManager instance.
@@ -156,6 +167,48 @@ public class SUITManager extends McuManager {
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
         return send(OP_WRITE, ID_UPLOAD, payloadMap, timeout, McuMgrEnvelopeUploadResponse.class);
+    }
+
+    /**
+     * Poll for required image (asynchronous).
+     * <p>
+     * SUIT command sequence has the ability of conditional execution of directives, i.e. based
+     * on the digest of installed image. That opens scenario where SUIT candidate envelope contains
+     * only SUIT manifests, images (those required to be updated) are fetched by the device only
+     * if it is necessary. In that case, the device informs the SMP client that specific image
+     * is required (and this is what this command implements), and then the SMP client delivers
+     * requested image in chunks. Due to the fact that SMP is designed in clients-server pattern
+     * and lack of server-sent notifications, implementation bases on polling.
+     * <p>
+     * After sending the Envelope, the client should periodically poll the device to check if an
+     * image is required.
+     *
+     * @param callback the asynchronous callback.
+     */
+    public void poll(@NotNull McuMgrCallback<McuMgrPollResponse> callback) {
+        send(OP_READ, ID_POLL_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class, callback);
+    }
+
+    /**
+     * Poll for required image (synchronous).
+     * <p>
+     * SUIT command sequence has the ability of conditional execution of directives, i.e. based
+     * on the digest of installed image. That opens scenario where SUIT candidate envelope contains
+     * only SUIT manifests, images (those required to be updated) are fetched by the device only
+     * if it is necessary. In that case, the device informs the SMP client that specific image
+     * is required (and this is what this command implements), and then the SMP client delivers
+     * requested image in chunks. Due to the fact that SMP is designed in clients-server pattern
+     * and lack of server-sent notifications, implementation bases on polling.
+     * <p>
+     * After sending the Envelope, the client should periodically poll the device to check if an
+     * image is required.
+     *
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     */
+    @NotNull
+    public McuMgrPollResponse poll() throws McuMgrException {
+        return send(OP_READ, ID_POLL_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class);
     }
 
     /*
