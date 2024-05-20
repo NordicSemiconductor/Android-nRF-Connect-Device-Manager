@@ -33,7 +33,7 @@
 
     <string name="image_upgrade_error">The value is invalid.</string>
     <string name="image_upgrade_dialog_help_title">Help</string>
-    <string name="image_upgrade_erase_storage_info">Enabling this feature will cause the application settings to be erased after the new firmware has been sent successfully. This is equivalent of Factory Reset.\n\nEnable when switching applications or upgrading by a major version with incompatible settings structure.\n\nEnabled by default.</string>
+    <string name="image_upgrade_erase_storage_info">Enabling this feature will cause the application settings to be erased after the new firmware has been sent successfully. This is equivalent of Factory Reset.\n\nEnable when switching applications or upgrading by a major version with incompatible settings structure.</string>
     <string name="image_upgrade_swap_time_info">A time required by a device to swap the images. When used with Test &amp; Confirm, the app will delay reconnection given number of seconds to avoid timeouts on reconnection.\n\nBy default 10 seconds.</string>
     <string name="image_upgrade_pipeline_info">The number of net_bufs to allocate for mcumgr. Multiple buffers allow sending packets in parallel, without waiting for their responses, which improves the upload speed.\n\nThis is configured as MCUMGR_BUF_COUNT in KConfig in Zephyr and default equal to 4.</string>
     <string name="image_upgrade_memory_alignment_info">Enabling this will cause each packet to be truncated to fit the device\'s flash alignment. This is only relevant with pipelining, that is with Concurrent buffers count  greater than 1, and is ignored otherwise.\n\nIf a device uses internal flash buffering this can be disabled.</string>

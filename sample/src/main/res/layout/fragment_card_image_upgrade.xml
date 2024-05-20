@@ -128,7 +128,7 @@
             android:id="@+id/advanced_erase_settings"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:checked="true"
+            android:checked="false"
             android:text="@string/image_upgrade_erase_storage"
             app:layout_constraintEnd_toStartOf="@+id/advanced_erase_settings_info"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
