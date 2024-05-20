@@ -128,7 +128,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         // Fill default values.
         if (savedInstanceState == null) {
             final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-            binding.advancedEraseSettings.setChecked(preferences.getBoolean(PREF_ERASE_APP_SETTINGS, true));
+            binding.advancedEraseSettings.setChecked(preferences.getBoolean(PREF_ERASE_APP_SETTINGS, false));
             binding.advancedSwapTime.setText(getString(R.string.value_int, preferences.getInt(PREF_ESTIMATED_SWAP_TIME, 10)));
             binding.advancedWindowCapacity.setText(getString(R.string.value_int, preferences.getInt(PREF_WINDOW_CAPACITY, 4)));
             memoryAlignment = preferences.getInt(PREF_MEMORY_ALIGNMENT, 4);
