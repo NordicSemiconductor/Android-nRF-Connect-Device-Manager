@@ -11,6 +11,7 @@ import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.managers.BasicManager;
+import io.runtime.mcumgr.managers.SUITManager;
 import io.runtime.mcumgr.managers.SettingsManager;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.FsManager;
@@ -75,5 +76,11 @@ public class McuMgrManagerModule {
     @McuMgrScope
     static FirmwareUpgradeManager provideFirmwareUpgradeManager(final McuMgrTransport transport) {
         return new FirmwareUpgradeManager(transport);
+    }
+
+    @Provides
+    @McuMgrScope
+    static SUITManager provideSUITManager(final McuMgrTransport transport) {
+        return new SUITManager(transport);
     }
 }
