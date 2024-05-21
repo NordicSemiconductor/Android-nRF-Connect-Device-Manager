@@ -231,16 +231,14 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
 
     private void requestHighConnectionPriority() {
         final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof McuMgrBleTransport) {
-            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+        if (transporter instanceof McuMgrBleTransport bleTransporter) {
             bleTransporter.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
     }
 
     private void setLoggingEnabled(final boolean enabled) {
         final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof McuMgrBleTransport) {
-            final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
+        if (transporter instanceof McuMgrBleTransport bleTransporter) {
             bleTransporter.setLoggingEnabled(enabled);
         }
     }
