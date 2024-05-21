@@ -56,6 +56,7 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
     private final MutableLiveData<Float> transferSpeedLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<McuMgrException> errorLiveData = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Boolean> hashAlreadyFound = new SingleLiveEvent<>();
 
     private long uploadStartTimestamp;
     private int initialBytes;
@@ -97,7 +98,12 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         return cancelledEvent;
     }
 
-    public void upload(@NonNull final byte[] data, final int image) {
+    @NonNull
+    public LiveData<Boolean> getHashAlreadyFoundEvent() {
+        return hashAlreadyFound;
+    }
+
+    public void upload(@NonNull final byte[] data, final int image, boolean force) {
         if (controller != null) {
             return;
         }
@@ -117,7 +123,6 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
         }
         final byte[] hash = tmpHash;
 
-        requestHighConnectionPriority();
         manager.list(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
@@ -130,16 +135,13 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
                     }
                 }
                 // If yes, no need to send again.
-                if (theSameImage != null) {
-                    if (theSameImage.slot == 0) {
-                        errorLiveData.postValue(new McuMgrException("Firmware already active."));
-                    } else {
-                        // Firmware is identical to one on slot 1. No need to send anything.
-                        stateLiveData.postValue(State.COMPLETE);
-                    }
+                if (!force && theSameImage != null) {
+                    hashAlreadyFound.postValue(theSameImage.active);
                     postReady();
                     return;
                 }
+
+                requestHighConnectionPriority();
                 // Otherwise, send the firmware. This may return NO MEMORY error if slot 1 is
                 // filled with an image with pending or confirmed flags set.
                 stateLiveData.postValue(State.UPLOADING);

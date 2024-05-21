@@ -32,12 +32,15 @@ import io.runtime.mcumgr.sample.databinding.FragmentCardImageUploadBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.dialog.SelectImageDialogFragment;
+import io.runtime.mcumgr.sample.dialog.YesNoDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
-public class ImageUploadFragment extends FileBrowserFragment implements Injectable, SelectImageDialogFragment.OnImageSelectedListener {
+public class ImageUploadFragment extends FileBrowserFragment implements Injectable,
+        SelectImageDialogFragment.OnImageSelectedListener, YesNoDialogFragment.Listener {
     private static final int REQUEST_UPLOAD = 0;
+    private static final int REQUEST_OVERWRITE = 1;
 
     @Inject
     McuMgrViewModelFactory viewModelFactory;
@@ -127,6 +130,12 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
             binding.actionCancel.setVisibility(View.GONE);
             binding.actionPauseResume.setVisibility(View.GONE);
         });
+        viewModel.getHashAlreadyFoundEvent().observe(getViewLifecycleOwner(), isActive -> {
+            final DialogFragment dialog = YesNoDialogFragment
+                    .getInstance(REQUEST_OVERWRITE, R.string.image_overwrite_title,
+                            isActive ? R.string.image_overwrite_active_message : R.string.image_overwrite_message);
+            dialog.show(getChildFragmentManager(), null);
+        });
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
             binding.actionSelectFile.setEnabled(!busy);
             binding.actionUpload.setEnabled(isFileLoaded() && !busy);
@@ -208,7 +217,21 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
     public void onImageSelected(final int requestId, final int image) {
         final byte[] data = getFileContent();
         if (data != null) {
-            viewModel.upload(data, image);
+            viewModel.upload(data, image, false);
+        }
+    }
+
+    @Override
+    public void onAnswer(int requestId, boolean yes) {
+        if (requestId == REQUEST_OVERWRITE) {
+            final byte[] data = getFileContent();
+            if (data != null) {
+                if (yes) {
+                    viewModel.upload(data, 0, true);
+                } else {
+                    viewModel.onUploadCanceled();
+                }
+            }
         }
     }
 
