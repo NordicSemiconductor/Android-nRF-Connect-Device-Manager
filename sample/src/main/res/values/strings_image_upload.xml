@@ -23,6 +23,10 @@
         <item>Image 3 (3)</item>
     </string-array>
 
+    <string name="image_overwrite_title">Overwrite?</string>
+    <string name="image_overwrite_message">The selected image is already on the device. Do you want to send it again?</string>
+    <string name="image_overwrite_active_message">The selected image is already active. Do you want to send it again?</string>
+
     <string name="image_upload_status_ready">READY</string>
     <string name="image_upload_status_validating">VALIDATING…</string>
     <string name="image_upload_status_uploading">UPLOADING…</string>
