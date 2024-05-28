@@ -35,7 +35,8 @@
 
     <string name="image_upload_dialog_help_title">Help</string>
     <string name="image_upload_dialog_help_message"><b>Firmware Update</b> card lets you send
-		a new firmware image onto the device to the available slot. After sending the image,
-		use <b>Images</b> card to test or confirm it, and the <b>Reset</b> card to reboot
-		the device.</string>
+		a new firmware image or a SUIT candidate manifest onto the device to the available slot.
+        Depending on the bootloader, the uploaded image must be put into TEST or CONFIRM state
+        using the <b>Images</b> card. The state can be applied by resetting the device
+        using the <b>Reset</b> card below.</string>
 </resources>

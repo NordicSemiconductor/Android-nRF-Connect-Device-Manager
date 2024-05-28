@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
@@ -20,6 +21,13 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 
 /** @noinspection unused*/
 public class McuMgrManifestStateResponse extends McuMgrResponse {
+
+    /**
+     * The manifest role.
+     *
+     * @see KnownRole
+     */
+    public int role;
 
     /**
      * Use {@link #getClassId()} to get the class ID as UUID.
@@ -42,7 +50,7 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
     @JsonProperty("digest")
     public byte[] digest;
     @JsonProperty("digest_algorithm")
-    public DigestAlgorithm digest_algorithm;
+    public DigestAlgorithm digestAlgorithm;
     @JsonProperty("signature_check")
     public SignatureVerification signatureCheck;
     @JsonProperty("sequence_number")
@@ -96,6 +104,19 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         DigestAlgorithm(int code) {
             this.code = code;
         }
+
+        @NotNull
+        @Override
+        public String toString() {
+            switch (this) {
+                case SHA_256:
+                    return "SHA-256";
+                case SHA_512:
+                    return "SHA-512";
+                default:
+                    return super.toString();
+            }
+        }
     }
 
     public enum SignatureVerification {
@@ -108,6 +129,21 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
 
         SignatureVerification(int code) {
             this.code = code;
+        }
+
+        @NotNull
+        @Override
+        public String toString() {
+            switch (this) {
+                case NOT_CHECKED:
+                    return "Not checked";
+                case FAILED:
+                    return "Failed";
+                case PASSED:
+                    return "Passed";
+                default:
+                    return super.toString();
+            }
         }
     }
 
@@ -125,6 +161,21 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         DowngradePreventionPolicy(int code) {
             this.code = code;
         }
+
+        @NotNull
+        @Override
+        public String toString() {
+            switch (this) {
+                case DISABLED:
+                    return "Disabled";
+                case ENABLED:
+                    return "Enabled";
+                case UNKNOWN:
+                    return "Unknown";
+                default:
+                    return super.toString();
+            }
+        }
     }
 
     public enum IndependentUpdateabilityPolicy {
@@ -140,6 +191,21 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
 
         IndependentUpdateabilityPolicy(int code) {
             this.code = code;
+        }
+
+        @NotNull
+        @Override
+        public String toString() {
+            switch (this) {
+                case DENIED:
+                    return "Denied";
+                case ALLOWED:
+                    return "Allowed";
+                case UNKNOWN:
+                    return "Unknown";
+                default:
+                    return super.toString();
+            }
         }
     }
 
@@ -158,6 +224,24 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
 
         SignatureVerificationPolicy(int code) {
             this.code = code;
+        }
+
+        @NotNull
+        @Override
+        public String toString() {
+            switch (this) {
+                case DISABLED:
+                    return "Disabled";
+                case ENABLED_ON_UPDATE:
+                    return "Enabled on update";
+                case ENABLED_ON_UPDATE_AND_BOOT:
+                    return "Enabled on update and boot";
+                case UNKNOWN:
+                    return "Unknown";
+                default:
+                    return super.toString();
+
+            }
         }
     }
 

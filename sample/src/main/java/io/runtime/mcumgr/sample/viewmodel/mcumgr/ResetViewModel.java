@@ -22,7 +22,7 @@ import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
 public class ResetViewModel extends McuMgrViewModel {
     private final DefaultManager manager;
 
-    private final MutableLiveData<String> errorLiveData = new MutableLiveData<>();
+    private final MutableLiveData<McuMgrException> errorLiveData = new MutableLiveData<>();
 
     @Inject
     ResetViewModel(final DefaultManager manager,
@@ -32,7 +32,7 @@ public class ResetViewModel extends McuMgrViewModel {
     }
 
     @NonNull
-    public LiveData<String> getError() {
+    public LiveData<McuMgrException> getError() {
         return errorLiveData;
     }
 
@@ -57,7 +57,7 @@ public class ResetViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error.getMessage());
+                errorLiveData.postValue(error);
                 postReady();
             }
         });

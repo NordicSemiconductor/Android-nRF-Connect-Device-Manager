@@ -105,7 +105,19 @@ public class SUITManager extends McuManager {
     public void getManifestState(int role, @NotNull McuMgrCallback<McuMgrManifestStateResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("role", role);
-        send(OP_READ, ID_MANIFEST_STATE, payloadMap, SHORT_TIMEOUT, McuMgrManifestStateResponse.class, callback);
+        send(OP_READ, ID_MANIFEST_STATE, payloadMap, SHORT_TIMEOUT, McuMgrManifestStateResponse.class, new McuMgrCallback<>() {
+            @Override
+            public void onResponse(@NotNull McuMgrManifestStateResponse response) {
+                // The role isn't returned in the response, so we need to set it manually.
+                response.role = role;
+                callback.onResponse(response);
+            }
+
+            @Override
+            public void onError(@NotNull McuMgrException error) {
+                callback.onError(error);
+            }
+        });
     }
 
     /**
@@ -120,7 +132,9 @@ public class SUITManager extends McuManager {
     public McuMgrManifestStateResponse getManifestState(int role) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("role", role);
-        return send(OP_READ, ID_MANIFEST_STATE, payloadMap, SHORT_TIMEOUT, McuMgrManifestStateResponse.class);
+        final McuMgrManifestStateResponse response = send(OP_READ, ID_MANIFEST_STATE, payloadMap, SHORT_TIMEOUT, McuMgrManifestStateResponse.class);
+        response.role = role;
+        return response;
     }
 
     /**
