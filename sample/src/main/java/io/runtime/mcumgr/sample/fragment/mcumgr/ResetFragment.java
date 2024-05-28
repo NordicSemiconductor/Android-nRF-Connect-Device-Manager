@@ -20,6 +20,7 @@ import javax.inject.Inject;
 
 import io.runtime.mcumgr.sample.databinding.FragmentCardResetBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
+import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
 
@@ -52,7 +53,7 @@ public class ResetFragment extends Fragment implements Injectable {
     public void onViewCreated(@NonNull final View view, @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel.getError().observe(getViewLifecycleOwner(), s -> binding.resetError.setText(s));
+        viewModel.getError().observe(getViewLifecycleOwner(), e -> binding.resetError.setText(StringUtils.toString(requireContext(), e)));
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> binding.actionReset.setEnabled(!busy));
         binding.actionReset.setOnClickListener(v -> viewModel.reset());
     }
