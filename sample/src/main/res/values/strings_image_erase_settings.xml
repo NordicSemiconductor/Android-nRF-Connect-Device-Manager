@@ -13,7 +13,8 @@
     <string name="image_settings_dialog_help_title">Help</string>
     <string name="image_settings_dialog_help_message">The <b>Settings</b> card lets you erase
         application data, including bond information. This feature is supported on devices
-        running NCS 1.7 or later with settings erase feature enabled.\n\nIf your device is bonded
+        running NCS 1.7 or later with <i>MCUboot</i> bootloader with settings erase feature
+        enabled.\n\nIf your device is bonded
         remember to remove bond information also from the phone (Bluetooth settings -> Forget device).
         \n\nFor the change to take effect the device needs to be rebooted using the Reset card below,
         as some settings may be stored in RAM.
