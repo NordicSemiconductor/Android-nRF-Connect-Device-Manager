@@ -27,18 +27,26 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import java.util.List;
+import java.util.Locale;
+
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.response.suit.KnownRole;
+import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardImageControlBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.dialog.SelectImageDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
+import io.runtime.mcumgr.sample.utils.Utils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageControlViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
+import io.runtime.mcumgr.util.ByteUtil;
 
 public class ImageControlFragment extends Fragment implements Injectable, SelectImageDialogFragment.OnImageSelectedListener {
     private static final int REQUEST_TEST    = 1;
@@ -89,6 +97,7 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
         ((ViewGroup) view).getLayoutTransition().enableTransitionType(LayoutTransition.CHANGING);
 
         viewModel.getResponse().observe(getViewLifecycleOwner(), this::printImageSlotInfo);
+        viewModel.getManifests().observe(getViewLifecycleOwner(), this::printSuitManifests);
         viewModel.getError().observe(getViewLifecycleOwner(), this::printError);
         viewModel.getTestOperationAvailability().observe(getViewLifecycleOwner(),
                 enabled -> binding.actionTest.setEnabled(enabled));
@@ -107,7 +116,10 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
                 // Other actions will be optionally enabled by other observers
             }
         });
-        binding.actionRead.setOnClickListener(v -> viewModel.read());
+        binding.actionRead.setOnClickListener(v -> {
+            binding.imageControlValue.setText(R.string.image_control_loading);
+            viewModel.read();
+        });
         binding.actionTest.setOnClickListener(v -> onActionClick(REQUEST_TEST));
         binding.actionConfirm.setOnClickListener(v -> onActionClick(REQUEST_CONFIRM));
         binding.actionErase.setOnClickListener(v -> onActionClick(REQUEST_ERASE));
@@ -135,6 +147,37 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
             dialog.show(getChildFragmentManager(), null);
         } else {
             onImageSelected(requestId, images[0]);
+        }
+    }
+
+    private void printSuitManifests(@Nullable final List<McuMgrManifestStateResponse> manifests) {
+        if (manifests != null) {
+            final SpannableStringBuilder builder = new SpannableStringBuilder();
+            int i = 0;
+            for (McuMgrManifestStateResponse manifest: manifests) {
+                final KnownRole role = KnownRole.getOrNull(manifest.role);
+                final int start = builder.length();
+                builder.append(getString(R.string.image_suit_manifest_role, ++i, role.toString(), manifest.role));
+                builder.setSpan(new StyleSpan(Typeface.BOLD),
+                        start, builder.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                final String vendor = manifest.isVendorNordic() ? "Nordic Semiconductor ASA" : "Unknown";
+                final String version = manifest.getVersion();
+                builder.append(getString(R.string.image_suit_manifest_details,
+                        manifest.getClassId().toString().toUpperCase(Locale.ROOT), "Unknown",
+                        manifest.getVendorId().toString().toUpperCase(Locale.ROOT), vendor,
+                        manifest.downgradePreventionPolicy,
+                        manifest.independentUpdateabilityPolicy,
+                        manifest.signatureVerificationPolicy,
+                        ByteUtil.byteArrayToHex(manifest.digest, "%02X"),
+                        manifest.digestAlgorithm,
+                        manifest.signatureCheck,
+                        manifest.sequenceNumber,
+                        version != null ? version : "Unknown"));
+            }
+            binding.imageControlValue.setText(builder);
+            binding.imageControlError.setVisibility(View.GONE);
+        } else {
+            binding.imageControlValue.setText(null);
         }
     }
 

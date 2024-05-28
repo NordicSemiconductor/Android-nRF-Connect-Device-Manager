@@ -11,19 +11,36 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
+import io.runtime.mcumgr.exception.McuMgrTimeoutException;
+import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.ImageManager;
+import io.runtime.mcumgr.managers.SUITManager;
+import io.runtime.mcumgr.response.dflt.McuMgrBootloaderInfoResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
+import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
+import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
 
 public class ImageControlViewModel extends McuMgrViewModel {
+    private final DefaultManager osManager;
     private final ImageManager manager;
 
+    private final SUITManager suitManager;
+
     private final MutableLiveData<McuMgrImageStateResponse> responseLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<McuMgrManifestStateResponse>> manifestsLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> testAvailableLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> confirmAvailableLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> eraseAvailableLiveData = new MutableLiveData<>();
@@ -32,11 +49,25 @@ public class ImageControlViewModel extends McuMgrViewModel {
     @NonNull
     private final byte[][] hashes;
 
+    private interface OnBootloaderReceived {
+        void run(@NonNull BootloaderType type);
+    }
+
+    private enum BootloaderType {
+        MCUBOOT,
+        SUIT
+    }
+    private BootloaderType bootloaderType = null;
+
     @Inject
-    ImageControlViewModel(final ImageManager manager,
+    ImageControlViewModel(final DefaultManager osManager,
+                          final ImageManager manager,
+                          final SUITManager suitManager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
+        this.osManager = osManager;
         this.manager = manager;
+        this.suitManager = suitManager;
         // The current version supports 2 images.
         this.hashes = new byte[2][];
     }
@@ -44,6 +75,11 @@ public class ImageControlViewModel extends McuMgrViewModel {
     @NonNull
     public LiveData<McuMgrImageStateResponse> getResponse() {
         return responseLiveData;
+    }
+
+    @NonNull
+    public LiveData<List<McuMgrManifestStateResponse>> getManifests() {
+        return manifestsLiveData;
     }
 
     @NonNull
@@ -74,10 +110,53 @@ public class ImageControlViewModel extends McuMgrViewModel {
         return new int[] { 1 };
     }
 
+    private void withBootloader(@NonNull OnBootloaderReceived callback) {
+        if (bootloaderType != null) {
+            callback.run(bootloaderType);
+            return;
+        }
+
+        setBusy();
+        errorLiveData.setValue(null);
+        osManager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_QUERY_BOOTLOADER, new McuMgrCallback<>() {
+            @Override
+            public void onResponse(@NotNull McuMgrBootloaderInfoResponse response) {
+                if (response.bootloader != null && response.bootloader.equals("SUIT")) {
+                    bootloaderType = BootloaderType.SUIT;
+                } else  {
+                    bootloaderType = BootloaderType.MCUBOOT;
+                }
+                postReady();
+                callback.run(bootloaderType);
+            }
+
+            @Override
+            public void onError(@NotNull McuMgrException error) {
+                if (error instanceof McuMgrErrorException) {
+                    bootloaderType = BootloaderType.MCUBOOT;
+                    callback.run(bootloaderType);
+                } else {
+                    postError(error);
+                }
+            }
+        });
+    }
+
     public void read() {
         // This is called also from BLE thread after erase(), therefore postValue, not setValue.
         postBusy();
         errorLiveData.postValue(null);
+
+        withBootloader(type -> {
+            if (type == BootloaderType.SUIT) {
+                readSuit();
+            } else {
+                readMcuboot();
+            }
+        });
+    }
+
+    private void readMcuboot() {
         manager.list(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
@@ -96,8 +175,59 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error);
-                postReady(null);
+                postError(error);
+            }
+        });
+    }
+
+    private void readSuit() {
+        // Hashes are not used in SUIT mode.
+        hashes[0] = hashes[1] = null;
+
+        suitManager.listManifests(new McuMgrCallback<>() {
+            @Override
+            public void onResponse(@NonNull final McuMgrManifestListResponse list) {
+                final List<McuMgrManifestStateResponse> manifests = new ArrayList<>();
+                if (list.manifests == null || list.manifests.isEmpty()) {
+                    postReady(manifests);
+                    return;
+                }
+                // Oh, I wish this class was in Kotlin and I could just use coroutines...
+                final Object lock = new Object();
+                new Thread(() -> {
+                    for (McuMgrManifestListResponse.Manifest manifest : list.manifests) {
+                        suitManager.getManifestState(manifest.role, new McuMgrCallback<>() {
+                            @Override
+                            public void onResponse(@NotNull McuMgrManifestStateResponse response) {
+                                manifests.add(response);
+                                synchronized (lock) {
+                                    lock.notifyAll();
+                                }
+                            }
+
+                            @Override
+                            public void onError(@NotNull McuMgrException error) {
+                                synchronized (lock) {
+                                    lock.notifyAll();
+                                }
+                            }
+                        });
+                        try {
+                            synchronized (lock) {
+                                lock.wait(1000);
+                            }
+                        } catch (final InterruptedException e) {
+                            postError(new McuMgrTimeoutException());
+                            return;
+                        }
+                    }
+                    postReady(manifests);
+                }).start();
+            }
+
+            @Override
+            public void onError(@NonNull final McuMgrException error) {
+                postError(error);
             }
         });
     }
@@ -116,8 +246,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error);
-                postReady(null);
+                postError(error);
             }
         });
     }
@@ -136,8 +265,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error);
-                postReady(null);
+                postError(error);
             }
         });
     }
@@ -156,18 +284,26 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error);
-                postReady(null);
+                postError(error);
             }
         });
     }
 
-    private void postReady(@Nullable final McuMgrImageStateResponse response) {
+    private void postReady(@Nullable final List<McuMgrManifestStateResponse> manifests) {
+        responseLiveData.postValue(null);
+        manifestsLiveData.postValue(manifests);
+        testAvailableLiveData.postValue(false);
+        confirmAvailableLiveData.postValue(false);
+        eraseAvailableLiveData.postValue(false);
+        postReady();
+    }
+
+    private void postReady(@NonNull final McuMgrImageStateResponse response) {
         boolean testEnabled = false;
         boolean confirmEnabled = false;
         boolean eraseEnabled = false;
 
-        if (response != null && response.images != null) {
+        if (response.images != null) {
             for (McuMgrImageStateResponse.ImageSlot image: response.images) {
                 // Skip slots with active fw.
                 if (image.active)
@@ -188,6 +324,15 @@ public class ImageControlViewModel extends McuMgrViewModel {
         testAvailableLiveData.postValue(testEnabled);
         confirmAvailableLiveData.postValue(confirmEnabled);
         eraseAvailableLiveData.postValue(eraseEnabled);
+        postReady();
+    }
+
+    private void postError(McuMgrException error) {
+        errorLiveData.postValue(error);
+        responseLiveData.postValue(null);
+        testAvailableLiveData.postValue(false);
+        confirmAvailableLiveData.postValue(false);
+        eraseAvailableLiveData.postValue(false);
         postReady();
     }
 }
