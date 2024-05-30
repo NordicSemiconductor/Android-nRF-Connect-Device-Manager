@@ -107,8 +107,8 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
         /**
          * Estimated time required for swapping images, in milliseconds.
-         * If the mode is set to {@link FirmwareUpgradeManager.Mode#TEST_AND_CONFIRM}, the manager will try to reconnect after
-         * this time. 0 by default.
+         * If the mode is set to {@link FirmwareUpgradeManager.Mode#TEST_AND_CONFIRM},
+         * the manager will try to reconnect after this time. 0 by default.
          */
         public final int estimatedSwapTime;
 
@@ -166,12 +166,16 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
             }
 
             /**
-             * Sets window capacity. On Zephyr this is equal to MCUMGR_BUF_COUNT value, which defaults to 4.
+             * Sets window capacity.
+             * <p>
+             * On Zephyr this is equal to MCUMGR_TRANSPORT_NETBUF_COUNT - 1 value, where
+             * one buffer (if more then 1) is used for responses.
              * @param windowCapacity number of windows that can be sent in parallel.
+             * @see <a href="https://github.com/zephyrproject-rtos/zephyr/blob/19f645edd40b38e54f505135beced1919fdc7715/subsys/mgmt/mcumgr/transport/Kconfig#L32">MCUMGR_TRANSPORT_NETBUF_COUNT</a>
              * @return The builder.
              */
             public Builder setWindowCapacity(final int windowCapacity) {
-                this.windowCapacity = Math.max(0, windowCapacity);
+                this.windowCapacity = Math.max(1, windowCapacity);
                 return this;
             }
 
@@ -371,13 +375,13 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * packets, trimmed to match the memory alignment. It will then wait for corresponding
      * notifications and continue to send until the complete image is sent.
      * <p>
-     * This value should match MCUMGR_BUF_COUNT - 1
+     * This value should match MCUMGR_TRANSPORT_NETBUF_COUNT - 1
      * (<a href="https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550">link</a>)
      * in Zephyr KConfig, which is by default set to 4. One buffer is used for sending responses.
      * <p>
      * Mind, that the speed increases only if the returned offsets match the required offset
      * (initial offset + sent packet size). In other case the packets with unexpected offsets
-     * are dropped by the device causing teh packets to be resent, which actually makes the upload
+     * are dropped by the device causing the packets to be resent, which actually makes the upload
      * slower.
      * <p>
      * Pause and resume will throw an exception when window upload is used.
