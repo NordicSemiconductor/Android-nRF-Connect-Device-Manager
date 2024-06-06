@@ -97,12 +97,8 @@ public class TransferCallable implements Callable<Transfer>, TransferController 
                     return mTransfer;
                 }
 
-                if (mTransfer.getData() == null) {
-                    throw new NullPointerException("Transfer data is null!");
-                }
-
                 // Call the progress callback.
-                mTransfer.onProgressChanged(mTransfer.getOffset(), mTransfer.getData().length,
+                mTransfer.onProgressChanged(mTransfer.getOffset(), mTransfer.mDataLength,
                         System.currentTimeMillis());
             }
         }
