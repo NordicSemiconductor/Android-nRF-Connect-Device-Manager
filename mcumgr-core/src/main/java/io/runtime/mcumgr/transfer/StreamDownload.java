@@ -4,6 +4,9 @@ package io.runtime.mcumgr.transfer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -11,16 +14,23 @@ import io.runtime.mcumgr.response.DownloadResponse;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 @SuppressWarnings("unused")
-public abstract class Download extends Transfer {
+public abstract class StreamDownload extends StreamTransfer {
+
+    @NotNull
+    private final OutputStream mDataOutput;
 
     @Nullable
-    private final DownloadCallback mCallback;
+    private final StreamDownloadCallback mCallback;
 
-    protected Download() {
-        this(null);
+    protected StreamDownload(@NotNull OutputStream dataOutput) {
+        this(dataOutput, null);
     }
 
-    protected Download(@Nullable DownloadCallback callback) {
+    protected StreamDownload(
+            @NotNull OutputStream dataOutput,
+            @Nullable StreamDownloadCallback callback
+    ) {
+        mDataOutput = dataOutput;
         mCallback = callback;
     }
 
@@ -43,7 +53,6 @@ public abstract class Download extends Transfer {
 
         // The first packet contains the file length.
         if (response.off == 0) {
-            mData = new byte[response.len];
             mDataLength = response.len;
         }
 
@@ -51,12 +60,15 @@ public abstract class Download extends Transfer {
         if (response.data == null) {
             throw new McuMgrException("Download response data is null.");
         }
-        if (mData == null) {
-            throw new McuMgrException("Download data is null.");
+        if (mDataLength < 0) {
+            throw new McuMgrException("Download size not set.");
         }
 
-        // Copy received mData to the buffer.
-        System.arraycopy(response.data, 0, mData, response.off, response.data.length);
+        try {
+            mDataOutput.write(response.data);
+        } catch (IOException e) {
+            throw new McuMgrException("Download data failed to write to stream.", e);
+        }
         mOffset = response.off + response.data.length;
 
         return response;
@@ -65,7 +77,6 @@ public abstract class Download extends Transfer {
     @Override
     public void reset() {
         mOffset = 0;
-        mData = null;
         mDataLength = -1;
     }
 
@@ -86,10 +97,7 @@ public abstract class Download extends Transfer {
     @Override
     public void onCompleted() {
         if (mCallback != null) {
-            if (mData == null) {
-                throw new NullPointerException("Transfer data cannot be null.");
-            }
-            mCallback.onDownloadCompleted(mData);
+            mCallback.onDownloadCompleted();
         }
     }
 
