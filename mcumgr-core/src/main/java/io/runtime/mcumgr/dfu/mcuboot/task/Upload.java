@@ -1,9 +1,9 @@
-package io.runtime.mcumgr.dfu.task;
+package io.runtime.mcumgr.dfu.mcuboot.task;
 
 import org.jetbrains.annotations.NotNull;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.task.TaskManager;
@@ -67,7 +67,7 @@ class Upload extends FirmwareUpgradeTask {
 		};
 
 		final Settings settings = performer.getSettings();
-		final ImageManager manager = new ImageManager(settings.transport);
+		final ImageManager manager = new ImageManager(performer.getTransport());
 		if (settings.windowCapacity > 1) {
 			mUploadController =	new ImageUploader(
 					manager,

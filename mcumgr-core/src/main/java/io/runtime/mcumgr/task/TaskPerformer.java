@@ -3,11 +3,10 @@ package io.runtime.mcumgr.task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 
 public abstract class TaskPerformer<S, State> {
@@ -18,9 +17,10 @@ public abstract class TaskPerformer<S, State> {
 	public TaskPerformer() {
 	}
 
-	public void start(@NotNull final S settings,
+	public void start(@NotNull final McuMgrTransport transport,
+					  @NotNull final S settings,
 					  @NotNull final Task<S, State> task) {
-		this.manager = new TaskManagerImpl(settings);
+		this.manager = new TaskManagerImpl(transport, settings);
 
 		onTaskStarted(null, task);
 		task.start(manager);
@@ -64,11 +64,13 @@ public abstract class TaskPerformer<S, State> {
 	}
 
 	private class TaskManagerImpl implements TaskManager<S, State> {
+		@NotNull
+		private final McuMgrTransport transport;
+
 		/**
-		 * The queue of tasks to be performed during the update. The content of the queue
-		 * depends on the images given in {@link FirmwareUpgradeManager#start(List, boolean)}
-		 * and the state of the device, which is determined by validation step before the upload
-		 * begins.
+		 * The queue of tasks to be performed.
+		 * <p>
+		 * The tasks may be added to the queue by calling {@link #enqueue(Task)}.
 		 */
 		@NotNull
 		private final Queue<Task<S, State>> taskQueue = new PriorityQueue<>();
@@ -85,7 +87,9 @@ public abstract class TaskPerformer<S, State> {
 		private boolean paused;
 		private boolean cancelled;
 
-		private TaskManagerImpl(@NotNull final S settings) {
+		private TaskManagerImpl(@NotNull final McuMgrTransport transport,
+								@NotNull final S settings) {
+			this.transport = transport;
 			this.settings = settings;
 		}
 
@@ -122,6 +126,12 @@ public abstract class TaskPerformer<S, State> {
 		@Override
 		public S getSettings() {
 			return settings;
+		}
+
+		@NotNull
+		@Override
+		public McuMgrTransport getTransport() {
+			return transport;
 		}
 
 		@Override

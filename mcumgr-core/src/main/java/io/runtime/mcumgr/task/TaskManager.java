@@ -2,9 +2,13 @@ package io.runtime.mcumgr.task;
 
 import org.jetbrains.annotations.NotNull;
 
+import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 
 public interface TaskManager<S, State> {
+
+	@NotNull
+	McuMgrTransport getTransport();
 
 	@NotNull
 	S getSettings();

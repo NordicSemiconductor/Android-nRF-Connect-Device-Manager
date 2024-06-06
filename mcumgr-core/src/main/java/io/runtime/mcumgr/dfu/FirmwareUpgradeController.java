@@ -21,12 +21,8 @@ public interface FirmwareUpgradeController {
 
     /**
      * Cancel the firmware upgrade.
-     * The firmware may be cancelled in
-     * {@link FirmwareUpgradeManager.State#VALIDATE} or
-     * {@link FirmwareUpgradeManager.State#UPLOAD} state.
-     * The manager does not try to recover the original firmware after the test or confirm commands
-     * have been sent. To undo the upload, confirm the image that have been moved to slot 1 during
-     * swap.
+     * <p>
+     * The firmware may be cancelled only in some states.
      */
     void cancel();
 

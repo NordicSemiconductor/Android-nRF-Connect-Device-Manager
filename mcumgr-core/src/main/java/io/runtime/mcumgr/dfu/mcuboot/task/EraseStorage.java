@@ -1,4 +1,4 @@
-package io.runtime.mcumgr.dfu.task;
+package io.runtime.mcumgr.dfu.mcuboot.task;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrErrorCode;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.BasicManager;
@@ -33,8 +33,7 @@ class EraseStorage extends FirmwareUpgradeTask {
 
 	@Override
 	public void start(final @NotNull TaskManager<Settings, State> performer) {
-		final Settings settings = performer.getSettings();
-		final BasicManager manager = new BasicManager(settings.transport);
+		final BasicManager manager = new BasicManager(performer.getTransport());
 		manager.eraseStorage(new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrZephyrBasicResponse response) {

@@ -1,4 +1,4 @@
-package io.runtime.mcumgr.dfu.model;
+package io.runtime.mcumgr.dfu.mcuboot.model;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -8,7 +8,7 @@ import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.image.SUITImage;
 
 /** @noinspection unused*/
-public class McuMgrTargetImage {
+public class TargetImage {
     public final static int SLOT_PRIMARY = 0;
     public final static int SLOT_SECONDARY = 1;
 
@@ -42,7 +42,7 @@ public class McuMgrTargetImage {
      * @param data the signed binary to be sent.
      * @throws McuMgrException when the image does not have a valid mcu header
      */
-    public McuMgrTargetImage(byte @NotNull [] data) throws McuMgrException {
+    public TargetImage(byte @NotNull [] data) throws McuMgrException {
         this(
             // Default or single core.
             0,
@@ -62,7 +62,7 @@ public class McuMgrTargetImage {
      * @param data the signed binary to be sent.
      * @throws McuMgrException when the image does not have a valid mcu header
      */
-    public McuMgrTargetImage(int imageIndex, byte @NotNull [] data) throws McuMgrException {
+    public TargetImage(int imageIndex, byte @NotNull [] data) throws McuMgrException {
         this(
             imageIndex,
             // If not specified, the image will be sent to the secondary slot.
@@ -81,7 +81,7 @@ public class McuMgrTargetImage {
      * @param data the signed binary to be sent.
      * @throws McuMgrException when the image does not have a valid mcu header
      */
-    public McuMgrTargetImage(int imageIndex, int slot, byte @NotNull [] data) throws McuMgrException {
+    public TargetImage(int imageIndex, int slot, byte @NotNull [] data) throws McuMgrException {
         this.imageIndex = imageIndex;
         this.slot = slot;
         ImageWithHash tmp;
