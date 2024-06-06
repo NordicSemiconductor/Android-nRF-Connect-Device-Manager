@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment;
 

@@ -23,8 +23,8 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
-import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.sample.observable.ConnectionParameters;
 import io.runtime.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
@@ -33,7 +33,7 @@ import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
 import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 import timber.log.Timber;
 
-public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUpgradeCallback {
+public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUpgradeCallback<FirmwareUpgradeManager.State> {
     public enum State {
         IDLE,
         VALIDATING,
@@ -149,9 +149,9 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
                         final int estimatedSwapTime,
                         final int windowCapacity,
                         final int memoryAlignment) {
-        McuMgrImageSet images;
+        ImageSet images;
         try {
-            images = new McuMgrImageSet().add(data);
+            images = new ImageSet().add(data);
         } catch (final Exception e) {
             try {
                 final ZipPackage zip = new ZipPackage(data);
@@ -166,25 +166,29 @@ public class ImageUpgradeViewModel extends McuMgrViewModel implements FirmwareUp
 
             // Set the upgrade mode.
             manager.setMode(mode);
-            // rF52840, due to how the flash memory works, requires ~20 sec to erase images.
-            manager.setEstimatedSwapTime(estimatedSwapTime);
-            // Set the window capacity. Values > 1 enable a new implementation for uploading
-            // the images, which makes use of SMP pipelining feature.
-            // The app will send this many packets immediately, without waiting for notification
-            // confirming each packet. This value should be lower or equal to MCUMGR_BUF_COUNT
-            // (https://github.com/zephyrproject-rtos/zephyr/blob/bd4ddec0c8c822bbdd420bd558b62c1d1a532c16/subsys/mgmt/mcumgr/Kconfig#L550)
-            // parameter in KConfig in NCS / Zephyr configuration and should also be supported
-            // on Mynewt devices.
-            // Mind, that in Zephyr,  before https://github.com/zephyrproject-rtos/zephyr/pull/41959
-            // was merged, the device required data to be sent with memory alignment. Otherwise,
-            // the device would ignore uneven bytes and reply with lower than expected offset
-            // causing multiple packets to be sent again dropping the speed instead of increasing it.
-            manager.setWindowUploadCapacity(windowCapacity);
-            // Set the selected memory alignment. In the app this defaults to 4 to match Nordic
-            // devices, but can be modified in the UI.
-            manager.setMemoryAlignment(memoryAlignment);
 
-            manager.start(images, eraseSettings);
+            final FirmwareUpgradeManager.Settings settings = new FirmwareUpgradeManager.Settings.Builder()
+                    .setEraseAppSettings(eraseSettings)
+                    // rF52840, due to how the flash memory works, requires ~20 sec to erase images.
+                    .setEstimatedSwapTime(estimatedSwapTime)
+                    // Set the window capacity. Values > 1 enable a new implementation for uploading
+                    // the images, which makes use of SMP pipelining feature.
+                    // The app will send this many packets immediately, without waiting for notification
+                    // confirming each packet. This value should be lower or equal to MCUMGR_TRANSPORT_NETBUF_COUNT - 1
+                    // (https://github.com/zephyrproject-rtos/zephyr/blob/19f645edd40b38e54f505135beced1919fdc7715/subsys/mgmt/mcumgr/transport/Kconfig#L32)
+                    // parameter in KConfig in NCS / Zephyr configuration and should also be supported
+                    // on Mynewt devices.
+                    // Mind, that in Zephyr,  before https://github.com/zephyrproject-rtos/zephyr/pull/41959
+                    // was merged, the device required data to be sent with memory alignment. Otherwise,
+                    // the device would ignore uneven bytes and reply with lower than expected offset
+                    // causing multiple packets to be sent again dropping the speed instead of increasing it.
+                    .setWindowCapacity(windowCapacity)
+                    // Set the selected memory alignment. In the app this defaults to 4 to match Nordic
+                    // devices, but can be modified in the UI.
+                    .setMemoryAlignment(memoryAlignment)
+                    .build();
+
+            manager.start(images, settings);
         } catch (final McuMgrException e) {
             // TODO Externalize the text
             errorLiveData.setValue(new McuMgrException("Invalid image file."));

@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
-import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
+import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
+import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 import timber.log.Timber;
 
@@ -64,12 +64,12 @@ public final class ZipPackage {
 			 * be sent.
 			 * @since NCS v 2.5, nRF Connect Device Manager 1.8.
 			 */
-			private int slot = McuMgrTargetImage.SLOT_SECONDARY;
+			private int slot = TargetImage.SLOT_SECONDARY;
 		}
 	}
 
 	private Manifest manifest;
-	private final McuMgrImageSet binaries;
+	private final ImageSet binaries;
 
 	public ZipPackage(@NonNull final byte[] data) throws IOException, McuMgrException {
 		ZipEntry ze;
@@ -96,7 +96,7 @@ public final class ZipPackage {
 			}
 		}
 
-		binaries = new McuMgrImageSet();
+		binaries = new ImageSet();
 
 		// Search for images.
 		for (final Manifest.File file: manifest.files) {
@@ -105,11 +105,11 @@ public final class ZipPackage {
 			if (content == null)
 				throw new IOException("File not found: " + name);
 
-			binaries.add(new McuMgrTargetImage(file.imageIndex, file.slot, content));
+			binaries.add(new TargetImage(file.imageIndex, file.slot, content));
 		}
 	}
 
-	public McuMgrImageSet getBinaries() {
+	public ImageSet getBinaries() {
 		return binaries;
 	}
 

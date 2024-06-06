@@ -31,8 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
-import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
 import io.runtime.mcumgr.image.SUITImage;
@@ -362,7 +362,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 final ZipPackage zip = new ZipPackage(data);
                 final StringBuilder sizeBuilder = new StringBuilder();
                 final StringBuilder hashBuilder = new StringBuilder();
-                for (final McuMgrTargetImage binary: zip.getBinaries().getImages()) {
+                for (final TargetImage binary: zip.getBinaries().getImages()) {
                     final byte[] hash = binary.image.getHash();
                     hashBuilder
                             .append(StringUtils.toHex(hash))

@@ -9,7 +9,7 @@ package io.runtime.mcumgr.sample.di.module;
 import dagger.Module;
 import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
 import io.runtime.mcumgr.managers.BasicManager;
 import io.runtime.mcumgr.managers.SUITManager;
 import io.runtime.mcumgr.managers.SettingsManager;
