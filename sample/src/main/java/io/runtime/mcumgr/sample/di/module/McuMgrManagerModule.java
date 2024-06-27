@@ -10,13 +10,14 @@ import dagger.Module;
 import dagger.Provides;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager;
 import io.runtime.mcumgr.managers.BasicManager;
-import io.runtime.mcumgr.managers.SUITManager;
 import io.runtime.mcumgr.managers.SettingsManager;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.FsManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.managers.LogManager;
+import io.runtime.mcumgr.managers.SUITManager;
 import io.runtime.mcumgr.managers.ShellManager;
 import io.runtime.mcumgr.managers.StatsManager;
 import io.runtime.mcumgr.sample.di.McuMgrScope;
@@ -82,5 +83,11 @@ public class McuMgrManagerModule {
     @McuMgrScope
     static SUITManager provideSUITManager(final McuMgrTransport transport) {
         return new SUITManager(transport);
+    }
+
+    @Provides
+    @McuMgrScope
+    static SUITUpgradeManager provideSUITUpgradeManager(final McuMgrTransport transport) {
+        return new SUITUpgradeManager(transport);
     }
 }

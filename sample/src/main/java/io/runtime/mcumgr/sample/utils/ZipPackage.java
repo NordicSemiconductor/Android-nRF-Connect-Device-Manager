@@ -2,6 +2,7 @@ package io.runtime.mcumgr.sample.utils;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -34,9 +35,9 @@ public final class ZipPackage {
 		@Keep
 		private static class File {
 			/**
-			 * The version number of the image. This is a string in the format "X.Y.Z-text".
+			 * The file type. Expected vales are: "application", "bin", "suit-envelope".
 			 */
-			private String version;
+			private String type;
 			/**
 			 * The name of the image file.
 			 */
@@ -69,11 +70,10 @@ public final class ZipPackage {
 	}
 
 	private Manifest manifest;
-	private final ImageSet binaries;
+	private final Map<String, byte[]> entries = new HashMap<>();
 
-	public ZipPackage(@NonNull final byte[] data) throws IOException, McuMgrException {
+	public ZipPackage(@NonNull final byte[] data) throws IOException {
 		ZipEntry ze;
-		Map<String, byte[]> entries = new HashMap<>();
 
 		// Unzip the file and look for the manifest.json.
 		final ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(data));
@@ -88,15 +88,17 @@ public final class ZipPackage {
 						.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 						.create();
 				manifest = gson.fromJson(new InputStreamReader(zis), Manifest.class);
-			} else if (name.endsWith(".bin")) {
+			} else if (name.endsWith(".bin") || name.endsWith(".suit")) {
 				final byte[] content = getData(zis);
 				entries.put(name, content);
 			} else {
 				Timber.w("Unsupported file found: %s", name);
 			}
 		}
+	}
 
-		binaries = new ImageSet();
+	public ImageSet getBinaries() throws IOException, McuMgrException {
+		final ImageSet binaries = new ImageSet();
 
 		// Search for images.
 		for (final Manifest.File file: manifest.files) {
@@ -107,10 +109,28 @@ public final class ZipPackage {
 
 			binaries.add(new TargetImage(file.imageIndex, file.slot, content));
 		}
+		return binaries;
 	}
 
-	public ImageSet getBinaries() {
-		return binaries;
+	public byte[] getSuitEnvelope() {
+		// First, search for an entry of type "suit-envelope".
+		for (final Manifest.File file: manifest.files) {
+			if (file.type.equals("suit-envelope")) {
+                return entries.get(file.file);
+			}
+		}
+		// If not found, search for a file with the ".suit" extension.
+		for (final Manifest.File file: manifest.files) {
+			if (file.file.endsWith(".suit")) {
+				return entries.get(file.file);
+			}
+		}
+		// Not found.
+		return null;
+	}
+
+	public byte[] getResource(@NonNull final String name) {
+		return entries.get(name);
 	}
 
 	private byte[] getData(@NonNull ZipInputStream zis) throws IOException {

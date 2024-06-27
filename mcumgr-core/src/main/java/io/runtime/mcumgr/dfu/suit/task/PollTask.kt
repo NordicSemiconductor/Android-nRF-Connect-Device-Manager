@@ -1,0 +1,105 @@
+package io.runtime.mcumgr.dfu.suit.task
+
+import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager
+import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager.OnResourceRequiredCallback
+import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager.ResourceCallback
+import io.runtime.mcumgr.dfu.suit.SUITUpgradePerformer
+import io.runtime.mcumgr.exception.McuMgrException
+import io.runtime.mcumgr.exception.McuMgrTimeoutException
+import io.runtime.mcumgr.managers.SUITManager
+import io.runtime.mcumgr.task.TaskManager
+import io.runtime.mcumgr.util.ByteUtil
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+internal class PollTask(
+    private val limit: Int = 5,
+    private val interval: Long = 1000L
+): SUITUpgradeTask() {
+    private val LOG: Logger = LoggerFactory.getLogger(PollTask::class.java)
+
+    private var isCancelled = false
+    private var resourceCallback: OnResourceRequiredCallback? = null
+
+    override fun getPriority(): Int = PRIORITY_PROCESS
+
+    override fun getState(): SUITUpgradeManager.State = SUITUpgradeManager.State.PROCESSING
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun start(
+        performer: TaskManager<SUITUpgradePerformer.Settings, SUITUpgradeManager.State>
+    ) {
+        val manager = SUITManager(performer.transport)
+        val task = this
+        var count = 0
+
+        GlobalScope.launch {
+            while (!isCancelled) {
+                count += 1
+                try {
+                    val response = manager.poll()
+                    if (response.isRequestingResource) {
+                        val uri = response.resourceUri ?: run {
+                            performer.onTaskFailed(task, McuMgrException("Resource URI is invalid (0x): ${ByteUtil.byteArrayToHex(response.resourceId)}"))
+                            return@launch
+                        }
+                        LOG.info("Resource requested: {}", uri)
+
+                        val resourceCallback = performer.settings.resourceCallback
+                        if (resourceCallback != null) {
+                            this@PollTask.resourceCallback = resourceCallback
+                            val callback: ResourceCallback = object : ResourceCallback {
+
+                                override fun provide(data: ByteArray) {
+                                    LOG.info("Resource received ({} bytes)", data.size)
+                                    this@PollTask.resourceCallback = null
+                                    performer.enqueue(UploadResource(response.sessionId, data))
+                                    performer.onTaskCompleted(task)
+                                }
+
+                                override fun error(e: Exception) = when (e) {
+                                    is McuMgrException -> performer.onTaskFailed(task, e)
+                                    else -> performer.onTaskFailed(task, McuMgrException(e))
+                                }.also {
+                                    LOG.error("Resource error", e)
+                                    this@PollTask.resourceCallback = null
+                                }
+
+                            }
+                            resourceCallback.onResourceRequired(uri, callback)
+                        } else {
+                            // Hint: Use setResourceCallback in SUITUpgradeManager to provide a callback.
+                            LOG.error("Resource {} is required but no callback is provided", uri)
+                            performer.onTaskFailed(task, McuMgrException("Resource $uri is required but no callback is provided"))
+                        }
+                        return@launch
+                    } else if (count < limit) {
+                        delay(interval)
+                    } else {
+                        performer.onTaskFailed(task, McuMgrTimeoutException())
+                        return@launch
+                    }
+                } catch (e: McuMgrException) {
+                    LOG.error("Error polling for SUIT manifest", e)
+                    performer.onTaskFailed(task, e)
+                    return@launch
+                } catch (e: Exception) {
+                    LOG.error("Error polling for SUIT manifest", e)
+                    performer.onTaskFailed(task, McuMgrException(e))
+                    return@launch
+                }
+            }
+        }
+    }
+
+    override fun cancel() {
+        super.cancel()
+        isCancelled = true
+        resourceCallback?.onUploadCancelled()
+        resourceCallback = null
+    }
+}

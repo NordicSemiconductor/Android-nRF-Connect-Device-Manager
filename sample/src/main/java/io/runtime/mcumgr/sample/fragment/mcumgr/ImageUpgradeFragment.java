@@ -362,6 +362,14 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 final ZipPackage zip = new ZipPackage(data);
                 final StringBuilder sizeBuilder = new StringBuilder();
                 final StringBuilder hashBuilder = new StringBuilder();
+                // Check for SUIT envelope
+                final byte[] envelope = zip.getSuitEnvelope();
+                if (envelope != null) {
+                    // Support for SUIT (Software Update for Internet of Things) format.
+                    trySuitEnvelope(envelope);
+                    return;
+                }
+
                 for (final TargetImage binary: zip.getBinaries().getImages()) {
                     final byte[] hash = binary.image.getHash();
                     hashBuilder
@@ -385,18 +393,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 requiresModeSelection = true;
             } catch (final Exception e1) {
                 // Support for SUIT (Software Update for Internet of Things) format.
-                try {
-                    // Try parsing SUIT file.
-                    final byte[] hash = SUITImage.getHash(data);
-                    binding.fileHash.setText(StringUtils.toHex(hash));
-                    binding.actionStart.setEnabled(true);
-                    binding.status.setText(R.string.image_upgrade_status_ready);
-                    requiresModeSelection = false;
-                } catch (final Exception e2) {
-                    binding.fileHash.setText(null);
-                    clearFileContent();
-                    onFileLoadingFailed(R.string.image_error_file_not_valid);
-                }
+                trySuitEnvelope(data);
             }
         }
     }
@@ -404,6 +401,21 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     protected void onFileLoadingFailed(final int error) {
         binding.status.setText(error);
+    }
+
+    private void trySuitEnvelope(@NonNull final byte[] data) {
+        try {
+            final byte[] hash = SUITImage.getHash(data);
+            binding.fileHash.setText(StringUtils.toHex(hash));
+            binding.fileSize.setText(getString(R.string.image_upgrade_size_value, data.length));
+            binding.actionStart.setEnabled(true);
+            binding.status.setText(R.string.image_upgrade_status_ready);
+            requiresModeSelection = false;
+        } catch (final McuMgrException e) {
+            binding.fileHash.setText(null);
+            clearFileContent();
+            onFileLoadingFailed(R.string.image_error_file_not_valid);
+        }
     }
 
     private void printError(@Nullable final McuMgrException error) {

@@ -330,7 +330,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
      * @since 1.8
      */
     public synchronized void start(@NotNull final ImageSet images,
-                                   @NotNull final Settings settings) throws McuMgrException {
+                                   @NotNull final Settings settings) {
         if (mPerformer.isBusy()) {
             LOG.info("Firmware upgrade is already in progress");
             return;
