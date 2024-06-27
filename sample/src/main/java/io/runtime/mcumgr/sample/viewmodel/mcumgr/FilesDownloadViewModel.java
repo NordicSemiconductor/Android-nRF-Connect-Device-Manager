@@ -12,10 +12,19 @@ import javax.inject.Named;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.FsManager;
+import io.runtime.mcumgr.sample.fragment.mcumgr.FileDownloadManager;
 import io.runtime.mcumgr.sample.viewmodel.SingleLiveEvent;
 import io.runtime.mcumgr.transfer.DownloadCallback;
 import io.runtime.mcumgr.transfer.TransferController;
@@ -23,7 +32,14 @@ import no.nordicsemi.android.ble.ConnectionPriorityRequest;
 
 @SuppressWarnings("unused")
 public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadCallback {
+
+    private final static Logger LOG = LoggerFactory.getLogger(FilesDownloadViewModel.class);
+
+    String fileName = "";
+
     private final FsManager manager;
+    private FileDownloadManager fileDownloadManager = new FileDownloadManager();
+
     private TransferController controller;
 
     private final MutableLiveData<Integer> progressLiveData = new MutableLiveData<>();
@@ -117,9 +133,18 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
         postReady();
     }
 
+    private String buildTargetFileName() {
+        SimpleDateFormat formatter = new SimpleDateFormat("MM-dd-HH.mm");
+        String time = formatter.format(new Date());
+        return this.fileName.isEmpty() ? String.format("nrf_%s.log", time)
+        : String.format("%s_%s", time, this.fileName); // preserve file extension from original fileName
+    }
+
     @Override
     public void onDownloadCompleted(@NonNull final byte[] data) {
         controller = null;
+        LOG.debug("File download from peripheral successful. Will save to phone; size={}", data.length);
+        fileDownloadManager.save(data, buildTargetFileName());
         progressLiveData.postValue(0);
         responseLiveData.postValue(data);
         setLoggingEnabled(true);
@@ -140,5 +165,9 @@ public class FilesDownloadViewModel extends McuMgrViewModel implements DownloadC
             final McuMgrBleTransport bleTransporter = (McuMgrBleTransport) transporter;
             bleTransporter.setLoggingEnabled(enabled);
         }
+    }
+
+    public void setFileName(final String fileName) {
+        this.fileName = fileName;
     }
 }

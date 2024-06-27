@@ -7,7 +7,6 @@
 package io.runtime.mcumgr.sample.fragment.mcumgr;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
@@ -17,6 +16,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -29,6 +29,9 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -46,6 +49,7 @@ import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesDownloadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
+
 public class FilesDownloadFragment extends Fragment implements Injectable {
 
     @Inject
@@ -58,6 +62,10 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     private FilesDownloadViewModel viewModel;
     private InputMethodManager imm;
     private String partition;
+
+    private final static Logger LOG = LoggerFactory.getLogger(FilesDownloadFragment.class);
+
+    private final static Integer MAX_FILE_DISPLAY_SIZE_BYTES = 10000;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -85,12 +93,14 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
             public void onTextChanged(final CharSequence s,
                                       final int start, final int before, final int count) {
                 binding.filePath.setText(getString(R.string.files_file_path, partition, s));
+                viewModel.setFileName(s.toString());
             }
         });
 
         fsUtils.getPartition().observe(getViewLifecycleOwner(), partition -> {
             this.partition = partition;
             final String fileName = binding.fileName.getText().toString();
+            viewModel.setFileName(fileName);
             binding.filePath.setText(getString(R.string.files_file_path, partition, fileName));
         });
         viewModel.getProgress().observe(getViewLifecycleOwner(), progress -> binding.progress.setProgress(progress));
@@ -113,6 +123,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
             popupMenu.setOnMenuItemClickListener(item -> {
                 binding.fileName.setError(null);
                 binding.fileName.setText(item.getTitle());
+                viewModel.setFileName(item.getTitle().toString());
                 return true;
             });
             popupMenu.show();
@@ -139,6 +150,47 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         imm.hideSoftInputFromWindow(binding.fileName.getWindowToken(), 0);
     }
 
+    private void displayFileContents(byte[] cleanData, String path) {
+        final String content = new String(cleanData);
+        final SpannableString spannable = new SpannableString(
+                getString(R.string.files_download_file, path, cleanData.length, content));
+        spannable.setSpan(new StyleSpan(Typeface.BOLD),
+                0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        binding.fileResult.setText(spannable);
+    }
+
+    private void truncateAndDisplay(byte[] data) {
+        final String path = binding.filePath.getText().toString();
+
+        if (data.length > MAX_FILE_DISPLAY_SIZE_BYTES) {
+            LOG.warn("File size too big, truncating; {}", data.length);
+            int startIndex = data.length - MAX_FILE_DISPLAY_SIZE_BYTES;
+            int endIndex = data.length;
+            byte[] truncatedContents = Arrays.copyOfRange(data, startIndex, endIndex);
+            displayFileContents(truncatedContents, path);
+        } else {
+            displayFileContents(data, path);
+        }
+
+// Remove default image display code
+//                final Bitmap bitmap = FsUtils.toBitmap(getResources(), data);
+//                if (bitmap != null) {
+//                    final SpannableString spannable = new SpannableString(
+//                            getString(R.string.files_download_image, path, data.length));
+//                    spannable.setSpan(new StyleSpan(Typeface.BOLD),
+//                            0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+//                    binding.fileResult.setText(spannable);
+//                    binding.image.setImageBitmap(bitmap);
+//                } else {
+        final String content = new String(data);
+        final SpannableString spannable = new SpannableString(
+                getString(R.string.files_download_file, path, data.length, content));
+        spannable.setSpan(new StyleSpan(Typeface.BOLD),
+                0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        binding.fileResult.setText(spannable);
+//                }
+    }
+
     private void printContent(@Nullable final byte[] data) {
         binding.divider.setVisibility(View.VISIBLE);
         binding.fileResult.setVisibility(View.VISIBLE);
@@ -151,22 +203,11 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
             if (data.length == 0) {
                 binding.fileResult.setText(R.string.files_download_file_empty);
             } else {
-                final String path = binding.filePath.getText().toString();
-                final Bitmap bitmap = FsUtils.toBitmap(getResources(), data);
-                if (bitmap != null) {
-                    final SpannableString spannable = new SpannableString(
-                            getString(R.string.files_download_image, path, data.length));
-                    spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                            0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                    binding.fileResult.setText(spannable);
-                    binding.image.setImageBitmap(bitmap);
-                } else {
-                    final String content = new String(data);
-                    final SpannableString spannable = new SpannableString(
-                            getString(R.string.files_download_file, path, data.length, content));
-                    spannable.setSpan(new StyleSpan(Typeface.BOLD),
-                            0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                    binding.fileResult.setText(spannable);
+                try {
+                    truncateAndDisplay(data);
+                } catch (Exception e) {
+                    binding.fileResult.setText("Issue displaying with file of size " + data.length);
+                    Log.e("file", "printContent: Issue displaying with file", e);
                 }
             }
         }
