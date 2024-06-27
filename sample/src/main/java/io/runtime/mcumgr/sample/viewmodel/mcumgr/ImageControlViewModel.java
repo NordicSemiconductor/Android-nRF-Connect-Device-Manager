@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,9 +33,11 @@ import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
 
 public class ImageControlViewModel extends McuMgrViewModel {
+    @NonNull
     private final DefaultManager osManager;
+    @NonNull
     private final ImageManager manager;
-
+    @NonNull
     private final SUITManager suitManager;
 
     private final MutableLiveData<McuMgrImageStateResponse> responseLiveData = new MutableLiveData<>();
@@ -60,9 +61,9 @@ public class ImageControlViewModel extends McuMgrViewModel {
     private BootloaderType bootloaderType = null;
 
     @Inject
-    ImageControlViewModel(final DefaultManager osManager,
-                          final ImageManager manager,
-                          final SUITManager suitManager,
+    ImageControlViewModel(@NonNull final DefaultManager osManager,
+                          @NonNull final ImageManager manager,
+                          @NonNull final SUITManager suitManager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
         this.osManager = osManager;
