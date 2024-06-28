@@ -48,16 +48,12 @@ open class ResourceUploader(
         offset: Int,
         map: MutableMap<String, Any>
     ) {
-        if (offset == 0) {
-            map["stream_session_id"] = sessionId
-        }
+        map["stream_session_id"] = sessionId
     }
 
-    override fun getAdditionalSize(offset: Int): Int = when (offset) {
+    override fun getAdditionalSize(offset: Int): Int =
         // "stream_session_id": 0x73747265616D5F73657373696F6E5F6964 (18 bytes) + session ID
-        0 -> 18 + CBOR.uintLength(sessionId)
-        else -> 0
-    }
+        18 + CBOR.uintLength(sessionId)
 }
 
 private fun SUITManager.uploadAsync(
