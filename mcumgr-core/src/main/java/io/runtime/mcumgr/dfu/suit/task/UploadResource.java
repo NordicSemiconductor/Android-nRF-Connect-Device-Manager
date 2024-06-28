@@ -62,16 +62,19 @@ class UploadResource extends SUITUpgradeTask {
 
             @Override
             public void onUploadFailed(@NotNull final McuMgrException error) {
+                LOG.info("Upload failed: {}", error.getMessage());
                 performer.onTaskFailed(UploadResource.this, error);
             }
 
             @Override
             public void onUploadCanceled() {
+                LOG.info("Uploading cancelled");
                 performer.onTaskCompleted(UploadResource.this);
             }
 
             @Override
             public void onUploadCompleted() {
+                LOG.info("Uploading complete");
                 performer.onTaskCompleted(UploadResource.this);
             }
         };
