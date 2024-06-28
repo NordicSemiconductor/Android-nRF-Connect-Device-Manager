@@ -1,5 +1,6 @@
 package io.runtime.mcumgr.dfu.suit.task
 
+import io.runtime.mcumgr.McuMgrTransport
 import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager
 import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager.OnResourceRequiredCallback
 import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager.ResourceCallback
@@ -23,6 +24,7 @@ internal class PollTask(
     private val LOG: Logger = LoggerFactory.getLogger(PollTask::class.java)
 
     private var isCancelled = false
+    private var isComplete = false
     private var resourceCallback: OnResourceRequiredCallback? = null
 
     override fun getPriority(): Int = PRIORITY_PROCESS
@@ -35,14 +37,34 @@ internal class PollTask(
     ) {
         val manager = SUITManager(performer.transport)
         val task = this
+
+        // Monitor connection state. A disconnection while polling means the process is complete.
+        val observer = object : McuMgrTransport.ConnectionObserver {
+            override fun onConnected() {}
+
+            override fun onDisconnected() {
+                LOG.info("Disconnected, upload complete")
+                if (!isComplete) {
+                    isComplete = true
+                    manager.transporter.removeObserver(this)
+                    performer.onTaskCompleted(task)
+                }
+            }
+        }
+        manager.transporter.addObserver(observer)
+
+        // Let's count retries.
         var count = 0
 
         GlobalScope.launch {
-            while (!isCancelled) {
+            while (!isCancelled && !isComplete) {
                 count += 1
                 try {
+                    LOG.trace("Polling for resources ({}/{})...", count, limit)
                     val response = manager.poll()
                     if (response.isRequestingResource) {
+                        manager.transporter.removeObserver(observer)
+
                         val uri = response.resourceUri ?: run {
                             performer.onTaskFailed(task, McuMgrException("Resource URI is invalid (0x): ${ByteUtil.byteArrayToHex(response.resourceId)}"))
                             return@launch
@@ -55,7 +77,7 @@ internal class PollTask(
                             val callback: ResourceCallback = object : ResourceCallback {
 
                                 override fun provide(data: ByteArray) {
-                                    LOG.info("Resource received ({} bytes)", data.size)
+                                    LOG.info("Resource of size {} bytes provided", data.size)
                                     this@PollTask.resourceCallback = null
                                     performer.enqueue(UploadResource(response.sessionId, data))
                                     performer.onTaskCompleted(task)
@@ -78,21 +100,29 @@ internal class PollTask(
                         }
                         return@launch
                     } else if (count < limit) {
+                        LOG.trace("Retrying in {} ms", interval)
                         delay(interval)
                     } else {
+                        LOG.warn("No resources requested after {} attempts, also no disconnection", limit)
                         performer.onTaskFailed(task, McuMgrTimeoutException())
-                        return@launch
+                        break
                     }
+                } catch (e: McuMgrTimeoutException) {
+                    LOG.info("Request timed out, upload complete")
+                    isComplete = true
+                    performer.onTaskCompleted(task)
+                    break
                 } catch (e: McuMgrException) {
                     LOG.error("Error polling for SUIT manifest", e)
                     performer.onTaskFailed(task, e)
-                    return@launch
+                    break
                 } catch (e: Exception) {
                     LOG.error("Error polling for SUIT manifest", e)
                     performer.onTaskFailed(task, McuMgrException(e))
-                    return@launch
+                    break
                 }
             }
+            manager.transporter.removeObserver(observer)
         }
     }
 
