@@ -412,6 +412,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
             handler.removeCallbacks(graphUpdater);
             stateLiveData.postValue(State.PAUSED);
             manager.pause();
+            suitManager.pause();
             Timber.i("Upload paused");
             setLoggingEnabled(true);
             setReady();
@@ -426,11 +427,13 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
             bytesSentSinceUploadStated = NOT_STARTED;
             setLoggingEnabled(false);
             manager.resume();
+            suitManager.resume();
         }
     }
 
     public void cancel() {
         manager.cancel();
+        suitManager.cancel();
     }
 
     private final Runnable graphUpdater = new Runnable() {
