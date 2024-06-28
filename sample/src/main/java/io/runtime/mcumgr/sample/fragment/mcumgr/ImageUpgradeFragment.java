@@ -186,6 +186,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                     binding.advancedMemoryAlignmentLayout.setEnabled(false);
                 }
                 case UPLOADING -> binding.status.setText(R.string.image_upgrade_status_uploading);
+                case PROCESSING -> binding.status.setText(R.string.image_upgrade_status_processing);
                 case PAUSED -> binding.status.setText(R.string.image_upgrade_status_paused);
                 case TESTING -> binding.status.setText(R.string.image_upgrade_status_testing);
                 case CONFIRMING -> binding.status.setText(R.string.image_upgrade_status_confirming);
