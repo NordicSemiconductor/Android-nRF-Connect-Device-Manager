@@ -98,11 +98,25 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         SHA_256(-16),
         SHA_512(-44);
 
-        @JsonValue
         private final int code;
 
         DigestAlgorithm(int code) {
             this.code = code;
+        }
+
+        @JsonValue
+        int getCode() {
+            return code;
+        }
+
+        @JsonCreator
+        public static DigestAlgorithm fromCode(int code) {
+            for (DigestAlgorithm algorithm : values()) {
+                if (algorithm.code == code) {
+                    return algorithm;
+                }
+            }
+            throw new IllegalArgumentException("Invalid digest algorithm: " + code);
         }
 
         @NotNull
@@ -124,11 +138,25 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         FAILED(3),
         PASSED(4);
 
-        @JsonValue
         private final int code;
 
         SignatureVerification(int code) {
             this.code = code;
+        }
+
+        @JsonValue
+        int getCode() {
+            return code;
+        }
+
+        @JsonCreator
+        public static SignatureVerification fromCode(int code) {
+            for (SignatureVerification value : values()) {
+                if (value.code == code) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid signature verification value: " + code);
         }
 
         @NotNull
@@ -155,11 +183,25 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         /** Unknown downgrade prevention policy */
         UNKNOWN(3);
 
-        @JsonValue
         private final int code;
 
         DowngradePreventionPolicy(int code) {
             this.code = code;
+        }
+
+        @JsonValue
+        int getCode() {
+            return code;
+        }
+
+        @JsonCreator
+        public static DowngradePreventionPolicy fromCode(int code) {
+            for (DowngradePreventionPolicy value : values()) {
+                if (value.code == code) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid downgrade prevention policy value: " + code);
         }
 
         @NotNull
@@ -186,11 +228,25 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         /** Unknown independent updateability policy. */
         UNKNOWN(3);
 
-        @JsonValue
         private final int code;
 
         IndependentUpdateabilityPolicy(int code) {
             this.code = code;
+        }
+
+        @JsonValue
+        int getCode() {
+            return code;
+        }
+
+        @JsonCreator
+        public static IndependentUpdateabilityPolicy fromCode(int code) {
+            for (IndependentUpdateabilityPolicy value : values()) {
+                if (value.code == code) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid independent updateability policy value: " + code);
         }
 
         @NotNull
@@ -219,11 +275,25 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         /** Unknown signature verification policy */
         UNKNOWN(4);
 
-        @JsonValue
         private final int code;
 
         SignatureVerificationPolicy(int code) {
             this.code = code;
+        }
+
+        @JsonValue
+        int getCode() {
+            return code;
+        }
+
+        @JsonCreator
+        public static SignatureVerificationPolicy fromCode(int code) {
+            for (SignatureVerificationPolicy value : values()) {
+                if (value.code == code) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid signature verification policy value: " + code);
         }
 
         @NotNull

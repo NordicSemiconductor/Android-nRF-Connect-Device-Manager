@@ -155,7 +155,7 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
             final SpannableStringBuilder builder = new SpannableStringBuilder();
             int i = 0;
             for (McuMgrManifestStateResponse manifest: manifests) {
-                final KnownRole role = KnownRole.getOrNull(manifest.role);
+                final KnownRole role = KnownRole.get(manifest.role);
                 final int start = builder.length();
                 builder.append(getString(R.string.image_suit_manifest_role, ++i, role.toString(), manifest.role));
                 builder.setSpan(new StyleSpan(Typeface.BOLD),
