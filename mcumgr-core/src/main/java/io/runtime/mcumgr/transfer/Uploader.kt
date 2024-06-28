@@ -297,7 +297,7 @@ abstract class Uploader(
     ): Chunk {
         val resultChannel: Channel<UploadResult> = Channel(1)
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
-        val timeout = if (chunk.offset == 0) 40_000L else 2_500L
+        val timeout = if (chunk.offset == 0) 40_000L else 12_500L
         write(prepareWrite(chunk.data, chunk.offset), timeout) { result ->
             resultChannel.trySend(result)
         }
