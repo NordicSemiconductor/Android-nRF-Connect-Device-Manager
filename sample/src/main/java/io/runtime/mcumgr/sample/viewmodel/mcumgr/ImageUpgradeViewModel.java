@@ -411,7 +411,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
     }
 
     public void pause() {
-        if (manager.isInProgress()) {
+        if (manager.isInProgress() || suitManager.isInProgress()) {
             handler.removeCallbacks(graphUpdater);
             stateLiveData.postValue(State.PAUSED);
             manager.pause();
@@ -423,7 +423,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
     }
 
     public void resume() {
-        if (manager.isPaused()) {
+        if (manager.isPaused() || suitManager.isPaused()) {
             setBusy();
             stateLiveData.postValue(State.UPLOADING);
             Timber.i("Upload resumed");
