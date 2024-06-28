@@ -195,6 +195,10 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
             @Override
             public void onUploadProgressChanged(final int bytesSent, final int imageSize, final long timestamp) {
+                // Log the last part of the logs.
+                if (bytesSent > imageSize - 510) {
+                    setLoggingEnabled(true);
+                }
                 ImageUpgradeViewModel.this.onUploadProgressChanged(bytesSent, imageSize, timestamp);
             }
 
