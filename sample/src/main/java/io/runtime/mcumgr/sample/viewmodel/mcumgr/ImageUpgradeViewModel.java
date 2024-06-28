@@ -168,19 +168,22 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
         this.suitManager.setFirmwareUpgradeCallback(new FirmwareUpgradeCallback<>() {
             @Override
             public void onUpgradeStarted(FirmwareUpgradeController controller) {
-                setLoggingEnabled(false);
-                Timber.i("Uploading envelope...");
-                bytesSentSinceUploadStated = NOT_STARTED;
-                ImageUpgradeViewModel.this.onUpgradeStarted(State.UPLOADING);
+                Timber.i("Upgrade started");
+                ImageUpgradeViewModel.this.onUpgradeStarted(State.PROCESSING);
             }
 
             @Override
             public void onStateChanged(SUITUpgradeManager.State prevState, SUITUpgradeManager.State newState) {
-                setLoggingEnabled(true);//newState == SUITUpgradeManager.State.PROCESSING);
+                setLoggingEnabled(newState == SUITUpgradeManager.State.PROCESSING);
                 switch (newState) {
                     case PROCESSING -> {
                         handler.removeCallbacks(graphUpdater);
                         stateLiveData.postValue(State.PROCESSING);
+                    }
+                    case UPLOADING_ENVELOPE -> {
+                        Timber.i("Uploading envelope...");
+                        bytesSentSinceUploadStated = NOT_STARTED;
+                        stateLiveData.postValue(State.UPLOADING);
                     }
                     case UPLOADING_RESOURCE -> {
                         Timber.i("Uploading resource...");
