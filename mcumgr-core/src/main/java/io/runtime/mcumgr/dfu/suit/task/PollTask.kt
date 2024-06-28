@@ -60,6 +60,11 @@ internal class PollTask(
             while (!isCancelled && !isComplete) {
                 count += 1
                 try {
+                    // Wait initial interval
+                    delay(interval)
+                    if (isComplete || isCancelled) {
+                        break
+                    }
                     LOG.trace("Polling for resources ({}/{})...", count, limit)
                     val response = manager.poll()
                     if (response.isRequestingResource) {
@@ -101,7 +106,6 @@ internal class PollTask(
                         return@launch
                     } else if (count < limit) {
                         LOG.trace("Retrying in {} ms", interval)
-                        delay(interval)
                     } else {
                         LOG.warn("No resources requested after {} attempts, also no disconnection", limit)
                         performer.onTaskFailed(task, McuMgrTimeoutException())
