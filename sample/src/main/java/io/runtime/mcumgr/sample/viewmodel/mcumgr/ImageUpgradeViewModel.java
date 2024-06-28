@@ -35,7 +35,6 @@ import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.SUITImage;
-import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.sample.observable.ConnectionParameters;
 import io.runtime.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 import io.runtime.mcumgr.sample.utils.ZipPackage;
@@ -78,8 +77,8 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
         }
     }
 
-    @NonNull
-    private final DefaultManager osManager;
+    @Nullable
+    private final McuMgrBleTransport bleTransport;
     @NonNull
     private final FirmwareUpgradeManager manager;
     @NonNull
@@ -101,13 +100,17 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 	private final static long REFRESH_RATE = 100L; /* ms */
 
     @Inject
-    ImageUpgradeViewModel(@NonNull final DefaultManager osManager,
+    ImageUpgradeViewModel(@NonNull final McuMgrTransport transporter,
                           @NonNull final FirmwareUpgradeManager manager,
                           @NonNull final SUITUpgradeManager suitManager,
                           @NonNull final HandlerThread thread,
                           @NonNull @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
-        this.osManager = osManager;
+        if (transporter instanceof McuMgrBleTransport bleTransporter) {
+            this.bleTransport = bleTransporter;
+        } else {
+            this.bleTransport = null;
+        }
         this.manager = manager;
         this.manager.setFirmwareUpgradeCallback(new FirmwareUpgradeCallback<>() {
 
@@ -246,9 +249,9 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
     @Nullable
     public LiveData<ConnectionParameters> getConnectionParameters() {
-        final McuMgrTransport transport = manager.getTransporter();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && transport instanceof ObservableMcuMgrBleTransport) {
-            return ((ObservableMcuMgrBleTransport) transport).getConnectionParameters();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            bleTransport instanceof ObservableMcuMgrBleTransport ot) {
+            return ot.getConnectionParameters();
         }
         return null;
     }
@@ -532,8 +535,9 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
     }
 
     private void onUpgradeFailed(final McuMgrException error) {
-        if (onSuitNotSupported != null && error instanceof McuMgrErrorException &&
-                ((McuMgrErrorException) error).getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
+        if (onSuitNotSupported != null &&
+                error instanceof McuMgrErrorException ee &&
+                ee.getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
             suitManager.setResourceCallback(null);
             onSuitNotSupported.run();
             return;
@@ -547,16 +551,14 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
     }
 
     private void requestHighConnectionPriority() {
-        final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof final McuMgrBleTransport bleTransporter) {
-            bleTransporter.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
+        if (bleTransport != null) {
+            bleTransport.requestConnPriority(ConnectionPriorityRequest.CONNECTION_PRIORITY_HIGH);
         }
     }
 
     private void setLoggingEnabled(final boolean enabled) {
-        final McuMgrTransport transporter = manager.getTransporter();
-        if (transporter instanceof final McuMgrBleTransport bleTransporter) {
-            bleTransporter.setLoggingEnabled(enabled);
+        if (bleTransport != null) {
+            bleTransport.setLoggingEnabled(enabled);
         }
     }
 }
