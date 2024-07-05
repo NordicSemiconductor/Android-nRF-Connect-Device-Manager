@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,11 +31,14 @@ import io.runtime.mcumgr.response.img.McuMgrImageResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
+import timber.log.Timber;
 
 public class ImageControlViewModel extends McuMgrViewModel {
+    @NonNull
     private final DefaultManager osManager;
+    @NonNull
     private final ImageManager manager;
-
+    @NonNull
     private final SUITManager suitManager;
 
     private final MutableLiveData<McuMgrImageStateResponse> responseLiveData = new MutableLiveData<>();
@@ -60,9 +62,9 @@ public class ImageControlViewModel extends McuMgrViewModel {
     private BootloaderType bootloaderType = null;
 
     @Inject
-    ImageControlViewModel(final DefaultManager osManager,
-                          final ImageManager manager,
-                          final SUITManager suitManager,
+    ImageControlViewModel(@NonNull final DefaultManager osManager,
+                          @NonNull final ImageManager manager,
+                          @NonNull final SUITManager suitManager,
                           @Named("busy") final MutableLiveData<Boolean> state) {
         super(state);
         this.osManager = osManager;
@@ -207,6 +209,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
                             @Override
                             public void onError(@NotNull McuMgrException error) {
+                                Timber.e(error, "Error for %d", manifest.role);
                                 synchronized (lock) {
                                     lock.notifyAll();
                                 }
@@ -217,7 +220,8 @@ public class ImageControlViewModel extends McuMgrViewModel {
                                 lock.wait(1000);
                             }
                         } catch (final InterruptedException e) {
-                            postError(new McuMgrTimeoutException());
+                            Timber.w("Response not received within 10 seconds");
+                            postError(new McuMgrTimeoutException(e));
                             return;
                         }
                     }
@@ -227,6 +231,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
+                Timber.e(error, "Error when listing SUIT manifests");
                 postError(error);
             }
         });

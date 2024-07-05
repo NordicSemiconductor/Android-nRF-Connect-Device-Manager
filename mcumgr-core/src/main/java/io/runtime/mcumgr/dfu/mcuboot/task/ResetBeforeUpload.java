@@ -1,4 +1,4 @@
-package io.runtime.mcumgr.dfu.task;
+package io.runtime.mcumgr.dfu.mcuboot.task;
 
 class ResetBeforeUpload extends Reset {
 

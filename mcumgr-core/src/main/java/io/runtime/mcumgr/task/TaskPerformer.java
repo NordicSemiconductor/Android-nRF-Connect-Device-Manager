@@ -3,11 +3,10 @@ package io.runtime.mcumgr.task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
+import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.McuMgrException;
 
 public abstract class TaskPerformer<S, State> {
@@ -18,11 +17,14 @@ public abstract class TaskPerformer<S, State> {
 	public TaskPerformer() {
 	}
 
-	public void start(@NotNull final S settings,
+	public void start(@NotNull final McuMgrTransport transport,
+					  @NotNull final S settings,
 					  @NotNull final Task<S, State> task) {
-		this.manager = new TaskManagerImpl(settings);
+		this.manager = new TaskManagerImpl(transport, settings);
 
-		onTaskStarted(null, task);
+		try {
+			onTaskStarted(null, task);
+		} catch (Exception ignored) {}
 		task.start(manager);
 	}
 
@@ -64,11 +66,13 @@ public abstract class TaskPerformer<S, State> {
 	}
 
 	private class TaskManagerImpl implements TaskManager<S, State> {
+		@NotNull
+		private final McuMgrTransport transport;
+
 		/**
-		 * The queue of tasks to be performed during the update. The content of the queue
-		 * depends on the images given in {@link FirmwareUpgradeManager#start(List, boolean)}
-		 * and the state of the device, which is determined by validation step before the upload
-		 * begins.
+		 * The queue of tasks to be performed.
+		 * <p>
+		 * The tasks may be added to the queue by calling {@link #enqueue(Task)}.
 		 */
 		@NotNull
 		private final Queue<Task<S, State>> taskQueue = new PriorityQueue<>();
@@ -85,7 +89,9 @@ public abstract class TaskPerformer<S, State> {
 		private boolean paused;
 		private boolean cancelled;
 
-		private TaskManagerImpl(@NotNull final S settings) {
+		private TaskManagerImpl(@NotNull final McuMgrTransport transport,
+								@NotNull final S settings) {
+			this.transport = transport;
 			this.settings = settings;
 		}
 
@@ -124,6 +130,12 @@ public abstract class TaskPerformer<S, State> {
 			return settings;
 		}
 
+		@NotNull
+		@Override
+		public McuMgrTransport getTransport() {
+			return transport;
+		}
+
 		@Override
 		public void enqueue(final @NotNull Task<S, State> task) {
 			taskQueue.add(task);
@@ -132,7 +144,9 @@ public abstract class TaskPerformer<S, State> {
 		@Override
 		public void onTaskProgressChanged(final @NotNull Task<S, State> task,
 										  final int current, final int total, final long timestamp) {
-			TaskPerformer.this.onTaskProgressChanged(task, current, total, timestamp);
+			try {
+				TaskPerformer.this.onTaskProgressChanged(task, current, total, timestamp);
+			} catch (Exception ignored) {}
 		}
 
 		@Override
@@ -140,7 +154,9 @@ public abstract class TaskPerformer<S, State> {
 			// Has the process been cancelled?
 			if (cancelled) {
 				cleanUp();
-				TaskPerformer.this.onCancelled(task);
+				try {
+					TaskPerformer.this.onCancelled(task);
+				} catch (Exception ignored) {}
 				return;
 			}
 
@@ -148,11 +164,15 @@ public abstract class TaskPerformer<S, State> {
 			final Task<S, State> nextTask = currentTask = taskQueue.poll();
 			if (nextTask == null) {
 				cleanUp();
-				TaskPerformer.this.onCompleted(task);
+				try {
+					TaskPerformer.this.onCompleted(task);
+				} catch (Exception ignored) {}
 				return;
 			}
 
-			TaskPerformer.this.onTaskStarted(task, nextTask);
+			try {
+				TaskPerformer.this.onTaskStarted(task, nextTask);
+			} catch (Exception ignored) {}
 
 			// Should we pause a bit?
 			if (paused) {
@@ -167,7 +187,9 @@ public abstract class TaskPerformer<S, State> {
 		public void onTaskFailed(final @NotNull Task<S, State> task,
 								 final @NotNull McuMgrException error) {
 			cleanUp();
-			TaskPerformer.this.onTaskFailed(task, error);
+			try {
+				TaskPerformer.this.onTaskFailed(task, error);
+			} catch (Exception ignored) {}
 		}
 
 		private void cleanUp() {

@@ -1,7 +1,7 @@
-package io.runtime.mcumgr.dfu.task;
+package io.runtime.mcumgr.dfu.mcuboot.task;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.task.Task;
 
 public abstract class FirmwareUpgradeTask extends Task<Settings, State> {

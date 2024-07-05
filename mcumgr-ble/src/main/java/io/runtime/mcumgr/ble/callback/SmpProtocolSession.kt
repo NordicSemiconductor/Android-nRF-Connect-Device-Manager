@@ -5,6 +5,7 @@ import io.runtime.mcumgr.McuMgrHeader
 import io.runtime.mcumgr.ble.util.RotatingCounter
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
@@ -46,7 +47,7 @@ internal class SmpProtocolSession(
     private val txChannel: Channel<Outgoing> = Channel(SMP_SEQ_NUM_MAX + 1)
     private val rxChannel: Channel<ByteArray> = Channel(SMP_SEQ_NUM_MAX + 1)
     private val sequenceCounter = RotatingCounter(SMP_SEQ_NUM_MAX)
-    private val transactions: Array<SmpTransaction?> = arrayOfNulls(SMP_SEQ_NUM_MAX + 1)
+    private val transactions: Array<Pair<SmpTransaction, Job>?> = arrayOfNulls(SMP_SEQ_NUM_MAX + 1)
     private val transactionsMutex = Mutex()
 
     /**
@@ -57,7 +58,10 @@ internal class SmpProtocolSession(
             // When the session is closed, fail all remaining transactions.
             // Exception is propagated from close through the channels.
             CoroutineExceptionHandler { _, throwable ->
-                transactions.forEach { it?.onFailure(throwable) }
+                transactions.forEach {
+                    it?.second?.cancel()
+                    it?.first?.onFailure(throwable)
+                }
             }
         ) {
             // Launch the reader and writer
@@ -92,18 +96,19 @@ internal class SmpProtocolSession(
             val sequenceNumber = sequenceCounter.getAndRotate()
             outgoing.data.setSequenceNumber(sequenceNumber)
 
+            val job = scope.launch {
+                delay(outgoing.timeout)
+                val transaction = getAndSetTransaction(sequenceNumber, null)
+                transaction?.first?.onFailure(handler, TransactionTimeoutException(sequenceNumber))
+            }
+
             // Add transaction to store. Fail an existing transaction on overwrite
-            val oldTransaction = getAndSetTransaction(sequenceNumber, outgoing.transaction)
-            oldTransaction?.onFailure(handler, TransactionOverwriteException(sequenceNumber))
+            val oldTransaction = getAndSetTransaction(sequenceNumber, outgoing.transaction to job)
+            oldTransaction?.second?.cancel()
+            oldTransaction?.first?.onFailure(handler, TransactionOverwriteException(sequenceNumber))
 
             // Send the transaction and launch timeout coroutine
             outgoing.transaction.send(handler, outgoing.data)
-
-            scope.launch {
-                delay(outgoing.timeout)
-                val transaction = getAndSetTransaction(sequenceNumber, null)
-                transaction?.onFailure(handler, TransactionTimeoutException(sequenceNumber))
-            }
         }
     }
 
@@ -118,14 +123,15 @@ internal class SmpProtocolSession(
             // Get the transaction from the store, clear the entry, and call
             // the callback
             val transaction = getAndSetTransaction(sequenceNumber, null)
-            transaction?.onResponse(handler, data)
+            transaction?.second?.cancel()
+            transaction?.first?.onResponse(handler, data)
         }
     }
 
     private suspend fun getAndSetTransaction(
         id: Int,
-        transaction: SmpTransaction?
-    ): SmpTransaction? = transactionsMutex.withLock {
+        transaction: Pair<SmpTransaction, Job>?,
+    ): Pair<SmpTransaction, Job>? = transactionsMutex.withLock {
         val oldTransaction = transactions[id]
         transactions[id] = transaction
         return oldTransaction

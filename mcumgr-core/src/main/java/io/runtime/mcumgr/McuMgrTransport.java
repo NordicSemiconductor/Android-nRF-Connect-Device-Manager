@@ -18,6 +18,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
  * Transport implementations should conform to one of the {@link McuMgrScheme}s. Furthermore, the
  * McuManager does not maintain the state of the transporter, and so the transport must set-up and
  * tear-down connections on its own accord.
+ * @noinspection ALL
  */
 public interface McuMgrTransport {
 
@@ -52,7 +53,7 @@ public interface McuMgrTransport {
 
         /**
          * Called when the transporter has decided not to connect to the transporter at this time.
-         *
+         * <p>
          * This method is useful for transporters who do not wish to allow the caller of
          * {@link #connect} to manage the connection or would rather wait to connect until
          * necessary.

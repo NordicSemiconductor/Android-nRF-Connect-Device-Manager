@@ -1,16 +1,18 @@
-package io.runtime.mcumgr.dfu;
+package io.runtime.mcumgr.dfu.mcuboot;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Mode;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
-import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
-import io.runtime.mcumgr.dfu.task.FirmwareUpgradeTask;
-import io.runtime.mcumgr.dfu.task.PerformDfu;
+import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Mode;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
+import io.runtime.mcumgr.dfu.mcuboot.task.FirmwareUpgradeTask;
+import io.runtime.mcumgr.dfu.mcuboot.task.PerformDfu;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.task.Task;
 import io.runtime.mcumgr.task.TaskPerformer;
@@ -22,9 +24,9 @@ public class FirmwareUpgradePerformer extends TaskPerformer<Settings, State> {
 	 * Firmware upgrade callback passed into the constructor or set before the upload has started.
 	 */
 	@NotNull
-	private final FirmwareUpgradeCallback callback;
+	private final FirmwareUpgradeCallback<State> callback;
 
-	FirmwareUpgradePerformer(@NotNull final FirmwareUpgradeCallback callback) {
+	FirmwareUpgradePerformer(@NotNull final FirmwareUpgradeCallback<State> callback) {
 		this.callback = callback;
 	}
 
@@ -35,12 +37,12 @@ public class FirmwareUpgradePerformer extends TaskPerformer<Settings, State> {
 		return task.getState();
 	}
 
-	void start(@NotNull final Settings settings,
-			   @NotNull final Mode mode,
-			   @NotNull final McuMgrImageSet images,
-			   final boolean eraseSettings) {
+	void start(@NotNull final McuMgrTransport transport,
+			   @NotNull final Settings settings,
+			   @NotNull final ImageSet images,
+			   @NotNull final Mode mode) {
 		LOG.trace("Starting DFU, mode: {}", mode.name());
-		super.start(settings, new PerformDfu(mode, images, eraseSettings));
+		super.start(transport, settings, new PerformDfu(mode, images));
 	}
 
 	@Override

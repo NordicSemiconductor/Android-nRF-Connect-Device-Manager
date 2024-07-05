@@ -10,14 +10,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import io.runtime.mcumgr.McuMgrErrorCode;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager;
 import io.runtime.mcumgr.response.HasReturnCode;
 import io.runtime.mcumgr.response.McuMgrResponse;
 
 /**
- * Used to convey errors caused by an {@link McuMgrErrorCode} within a response. This is used in
- * practice by {@link FirmwareUpgradeManager} to send a failure callback with the
- * {@link McuMgrErrorCode} that caused the failure.
+ * Used to convey errors caused by an {@link McuMgrErrorCode} within a response.
  */
 @SuppressWarnings("unused")
 public class McuMgrErrorException extends McuMgrException {

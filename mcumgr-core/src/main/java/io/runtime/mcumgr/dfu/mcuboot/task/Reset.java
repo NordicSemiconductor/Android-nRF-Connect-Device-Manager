@@ -1,4 +1,4 @@
-package io.runtime.mcumgr.dfu.task;
+package io.runtime.mcumgr.dfu.mcuboot.task;
 
 import android.os.Handler;
 import android.os.SystemClock;
@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.DefaultManager;
@@ -48,7 +48,7 @@ class Reset extends FirmwareUpgradeTask {
 	@Override
 	public void start(@NotNull final TaskManager<Settings, State> performer) {
 		final Settings settings = performer.getSettings();
-		final McuMgrTransport transport = settings.transport;
+		final McuMgrTransport transport = performer.getTransport();
 
 		transport.addObserver(new McuMgrTransport.ConnectionObserver() {
 			@Override

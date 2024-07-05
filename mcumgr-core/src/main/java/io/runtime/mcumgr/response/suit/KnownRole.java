@@ -1,6 +1,7 @@
 package io.runtime.mcumgr.response.suit;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Known manifest roles.
@@ -43,13 +44,22 @@ public enum KnownRole {
     /**
      * Returns the role as a {@link KnownRole} enum, or null if the role is unknown.
      */
-    @NotNull
+    @Nullable
     public static KnownRole getOrNull(final int role) {
         for (KnownRole knownRole : KnownRole.values()) {
             if (knownRole.id == role) {
                 return knownRole;
             }
         }
-        return UNKNOWN;
+        return null;
+    }
+
+    @NotNull
+    public static KnownRole get(final int role) {
+        final KnownRole knownRole = getOrNull(role);
+        if (knownRole == null) {
+            return UNKNOWN;
+        }
+        return knownRole;
     }
 }

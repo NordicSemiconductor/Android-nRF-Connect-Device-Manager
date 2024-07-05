@@ -6,14 +6,21 @@ import io.runtime.mcumgr.exception.McuMgrErrorException
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.exception.McuMgrTimeoutException
 import io.runtime.mcumgr.util.CBOR
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -30,7 +37,7 @@ data class UploadProgress(
     val timestamp: Long = System.currentTimeMillis()
 )
 
-private data class Chunk(val data: ByteArray, val offset: Int) {
+private data class Chunk(val data: ByteArray, val offset: Int, val isLast: Boolean) {
     override fun toString(): String {
         return "Chunk(offset=$offset, size=${data.size})"
     }
@@ -211,6 +218,7 @@ abstract class Uploader(
     /**
      * Uploads the data asynchronously.
      */
+    @OptIn(DelicateCoroutinesApi::class)
     @JvmOverloads fun uploadAsync(
         callback: UploadCallback,
         scope: CoroutineScope = GlobalScope,
@@ -296,8 +304,13 @@ abstract class Uploader(
         callback: suspend (UploadResult) -> Unit
     ): Chunk {
         val resultChannel: Channel<UploadResult> = Channel(1)
-        // Timeout for the initial chunk is long, as the device may need to erase the flash.
-        val timeout = if (chunk.offset == 0) 40_000L else 2_500L
+        val timeout = when {
+            // Timeout for the initial chunk is long, as the device may need to erase the flash.
+            chunk.offset == 0 -> 40_000L
+            // Also, the last chunk may take a while to process, so we give it more time as well.
+            chunk.isLast -> 20_000L
+            else -> 2_500L
+        }
         write(prepareWrite(chunk.data, chunk.offset), timeout) { result ->
             resultChannel.trySend(result)
         }
@@ -345,7 +358,8 @@ abstract class Uploader(
         val alignedSize =
             if (offset + maxChunkSize < data.size) maxChunkSize / memoryAlignment * memoryAlignment else maxChunkSize
         val chunkData = data.copyOfRange(offset, offset + alignedSize)
-        return Chunk(chunkData, offset)
+        val isLast = offset + alignedSize >= data.size
+        return Chunk(chunkData, offset, isLast)
     }
 
     private fun nextChunk(chunk: Chunk): Chunk {

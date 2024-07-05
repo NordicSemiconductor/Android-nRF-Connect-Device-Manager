@@ -348,6 +348,4 @@ public class SUITManager extends McuManager {
         }
         return -1;
     }
-
-
 }

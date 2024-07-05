@@ -1,4 +1,4 @@
-package io.runtime.mcumgr.dfu.task;
+package io.runtime.mcumgr.dfu.mcuboot.task;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -7,11 +7,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
 import io.runtime.mcumgr.McuMgrCallback;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Mode;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.Settings;
-import io.runtime.mcumgr.dfu.FirmwareUpgradeManager.State;
-import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
-import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Mode;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
+import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
+import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
+import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.ImageWithHash;
@@ -25,18 +25,14 @@ class Validate extends FirmwareUpgradeTask {
 	private final static Logger LOG = LoggerFactory.getLogger(Validate.class);
 
 	@NotNull
-	private final McuMgrImageSet images;
+	private final ImageSet images;
 	@NotNull
 	private final Mode mode;
 
-	private final boolean eraseSettings;
-
 	Validate(final @NotNull Mode mode,
-			 final @NotNull McuMgrImageSet images,
-			 final boolean eraseSettings) {
+			 final @NotNull ImageSet images) {
 		this.mode = mode;
 		this.images = images;
-		this.eraseSettings = eraseSettings;
 	}
 
 	@Override
@@ -52,8 +48,7 @@ class Validate extends FirmwareUpgradeTask {
 
 	@Override
 	public void start(@NotNull final TaskManager<Settings, State> performer) {
-		final Settings settings = performer.getSettings();
-		final DefaultManager manager = new DefaultManager(settings.transport);
+		final DefaultManager manager = new DefaultManager(performer.getTransport());
 
 		// Starting from NCS 2.5 different bootloader modes allow sending the image in
 		// slightly different ways. For that, we need to read bootloader info.
@@ -104,7 +99,7 @@ class Validate extends FirmwareUpgradeTask {
 						  final boolean noSwap,
 						  final boolean allowRevert) {
 		final Settings settings = performer.getSettings();
-		final ImageManager manager = new ImageManager(settings.transport);
+		final ImageManager manager = new ImageManager(performer.getTransport());
 
 		manager.list(new McuMgrCallback<>() {
 			@Override
@@ -139,7 +134,7 @@ class Validate extends FirmwareUpgradeTask {
 					for (final McuMgrImageStateResponse.ImageSlot slot : slots) {
 						if (slot.active) {
 							// Check if any of the images has the same hash as the image on the active slot.
-							for (final McuMgrTargetImage image : images.getImages()) {
+							for (final TargetImage image : images.getImages()) {
 								final ImageWithHash mcuMgrImage = image.image;
 								if (slot.image == image.imageIndex && Arrays.equals(slot.hash, mcuMgrImage.getHash())) {
 									// The image was found on an active slot, which means that core
@@ -163,7 +158,7 @@ class Validate extends FirmwareUpgradeTask {
 				boolean initialResetRequired = false;
 
 				// For each image that is to be sent, check if the same image has already been sent.
-				for (final McuMgrTargetImage image : images.getImages()) {
+				for (final TargetImage image : images.getImages()) {
 					final int imageIndex = image.imageIndex;
 					final ImageWithHash mcuMgrImage = image.image;
 
@@ -297,7 +292,7 @@ class Validate extends FirmwareUpgradeTask {
 					performer.enqueue(new ResetBeforeUpload(noSwap));
 				}
 				if (resetRequired) {
-					if (eraseSettings)
+					if (settings.eraseAppSettings)
 						performer.enqueue(new EraseStorage());
 					performer.enqueue(new Reset(noSwap));
 				}

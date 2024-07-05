@@ -2,6 +2,7 @@ package io.runtime.mcumgr.sample.utils;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -17,8 +18,8 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.runtime.mcumgr.dfu.model.McuMgrImageSet;
-import io.runtime.mcumgr.dfu.model.McuMgrTargetImage;
+import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
+import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 import timber.log.Timber;
 
@@ -34,9 +35,9 @@ public final class ZipPackage {
 		@Keep
 		private static class File {
 			/**
-			 * The version number of the image. This is a string in the format "X.Y.Z-text".
+			 * The file type. Expected vales are: "application", "bin", "suit-envelope".
 			 */
-			private String version;
+			private String type;
 			/**
 			 * The name of the image file.
 			 */
@@ -64,16 +65,15 @@ public final class ZipPackage {
 			 * be sent.
 			 * @since NCS v 2.5, nRF Connect Device Manager 1.8.
 			 */
-			private int slot = McuMgrTargetImage.SLOT_SECONDARY;
+			private int slot = TargetImage.SLOT_SECONDARY;
 		}
 	}
 
 	private Manifest manifest;
-	private final McuMgrImageSet binaries;
+	private final Map<String, byte[]> entries = new HashMap<>();
 
-	public ZipPackage(@NonNull final byte[] data) throws IOException, McuMgrException {
+	public ZipPackage(@NonNull final byte[] data) throws IOException {
 		ZipEntry ze;
-		Map<String, byte[]> entries = new HashMap<>();
 
 		// Unzip the file and look for the manifest.json.
 		final ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(data));
@@ -88,15 +88,17 @@ public final class ZipPackage {
 						.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
 						.create();
 				manifest = gson.fromJson(new InputStreamReader(zis), Manifest.class);
-			} else if (name.endsWith(".bin")) {
+			} else if (name.endsWith(".bin") || name.endsWith(".suit")) {
 				final byte[] content = getData(zis);
 				entries.put(name, content);
 			} else {
 				Timber.w("Unsupported file found: %s", name);
 			}
 		}
+	}
 
-		binaries = new McuMgrImageSet();
+	public ImageSet getBinaries() throws IOException, McuMgrException {
+		final ImageSet binaries = new ImageSet();
 
 		// Search for images.
 		for (final Manifest.File file: manifest.files) {
@@ -105,12 +107,30 @@ public final class ZipPackage {
 			if (content == null)
 				throw new IOException("File not found: " + name);
 
-			binaries.add(new McuMgrTargetImage(file.imageIndex, file.slot, content));
+			binaries.add(new TargetImage(file.imageIndex, file.slot, content));
 		}
+		return binaries;
 	}
 
-	public McuMgrImageSet getBinaries() {
-		return binaries;
+	public byte[] getSuitEnvelope() {
+		// First, search for an entry of type "suit-envelope".
+		for (final Manifest.File file: manifest.files) {
+			if (file.type.equals("suit-envelope")) {
+                return entries.get(file.file);
+			}
+		}
+		// If not found, search for a file with the ".suit" extension.
+		for (final Manifest.File file: manifest.files) {
+			if (file.file.endsWith(".suit")) {
+				return entries.get(file.file);
+			}
+		}
+		// Not found.
+		return null;
+	}
+
+	public byte[] getResource(@NonNull final String name) {
+		return entries.get(name);
 	}
 
 	private byte[] getData(@NonNull ZipInputStream zis) throws IOException {

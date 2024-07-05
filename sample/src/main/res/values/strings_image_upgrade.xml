@@ -51,6 +51,7 @@
     <string name="image_upgrade_status_ready">READY</string>
     <string name="image_upgrade_status_validating">VALIDATING…</string>
     <string name="image_upgrade_status_uploading">UPLOADING…</string>
+    <string name="image_upgrade_status_processing">PROCESSING…</string>
     <string name="image_upgrade_status_paused">PAUSED</string>
     <string name="image_upgrade_status_testing">TESTING…</string>
     <string name="image_upgrade_status_confirming">CONFIRMING…</string>

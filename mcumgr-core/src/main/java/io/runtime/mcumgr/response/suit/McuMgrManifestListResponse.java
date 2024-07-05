@@ -9,7 +9,10 @@ package io.runtime.mcumgr.response.suit;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
+import java.util.Locale;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.managers.SUITManager;
@@ -26,6 +29,19 @@ public class McuMgrManifestListResponse extends McuMgrResponse {
          */
         @JsonProperty("role")
         public int role;
+
+        @JsonCreator
+        public Manifest() {}
+
+        @NotNull
+        @Override
+        public String toString() {
+            final KnownRole knownRole = KnownRole.getOrNull(role);
+            if (knownRole == null) {
+                return String.format(Locale.US, "UNKNOWN (%02x)", role);
+            }
+            return knownRole.toString();
+        }
     }
 
     /**
