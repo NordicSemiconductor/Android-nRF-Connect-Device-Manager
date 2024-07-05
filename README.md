@@ -25,7 +25,7 @@ new version to get future updates. See [migration guide](#migration-from-the-ori
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library).
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:1.10.0-alpha02'
+implementation 'no.nordicsemi.android:mcumgr-ble:2.0.0-alpha07'
 ```
 
 The core module will be included automatically.
@@ -36,7 +36,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:1.10.0-alpha02'
+implementation 'no.nordicsemi.android:mcumgr-core:2.0.0-alpha07'
 ```
 
 > Latest version targeting API 30 (Android 11) is 0.13.0-beta07.
@@ -164,6 +164,11 @@ The different firmware upgrade modes are as follows:
 > [!Note]
 > Read about MCUboot modes [here](https://docs.mcuboot.com/design.html#image-slots).
 
+### Software Update for Internet of Things (SUIT)
+
+Starting from version 1.9, the library supports SUIT (Software Update for Internet of Things) files.
+In this case the selected mode is ignored. The process of upgrading is embedded in the SUIT file.
+
 ### Firmware Upgrade State
 
 `FirmwareUpgradeManager` acts as a simple, mostly linear state machine which is determined by the `Mode`.
@@ -177,21 +182,6 @@ device, the `State` will skip `UPLOAD` and move directly to `TEST` (or `CONFIRM`
 has been set). If the uploaded image is already active, and confirmed in slot 0, the upgrade will
 succeed immediately. The `VALIDATE` state makes it easy to reattempt an upgrade without needing to
 re-upload the image or manually determine where to start.
-
-### Software Update for Internet of Things (SUIT)
-
-Starting from version 1.9, the library supports
-[SUIT (Software Update for Internet of Things)](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/samples/suit/smp_transfer/README.html)
-files.
-In this case the selected mode is ignored. The process of upgrading is embedded in the SUIT file.
-
-Version 2.0 adds support for SUIT bootloader and the new SUIT group, available since nRF Connect 2.7.
-
-Devices can still be updated using the `FirmwareUpgradeManager` as before, but a new 
-`SUITUpdateManager` class has been added to support nRF54H20 devices with SUIT bootloader.
-
-See https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager/pull/160 for details
-and migration guide to version 2.0.
 
 ## License
 
