@@ -345,7 +345,14 @@ public class ImageManager extends TransferManager {
     @NotNull
     private HashMap<String, Object> buildUploadPayload(byte @NotNull [] data, int offset, int image) {
         // Get chunk of image data to send
-        int dataLength = Math.min(mMtu - calculatePacketOverhead(data, offset, image), data.length - offset);
+        int overhead = calculatePacketOverhead(data, offset, image);
+        int dataLength = Math.min(mMtu - overhead, data.length - offset);
+        if (dataLength < 0) {
+            throw new NegativeArraySizeException("Data length is negative (" + dataLength + " bytes)" +
+                    " (MTU = " + mMtu +
+                    ", CBOR overhead = " + overhead + ", data length = " + data.length +
+                    ", offset = " + offset + ")");
+        }
         byte[] sendBuffer = new byte[dataLength];
         System.arraycopy(data, offset, sendBuffer, 0, dataLength);
 
