@@ -6,19 +6,23 @@
 
 package io.runtime.mcumgr.sample;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import javax.inject.Inject;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProvider;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
@@ -58,7 +62,13 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
-        final String deviceName = device.getName();
+        String deviceName = getString(R.string.unknown_device);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            final String name = device.getName();
+            if (name != null && !name.isEmpty()) {
+                deviceName = name;
+            }
+        }
         final String deviceAddress = device.getAddress();
 
         new ViewModelProvider(this, viewModelFactory)
