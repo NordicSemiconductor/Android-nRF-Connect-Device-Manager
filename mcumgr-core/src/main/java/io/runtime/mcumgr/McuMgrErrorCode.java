@@ -72,6 +72,14 @@ public enum McuMgrErrorCode {
      */
     ACCESS_DENIED(11),
     /**
+     * Requested SMP protocol version is not supported (too old).
+     */
+    PROTOCOL_VERSION_TOO_OLD(12),
+    /**
+     * Requested SMP protocol version is not supported (too new).
+     */
+    PROTOCOL_VERSION_TOO_NEW(13),
+    /**
      * User errors defined from 256 onwards.
      */
     PER_USER(256);
@@ -94,44 +102,26 @@ public enum McuMgrErrorCode {
 
     @NotNull
     public static McuMgrErrorCode valueOf(int error) {
+        if (error >= PER_USER.mCode) {
+            return PER_USER;
+        }
+
         switch (error) {
-            case 0: {
-                return OK;
-            }
+            case 0: return OK;
             // case 1 is equal to default case
-            case 2: {
-                return NO_MEMORY;
-            }
-            case 3: {
-                return IN_VALUE;
-            }
-            case 4: {
-                return TIMEOUT;
-            }
-            case 5: {
-                return NO_ENTRY;
-            }
-            case 6: {
-                return BAD_STATE;
-            }
-            case 7: {
-                return TOO_LARGE;
-            }
-            case 8: {
-                return NOT_SUPPORTED;
-            }
-            case 9: {
-                return CORRUPT;
-            }
-            case 10: {
-                return BUSY;
-            }
-            case 11: {
-                return ACCESS_DENIED;
-            }
-            case 256: {
-                return PER_USER;
-            }
+            case 2: return NO_MEMORY;
+            case 3: return IN_VALUE;
+            case 4: return TIMEOUT;
+            case 5: return NO_ENTRY;
+            case 6: return BAD_STATE;
+            case 7: return TOO_LARGE;
+            case 8: return NOT_SUPPORTED;
+            case 9: return CORRUPT;
+            case 10: return BUSY;
+            case 11: return ACCESS_DENIED;
+            case 12: return PROTOCOL_VERSION_TOO_OLD;
+            case 13: return PROTOCOL_VERSION_TOO_NEW;
+            case 256: return PER_USER;
             default: {
                 return UNKNOWN;
             }
