@@ -19,6 +19,8 @@
 		<item>Corrupt (9)</item>
 		<item>Busy (10)</item>
 		<item>Access Denied (11)</item>
+		<item>Protocol version too old (12)</item>
+		<item>Protocol version too new (13)</item>
 	</string-array>
 
 	<string-array name="mcu_mgr_os_error">
