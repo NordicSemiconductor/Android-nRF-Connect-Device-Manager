@@ -98,7 +98,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         return devices != null ? devices.size() : 0;
     }
 
-    final class ViewHolder extends RecyclerView.ViewHolder {
+    public final class ViewHolder extends RecyclerView.ViewHolder {
         private final DeviceItemBinding binding;
 
         private ViewHolder(final DeviceItemBinding binding) {
@@ -106,8 +106,14 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
             this.binding = binding;
 
             binding.deviceContainer.setOnClickListener(v -> {
-                if (onItemClickListener != null) {
-                    onItemClickListener.onItemClick(devices.get(getBindingAdapterPosition()).getDevice());
+                final OnItemClickListener listener = onItemClickListener;
+                final List<DiscoveredBluetoothDevice> devices = DevicesAdapter.this.devices;
+                if (listener != null && devices != null) {
+                    try {
+                        listener.onItemClick(devices.get(getBindingAdapterPosition()).getDevice());
+                    } catch (final IndexOutOfBoundsException e) {
+                        // Do nothing
+                    }
                 }
             });
         }
