@@ -22,7 +22,7 @@
 	<string name="action_settings">Settings</string>
 	<string name="action_enable">Enable</string>
 
-	<string name="unknown_device">Unknown Device</string>
+	<string name="unknown_device">No name</string>
 	<string name="value_int">%d</string>
 
 	<string name="location_permission_title">LOCATION PERMISSION REQUIRED</string>

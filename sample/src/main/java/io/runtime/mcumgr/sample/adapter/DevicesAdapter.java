@@ -72,6 +72,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
 
         if (!TextUtils.isEmpty(deviceName)) {
             holder.binding.deviceName.setText(deviceName);
+            holder.binding.deviceName.setEnabled(true);
             // Set device icon. This is just guessing, based on the device name.
             if (deviceName.toLowerCase(Locale.US).contains("zephyr"))
                 holder.binding.icon.setImageResource(R.drawable.ic_device_zephyr);
@@ -81,6 +82,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
                 holder.binding.icon.setImageResource(R.drawable.ic_device_other);
         } else {
             holder.binding.deviceName.setText(R.string.unknown_device);
+            holder.binding.deviceName.setEnabled(false);
             holder.binding.icon.setImageResource(R.drawable.ic_device_other);
         }
         holder.binding.deviceAddress.setText(device.getAddress());
