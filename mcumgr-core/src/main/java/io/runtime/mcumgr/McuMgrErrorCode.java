@@ -102,6 +102,10 @@ public enum McuMgrErrorCode {
 
     @NotNull
     public static McuMgrErrorCode valueOf(int error) {
+        if (error >= PER_USER.mCode) {
+            return PER_USER;
+        }
+
         switch (error) {
             case 0: return OK;
             // case 1 is equal to default case
