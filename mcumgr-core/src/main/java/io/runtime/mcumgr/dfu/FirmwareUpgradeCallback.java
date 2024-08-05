@@ -89,60 +89,90 @@ public interface FirmwareUpgradeCallback<State> {
 
         @Override
         public void onUpgradeStarted(FirmwareUpgradeController controller) {
+            final FirmwareUpgradeCallback<State> callback = this.callback;
             if (callback == null)
                 return;
             if (runOnIUThread)
-                executor.execute(() -> callback.onUpgradeStarted(controller));
+                executor.execute(() -> {
+                    final FirmwareUpgradeCallback<State> cb = this.callback;
+                    if (cb != null)
+                        cb.onUpgradeStarted(controller);
+                });
             else
                 callback.onUpgradeStarted(controller);
         }
 
         @Override
         public void onStateChanged(State prevState, State newState) {
+            final FirmwareUpgradeCallback<State> callback = this.callback;
             if (callback == null)
                 return;
             if (runOnIUThread)
-                executor.execute(() -> callback.onStateChanged(prevState, newState));
+                executor.execute(() ->{
+                    final FirmwareUpgradeCallback<State> cb = this.callback;
+                    if (cb != null)
+                        cb.onStateChanged(prevState, newState);
+                });
             else
                 callback.onStateChanged(prevState, newState);
         }
 
         @Override
         public void onUpgradeCompleted() {
+            final FirmwareUpgradeCallback<State> callback = this.callback;
             if (callback == null)
                 return;
             if (runOnIUThread)
-                executor.execute(callback::onUpgradeCompleted);
+                executor.execute(() -> {
+                    final FirmwareUpgradeCallback<State> cb = this.callback;
+                    if (cb != null)
+                        cb.onUpgradeCompleted();
+                });
             else
                 callback.onUpgradeCompleted();
         }
 
         @Override
         public void onUpgradeFailed(State state, McuMgrException error) {
+            final FirmwareUpgradeCallback<State> callback = this.callback;
             if (callback == null)
                 return;
             if (runOnIUThread)
-                executor.execute(() -> callback.onUpgradeFailed(state, error));
+                executor.execute(() -> {
+                    final FirmwareUpgradeCallback<State> cb = this.callback;
+                    if (cb != null)
+                        cb.onUpgradeFailed(state, error);
+                });
             else
                 callback.onUpgradeFailed(state, error);
         }
 
         @Override
         public void onUpgradeCanceled(State state) {
+            final FirmwareUpgradeCallback<State> callback = this.callback;
             if (callback == null)
                 return;
             if (runOnIUThread)
-                executor.execute(() -> callback.onUpgradeCanceled(state));
+                executor.execute(() -> {
+                    final FirmwareUpgradeCallback<State> cb = this.callback;
+                    if (cb != null)
+                        cb.onUpgradeCanceled(state);
+                });
             else
                 callback.onUpgradeCanceled(state);
         }
 
         @Override
         public void onUploadProgressChanged(int bytesSent, int imageSize, long timestamp) {
+            final FirmwareUpgradeCallback<State> callback = this.callback;
             if (callback == null)
                 return;
             if (runOnIUThread)
-                executor.execute(() -> callback.onUploadProgressChanged(bytesSent, imageSize, timestamp));
+                executor.execute(() -> {
+                    final FirmwareUpgradeCallback<State> cb = this.callback;
+                    if (cb != null)
+                        cb.onUploadProgressChanged(bytesSent, imageSize, timestamp);
+                });
             else
                 callback.onUploadProgressChanged(bytesSent, imageSize, timestamp);
         }
