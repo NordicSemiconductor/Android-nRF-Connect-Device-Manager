@@ -6,12 +6,16 @@
 
 package io.runtime.mcumgr.sample.application;
 
+import android.Manifest;
 import android.app.Application;
 import android.bluetooth.BluetoothDevice;
+import android.content.pm.PackageManager;
 
 import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
@@ -56,7 +60,11 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
             Timber.uproot(logger);
             logger = null;
         }
-        Timber.plant(logger = new nRFLoggerTree(this, "Device Manager", device.getName()));
+        String deviceName = null;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            deviceName = device.getName();
+        }
+        Timber.plant(logger = new nRFLoggerTree(this, device.getAddress(), deviceName));
         builder.target(device).build().update(this);
     }
 }
