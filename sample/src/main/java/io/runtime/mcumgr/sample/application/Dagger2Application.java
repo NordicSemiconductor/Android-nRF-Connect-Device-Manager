@@ -77,21 +77,22 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
             // more readable in the nRF Logger app.
             @SuppressLint("WrongConstant")
             @Override
-            protected void log(int priority, final String tag, final String message, final Throwable t) {
+            protected void log(int priority, final String tag, final @NonNull String message, final Throwable t) {
                 if (getSession() == null)
                     return;
 
                 int level = priority;
                 // Print messages starting with Sending and Received as APPLICATION level.
                 // Those contain parsed CBOR values and are printed in McuMgrBleTransport.
-                if (message.startsWith("Sending") || message.startsWith("Received")) {
+                if (message.startsWith("Sending") || message.startsWith("Received") || message.startsWith("Upload completed")) {
                     level = LogContract.Log.Level.APPLICATION;
                 }
                 // RC is returned in case of an error. "err" is returned in Version 2 of SMP protocol.
                 if (message.contains("\"rc\":") || message.contains("\"err\":")) {
                     level = Log.WARN;
                 }
-                super.log(level, tag, message, t);
+                // Skip the tag, Proguard obfuscates it anyway.
+                super.log(level, null, message, t);
             }
 
         };
