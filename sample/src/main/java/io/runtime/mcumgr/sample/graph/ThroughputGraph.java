@@ -192,12 +192,12 @@ public class ThroughputGraph extends View {
 	}
 
 	private static String getPhyAsString(@PhyValue final int phy) {
-		switch (phy) {
-			case PhyCallback.PHY_LE_CODED: return "LE Coded";
-			case PhyCallback.PHY_LE_2M: return "LE 2M";
-			default:
-			case PhyCallback.PHY_LE_1M: return "LE 1M";
-		}
+        return switch (phy) {
+            case PhyCallback.PHY_LE_CODED -> "LE Coded";
+            case PhyCallback.PHY_LE_2M -> "LE 2M";
+			case PhyCallback.PHY_LE_1M -> "LE 1M";
+            default -> "Unknown (" + phy + ")";
+        };
 	}
 
 	@Override
