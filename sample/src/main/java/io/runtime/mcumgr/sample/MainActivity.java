@@ -9,6 +9,7 @@ package io.runtime.mcumgr.sample;
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -60,6 +61,13 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(
+                    OVERRIDE_TRANSITION_CLOSE,
+                    0, R.anim.transitions
+            );
+        }
 
         final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
         String deviceName = getString(R.string.unknown_device);
