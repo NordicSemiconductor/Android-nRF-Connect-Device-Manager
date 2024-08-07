@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(
                     OVERRIDE_TRANSITION_CLOSE,
-                    0, R.anim.transitions
+                    android.R.anim.fade_in, R.anim.close
             );
         }
 
