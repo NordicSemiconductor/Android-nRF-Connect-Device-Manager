@@ -192,12 +192,12 @@ public class ThroughputGraph extends View {
 	}
 
 	private static String getPhyAsString(@PhyValue final int phy) {
-		switch (phy) {
-			case PhyCallback.PHY_LE_CODED: return "LE Coded";
-			case PhyCallback.PHY_LE_2M: return "LE 2M";
-			default:
-			case PhyCallback.PHY_LE_1M: return "LE 1M";
-		}
+        return switch (phy) {
+            case PhyCallback.PHY_LE_CODED -> "LE Coded";
+            case PhyCallback.PHY_LE_2M -> "LE 2M";
+			case PhyCallback.PHY_LE_1M -> "LE 1M";
+            default -> "Unknown (" + phy + ")";
+        };
 	}
 
 	@Override
@@ -319,7 +319,6 @@ public class ThroughputGraph extends View {
 
 	static class SavedState extends BaseSavedState {
 		private float maxThroughput;
-		private float[] instantaneousThroughputData;
 		private float[] averageThroughputData;
 		private float[] connectionIntervalData;
 		private float currentConnectionInterval;
@@ -338,7 +337,6 @@ public class ThroughputGraph extends View {
 		SavedState(Parcel in) {
 			super(in);
 			maxThroughput = in.readFloat();
-			instantaneousThroughputData = in.createFloatArray();
 			averageThroughputData = in.createFloatArray();
 			connectionIntervalData = in.createFloatArray();
 			currentConnectionInterval = in.readFloat();
@@ -353,8 +351,8 @@ public class ThroughputGraph extends View {
 
 		@Override
 		public void writeToParcel(Parcel dest, int flags) {
+			super.writeToParcel(dest, flags);
 			dest.writeFloat(maxThroughput);
-			dest.writeFloatArray(instantaneousThroughputData);
 			dest.writeFloatArray(averageThroughputData);
 			dest.writeFloatArray(connectionIntervalData);
 			dest.writeFloat(currentConnectionInterval);

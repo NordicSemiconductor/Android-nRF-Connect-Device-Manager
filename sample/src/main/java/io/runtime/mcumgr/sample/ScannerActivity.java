@@ -38,7 +38,6 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.sample.adapter.DevicesAdapter;
-import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.databinding.ActivityScannerBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.Utils;
@@ -225,10 +224,6 @@ public class ScannerActivity extends AppCompatActivity
 
     @Override
     public void onItemClick(@NonNull final BluetoothDevice device) {
-        // The target must be set before calling super.onCreate(Bundle).
-        // Otherwise, Dagger2 will fail to inflate this Activity.
-        ((Dagger2Application) getApplication()).setTarget(device);
-
         final Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra(MainActivity.EXTRA_DEVICE, device);
         startActivity(intent);
