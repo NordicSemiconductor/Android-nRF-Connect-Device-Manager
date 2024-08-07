@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.sample;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
@@ -343,6 +344,7 @@ public class ScannerActivity extends AppCompatActivity
      * @implSpec On Android 12+ BLUETOOTH_CONNECT permission needs to be granted before calling
      *           this method. Otherwise, the app would crash with {@link SecurityException}.
      */
+    @SuppressLint("MissingPermission")
     private void requestBluetoothEnabled() {
         if (Utils.isBluetoothConnectPermissionGranted(this)) {
             final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
