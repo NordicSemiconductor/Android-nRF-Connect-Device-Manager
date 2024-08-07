@@ -2,10 +2,16 @@ ext.getVersionCodeFromTags = { ->
     try {
         def code = new ByteArrayOutputStream()
         exec {
-            commandLine 'git', 'tag', '--list'
+            commandLine 'git', 'rev-list', '--count', 'HEAD'
             standardOutput = code
         }
-        return 14 + code.toString().split("\n").size()
+        def now = ZonedDateTime.now(ZoneId.of("UTC"))
+        def year = String.format("%02d", now.year % 100)
+        def month = String.format("%02d", now.monthValue)
+        def day = String.format("%02d", now.dayOfMonth)
+        def revisions = String.format("%02d", code.toString().trim().toInteger() % 100)
+        def version = String.format("%s%s%s%s", year, month, day, revisions).toInteger()
+        return version
     }
     catch (ignored) {
         return -1
