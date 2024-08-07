@@ -64,7 +64,12 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             deviceName = device.getName();
         }
-        Timber.plant(logger = new nRFLoggerTree(this, device.getAddress(), deviceName));
-        builder.target(device).build().update(this);
+        final nRFLoggerTree logger = new nRFLoggerTree(this, device.getAddress(), deviceName); // name can be null, not an issue
+        Timber.plant(this.logger = logger);
+        builder.target(device);
+        if (logger.getSession() != null) {
+            builder.logSessionUri(logger.getSession().getSessionUri());
+        }
+        builder.build().update(this);
     }
 }

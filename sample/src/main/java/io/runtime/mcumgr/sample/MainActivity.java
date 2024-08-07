@@ -8,10 +8,15 @@ package io.runtime.mcumgr.sample;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -45,6 +50,8 @@ public class MainActivity extends AppCompatActivity
     DispatchingAndroidInjector<Object> dispatchingAndroidInjector;
     @Inject
     McuMgrViewModelFactory viewModelFactory;
+    @Inject
+    Uri logSessionUri;
 
     private Fragment deviceFragment;
     private Fragment imageFragment;
@@ -128,5 +135,27 @@ public class MainActivity extends AppCompatActivity
             logsStatsFragment = getSupportFragmentManager().findFragmentByTag("logs");
             shellFragment = getSupportFragmentManager().findFragmentByTag("shell");
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(final @NonNull Menu menu) {
+        getMenuInflater().inflate(R.menu.log, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final @NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_open_log) {
+            final Intent intent;
+            if (logSessionUri == null) {
+                intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=no.nordicsemi.android.log"));
+            } else {
+                intent = new Intent(Intent.ACTION_VIEW, logSessionUri);
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

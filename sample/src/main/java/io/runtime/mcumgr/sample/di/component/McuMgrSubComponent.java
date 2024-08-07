@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.sample.di.component;
 
 import android.bluetooth.BluetoothDevice;
+import android.net.Uri;
 
 import dagger.BindsInstance;
 import dagger.Subcomponent;
@@ -37,6 +38,9 @@ public interface McuMgrSubComponent {
          */
         @BindsInstance
         Builder target(final BluetoothDevice device);
+
+        @BindsInstance
+        Builder logSessionUri(final Uri uri);
 
         McuMgrSubComponent build();
     }
