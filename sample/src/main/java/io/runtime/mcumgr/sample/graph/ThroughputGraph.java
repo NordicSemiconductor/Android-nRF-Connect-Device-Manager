@@ -353,6 +353,7 @@ public class ThroughputGraph extends View {
 
 		@Override
 		public void writeToParcel(Parcel dest, int flags) {
+			super.writeToParcel(dest, flags);
 			dest.writeFloat(maxThroughput);
 			dest.writeFloatArray(instantaneousThroughputData);
 			dest.writeFloatArray(averageThroughputData);
