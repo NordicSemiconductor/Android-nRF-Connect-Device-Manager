@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
+import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.fragment.DeviceFragment;
 import io.runtime.mcumgr.sample.fragment.FilesFragment;
@@ -51,6 +52,8 @@ public class MainActivity extends AppCompatActivity
     @Inject
     McuMgrViewModelFactory viewModelFactory;
     @Inject
+    BluetoothDevice device;
+    @Inject
     Uri logSessionUri;
 
     private Fragment deviceFragment;
@@ -66,6 +69,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
+        final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
+        // The target must be set before calling super.onCreate(Bundle).
+        // Otherwise, Dagger2 will fail to inflate this Activity.
+        // The target has to be set here, otherwise restoring the state will fail had the
+        // Activity been destroyed and recreated.
+        ((Dagger2Application) getApplication()).setTarget(device);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -76,7 +86,6 @@ public class MainActivity extends AppCompatActivity
             );
         }
 
-        final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
         String deviceName = getString(R.string.unknown_device);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             final String name = device.getName();
