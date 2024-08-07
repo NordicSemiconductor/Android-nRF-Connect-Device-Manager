@@ -224,7 +224,7 @@ abstract class Uploader(
         scope: CoroutineScope = GlobalScope,
     ): TransferController {
         val exceptionHandler = CoroutineExceptionHandler { _, t ->
-            log.error("Upload failed", t)
+            log.error("Upload failed: ${t.message}")
         }
         val job = scope.launch(exceptionHandler) {
             val progress = progress.onEach { progress ->
