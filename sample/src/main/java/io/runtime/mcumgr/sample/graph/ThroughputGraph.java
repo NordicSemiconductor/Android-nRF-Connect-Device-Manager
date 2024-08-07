@@ -319,7 +319,6 @@ public class ThroughputGraph extends View {
 
 	static class SavedState extends BaseSavedState {
 		private float maxThroughput;
-		private float[] instantaneousThroughputData;
 		private float[] averageThroughputData;
 		private float[] connectionIntervalData;
 		private float currentConnectionInterval;
@@ -338,7 +337,6 @@ public class ThroughputGraph extends View {
 		SavedState(Parcel in) {
 			super(in);
 			maxThroughput = in.readFloat();
-			instantaneousThroughputData = in.createFloatArray();
 			averageThroughputData = in.createFloatArray();
 			connectionIntervalData = in.createFloatArray();
 			currentConnectionInterval = in.readFloat();
@@ -355,7 +353,6 @@ public class ThroughputGraph extends View {
 		public void writeToParcel(Parcel dest, int flags) {
 			super.writeToParcel(dest, flags);
 			dest.writeFloat(maxThroughput);
-			dest.writeFloatArray(instantaneousThroughputData);
 			dest.writeFloatArray(averageThroughputData);
 			dest.writeFloatArray(connectionIntervalData);
 			dest.writeFloat(currentConnectionInterval);
