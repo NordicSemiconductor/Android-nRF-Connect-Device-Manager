@@ -11,23 +11,23 @@ public abstract class Transfer implements TransferCallback {
     byte @Nullable [] mData;
     int mOffset;
 
+    int mDataLength;
+
     Transfer() {
-        mData = null;
-        mOffset = 0;
+        this(null, 0);
     }
 
     Transfer(int offset) {
-        mData = null;
-        mOffset = offset;
+        this(null, offset);
     }
 
     Transfer(byte @Nullable [] data) {
-        mData = data;
-        mOffset = 0;
+        this(data, 0);
     }
 
     Transfer(byte @Nullable [] data, int offset) {
         mData = data;
+        mDataLength = data == null ? -1 : data.length;
         mOffset = offset;
     }
 

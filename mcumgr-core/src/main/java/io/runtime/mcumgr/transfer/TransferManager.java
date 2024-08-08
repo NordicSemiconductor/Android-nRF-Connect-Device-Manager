@@ -37,6 +37,19 @@ public class TransferManager extends McuManager {
     }
 
     /**
+     * Start an upload.
+     * <p>
+     * If there is an active transfer being executed on this manager, the transfer will be queued.
+     *
+     * @param upload The upload to start.
+     * @return The controller used to pause, resume, or cancel the upload.
+     */
+    @NotNull
+    public TransferController startUpload(@NotNull StreamUpload upload) {
+        return startTransfer(upload);
+    }
+
+    /**
      * Start an download.
      * <p>
      * If there is an active transfer being executed on this manager, the download will be queued.
@@ -46,6 +59,19 @@ public class TransferManager extends McuManager {
      */
     @NotNull
     public TransferController startDownload(@NotNull Download download) {
+        return startTransfer(download);
+    }
+
+    /**
+     * Start an download.
+     * <p>
+     * If there is an active transfer being executed on this manager, the download will be queued.
+     *
+     * @param download The upload to start.
+     * @return The controller used to pause, resume, or cancel the download.
+     */
+    @NotNull
+    public TransferController startDownload(@NotNull StreamDownload download) {
         return startTransfer(download);
     }
 

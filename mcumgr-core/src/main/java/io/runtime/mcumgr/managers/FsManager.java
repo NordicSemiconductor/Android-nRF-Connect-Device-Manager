@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 
 import io.runtime.mcumgr.McuMgrCallback;
@@ -33,6 +35,9 @@ import io.runtime.mcumgr.response.fs.McuMgrFsStatusResponse;
 import io.runtime.mcumgr.response.fs.McuMgrFsUploadResponse;
 import io.runtime.mcumgr.transfer.Download;
 import io.runtime.mcumgr.transfer.DownloadCallback;
+import io.runtime.mcumgr.transfer.StreamDownload;
+import io.runtime.mcumgr.transfer.StreamDownloadCallback;
+import io.runtime.mcumgr.transfer.StreamUpload;
 import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.TransferManager;
 import io.runtime.mcumgr.transfer.Upload;
@@ -239,6 +244,29 @@ public class FsManager extends TransferManager {
         return send(OP_WRITE, ID_FILE, payloadMap, SHORT_TIMEOUT, McuMgrFsUploadResponse.class);
     }
 
+    /**
+     * Send a packet of given data from the specified offset to the device (synchronous).
+     * <p>
+     * The chunk size is limited by the current MTU. If the current MTU set by
+     * {@link #setUploadMtu(int)} is too large, the {@link InsufficientMtuException} error will be
+     * thrown. Use {@link InsufficientMtuException#getMtu()} to get the current MTU and
+     * pass it to {@link #setUploadMtu(int)} and try again.
+     * <p>
+     * Use {@link #fileUpload} to upload the whole file asynchronously using one command.
+     *
+     * @param name   the file name.
+     * @param data   the file data.
+     * @param offset the offset, from which the chunk will be sent.
+     * @return The upload response.
+     * @see #fileUpload(String, byte[], UploadCallback)
+     */
+    @NotNull
+    public McuMgrFsUploadResponse upload(@NotNull String name, @NotNull InputStream data, int offset, int totalBytes)
+            throws McuMgrException {
+        HashMap<String, Object> payloadMap = buildUploadPayload(name, data, offset, totalBytes);
+        return send(OP_WRITE, ID_FILE, payloadMap, SHORT_TIMEOUT, McuMgrFsUploadResponse.class);
+    }
+
     /*
      * Build the upload payload map.
      */
@@ -246,7 +274,7 @@ public class FsManager extends TransferManager {
     private HashMap<String, Object> buildUploadPayload(@NotNull String name, byte @NotNull [] data, int offset) {
         // Get the length of data (in bytes) to put into the upload packet. This calculated as:
         // min(MTU - packetOverhead, imageLength - uploadOffset)
-        int dataLength = Math.min(mMtu - calculatePacketOverhead(name, data, offset),
+        int dataLength = Math.min(mMtu - calculatePacketOverhead(name, data.length, offset),
                 data.length - offset);
 
         // Copy the data from the image into a buffer.
@@ -262,6 +290,47 @@ public class FsManager extends TransferManager {
         if (offset == 0) {
             // Only send the length of the image in the first packet of the upload
             payloadMap.put("len", data.length);
+        }
+        return payloadMap;
+    }
+
+    /*
+     * Build the upload payload map.
+     */
+    @NotNull
+    private HashMap<String, Object> buildUploadPayload(@NotNull String name, @NotNull InputStream data, int offset, int totalBytes)
+    throws McuMgrException {
+        // Get the length of data (in bytes) to put into the upload packet. This calculated as:
+        // min(MTU - packetOverhead, imageLength - uploadOffset)
+        int dataLength = Math.min(mMtu - calculatePacketOverhead(name, totalBytes, offset),
+                totalBytes - offset);
+
+        // Copy the data from the image into a buffer.
+        byte[] sendBuffer = new byte[dataLength];
+        try {
+            int totalRead = 0;
+            while(totalRead < dataLength) {
+                int read = data.read(sendBuffer, totalRead, dataLength - totalRead);
+                if (read < 0) {
+                    throw new McuMgrException("Data InputStream reached end of file. Expected " +
+                            (totalBytes - offset - totalRead) + " more bytes."
+                    );
+                }
+                totalRead += read;
+            }
+        } catch(IOException e) {
+            throw new McuMgrException("Failed to read data for packet.", e);
+        }
+
+        // Create the map of key-values for the McuManager payload
+        HashMap<String, Object> payloadMap = new HashMap<>();
+        // Put the name, data and offset
+        payloadMap.put("name", name);
+        payloadMap.put("data", sendBuffer);
+        payloadMap.put("off", offset);
+        if (offset == 0) {
+            // Only send the length of the image in the first packet of the upload
+            payloadMap.put("len", totalBytes);
         }
         return payloadMap;
     }
@@ -492,6 +561,43 @@ public class FsManager extends TransferManager {
         }
     }
 
+    /**
+     * Start image upload.
+     * <p>
+     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
+     * downloads executed from {@link #fileDownload}.
+     * <p>
+     * The upload may be controlled using the {@link TransferController} returned by this method.
+     *
+     * @param data The file data to upload.
+     * @param callback  Receives callbacks from the upload.
+     * @return The object used to control this upload.
+     * @see TransferController
+     */
+    @NotNull
+    public TransferController fileUpload(@NotNull String name, @NotNull InputStream data, int totalBytes, @NotNull UploadCallback callback) {
+        return startUpload(new FileStreamUpload(name, data, totalBytes, callback));
+    }
+
+    /**
+     * File Upload Implementation.
+     */
+    public class FileStreamUpload extends StreamUpload {
+
+        @NotNull
+        private final String mName;
+
+        protected FileStreamUpload(@NotNull String name, @NotNull InputStream data, int totalBytes, @NotNull UploadCallback callback) {
+            super(data, totalBytes, callback);
+            mName = name;
+        }
+
+        @Override
+        protected UploadResponse write(@NotNull InputStream data, int offset, int totalBytes) throws McuMgrException {
+            return upload(mName, data, offset, totalBytes);
+        }
+    }
+
     //******************************************************************
     // File Download
     //******************************************************************
@@ -523,6 +629,46 @@ public class FsManager extends TransferManager {
 
         protected FileDownload(@NotNull String name, @NotNull DownloadCallback callback) {
             super(callback);
+            mName = name;
+        }
+
+        @Override
+        protected DownloadResponse read(int offset) throws McuMgrException {
+            return download(mName, offset);
+        }
+    }
+
+    /**
+     * Start image upload.
+     * <p>
+     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
+     * downloads executed from {@link #fileUpload}.
+     * <p>
+     * The upload may be controlled using the {@link TransferController} returned by this method.
+     *
+     * @param callback Receives callbacks from the upload.
+     * @return The object used to control this upload.
+     * @see TransferController
+     */
+    @NotNull
+    public TransferController fileDownload(
+            @NotNull String name,
+            @NotNull OutputStream dataOutput,
+            @NotNull StreamDownloadCallback callback
+    ) {
+        return startDownload(new FileStreamDownload(name, dataOutput, callback));
+    }
+
+    public class FileStreamDownload extends StreamDownload {
+        @NotNull
+        private final String mName;
+
+        protected FileStreamDownload(
+                @NotNull String name,
+                @NotNull OutputStream dataOutput,
+                @NotNull StreamDownloadCallback callback
+        ) {
+            super(dataOutput, callback);
             mName = name;
         }
 
@@ -876,7 +1022,7 @@ public class FsManager extends TransferManager {
                 }
             };
 
-    private int calculatePacketOverhead(@NotNull String name, byte @NotNull [] data, int offset) {
+    private int calculatePacketOverhead(@NotNull String name, int totalBytes, int offset) {
         try {
             if (getScheme().isCoap()) {
                 HashMap<String, Object> overheadTestMap = new HashMap<>();
@@ -884,7 +1030,7 @@ public class FsManager extends TransferManager {
                 overheadTestMap.put("data", new byte[0]);
                 overheadTestMap.put("off", offset);
                 if (offset == 0) {
-                    overheadTestMap.put("len", data.length);
+                    overheadTestMap.put("len", totalBytes);
                 }
                 byte[] header = {0, 0, 0, 0, 0, 0, 0, 0};
                 overheadTestMap.put("_h", header);
