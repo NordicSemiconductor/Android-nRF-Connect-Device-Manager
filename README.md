@@ -186,3 +186,20 @@ re-upload the image or manually determine where to start.
 ## License
 
 This library is licensed under the Apache 2.0 license. For more info, see the `LICENSE` file.
+
+## Related libraries
+
+### Flutter
+
+Flutter version of this library is available [here](https://github.com/NordicSemiconductor/Flutter-nRF-Connect-Device-Manager)
+and released as [mcumgr_flutter](https://pub.dev/packages/mcumgr_flutter) on pub.dev.
+
+### .NET MAUI
+
+.NET MAUI (old Xamarin) version of this library is available [here](https://github.com/Laerdal/Laerdal.McuMgr)
+and released as [Laerdal.McuMgr](https://www.nuget.org/packages/Laerdal.McuMgr) on NuGet.
+
+### React Native
+
+As of now we are not aware of any React Native library that supports McuManager protocol.
+If you are interested in creating one, please let us know and we will link it here.
