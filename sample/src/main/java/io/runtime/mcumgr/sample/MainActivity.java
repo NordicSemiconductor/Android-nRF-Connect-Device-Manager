@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity
     @Inject
     BluetoothDevice device;
     @Inject
+    @Nullable
     Uri logSessionUri;
 
     private Fragment deviceFragment;
