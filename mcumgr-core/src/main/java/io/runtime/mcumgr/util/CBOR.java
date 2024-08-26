@@ -20,7 +20,7 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class CBOR {
-    private final static CBORFactory sFactory = new CBORFactory();
+    private final static CBORFactory sFactory = new CanonicalCBORFactory();
 
     public static byte[] toBytes(Object obj) throws IOException {
         ObjectMapper mapper = new ObjectMapper(sFactory);
