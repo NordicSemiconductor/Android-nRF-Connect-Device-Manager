@@ -357,11 +357,10 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                     upgradeWithSUITManager(suitImage, windowCapacity, memoryAlignment);
                     return;
                 }
+                throw new NullPointerException();
+            } catch (final Exception e2) {
                 // Fallback to Image Manager.
                 onSuitNotSupported.run();
-            } catch (final Exception e2) {
-                Timber.e(e, "Invalid image file");
-                errorLiveData.setValue(new McuMgrException("Invalid image file."));
             }
         }
     }
