@@ -53,8 +53,11 @@ dependencies {
 
     // Import CBOR parser - version 2.14+ requires Android 8
     // See: https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager/issues/135
+    //noinspection GradleDependency
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.5' // don't update
+    //noinspection GradleDependency
     implementation 'com.fasterxml.jackson.core:jackson-core:2.13.5' // don't update
+    //noinspection GradleDependency
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5' // don't update
 
     // Test
