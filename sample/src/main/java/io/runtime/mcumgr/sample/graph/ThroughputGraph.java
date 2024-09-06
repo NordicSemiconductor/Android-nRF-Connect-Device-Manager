@@ -148,7 +148,7 @@ public class ThroughputGraph extends View {
 			final String text = getResources().getString(R.string.image_upgrade_speed, averageThroughputData[currentIndex - 1]);
 			final float x = averageThroughputPoints[(currentIndex << 2) - 2] - averageThroughputTextWidth;
 			final float y = averageThroughputPoints[(currentIndex << 2) - 1] - 2 * averageThroughputPaint.getStrokeWidth();
-			canvas.drawText(text, Math.max(0, x), y, averageThroughputPaint);
+			canvas.drawText(text, Math.max(0, x), Math.max(0, y), averageThroughputPaint);
 
 			// Draw optional metadata.
 			// This is only for Android 8+, where the connection interval is available.
@@ -236,8 +236,8 @@ public class ThroughputGraph extends View {
 			progressData[currentIndex] = progress;
 			currentIndex += 1;
 
-			if (currentMaxThroughput < averageThroughput + 10) {
-				currentMaxThroughput = averageThroughput + 10;
+			if (currentMaxThroughput < averageThroughput * 1.2f) {
+				currentMaxThroughput = averageThroughput * 1.2f;
 				recalculateMetadata();
 			}
 			recalculate();
