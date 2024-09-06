@@ -394,8 +394,12 @@ public class McuMgrResponse implements HasReturnCode {
             if (bytes.length < McuMgrHeader.HEADER_LENGTH) {
                 throw new IOException("Invalid McuMgrHeader");
             }
-            byte[] headerBytes = Arrays.copyOf(bytes, McuMgrHeader.HEADER_LENGTH);
-            McuMgrHeader header = McuMgrHeader.fromBytes(headerBytes);
+            McuMgrHeader header = McuMgrHeader.fromBytes(bytes);
+            // In theory, the packet length is 16-bit long, but in practice, it should not exceed
+            // 2475 bytes minus 8-byte header. Let's say 2500 bytes.
+            if (header.getLen() > 2500) {
+                throw new IOException("Invalid McuMgrHeader");
+            }
             return header.getLen() + McuMgrHeader.HEADER_LENGTH;
         }
     }
