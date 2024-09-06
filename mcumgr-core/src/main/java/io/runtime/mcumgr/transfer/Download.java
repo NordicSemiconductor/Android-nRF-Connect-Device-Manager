@@ -3,6 +3,8 @@ package io.runtime.mcumgr.transfer;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
@@ -12,6 +14,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 
 @SuppressWarnings("unused")
 public abstract class Download extends Transfer {
+    private final static Logger LOG = LoggerFactory.getLogger(Download.class);
 
     @Nullable
     private final DownloadCallback mCallback;
@@ -45,17 +48,24 @@ public abstract class Download extends Transfer {
         if (response.off == 0) {
             mData = new byte[response.len];
         }
+        if (mData == null) {
+            throw new McuMgrException("Download buffer is null, packet with offset 0 was never received.");
+        }
 
         // Validate response body
-        if (response.data == null) {
-            throw new McuMgrException("Download response data is null.");
+        if (response.data == null || response.data.length == 0) {
+            throw new McuMgrException("Download response data is empty.");
         }
-        if (mData == null) {
-            throw new McuMgrException("Download data is null.");
+        final int length = Math.min(response.data.length, mData.length - response.off);
+        if (length <= 0) {
+            throw new McuMgrException("Download offset too big: " + response.off + " (file length: " + mData.length + ", received: " + response.data.length + ")");
+        }
+        if (length != response.data.length) {
+            LOG.warn("Received more data than expected. Expected: {}, received: {}", length, response.data.length);
         }
 
         // Copy received mData to the buffer.
-        System.arraycopy(response.data, 0, mData, response.off, response.data.length);
+        System.arraycopy(response.data, 0, mData, response.off, length);
         mOffset = response.off + response.data.length;
 
         return response;
