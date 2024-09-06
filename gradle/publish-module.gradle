@@ -5,10 +5,8 @@ apply from: rootProject.file("gradle/git-tag-version.gradle")
 group = GROUP
 version = getVersionNameFromTags()
 
-task androidSourcesJar(type: Jar) {
-//    archiveClassifier.set('sources')
+tasks.register('androidSourcesJar', Jar) {
     from android.sourceSets.main.java.srcDirs
-    // from android.sourceSets.main.kotlin.srcDirs
 }
 
 afterEvaluate {
