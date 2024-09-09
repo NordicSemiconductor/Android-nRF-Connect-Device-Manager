@@ -201,5 +201,4 @@ and released as [Laerdal.McuMgr](https://www.nuget.org/packages/Laerdal.McuMgr) 
 
 ### React Native
 
-As of now we are not aware of any React Native library that supports McuManager protocol.
-If you are interested in creating one, please let us know and we will link it here.
+React Native wrapper for this library is available [here](https://github.com/PlayerData/react-native-mcu-manager).
