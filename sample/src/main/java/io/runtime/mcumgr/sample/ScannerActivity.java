@@ -114,8 +114,7 @@ public class ScannerActivity extends AppCompatActivity
             startActivity(launchIntro);
         }
 
-        final Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setSupportActionBar(binding.toolbar);
         getSupportActionBar().setTitle(R.string.app_name);
 
         // Create view model containing utility methods for scanning
@@ -124,7 +123,7 @@ public class ScannerActivity extends AppCompatActivity
         scannerViewModel.getScannerState().observe(this, this::startScan);
 
         // Configure the recycler view
-        final RecyclerView recyclerView = findViewById(R.id.recycler_view_ble_devices);
+        final RecyclerView recyclerView = binding.recyclerViewBleDevices;
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         final DividerItemDecoration dividerItemDecoration =
                 new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL);
@@ -137,11 +136,13 @@ public class ScannerActivity extends AppCompatActivity
 
         // Set up permission request launcher
         final ActivityResultLauncher<String> requestPermission =
-                registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+                registerForActivityResult(
+                        new ActivityResultContracts.RequestPermission(),
                         result -> scannerViewModel.refresh()
-        );
+                );
         final ActivityResultLauncher<String[]> requestPermissions =
-                registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
+                registerForActivityResult(
+                        new ActivityResultContracts.RequestMultiplePermissions(),
                         result -> scannerViewModel.refresh()
                 );
 
