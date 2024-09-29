@@ -6,8 +6,10 @@ import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.DialogSelectImageBinding;
 
@@ -38,7 +40,7 @@ public class SelectImageDialogFragment extends DialogFragment {
 		binding.image.setText(items[0], false);
 		binding.image.setOnItemClickListener((parent, view, position, id) -> this.position = position);
 
-		return new AlertDialog.Builder(requireContext())
+		return new MaterialAlertDialogBuilder(requireContext())
 				.setTitle(R.string.image_select_image)
 				.setView(binding.getRoot())
 				// Setting the positive button listener here would cause the dialog to dismiss.

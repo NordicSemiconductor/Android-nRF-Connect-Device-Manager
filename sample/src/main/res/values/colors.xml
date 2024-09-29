@@ -12,11 +12,14 @@
     <color name="colorOnPrimary">@color/white</color>
     <color name="colorAccentOnPrimary">@color/white</color>
     <color name="colorSecondary">@color/nordicLake</color>
+    <color name="colorSecondaryContainer">@color/nordicLake</color>
     <color name="colorStatusBar">@color/nordicBlueDark</color>
+    <color name="colorSurface">@color/lightGray</color>
     <color name="colorOnSurface">?colorOnSurface</color>
+    <color name="colorSurfaceContainer">#FFE4EFF2</color>
     <color name="colorDivider">#DDD</color>
     <color name="colorError">@color/nordicRed</color>
-    <color name="colorBackground">@color/lightGray</color>
+    <color name="colorBackground">@color/white</color>
     <color name="colorOnBackground">@color/black</color>
     <color name="colorDestructive">#CC0000</color>
     <color name="colorDestructiveDisabled">#CCAAAA</color>
@@ -25,5 +28,7 @@
     <color name="colorParams">@color/nordicBlue</color>
     <color name="colorAverageThroughput">@color/darkGray</color>
     <color name="colorInstantaneousThroughput">@color/nordicLightGray</color>
+
+    <color name="appBarColor">@color/nordicBlue</color>
 
 </resources>

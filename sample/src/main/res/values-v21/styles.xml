@@ -9,8 +9,9 @@
 
 	<!-- Main theme customization per API. -->
 	<style name="AppTheme" parent="AppTheme.Base">
+		<item name="android:statusBarColor">@color/appBarColor</item>
 		<!-- Black navigation bar. -->
-		<item name="android:navigationBarColor">@android:color/black</item>
+		<item name="android:navigationBarColor">?colorSurfaceContainer</item>
 	</style>
 
 </resources>
