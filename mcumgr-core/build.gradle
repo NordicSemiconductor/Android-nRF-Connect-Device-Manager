@@ -43,13 +43,13 @@ android {
 
 dependencies {
     // Annotations
-    implementation 'org.jetbrains:annotations:24.1.0'
+    implementation 'org.jetbrains:annotations:25.0.0'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:2.0.13'
+    implementation 'org.slf4j:slf4j-api:2.0.16'
 
     // Kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'
 
     // Import CBOR parser - version 2.14+ requires Android 8
     // See: https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager/issues/135
@@ -62,7 +62,7 @@ dependencies {
 
     // Test
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.1'
 }
 
 // === Maven Central configuration ===
