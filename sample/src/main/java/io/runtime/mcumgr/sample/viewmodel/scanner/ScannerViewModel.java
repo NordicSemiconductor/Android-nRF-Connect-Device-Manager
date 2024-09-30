@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.sample.viewmodel;
+package io.runtime.mcumgr.sample.viewmodel.scanner;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
@@ -82,7 +82,7 @@ public class ScannerViewModel extends AndroidViewModel {
     /**
      * Forces the observers to be notified. This method is used to refresh the screen after the
      * location permission has been granted. In result, the observer in
-     * {@link io.runtime.mcumgr.sample.ScannerActivity} will try to start scanning.
+     * {@link io.runtime.mcumgr.sample.fragment.scanner.ScannerFragment} will try to start scanning.
      */
     public void refresh() {
         scannerStateLiveData.refresh();

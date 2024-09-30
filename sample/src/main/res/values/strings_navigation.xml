@@ -6,6 +6,9 @@
   -->
 
 <resources>
+    <string name="nav_scanner">Nearby</string>
+    <string name="nav_bonded">Saved</string>
+
     <string name="nav_default">Device</string>
     <string name="nav_image">Image</string>
     <string name="nav_fs">Files</string>

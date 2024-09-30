@@ -4,12 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.sample.viewmodel;
+package io.runtime.mcumgr.sample.viewmodel.scanner;
 
+import android.bluetooth.BluetoothDevice;
 import android.os.ParcelUuid;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import androidx.lifecycle.LiveData;
 import io.runtime.mcumgr.ble.DefaultMcuMgrUuidConfig;
@@ -31,6 +33,11 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
     private List<DiscoveredBluetoothDevice> filteredDevices = null;
     private boolean filterUuidRequired;
     private boolean filterNearbyOnly;
+
+    /* package */ DevicesLiveData() {
+        this.filterUuidRequired = false;
+        this.filterNearbyOnly = false;
+    }
 
     /* package */ DevicesLiveData(final boolean filterUuidRequired, final boolean filterNearbyOnly) {
         this.filterUuidRequired = filterUuidRequired;
@@ -73,6 +80,15 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
         // Return true if the device was on the filtered list or is to be added.
         return (filteredDevices != null && filteredDevices.contains(device))
                 || (matchesUuidFilter(result) && matchesNearbyFilter(device.getHighestRssi()));
+    }
+
+    synchronized void setDevices(final Set<BluetoothDevice> devices) {
+        this.devices.clear();
+        // map devices to list of DiscoveredBluetoothDevice
+        for (final BluetoothDevice device : devices) {
+            this.devices.add(new DiscoveredBluetoothDevice(device));
+        }
+        applyFilter();
     }
 
     /**

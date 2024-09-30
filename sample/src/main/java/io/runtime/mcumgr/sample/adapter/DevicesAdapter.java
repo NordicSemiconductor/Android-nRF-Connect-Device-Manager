@@ -9,9 +9,11 @@ package io.runtime.mcumgr.sample.adapter;
 import android.bluetooth.BluetoothDevice;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,9 +21,8 @@ import java.util.List;
 import java.util.Locale;
 
 import io.runtime.mcumgr.sample.R;
-import io.runtime.mcumgr.sample.ScannerActivity;
 import io.runtime.mcumgr.sample.databinding.DeviceItemBinding;
-import io.runtime.mcumgr.sample.viewmodel.DevicesLiveData;
+import io.runtime.mcumgr.sample.viewmodel.scanner.DevicesLiveData;
 
 @SuppressWarnings("unused")
 public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
@@ -47,9 +48,9 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         onItemClickListener = listener;
     }
 
-    public DevicesAdapter(final ScannerActivity activity, final DevicesLiveData devicesLiveData) {
+    public DevicesAdapter(final LifecycleOwner owner, final DevicesLiveData devicesLiveData) {
         setHasStableIds(true);
-        devicesLiveData.observe(activity, devices -> {
+        devicesLiveData.observe(owner, devices -> {
             DiffUtil.DiffResult result = DiffUtil.calculateDiff(
                     new DeviceDiffCallback(this.devices, devices), false);
             this.devices = devices;
@@ -88,6 +89,7 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         holder.binding.deviceAddress.setText(device.getAddress());
         final int rssiPercent = (int) (100.0f * (127.0f + device.getRssi()) / (127.0f + 20.0f));
         holder.binding.rssi.setImageLevel(rssiPercent);
+        holder.binding.rssi.setVisibility(device.getRssi() != -128 ? View.VISIBLE : View.GONE);
     }
 
     @Override

@@ -36,7 +36,8 @@
 		version no scan results are returned without location enabled.</string>
 
 	<string name="bluetooth_permission_title">BLUETOOTH PERMISSIONS REQUIRED</string>
-	<string name="bluetooth_permission_info">The app needs to scan and connect to\nBluetooth LE devices.</string>
+	<string name="bluetooth_scan_permission_info">Bluetooth Scan permission is required\nto find nearby Bluetooth LE devices.</string>
+	<string name="bluetooth_connect_permission_info">Bluetooth Connect permission is required to the\nget the list of saved Bluetooth LE devices.</string>
 
 	<string name="bluetooth_disabled_title">BLUETOOTH DISABLED</string>
 	<string name="bluetooth_disabled_info">The Bluetooth adapter is turned off.\nClick the button
@@ -51,4 +52,7 @@
         require it in order to scan for Bluetooth LE devices. If you are sure your
         device is advertising and it doesn\'t show up here, click the button below to
         enable Location.</string>
+
+	<string name="mcumgr_saved_title">NO SAVED DEVICES</string>
+	<string name="mcumgr_saved_info">Should you have any bonded devices, they will appear here.</string>
 </resources>

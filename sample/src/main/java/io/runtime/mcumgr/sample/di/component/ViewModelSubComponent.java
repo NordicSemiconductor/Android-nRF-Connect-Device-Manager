@@ -7,7 +7,8 @@
 package io.runtime.mcumgr.sample.di.component;
 
 import dagger.Subcomponent;
-import io.runtime.mcumgr.sample.viewmodel.ScannerViewModel;
+import io.runtime.mcumgr.sample.viewmodel.scanner.SavedDevicesViewModel;
+import io.runtime.mcumgr.sample.viewmodel.scanner.ScannerViewModel;
 import io.runtime.mcumgr.sample.viewmodel.ViewModelFactory;
 
 /**
@@ -23,4 +24,5 @@ public interface ViewModelSubComponent {
     }
 
     ScannerViewModel scannerViewModel();
+    SavedDevicesViewModel savedDevicesViewModel();
 }

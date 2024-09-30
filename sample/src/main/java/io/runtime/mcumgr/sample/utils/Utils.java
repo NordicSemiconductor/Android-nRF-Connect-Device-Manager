@@ -17,7 +17,6 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -188,10 +187,10 @@ public class Utils {
      * This situation is similar to a permission being denied forever, so to distinguish both cases
      * a flag needs to be saved.
      *
-     * @param activity the Activity.
+     * @param context the context.
      */
-    public static void markLocationPermissionRequested(@NonNull final Activity activity) {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
+    public static void markLocationPermissionRequested(@NonNull final Context context) {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.edit().putBoolean(PREFS_PERMISSION_REQUESTED, true).apply();
     }
 
