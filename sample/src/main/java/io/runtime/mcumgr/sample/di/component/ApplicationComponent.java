@@ -14,6 +14,7 @@ import dagger.android.support.AndroidSupportInjectionModule;
 import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.di.module.ActivitiesModule;
 import io.runtime.mcumgr.sample.di.module.ContextModule;
+import io.runtime.mcumgr.sample.di.module.FragmentsModule;
 import io.runtime.mcumgr.sample.di.module.McuMgrModule;
 import io.runtime.mcumgr.sample.di.module.ViewModelModule;
 
@@ -26,6 +27,7 @@ import io.runtime.mcumgr.sample.di.module.ViewModelModule;
         AndroidSupportInjectionModule.class,
         ContextModule.class,
         ActivitiesModule.class,
+        FragmentsModule.class,
         ViewModelModule.class,
         McuMgrModule.class
 })

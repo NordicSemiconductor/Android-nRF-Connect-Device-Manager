@@ -12,8 +12,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingEnd="@dimen/activity_horizontal_margin"
-    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingHorizontal="@dimen/activity_horizontal_margin"
+    android:maxWidth="600dp"
     tools:ignore="ContentDescription">
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -24,7 +24,7 @@
         app:srcCompat="@drawable/ic_bluetooth_disabled"/>
 
     <com.google.android.material.textview.MaterialTextView
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
+        android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
@@ -37,7 +37,7 @@
         android:gravity="center_horizontal"
         android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:text="@string/bluetooth_permission_info"/>
+        android:text="@string/bluetooth_connect_permission_info"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/action_grant_bluetooth_permission"

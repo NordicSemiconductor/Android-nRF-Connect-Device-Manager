@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nav_scanner"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_scanner"
+        android:title="@string/nav_scanner"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/nav_bonded"
+        android:enabled="true"
+        android:icon="@drawable/ic_nav_connected"
+        android:title="@string/nav_bonded"
+        app:showAsAction="ifRoom"/>
+</menu>

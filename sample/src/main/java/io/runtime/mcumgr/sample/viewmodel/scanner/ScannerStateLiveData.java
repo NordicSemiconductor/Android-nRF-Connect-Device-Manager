@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.runtime.mcumgr.sample.viewmodel;
+package io.runtime.mcumgr.sample.viewmodel.scanner;
 
 import androidx.lifecycle.LiveData;
 

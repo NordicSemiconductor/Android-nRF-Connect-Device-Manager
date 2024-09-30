@@ -18,6 +18,8 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import io.runtime.mcumgr.sample.di.component.ViewModelSubComponent;
+import io.runtime.mcumgr.sample.viewmodel.scanner.SavedDevicesViewModel;
+import io.runtime.mcumgr.sample.viewmodel.scanner.ScannerViewModel;
 
 public class ViewModelFactory extends ViewModelProvider.AndroidViewModelFactory {
     private final Map<Class<? extends ViewModel>, Callable<? extends ViewModel>> creators;
@@ -36,6 +38,7 @@ public class ViewModelFactory extends ViewModelProvider.AndroidViewModelFactory 
         // we cannot inject view models directly because they won't be bound to the owner's
         // view model scope.
         creators.put(ScannerViewModel.class, viewModelSubComponent::scannerViewModel);
+        creators.put(SavedDevicesViewModel.class, viewModelSubComponent::savedDevicesViewModel);
     }
 
     @SuppressWarnings("unchecked")

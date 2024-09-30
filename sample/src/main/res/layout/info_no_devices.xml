@@ -5,59 +5,65 @@
   ~ SPDX-License-Identifier: Apache-2.0
   -->
 
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingEnd="@dimen/activity_horizontal_margin"
-    android:paddingStart="@dimen/activity_horizontal_margin"
-    tools:ignore="ContentDescription">
-
-    <androidx.appcompat.widget.AppCompatImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:padding="@dimen/activity_horizontal_margin"
-        app:srcCompat="@drawable/ic_bluetooth_searching"/>
-
-    <com.google.android.material.textview.MaterialTextView
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:textColor="?colorAccent"
-        android:text="@string/mcumgr_guide_title"/>
-
-    <com.google.android.material.textview.MaterialTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:text="@string/mcumgr_guide_info"/>
+    android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/no_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="invisible"
-        tools:visibility="visible">
+        android:paddingHorizontal="@dimen/activity_horizontal_margin"
+        android:maxWidth="600dp"
+        tools:ignore="ContentDescription">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="@dimen/activity_horizontal_margin"
+            app:srcCompat="@drawable/ic_bluetooth_searching"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textColor="?colorAccent"
+            android:text="@string/mcumgr_guide_title"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:text="@string/mcumgr_guide_location_info"/>
+            android:text="@string/mcumgr_guide_info"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/action_enable_location"
-            style="@style/Widget.Material3.Button.UnelevatedButton"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/no_location"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/action_enable"/>
+            android:orientation="vertical"
+            android:visibility="invisible"
+            tools:visibility="visible">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:text="@string/mcumgr_guide_location_info"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/action_enable_location"
+                style="@style/Widget.Material3.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:text="@string/action_enable"/>
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</ScrollView>

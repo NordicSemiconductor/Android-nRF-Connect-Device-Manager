@@ -25,11 +25,6 @@ import io.runtime.mcumgr.sample.dialog.PartitionDialogFragment;
 
 public class FilesFragment extends Fragment {
 
-    @Override
-    public void onCreate(@Nullable final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull final LayoutInflater inflater,
@@ -50,8 +45,7 @@ public class FilesFragment extends Fragment {
 
             @Override
             public void onPrepareMenu(@NonNull final Menu menu) {
-                menu.findItem(R.id.action_settings)
-                        .setVisible(isVisible());
+                menu.findItem(R.id.action_settings).setVisible(isVisible());
             }
 
             @Override

@@ -24,6 +24,19 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         update(scanResult);
     }
 
+    public DiscoveredBluetoothDevice(final BluetoothDevice device) {
+        this.device = device;
+        try {
+            this.name = device.getName();
+        } catch (final SecurityException e) {
+            this.name = null;
+        }
+        this.lastScanResult = null;
+        this.rssi = -128;
+        this.highestRssi = -128;
+        this.previousRssi = -128;
+    }
+
     public BluetoothDevice getDevice() {
         return device;
     }
@@ -105,8 +118,7 @@ public class DiscoveredBluetoothDevice implements Parcelable {
 
     @Override
     public boolean equals(final Object o) {
-        if (o instanceof DiscoveredBluetoothDevice) {
-            final DiscoveredBluetoothDevice that = (DiscoveredBluetoothDevice) o;
+        if (o instanceof DiscoveredBluetoothDevice that) {
             return device.getAddress().equals(that.device.getAddress());
         }
         return super.equals(o);

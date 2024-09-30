@@ -8,7 +8,6 @@ package io.runtime.mcumgr.sample.di.module;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
-import io.runtime.mcumgr.sample.di.McuMgrScope;
 import io.runtime.mcumgr.sample.dialog.PartitionDialogFragment;
 import io.runtime.mcumgr.sample.fragment.ImageFragment;
 import io.runtime.mcumgr.sample.fragment.mcumgr.DeviceStatusFragment;
