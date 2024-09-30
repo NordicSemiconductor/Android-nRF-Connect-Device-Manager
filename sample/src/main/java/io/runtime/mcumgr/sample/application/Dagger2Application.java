@@ -13,10 +13,10 @@ import android.bluetooth.BluetoothDevice;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+
+import javax.inject.Inject;
 
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
@@ -45,7 +45,9 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
         AppInjector.init(this);
 
         // Plant a Timber DebugTree to collect logs from sample app and McuManager
-        Timber.plant(new Timber.DebugTree());
+        // Hack based on: https://github.com/JakeWharton/timber/issues/484#issuecomment-2008724303
+        //noinspection DataFlowIssue
+        Timber.plant((Timber.Tree) (Object) new Timber.DebugTree());
     }
 
     @Override
