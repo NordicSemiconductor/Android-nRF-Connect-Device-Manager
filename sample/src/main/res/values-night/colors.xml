@@ -12,8 +12,11 @@
     <color name="colorOnPrimary">@color/white</color>
     <color name="colorAccentOnPrimary">@color/nordicBlue</color>
     <color name="colorSecondary">@color/nordicBlue</color>
+    <color name="colorSecondaryContainer">@color/nordicBlue</color>
     <color name="colorStatusBar">@color/black</color>
+    <color name="colorSurface">#191C1E</color>
     <color name="colorOnSurface">?colorOnSurface</color>
+    <color name="colorSurfaceContainer">#FF1B282B</color>
     <color name="colorDivider">#444</color>
     <color name="colorError">@color/nordicRed</color>
     <color name="colorBackground">@color/black</color>
@@ -26,4 +29,5 @@
     <color name="colorAverageThroughput">@color/white</color>
     <color name="colorInstantaneousThroughput">@color/nordicDarkGray</color>
 
+    <color name="appBarColor">@color/nordicDarkGray</color>
 </resources>

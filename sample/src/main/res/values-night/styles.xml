@@ -8,7 +8,7 @@
 <resources>
 
     <!-- App Bar overlays. -->
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.ActionBar"/>
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Dark"/>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.Material3.Dark"/>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.Material3.Dark"/>
 
 </resources>

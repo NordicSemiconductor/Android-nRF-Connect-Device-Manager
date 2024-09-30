@@ -9,7 +9,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="16dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -124,7 +124,7 @@
             tools:visibility="visible"
             app:constraint_referenced_ids="advanced_erase_settings,advanced_erase_settings_info,advanced_swap_time_layout,advanced_swap_time_info,advanced_pipeline_layout,advanced_pipeline_info,advanced_memory_alignment_layout,advanced_memory_alignment_info" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/advanced_erase_settings"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -134,21 +134,20 @@
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/graph" />
 
-        <androidx.appcompat.widget.AppCompatImageButton
+        <Button
             android:id="@+id/advanced_erase_settings_info"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="64dp"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_help"
-            app:layout_constraintBottom_toBottomOf="@+id/advanced_erase_settings"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:icon="@drawable/ic_help"
+            app:layout_constraintBaseline_toBaselineOf="@+id/advanced_erase_settings"
+            app:layout_constraintEnd_toEndOf="parent"
             android:contentDescription="@string/image_upgrade_erase_storage_descr"
             app:layout_constraintTop_toTopOf="@+id/advanced_erase_settings" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/advanced_swap_time_layout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="?textInputOutlinedStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_swap_time"
@@ -166,24 +165,23 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <androidx.appcompat.widget.AppCompatImageButton
+        <Button
             android:id="@+id/advanced_swap_time_info"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="64dp"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_help"
+            app:icon="@drawable/ic_help"
             android:contentDescription="@string/image_upgrade_swap_time_descr"
-            app:layout_constraintBottom_toBottomOf="@+id/advanced_swap_time_layout"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintBaseline_toBaselineOf="@+id/advanced_swap_time_layout"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/advanced_swap_time_layout" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/advanced_pipeline_layout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_pipeline"
+            style="?textInputOutlinedStyle"
             android:importantForAutofill="no"
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toStartOf="@+id/advanced_swap_time_info"
@@ -197,21 +195,20 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <androidx.appcompat.widget.AppCompatImageButton
+        <Button
             android:id="@+id/advanced_pipeline_info"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="64dp"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_help"
+            app:icon="@drawable/ic_help"
             android:contentDescription="@string/image_upgrade_pipeline_descr"
-            app:layout_constraintBottom_toBottomOf="@+id/advanced_pipeline_layout"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintBaseline_toBaselineOf="@+id/advanced_pipeline_layout"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/advanced_pipeline_layout" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/advanced_memory_alignment_layout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            style="?textInputOutlinedExposedDropdownMenuStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="@string/image_upgrade_memory_alignment"
@@ -228,16 +225,15 @@
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <androidx.appcompat.widget.AppCompatImageButton
+        <Button
             android:id="@+id/advanced_memory_alignment_info"
-            style="@style/Widget.MaterialComponents.Button"
-            android:layout_width="64dp"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_help"
+            app:icon="@drawable/ic_help"
             android:contentDescription="@string/image_upgrade_memory_alignment_descr"
-            app:layout_constraintBottom_toBottomOf="@+id/advanced_memory_alignment_layout"
-            app:layout_constraintEnd_toEndOf="@+id/file_name"
+            app:layout_constraintBaseline_toBaselineOf="@+id/advanced_memory_alignment_layout"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/advanced_memory_alignment_layout" />
 
         <View

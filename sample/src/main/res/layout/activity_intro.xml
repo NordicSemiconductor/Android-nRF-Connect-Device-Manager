@@ -79,7 +79,7 @@
 
 	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_continue"
-		style="@style/Widget.MaterialComponents.Button"
+		style="@style/Widget.Material3.Button.UnelevatedButton"
 		android:layout_width="200dp"
 		android:layout_height="52dp"
 		android:layout_marginBottom="48dp"

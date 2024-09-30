@@ -19,6 +19,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment;
 
@@ -43,7 +46,7 @@ public class GenerateFileDialogFragment extends DialogFragment {
         final View view = inflater.inflate(R.layout.dialog_generate_file, null);
         final EditText fileSize = view.findViewById(R.id.file_size);
 
-        final AlertDialog dialog = new AlertDialog.Builder(requireContext())
+        final AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.files_upload_generate_title)
                 .setView(view)
                 // Setting the positive button listener here would cause the dialog to dismiss.

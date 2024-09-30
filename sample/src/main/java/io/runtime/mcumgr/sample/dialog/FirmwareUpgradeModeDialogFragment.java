@@ -11,8 +11,10 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment;
@@ -36,7 +38,7 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
             selectedItem = 0;
         }
 
-        return new AlertDialog.Builder(requireContext())
+        return new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.image_upgrade_mode)
                 .setSingleChoiceItems(R.array.image_upgrade_mode_options, selectedItem,
                         (dialog, which) -> selectedItem = which)

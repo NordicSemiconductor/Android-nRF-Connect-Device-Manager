@@ -11,7 +11,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="16dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -56,10 +56,10 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/exec_layout"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="?textInputOutlinedStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="8dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_weight="1"
@@ -76,21 +76,20 @@
                 tools:text="rm -R /"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton
-            style="@style/Widget.MaterialComponents.Button"
+        <Button
+            style="@style/Widget.Material3.Button.IconButton"
             android:id="@+id/action_history"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="8dp"
             app:icon="@drawable/ic_history"
-            android:paddingLeft="12dp"
             app:layout_constraintBottom_toBottomOf="@+id/exec_layout"
             app:layout_constraintEnd_toStartOf="@+id/action_send"
             app:layout_constraintTop_toTopOf="@+id/exec_layout" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_send"
-            style="@style/Widget.MaterialComponents.Button"
+            style="@style/Widget.Material3.Button.UnelevatedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"

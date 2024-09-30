@@ -6,8 +6,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class YesNoDialogFragment extends DialogFragment {
 	private static final String ARG_REQUEST_ID = "requestId";
@@ -37,7 +38,7 @@ public class YesNoDialogFragment extends DialogFragment {
 		final Bundle args = requireArguments();
 		final int requestId = args.getInt(ARG_REQUEST_ID);
 
-		return new AlertDialog.Builder(requireContext())
+		return new MaterialAlertDialogBuilder(requireContext())
 				.setTitle(args.getInt(ARG_TITLE_ID))
 				.setMessage(args.getInt(ARG_QUESTION_ID))
 				.setPositiveButton(android.R.string.yes, (dialog, which) -> {

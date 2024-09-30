@@ -12,9 +12,11 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import io.runtime.mcumgr.sample.R;
 
 public class HelpDialogFragment extends AppCompatDialogFragment {
@@ -44,7 +46,7 @@ public class HelpDialogFragment extends AppCompatDialogFragment {
         final int titleResId = getArguments().getInt(ARG_TITLE_RES_ID);
         final int messageResId = getArguments().getInt(ARG_MESSAGE_RES_ID);
 
-        return new AlertDialog.Builder(requireContext())
+        return new MaterialAlertDialogBuilder(requireContext())
                 .setIcon(R.drawable.ic_help)
                 .setTitle(titleResId)
                 .setMessage(messageResId)

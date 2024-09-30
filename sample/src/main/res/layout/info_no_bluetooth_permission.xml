@@ -41,7 +41,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/action_grant_bluetooth_permission"
-        style="@style/Widget.MaterialComponents.Button"
+        style="@style/Widget.Material3.Button.UnelevatedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
@@ -49,7 +49,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/action_permission_settings"
-        style="@style/Widget.MaterialComponents.Button"
+        style="@style/Widget.Material3.Button.UnelevatedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
