@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -23,6 +22,7 @@ import androidx.fragment.app.DialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.DialogGenerateFileBinding;
 import io.runtime.mcumgr.sample.fragment.mcumgr.FilesUploadFragment;
 
 public class GenerateFileDialogFragment extends DialogFragment {
@@ -43,12 +43,12 @@ public class GenerateFileDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final LayoutInflater inflater = requireActivity().getLayoutInflater();
-        final View view = inflater.inflate(R.layout.dialog_generate_file, null);
-        final EditText fileSize = view.findViewById(R.id.file_size);
+        final DialogGenerateFileBinding binding = DialogGenerateFileBinding.inflate(inflater);
+        final EditText fileSize = binding.fileSize;
 
         final AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.files_upload_generate_title)
-                .setView(view)
+                .setView(binding.getRoot())
                 // Setting the positive button listener here would cause the dialog to dismiss.
                 // We have to validate the value before.
                 .setPositiveButton(R.string.files_action_generate, null)
