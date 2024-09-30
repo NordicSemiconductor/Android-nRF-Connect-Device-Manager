@@ -14,7 +14,6 @@
 		android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
 		app:layout_constraintBottom_toTopOf="@+id/button_continue"
 		app:layout_constraintEnd_toEndOf="@+id/icon"
-		app:layout_constraintHorizontal_bias="0.5"
 		app:layout_constraintStart_toStartOf="@+id/icon"
 		app:layout_constraintTop_toBottomOf="@+id/icon" />
 
@@ -22,39 +21,39 @@
 		android:id="@+id/icon"
 		android:layout_width="wrap_content"
 		android:layout_height="@dimen/intro_logo_height"
+		android:layout_marginStart="32dp"
 		android:layout_marginTop="16dp"
 		app:layout_constraintBottom_toTopOf="@+id/welcome"
 		app:layout_constraintEnd_toStartOf="@+id/text"
-		app:layout_constraintHorizontal_bias="0.5"
 		app:layout_constraintStart_toStartOf="parent"
 		app:layout_constraintTop_toTopOf="parent"
+		app:layout_constraintHorizontal_chainStyle="spread"
 		app:layout_constraintVertical_chainStyle="packed"
 		app:srcCompat="@drawable/ic_device_manager" />
 
 	<com.google.android.material.textview.MaterialTextView
 		android:id="@+id/text"
-		android:layout_width="0dp"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginStart="200dp"
+		android:layout_marginStart="16dp"
 		android:layout_marginEnd="32dp"
-		android:maxWidth="300dp"
+		android:maxWidth="600dp"
 		android:text="@string/intro_text"
 		android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
 		app:layout_constraintBottom_toBottomOf="@+id/welcome"
 		app:layout_constraintEnd_toEndOf="parent"
-		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="@+id/icon"
-		app:layout_constraintVertical_bias="0.5" />
+		app:layout_constraintStart_toEndOf="@+id/icon"
+		app:layout_constraintTop_toTopOf="@+id/icon" />
 
 	<com.google.android.material.textview.MaterialTextView
 		android:id="@+id/intro_link_nrf_connect_sdk"
 		style="@style/TextAppearance.Link"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="16dp"
+		android:layout_marginTop="32dp"
 		android:text="@string/intro_link_nrf_connect_sdk"
 		app:layout_constraintEnd_toStartOf="@+id/intro_link_smp_sample"
-		app:layout_constraintHorizontal_chainStyle="spread"
+		app:layout_constraintHorizontal_chainStyle="spread_inside"
 		app:layout_constraintStart_toStartOf="@+id/text"
 		app:layout_constraintTop_toBottomOf="@+id/text" />
 
@@ -66,7 +65,7 @@
 		android:text="@string/intro_link_smp_sample"
 		app:layout_constraintEnd_toStartOf="@+id/intro_link_source_code"
 		app:layout_constraintStart_toEndOf="@+id/intro_link_nrf_connect_sdk"
-		app:layout_constraintTop_toTopOf="@+id/intro_link_nrf_connect_sdk" />
+		app:layout_constraintBaseline_toBaselineOf="@+id/intro_link_nrf_connect_sdk" />
 
 	<com.google.android.material.textview.MaterialTextView
 		android:id="@+id/intro_link_source_code"
@@ -76,7 +75,7 @@
 		android:text="@string/intro_link_source_code"
 		app:layout_constraintEnd_toEndOf="@+id/text"
 		app:layout_constraintStart_toEndOf="@+id/intro_link_smp_sample"
-		app:layout_constraintTop_toTopOf="@+id/intro_link_nrf_connect_sdk" />
+		app:layout_constraintBaseline_toBaselineOf="@+id/intro_link_nrf_connect_sdk" />
 
 	<com.google.android.material.button.MaterialButton
 		android:id="@+id/button_continue"

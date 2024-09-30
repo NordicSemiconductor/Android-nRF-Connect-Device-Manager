@@ -8,7 +8,7 @@
 <resources>
 	<string name="intro_menu_about">About</string>
 	<string name="intro_welcome">Welcome</string>
-	<string name="intro_text">nRF Connect Device Manager is a generic tool for updating and managing
+	<string name="intro_text"><b>nRF Connect Device Manager</b> is a generic tool for updating and managing
 		devices over Bluetooth LE.
 		\n\nA device running nRF Connect SDK, Zephyr or Mynewt firmware, with support for MCU management
 		subsystem is required.</string>

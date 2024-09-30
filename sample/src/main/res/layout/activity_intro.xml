@@ -8,9 +8,11 @@
 	tools:context=".IntroActivity">
 
 	<ScrollView
+		android:id="@+id/content"
 		android:layout_width="match_parent"
 		android:layout_height="0dp"
 		android:layout_marginBottom="8dp"
+		android:fillViewport="true"
 		app:layout_constraintBottom_toTopOf="@+id/button_continue"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
@@ -19,7 +21,7 @@
 		<LinearLayout
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:gravity="center_horizontal"
+			android:gravity="center"
 			android:orientation="vertical">
 
 			<androidx.appcompat.widget.AppCompatImageView
@@ -38,41 +40,38 @@
 			<com.google.android.material.textview.MaterialTextView
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_marginStart="16dp"
+				android:layout_marginHorizontal="16dp"
 				android:layout_marginTop="16dp"
-				android:layout_marginEnd="16dp"
+				android:maxWidth="600dp"
 				android:text="@string/intro_text"
 				android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
 
 			<com.google.android.material.textview.MaterialTextView
 				android:id="@+id/intro_link_nrf_connect_sdk"
+				style="@style/TextAppearance.Link"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_marginStart="16dp"
+				android:layout_marginHorizontal="16dp"
 				android:layout_marginTop="16dp"
-				android:layout_marginEnd="16dp"
-				android:text="@string/intro_link_nrf_connect_sdk"
-				style="@style/TextAppearance.Link" />
+				android:text="@string/intro_link_nrf_connect_sdk" />
 
 			<com.google.android.material.textview.MaterialTextView
 				android:id="@+id/intro_link_smp_sample"
+				style="@style/TextAppearance.Link"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_marginStart="16dp"
+				android:layout_marginHorizontal="16dp"
 				android:layout_marginTop="16dp"
-				android:layout_marginEnd="16dp"
-				android:text="@string/intro_link_smp_sample"
-				style="@style/TextAppearance.Link" />
+				android:text="@string/intro_link_smp_sample" />
 
 			<com.google.android.material.textview.MaterialTextView
 				android:id="@+id/intro_link_source_code"
+				style="@style/TextAppearance.Link"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_marginStart="16dp"
+				android:layout_marginHorizontal="16dp"
 				android:layout_marginTop="16dp"
-				android:layout_marginEnd="16dp"
-				android:text="@string/intro_link_source_code"
-				style="@style/TextAppearance.Link" />
+				android:text="@string/intro_link_source_code" />
 
 		</LinearLayout>
 	</ScrollView>
