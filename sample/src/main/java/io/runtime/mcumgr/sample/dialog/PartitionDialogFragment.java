@@ -12,7 +12,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -26,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.sample.R;
+import io.runtime.mcumgr.sample.databinding.DialogFilesSettingsBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.FsUtils;
 
@@ -50,14 +50,14 @@ public class PartitionDialogFragment extends DialogFragment implements Injectabl
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final LayoutInflater inflater = requireActivity().getLayoutInflater();
-        final View view = inflater.inflate(R.layout.dialog_files_settings, null);
-        final EditText partition = view.findViewById(R.id.partition);
+        final DialogFilesSettingsBinding binding = DialogFilesSettingsBinding.inflate(inflater);
+        final EditText partition = binding.partition;
         partition.setText(fsUtils.getPartitionString());
         partition.selectAll();
 
         final AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.files_settings_title)
-                .setView(view)
+                .setView(binding.getRoot())
                 // Setting the positive button listener here would cause the dialog to dismiss.
                 // We have to validate the value before.
                 .setPositiveButton(R.string.files_settings_action_save, null)

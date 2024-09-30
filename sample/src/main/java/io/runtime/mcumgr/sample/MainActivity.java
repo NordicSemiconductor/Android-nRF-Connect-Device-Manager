@@ -33,6 +33,7 @@ import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
 import io.runtime.mcumgr.sample.application.Dagger2Application;
+import io.runtime.mcumgr.sample.databinding.ActivityMainBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.fragment.DeviceFragment;
 import io.runtime.mcumgr.sample.fragment.FilesFragment;
@@ -78,7 +79,8 @@ public class MainActivity extends AppCompatActivity
         ((Dagger2Application) getApplication()).setTarget(device);
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        final ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(
@@ -100,13 +102,13 @@ public class MainActivity extends AppCompatActivity
                 .get(MainViewModel.class);
 
         // Configure the view.
-        final Toolbar toolbar = findViewById(R.id.toolbar);
+        final Toolbar toolbar = binding.toolbar;
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(deviceName);
         getSupportActionBar().setSubtitle(deviceAddress);
 
-        final BottomNavigationView navMenu = findViewById(R.id.nav_menu);
+        final BottomNavigationView navMenu = binding.navMenu;
         navMenu.setSelectedItemId(R.id.nav_default);
         navMenu.setOnItemSelectedListener(item -> {
             final int id = item.getItemId();
