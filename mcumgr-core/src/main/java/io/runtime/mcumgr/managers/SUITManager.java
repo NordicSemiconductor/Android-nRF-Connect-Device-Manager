@@ -13,10 +13,10 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.response.McuMgrResponse;
-import io.runtime.mcumgr.response.suit.McuMgrUploadResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestListResponse;
 import io.runtime.mcumgr.response.suit.McuMgrManifestStateResponse;
 import io.runtime.mcumgr.response.suit.McuMgrPollResponse;
+import io.runtime.mcumgr.response.suit.McuMgrUploadResponse;
 import io.runtime.mcumgr.transfer.EnvelopeUploader;
 import io.runtime.mcumgr.transfer.ResourceUploader;
 import io.runtime.mcumgr.transfer.UploadCallback;
@@ -31,6 +31,8 @@ import kotlinx.coroutines.CoroutineScope;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SUITManager extends McuManager {
     private final static Logger LOG = LoggerFactory.getLogger(SUITManager.class);
+
+    // Link to src: https://github.com/nrfconnect/sdk-nrf/blob/7b1f88d8009719d50fd389487257675246ff4a70/subsys/mgmt/suitfu/src/suitfu_mgmt_priv.h#L41-L50
 
     /**
      * Command allows to get information about roles of manifests supported by the device.
@@ -57,12 +59,12 @@ public class SUITManager extends McuManager {
      * requested image in chunks. Due to the fact that SMP is designed in clients-server pattern
      * and lack of server-sent notifications, implementation bases on polling.
      */
-    private final static int ID_POLL_IMAGE_STATE = 3;
+    private final static int ID_MISSING_IMAGE_STATE = 3;
 
     /**
      * Command delivers a packet of a resource requested by the target device.
      */
-    private final static int ID_RESOURCE_UPLOAD = 4;
+    private final static int ID_MISSING_IMAGE_UPLOAD = 4;
 
     /**
      * Construct a McuManager instance.
@@ -206,7 +208,7 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void poll(@NotNull McuMgrCallback<McuMgrPollResponse> callback) {
-        send(OP_READ, ID_POLL_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class, callback);
+        send(OP_READ, ID_MISSING_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class, callback);
     }
 
     /**
@@ -228,7 +230,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrPollResponse poll() throws McuMgrException {
-        return send(OP_READ, ID_POLL_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class);
+        return send(OP_READ, ID_MISSING_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class);
     }
 
     /**
@@ -254,7 +256,7 @@ public class SUITManager extends McuManager {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, sessionId);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
-        send(OP_WRITE, ID_RESOURCE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class, callback);
+        send(OP_WRITE, ID_MISSING_IMAGE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class, callback);
     }
 
     /**
@@ -281,7 +283,7 @@ public class SUITManager extends McuManager {
         HashMap<String, Object> payloadMap = buildUploadPayload(data, offset, sessionId);
         // Timeout for the initial chunk is long, as the device may need to erase the flash.
         final long timeout = offset == 0 ? DEFAULT_TIMEOUT : SHORT_TIMEOUT;
-        return send(OP_WRITE, ID_RESOURCE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class);
+        return send(OP_WRITE, ID_MISSING_IMAGE_UPLOAD, payloadMap, timeout, McuMgrUploadResponse.class);
     }
 
     /*

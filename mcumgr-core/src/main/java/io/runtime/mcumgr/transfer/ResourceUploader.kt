@@ -8,7 +8,7 @@ import io.runtime.mcumgr.response.suit.McuMgrPollResponse
 import io.runtime.mcumgr.util.CBOR
 
 private const val OP_WRITE = 2
-private const val ID_RESOURCE_UPLOAD = 4
+private const val ID_MISSING_IMAGE_UPLOAD = 4
 
 /**
  * This uploader is using a [SUITManager] to upload the resource requested by the device during
@@ -60,7 +60,7 @@ private fun SUITManager.uploadAsync(
     requestMap: Map<String, Any>,
     timeout: Long,
     callback: (UploadResult) -> Unit
-) = send(OP_WRITE, ID_RESOURCE_UPLOAD, requestMap, timeout, McuMgrUploadResponse::class.java,
+) = send(OP_WRITE, ID_MISSING_IMAGE_UPLOAD, requestMap, timeout, McuMgrUploadResponse::class.java,
     object : McuMgrCallback<McuMgrUploadResponse> {
         override fun onResponse(response: McuMgrUploadResponse) {
             callback(UploadResult.Response(response, response.returnCode))
