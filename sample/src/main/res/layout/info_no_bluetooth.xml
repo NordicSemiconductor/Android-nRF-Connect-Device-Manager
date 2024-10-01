@@ -12,8 +12,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:gravity="center_horizontal"
     android:paddingHorizontal="@dimen/activity_horizontal_margin"
-    android:maxWidth="600dp"
     tools:ignore="ContentDescription">
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -25,14 +25,14 @@
 
     <com.google.android.material.textview.MaterialTextView
         android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:textColor="?colorAccent"
         android:text="@string/bluetooth_disabled_title"/>
 
     <com.google.android.material.textview.MaterialTextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:gravity="center_horizontal"
