@@ -3,8 +3,8 @@ package io.runtime.mcumgr.transfer
 import io.runtime.mcumgr.McuMgrCallback
 import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.SUITManager
-import io.runtime.mcumgr.response.suit.McuMgrUploadResponse
 import io.runtime.mcumgr.response.suit.McuMgrPollResponse
+import io.runtime.mcumgr.response.suit.McuMgrUploadResponse
 import io.runtime.mcumgr.util.CBOR
 
 private const val OP_WRITE = 2
@@ -48,10 +48,13 @@ open class ResourceUploader(
         offset: Int,
         map: MutableMap<String, Any>
     ) {
+        // Note: For some reason this has to be sent in each packet, not just when offset == 0
         map["stream_session_id"] = sessionId
     }
 
     override fun getAdditionalSize(offset: Int): Int =
+        // Note: For some reason this has to be sent in each packet, not just when offset == 0
+
         // "stream_session_id": 0x73747265616D5F73657373696F6E5F6964 (18 bytes) + session ID
         18 + CBOR.uintLength(sessionId)
 }
