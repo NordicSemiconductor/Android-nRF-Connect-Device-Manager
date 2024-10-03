@@ -26,6 +26,7 @@ import io.runtime.mcumgr.exception.McuMgrTimeoutException;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.managers.SUITManager;
+import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.dflt.McuMgrBootloaderInfoResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
@@ -276,8 +277,25 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public void erase(final int image) {
-        if (image < 0 || hashes.length < image || hashes[image] == null)
+        if (image < 0 || hashes.length < image || hashes[image] == null) {
+            // In SUIT hashes aren't used, but it's possible to send CleanUp command.
+            if (image == 1 && hashes.length == 2 && hashes[0] == null && hashes[1] == null) {
+                setBusy();
+                errorLiveData.setValue(null);
+                suitManager.cleanup(new McuMgrCallback<>() {
+                    @Override
+                    public void onResponse(@NotNull McuMgrResponse response) {
+                        postReady();
+                    }
+
+                    @Override
+                    public void onError(@NotNull McuMgrException error) {
+                        postError(error);
+                    }
+                });
+            }
             return;
+        }
 
         setBusy();
         errorLiveData.setValue(null);
@@ -299,7 +317,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
         manifestsLiveData.postValue(manifests);
         testAvailableLiveData.postValue(false);
         confirmAvailableLiveData.postValue(false);
-        eraseAvailableLiveData.postValue(false);
+        eraseAvailableLiveData.postValue(manifests != null && !manifests.isEmpty());
         postReady();
     }
 
