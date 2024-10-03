@@ -7,8 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.runtime.mcumgr.exception.McuMgrException;
-
 /** @noinspection unused*/
 public class CacheImageSet {
     @NotNull
@@ -37,22 +35,22 @@ public class CacheImageSet {
         return images;
     }
 
-    public CacheImageSet add(CacheImage image) throws McuMgrException {
+    public CacheImageSet add(CacheImage image) {
         images.add(image);
         return this;
     }
 
-    public CacheImageSet add(int partition, byte[] image) throws McuMgrException {
+    public CacheImageSet add(int partition, byte[] image) {
         images.add(new CacheImage(partition, image));
         return this;
     }
 
-    public CacheImageSet add(Pair<Integer, byte[]> image) throws McuMgrException {
+    public CacheImageSet add(Pair<Integer, byte[]> image) {
         images.add(new CacheImage(image.first, image.second));
         return this;
     }
 
-    public CacheImageSet add(List<Pair<Integer, byte[]>> images) throws McuMgrException {
+    public CacheImageSet add(List<Pair<Integer, byte[]>> images) {
         for (Pair<Integer, byte[]> image : images)
             this.images.add(new CacheImage(image.first, image.second));
         return this;
