@@ -2,7 +2,6 @@ package io.runtime.mcumgr.sample.utils;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -20,6 +19,7 @@ import java.util.zip.ZipInputStream;
 
 import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
 import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
+import io.runtime.mcumgr.dfu.suit.model.CacheImageSet;
 import io.runtime.mcumgr.exception.McuMgrException;
 import timber.log.Timber;
 
@@ -66,6 +66,10 @@ public final class ZipPackage {
 			 * @since NCS v 2.5, nRF Connect Device Manager 1.8.
 			 */
 			private int slot = TargetImage.SLOT_SECONDARY;
+			/**
+			 * The target partition ID. This parameter is valid for files with type `cache`.
+			 */
+			private int partition = 0;
 		}
 	}
 
@@ -112,6 +116,12 @@ public final class ZipPackage {
 		return binaries;
 	}
 
+	/**
+	 * Returns the SUIT envelope.
+	 * <p>
+	 * This is valid only for SUIT updates using SUIT manager.
+	 * @return The SUIT envelope, or null if not present in the ZIP.
+	 */
 	public byte[] getSuitEnvelope() {
 		// First, search for an entry of type "suit-envelope".
 		for (final Manifest.File file: manifest.files) {
@@ -127,6 +137,32 @@ public final class ZipPackage {
 		}
 		// Not found.
 		return null;
+	}
+
+	/**
+	 * Raw cache images are sent to the device together with the SUIT envelope before starting the
+	 * update process. The cache images are stored in the cache partitions.
+	 *
+	 * @return The cache images, or null if not present in the ZIP.
+	 * @throws IOException if at least one of the cache images is missing.
+	 */
+	public CacheImageSet getCacheBinaries() throws IOException {
+		final CacheImageSet cache = new CacheImageSet();
+
+		// Search for images.
+		for (final Manifest.File file: manifest.files) {
+			if (file.type.equals("cache")) {
+				final String name = file.file;
+				final byte[] content = entries.get(name);
+				if (content == null)
+					throw new IOException("File not found: " + name);
+
+				cache.add(file.partition, content);
+			}
+		}
+		if (cache.getImages().isEmpty())
+			return null;
+		return cache;
 	}
 
 	public byte[] getResource(@NonNull final String name) {

@@ -32,6 +32,7 @@ import io.runtime.mcumgr.dfu.FirmwareUpgradeSettings;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
 import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
 import io.runtime.mcumgr.dfu.suit.SUITUpgradeManager;
+import io.runtime.mcumgr.dfu.suit.model.CacheImageSet;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.SUITImage;
@@ -323,7 +324,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                     // Ignore
                 }
             });
-            upgradeWithSUITManager(envelope, windowCapacity, memoryAlignment);
+            upgradeWithSUITManager(envelope, null, windowCapacity, memoryAlignment);
         } catch (final Exception e) {
             try {
                 // Try reading SUIT envelope from ZIP file.
@@ -332,6 +333,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                 final byte[] envelope = zip.getSuitEnvelope();
                 if (envelope != null) {
                     final SUITImage suitImage = SUITImage.fromBytes(envelope);
+                    final CacheImageSet cacheImages = zip.getCacheBinaries();
                     // During the upload, SUIT manager may request additional resources.
                     // This callback will return the requested resource from the ZIP file.
                     suitManager.setResourceCallback(new SUITUpgradeManager.OnResourceRequiredCallback() {
@@ -354,7 +356,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                             // Ignore
                         }
                     });
-                    upgradeWithSUITManager(suitImage, windowCapacity, memoryAlignment);
+                    upgradeWithSUITManager(suitImage, cacheImages, windowCapacity, memoryAlignment);
                     return;
                 }
                 throw new NullPointerException();
@@ -404,6 +406,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
     private void upgradeWithSUITManager(
             @NonNull final SUITImage envelope,
+            @Nullable final CacheImageSet cacheImages,
             final int windowCapacity,
             final int memoryAlignment
     ) {
@@ -413,7 +416,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                 .setWindowCapacity(windowCapacity)
                 .setMemoryAlignment(memoryAlignment)
                 .build();
-        suitManager.start(settings, envelope.getData());
+        suitManager.start(settings, envelope.getData(), cacheImages);
     }
 
     public void pause() {
