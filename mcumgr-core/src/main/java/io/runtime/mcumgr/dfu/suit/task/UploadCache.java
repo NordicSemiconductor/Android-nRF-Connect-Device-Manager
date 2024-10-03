@@ -10,23 +10,27 @@ import io.runtime.mcumgr.dfu.suit.SUITUpgradePerformer;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.SUITManager;
 import io.runtime.mcumgr.task.TaskManager;
-import io.runtime.mcumgr.transfer.EnvelopeUploader;
+import io.runtime.mcumgr.transfer.CacheUploader;
 import io.runtime.mcumgr.transfer.TransferController;
 import io.runtime.mcumgr.transfer.UploadCallback;
 
-class UploadEnvelope extends SUITUpgradeTask {
-    private final static Logger LOG = LoggerFactory.getLogger(UploadEnvelope.class);
-    private final byte @NotNull [] envelope;
-    private final boolean deferInstall;
+class UploadCache extends SUITUpgradeTask {
+    private final static Logger LOG = LoggerFactory.getLogger(UploadCache.class);
+
+    private final byte @NotNull [] data;
+    private final int targetId;
 
     /**
      * Upload controller used to pause, resume, and cancel upload. Set when the upload is started.
      */
     private TransferController mUploadController;
 
-    public UploadEnvelope(final byte @NotNull [] envelope, final boolean deferInstall) {
-        this.envelope = envelope;
-        this.deferInstall = deferInstall;
+    public UploadCache(
+            final int targetId,
+            final byte @NotNull [] data
+    ) {
+        this.targetId = targetId;
+        this.data = data;
     }
 
     @Override
@@ -36,7 +40,7 @@ class UploadEnvelope extends SUITUpgradeTask {
 
     @Override
     public @Nullable SUITUpgradeManager.State getState() {
-        return SUITUpgradeManager.State.UPLOADING_ENVELOPE;
+        return SUITUpgradeManager.State.UPLOADING_RESOURCE;
     }
 
     @Override
@@ -50,37 +54,37 @@ class UploadEnvelope extends SUITUpgradeTask {
         final UploadCallback callback = new UploadCallback() {
             @Override
             public void onUploadProgressChanged(final int current, final int total, final long timestamp) {
-                performer.onTaskProgressChanged(UploadEnvelope.this, current, total, timestamp);
+                performer.onTaskProgressChanged(UploadCache.this, current, total, timestamp);
             }
 
             @Override
             public void onUploadFailed(@NotNull final McuMgrException error) {
                 LOG.info("Upload failed: {}", error.getMessage());
-                performer.onTaskFailed(UploadEnvelope.this, error);
+                performer.onTaskFailed(UploadCache.this, error);
             }
 
             @Override
             public void onUploadCanceled() {
-                LOG.info("Uploading canceled");
-                performer.onTaskCompleted(UploadEnvelope.this);
+                LOG.info("Uploading cancelled");
+                performer.onTaskCompleted(UploadCache.this);
             }
 
             @Override
             public void onUploadCompleted() {
                 LOG.info("Uploading complete");
-                performer.onTaskCompleted(UploadEnvelope.this);
+                performer.onTaskCompleted(UploadCache.this);
             }
         };
 
-        LOG.info("Uploading SUIT envelope of size: {}", envelope.length);
+        LOG.info("Uploading cache image with target partition ID: {} ({} bytes)", targetId, data.length);
         final SUITUpgradePerformer.Settings settings = performer.getSettings();
         final SUITManager manager = new SUITManager(performer.getTransport());
-        mUploadController =	new EnvelopeUploader(
+        mUploadController =	new CacheUploader(
                 manager,
-                envelope,
+                targetId,
+                data,
                 settings.settings.windowCapacity,
-                settings.settings.memoryAlignment,
-                deferInstall
+                settings.settings.memoryAlignment
         ).uploadAsync(callback);
     }
 

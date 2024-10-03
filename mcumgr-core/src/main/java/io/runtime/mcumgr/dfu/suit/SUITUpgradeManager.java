@@ -11,6 +11,7 @@ import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeController;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeSettings;
+import io.runtime.mcumgr.dfu.suit.model.CacheImageSet;
 
 /** @noinspection unused*/
 public class SUITUpgradeManager implements FirmwareUpgradeController {
@@ -142,9 +143,28 @@ public class SUITUpgradeManager implements FirmwareUpgradeController {
      * Start the upgrade.
      * <p>
      * This method should be used for SUIT candidate envelopes files.
+     *
+     * @param settings the firmware upgrade settings.
+     * @param envelope the SUIT candidate envelope.
      */
     public synchronized void start(@NotNull final FirmwareUpgradeSettings settings,
                                    final byte @NotNull [] envelope) {
+        start(settings, envelope, null);
+    }
+
+    /**
+     * Start the upgrade.
+     * <p>
+     * This method should be used for SUIT candidate envelopes files.
+     *
+     * @param settings the firmware upgrade settings.
+     * @param envelope the SUIT candidate envelope.
+     * @param cacheImages cache images to be uploaded together with the SUIT envelope before
+     *                    starting the update.
+     */
+    public synchronized void start(@NotNull final FirmwareUpgradeSettings settings,
+                                   final byte @NotNull [] envelope,
+                                   @Nullable final CacheImageSet cacheImages) {
         if (mPerformer.isBusy()) {
             LOG.info("Firmware upgrade is already in progress");
             return;
@@ -154,7 +174,8 @@ public class SUITUpgradeManager implements FirmwareUpgradeController {
         mInternalCallback.onUpgradeStarted(this);
         final SUITUpgradePerformer.Settings performerSettings =
                 new SUITUpgradePerformer.Settings(settings, mResourceCallback);
-        mPerformer.start(mTransport, performerSettings, envelope);
+
+        mPerformer.start(mTransport, performerSettings, envelope, cacheImages);
     }
 
     //******************************************************************

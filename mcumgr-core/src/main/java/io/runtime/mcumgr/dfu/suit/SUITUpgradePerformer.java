@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeCallback;
 import io.runtime.mcumgr.dfu.FirmwareUpgradeSettings;
+import io.runtime.mcumgr.dfu.suit.model.CacheImageSet;
 import io.runtime.mcumgr.dfu.suit.task.PerformDfu;
 import io.runtime.mcumgr.dfu.suit.task.SUITUpgradeTask;
 import io.runtime.mcumgr.exception.McuMgrException;
@@ -51,9 +52,10 @@ public class SUITUpgradePerformer extends TaskPerformer<SUITUpgradePerformer.Set
 
     void start(@NotNull final McuMgrTransport transport,
                @NotNull final Settings settings,
-               final byte @NotNull [] envelope) {
+               final byte @NotNull [] envelope,
+               @Nullable final CacheImageSet cacheImageSet) {
         LOG.trace("Starting SUIT upgrade");
-        super.start(transport, settings, new PerformDfu(envelope));
+        super.start(transport, settings, new PerformDfu(envelope, cacheImageSet));
     }
 
     @Override
