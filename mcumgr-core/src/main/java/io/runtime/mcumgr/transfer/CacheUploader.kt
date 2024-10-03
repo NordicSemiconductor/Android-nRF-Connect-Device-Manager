@@ -7,7 +7,7 @@ import io.runtime.mcumgr.response.suit.McuMgrUploadResponse
 import io.runtime.mcumgr.util.CBOR
 
 private const val OP_WRITE = 2
-private const val ID_CACHE_RAW_UPLOAD = 4
+private const val ID_CACHE_RAW_UPLOAD = 5
 
 /**
  * This uploader is using a [SUITManager] to upload the cache file during device firmware update.
