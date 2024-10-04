@@ -258,8 +258,27 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public void confirm(final int image) {
-        if (image < 0 || hashes.length < image || hashes[image] == null)
+        if (image < 0 || hashes.length < image || hashes[image] == null) {
+            // In SUIT hashes aren't used, but it's possible to send a Confirm command (without a hash).
+            if (image == 1 && hashes.length == 2 && hashes[0] == null && hashes[1] == null) {
+                setBusy();
+                errorLiveData.setValue(null);
+                manager.confirm(null, new McuMgrCallback<>() {
+                    @Override
+                    public void onResponse(@NotNull McuMgrImageStateResponse response) {
+                        confirmAvailableLiveData.postValue(true);
+                        eraseAvailableLiveData.postValue(true);
+                        postReady();
+                    }
+
+                    @Override
+                    public void onError(@NotNull McuMgrException error) {
+                        postError(error);
+                    }
+                });
+            }
             return;
+        }
 
         setBusy();
         errorLiveData.setValue(null);
@@ -285,6 +304,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
                 suitManager.cleanup(new McuMgrCallback<>() {
                     @Override
                     public void onResponse(@NotNull McuMgrResponse response) {
+                        confirmAvailableLiveData.postValue(true);
                         eraseAvailableLiveData.postValue(true);
                         postReady();
                     }
@@ -317,7 +337,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
         responseLiveData.postValue(null);
         manifestsLiveData.postValue(manifests);
         testAvailableLiveData.postValue(false);
-        confirmAvailableLiveData.postValue(false);
+        confirmAvailableLiveData.postValue(manifests != null && !manifests.isEmpty());
         eraseAvailableLiveData.postValue(manifests != null && !manifests.isEmpty());
         postReady();
     }
