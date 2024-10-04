@@ -285,6 +285,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
                 suitManager.cleanup(new McuMgrCallback<>() {
                     @Override
                     public void onResponse(@NotNull McuMgrResponse response) {
+                        eraseAvailableLiveData.postValue(true);
                         postReady();
                     }
 
