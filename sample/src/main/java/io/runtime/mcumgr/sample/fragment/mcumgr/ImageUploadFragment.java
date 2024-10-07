@@ -185,25 +185,23 @@ public class ImageUploadFragment extends FileBrowserFragment implements Injectab
 
     @Override
     protected void onFileLoaded(@NonNull final byte[] data) {
+        binding.actionUpload.setEnabled(true);
+        binding.status.setText(R.string.image_upgrade_status_ready);
+        requiresImageSelection = true;
         try {
             final byte[] hash = McuMgrImage.getHash(data);
             binding.fileHash.setText(StringUtils.toHex(hash));
-            binding.actionUpload.setEnabled(true);
-            binding.status.setText(R.string.image_upgrade_status_ready);
-            requiresImageSelection = true;
         } catch (final McuMgrException e) {
             // Support for SUIT (Software Update for Internet of Things) format.
             try {
                 // Try parsing SUIT file.
                 final byte[] hash = SUITImage.getHash(data);
                 binding.fileHash.setText(StringUtils.toHex(hash));
-                binding.actionUpload.setEnabled(true);
-                binding.status.setText(R.string.image_upgrade_status_ready);
+                // A .suit file goes to the main dfu partition, no need to choose.
                 requiresImageSelection = false;
             } catch (final Exception e2) {
+                // Allow sending any file.
                 binding.fileHash.setText(null);
-                clearFileContent();
-                onFileLoadingFailed(R.string.image_error_file_not_valid);
             }
         }
     }

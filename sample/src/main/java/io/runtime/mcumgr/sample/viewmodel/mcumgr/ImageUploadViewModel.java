@@ -6,14 +6,15 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
@@ -117,45 +118,59 @@ public class ImageUploadViewModel extends McuMgrViewModel implements UploadCallb
             try {
                 tmpHash = SUITImage.getHash(data);
             } catch (final McuMgrException e2) {
-                errorLiveData.setValue(e);
-                return;
+                // If the file does not contain a hash, we will not be able to check if the
+                // firmware has already been uploaded. We will upload it anyway.
+                // This has been changed for the sake of cache images for devices with SUIT bootloader,
+                // which do not have a hash in the image.
+                // This will also allow to send any file to the device, not only firmware.
+                // Good for testing.
+                tmpHash = null;
             }
         }
         final byte[] hash = tmpHash;
 
-        manager.list(new McuMgrCallback<>() {
-            @Override
-            public void onResponse(@NonNull final McuMgrImageStateResponse response) {
-                // Check if the fw has already been sent before.
-                McuMgrImageStateResponse.ImageSlot theSameImage = null;
-                for (final McuMgrImageStateResponse.ImageSlot image : response.images) {
-                    if (Arrays.equals(hash, image.hash)) {
-                        theSameImage = image;
-                        break;
+        // Sends the firmware. This may return NO MEMORY error if slot 1 is
+        // filled with an image with pending or confirmed flags set.
+        final Runnable upload = () -> {
+            requestHighConnectionPriority();
+            stateLiveData.postValue(State.UPLOADING);
+            initialBytes = 0;
+            setLoggingEnabled(false);
+            controller = manager.imageUpload(data, image, ImageUploadViewModel.this);
+        };
+
+        // Hash is null in case of SUIT cache partitions, or other files which aren't known firmware.
+        if (tmpHash != null) {
+            manager.list(new McuMgrCallback<>() {
+                @Override
+                public void onResponse(@NonNull final McuMgrImageStateResponse response) {
+                    // Check if the fw has already been sent before.
+                    McuMgrImageStateResponse.ImageSlot theSameImage = null;
+                    for (final McuMgrImageStateResponse.ImageSlot image : response.images) {
+                        if (Arrays.equals(hash, image.hash)) {
+                            theSameImage = image;
+                            break;
+                        }
                     }
+                    // If yes, no need to send again.
+                    if (!force && theSameImage != null) {
+                        hashAlreadyFound.postValue(theSameImage.active);
+                        postReady();
+                        return;
+                    }
+
+                    upload.run();
                 }
-                // If yes, no need to send again.
-                if (!force && theSameImage != null) {
-                    hashAlreadyFound.postValue(theSameImage.active);
+
+                @Override
+                public void onError(@NonNull final McuMgrException error) {
+                    errorLiveData.postValue(error);
                     postReady();
-                    return;
                 }
-
-                requestHighConnectionPriority();
-                // Otherwise, send the firmware. This may return NO MEMORY error if slot 1 is
-                // filled with an image with pending or confirmed flags set.
-                stateLiveData.postValue(State.UPLOADING);
-                initialBytes = 0;
-                setLoggingEnabled(false);
-                controller = manager.imageUpload(data, image, ImageUploadViewModel.this);
-            }
-
-            @Override
-            public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error);
-                postReady();
-            }
-        });
+            });
+        } else {
+            upload.run();
+        }
     }
 
     public void pause() {
