@@ -292,10 +292,14 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                     final ZipPackage zip = new ZipPackage(data);
                     final byte[] envelope = zip.getSuitEnvelope();
                     if (envelope != null) {
-                        // SUIT envelope can also be sent using Image Manager.
+                        // SUIT envelope and cache images can also be sent using Image Manager.
                         // For example for device recovery.
-                        // Usually, a single file wouldn't be placed in a ZIP file, but let's try.
                         images = new ImageSet().add(envelope);
+                        // Check if the ZIP contains cache images.
+                        final CacheImageSet cacheImages = zip.getCacheBinaries();
+                        if (cacheImages != null) {
+                            images.set(cacheImages.getImages());
+                        }
                     } else {
                         images = zip.getBinaries();
                     }

@@ -1,6 +1,7 @@
 package io.runtime.mcumgr.dfu.mcuboot.task;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +19,14 @@ import io.runtime.mcumgr.task.TaskManager;
 class Confirm extends FirmwareUpgradeTask {
 	private final static Logger LOG = LoggerFactory.getLogger(Confirm.class);
 
-	private final byte @NotNull [] hash;
+	private final byte @Nullable [] hash;
 
 	Confirm(final byte @NotNull [] hash) {
 		this.hash = hash;
+	}
+
+	Confirm() {
+		this.hash = null;
 	}
 
 	@Override
@@ -47,21 +52,24 @@ class Confirm extends FirmwareUpgradeTask {
 					performer.onTaskFailed(Confirm.this, new McuMgrErrorException(response.getReturnCode()));
 					return;
 				}
-				// Search for slot for which the confirm command was sent and check its status.
-				for (final McuMgrImageStateResponse.ImageSlot slot : response.images) {
-					if (Arrays.equals(slot.hash, hash)) {
-						if (slot.permanent || slot.confirmed) {
-							performer.onTaskCompleted(Confirm.this);
-						} else {
-							performer.onTaskFailed(Confirm.this, new McuMgrException("Image not confirmed."));
+
+				// MCUboot returns the list of images in the response.
+				final McuMgrImageStateResponse.ImageSlot[] images = response.images;
+				if (images != null) {
+					// Search for slot for which the confirm command was sent and check its status.
+					for (final McuMgrImageStateResponse.ImageSlot slot : images) {
+						if (Arrays.equals(slot.hash, hash)) {
+							if (slot.permanent || slot.confirmed) {
+								performer.onTaskCompleted(Confirm.this);
+							} else {
+								performer.onTaskFailed(Confirm.this, new McuMgrException("Image not confirmed."));
+							}
+							return;
 						}
-						return;
 					}
 				}
-
-				// Some implementations do not report all primary slots.
-				// performer.onTaskFailed(Confirm.this, new McuMgrException("Confirmed image not found."));
-
+				// SUIT implementation of Image manager does not return images from Confirm command.
+				// Instead, the device will reset and the new image will be booted.
 				performer.onTaskCompleted(Confirm.this);
 			}
 
