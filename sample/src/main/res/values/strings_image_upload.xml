@@ -17,10 +17,10 @@
 
     <string name="image_select_image">Select Image</string>
     <string-array name="image_select_images">
-        <item>Application Core (0)</item>
-        <item>Network Core (1)</item>
-        <item>Image 2 (2)</item>
-        <item>Image 3 (3)</item>
+        <item>Image 0 (main)</item>
+        <item>Image 1</item>
+        <item>Image 2</item>
+        <item>Image 3</item>
     </string-array>
 
     <string name="image_overwrite_title">Overwrite?</string>

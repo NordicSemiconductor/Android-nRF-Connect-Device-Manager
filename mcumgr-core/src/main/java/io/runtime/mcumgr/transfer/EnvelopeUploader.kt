@@ -32,6 +32,7 @@ open class EnvelopeUploader(
     envelope: ByteArray,
     windowCapacity: Int = 1,
     memoryAlignment: Int = 1,
+    private val deferInstall: Boolean = false,
 ) : Uploader(
     envelope,
     windowCapacity,
@@ -39,6 +40,16 @@ open class EnvelopeUploader(
     suitManager.mtu,
     suitManager.scheme
 ) {
+    override fun getAdditionalSize(offset: Int): Int =
+        // "defer_install": 0x6D64656665725F696E7374616C6C + 0xF5 (true)
+        if (offset == 0 && deferInstall) 15 else 0
+
+    override fun getAdditionalData(data: ByteArray, offset: Int, map: MutableMap<String, Any>) {
+        if (offset == 0 && deferInstall) {
+            map["defer_install"] = true
+        }
+    }
+
     override fun write(requestMap: Map<String, Any>, timeout: Long, callback: (UploadResult) -> Unit) {
         suitManager.uploadAsync(requestMap, timeout, callback)
     }

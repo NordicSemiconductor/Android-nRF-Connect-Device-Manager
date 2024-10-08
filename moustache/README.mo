@@ -164,11 +164,6 @@ The different firmware upgrade modes are as follows:
 > [!Note]
 > Read about MCUboot modes [here](https://docs.mcuboot.com/design.html#image-slots).
 
-### Software Update for Internet of Things (SUIT)
-
-Starting from version 1.9, the library supports SUIT (Software Update for Internet of Things) files.
-In this case the selected mode is ignored. The process of upgrading is embedded in the SUIT file.
-
 ### Firmware Upgrade State
 
 `FirmwareUpgradeManager` acts as a simple, mostly linear state machine which is determined by the `Mode`.
@@ -182,6 +177,21 @@ device, the `State` will skip `UPLOAD` and move directly to `TEST` (or `CONFIRM`
 has been set). If the uploaded image is already active, and confirmed in slot 0, the upgrade will
 succeed immediately. The `VALIDATE` state makes it easy to reattempt an upgrade without needing to
 re-upload the image or manually determine where to start.
+
+### Software Update for Internet of Things (SUIT)
+
+Starting from version 1.9, the library supports SUIT (Software Update for Internet of Things) files.
+In this case the selected mode is ignored. The process of upgrading is embedded in the SUIT file.
+
+A new firmware can be delivered using:
+- single .suit file with SUIT Envelope
+- a ZIP file with .suit file, cache images and additional binary files.
+
+The update is always started by sending a SUIT Envelope. When cache images are present in the ZIP
+file, they are sent afterwards, each with a target partition ID. After sending a confirm command,
+the library will poll every few seconds for additional resources. If the device requests a new
+resource, it will be sent. The process is repeated until the device reboots, assuming successful
+upgrade.
 
 ## License
 

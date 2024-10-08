@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Mode;
@@ -12,9 +13,11 @@ import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
 import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
+import io.runtime.mcumgr.dfu.suit.model.CacheImage;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.ImageWithHash;
+import io.runtime.mcumgr.image.SUITImage;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.managers.ImageManager;
 import io.runtime.mcumgr.response.dflt.McuMgrBootloaderInfoResponse;
@@ -238,6 +241,10 @@ class Validate extends FirmwareUpgradeTask {
 						}
 					}
 					if (!mcuMgrImage.needsConfirmation()) {
+						// Since nRF Connect SDK v.2.8 the SUIT image requires no confirmation.
+						if (mcuMgrImage instanceof SUITImage) {
+							performer.enqueue(new Confirm());
+						}
 						continue;
 					}
 					if (allowRevert && mode != Mode.NONE) {
@@ -287,6 +294,15 @@ class Validate extends FirmwareUpgradeTask {
 						}
 					}
 				}
+
+				// Enqueue uploading all cache images.
+				final List<CacheImage> cacheImages = images.getCacheImages();
+				if (cacheImages != null) {
+					for (final CacheImage cacheImage : cacheImages) {
+						performer.enqueue(new Upload(cacheImage.image, cacheImage.partitionId));
+					}
+				}
+
 				// To make sure the reset command are added just once, they're added based on flags.
 				if (initialResetRequired) {
 					performer.enqueue(new ResetBeforeUpload(noSwap));
