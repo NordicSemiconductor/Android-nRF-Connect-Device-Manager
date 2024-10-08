@@ -276,7 +276,21 @@ public class SUITManager extends McuManager {
         payloadMap.put("len", 0);
         payloadMap.put("off", 0);
         // assuming defer_install is false by default, so not set
-        send(OP_WRITE, ID_ENVELOPE_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+
+        // The response contains "off", but we don't need to report it, as it's always 0,
+        // so convert the response to McuMgrResponse.
+        send(OP_WRITE, ID_ENVELOPE_UPLOAD, payloadMap, SHORT_TIMEOUT,
+                McuMgrUploadResponse.class, new McuMgrCallback<>() {
+                    @Override
+                    public void onResponse(@NotNull McuMgrUploadResponse response) {
+                        callback.onResponse(response);
+                    }
+
+                    @Override
+                    public void onError(@NotNull McuMgrException error) {
+                        callback.onError(error);
+                    }
+                });
     }
 
     /**
@@ -293,7 +307,10 @@ public class SUITManager extends McuManager {
         payloadMap.put("len", 0);
         payloadMap.put("off", 0);
         // assuming defer_install is false by default, so not set
-        return send(OP_WRITE, ID_ENVELOPE_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
+
+        // The response contains "off", but we don't need to report it, as it's always 0,
+        // so convert the response to McuMgrResponse.
+        return send(OP_WRITE, ID_ENVELOPE_UPLOAD, payloadMap, SHORT_TIMEOUT, McuMgrUploadResponse.class);
     }
 
     /**
