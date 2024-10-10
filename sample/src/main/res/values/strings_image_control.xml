@@ -37,7 +37,7 @@
 		• Digest: 0x%s\n
 		• Digest Algorithm: %s\n
 		• Signature Verification: %s\n
-		• Sequence number: %d\n
+		• Sequence number: 0x%X\n
 		• Version: %s\n</string>
 
     <string name="image_control_dialog_help_title">Help</string>

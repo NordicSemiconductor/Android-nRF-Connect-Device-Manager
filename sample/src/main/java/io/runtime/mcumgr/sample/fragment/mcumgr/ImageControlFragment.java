@@ -19,8 +19,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -30,6 +28,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import java.util.List;
 import java.util.Locale;
+
+import javax.inject.Inject;
 
 import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
@@ -43,7 +43,6 @@ import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.dialog.SelectImageDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
-import io.runtime.mcumgr.sample.utils.Utils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageControlViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.util.ByteUtil;
@@ -161,9 +160,11 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
                 builder.setSpan(new StyleSpan(Typeface.BOLD),
                         start, builder.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
                 final String vendor = manifest.isVendorNordic() ? "Nordic Semiconductor ASA" : "Unknown";
+                final String classIdName = manifest.getKnownClassName();
                 final String version = manifest.getVersion();
                 builder.append(getString(R.string.image_suit_manifest_details,
-                        manifest.getClassId().toString().toUpperCase(Locale.ROOT), "Unknown",
+                        manifest.getClassId().toString().toUpperCase(Locale.ROOT),
+                        classIdName != null ? classIdName : "Unknown",
                         manifest.getVendorId().toString().toUpperCase(Locale.ROOT), vendor,
                         manifest.downgradePreventionPolicy,
                         manifest.independentUpdateabilityPolicy,
