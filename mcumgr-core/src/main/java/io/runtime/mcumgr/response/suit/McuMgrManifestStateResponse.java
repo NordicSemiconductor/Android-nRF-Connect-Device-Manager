@@ -21,6 +21,8 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 
 /** @noinspection unused*/
 public class McuMgrManifestStateResponse extends McuMgrResponse {
+    // Link to source code in nRF Connect SDK:
+    // https://github.com/nrfconnect/sdk-nrf/blob/main/subsys/suit/metadata/include/suit_metadata.h
 
     /**
      * The manifest role.
@@ -134,9 +136,16 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
     }
 
     public enum SignatureVerification {
-        NOT_CHECKED(2),
-        FAILED(3),
-        PASSED(4);
+        /** Digest status value uninitialized (invalid). */
+        UNKNOWN(0),
+        /** Digest value does not match. */
+        MISMATCH(1),
+        /** Digest value match, but was not checked for authenticity. */
+        UNAUTHENTICATED(2),
+        /** Digest value match, but signature verification failed. */
+        INCORRECT_SIGNATURE(3),
+        /** Digest value match and authenticated. */
+        AUTHENTICATED(4);
 
         private final int code;
 
@@ -163,12 +172,16 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         @Override
         public String toString() {
             switch (this) {
-                case NOT_CHECKED:
-                    return "Not checked";
-                case FAILED:
-                    return "Failed";
-                case PASSED:
-                    return "Passed";
+                case UNKNOWN:
+                    return "Unknown";
+                case MISMATCH:
+                    return "Mismatch";
+                case UNAUTHENTICATED:
+                    return "Unauthenticated";
+                case INCORRECT_SIGNATURE:
+                    return "Incorrect signature";
+                case AUTHENTICATED:
+                    return "Authenticated";
                 default:
                     return super.toString();
             }
