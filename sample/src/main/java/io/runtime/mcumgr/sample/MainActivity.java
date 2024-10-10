@@ -76,7 +76,10 @@ public class MainActivity extends AppCompatActivity
         // Otherwise, Dagger2 will fail to inflate this Activity.
         // The target has to be set here, otherwise restoring the state will fail had the
         // Activity been destroyed and recreated.
-        ((Dagger2Application) getApplication()).setTarget(device);
+        // Is should only be done once, when the Activity is created for the first time.
+        if (savedInstanceState == null) {
+            ((Dagger2Application) getApplication()).setTarget(device);
+        }
 
         super.onCreate(savedInstanceState);
         final ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
