@@ -11,7 +11,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".MainActivity"
     tools:ignore="ContentDescription">
 
@@ -36,32 +35,42 @@
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintWidth_max="632dp"
         app:layout_constraintBottom_toTopOf="@+id/nav_menu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/fragment_device_status"
-                android:name="io.runtime.mcumgr.sample.fragment.mcumgr.DeviceStatusFragment"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
-                tools:layout="@layout/fragment_card_device_status" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintWidth_max="632dp"
+                android:layout_gravity="center_horizontal"
+                android:orientation="vertical">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/container"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/fragment_device_status"
+                    android:name="io.runtime.mcumgr.sample.fragment.mcumgr.DeviceStatusFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="16dp"
+                    tools:layout="@layout/fragment_card_device_status" />
+
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/container"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
