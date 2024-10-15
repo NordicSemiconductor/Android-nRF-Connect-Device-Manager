@@ -10,6 +10,7 @@
     <string name="image_upgrade_file_name">Name:</string>
     <string name="image_upgrade_size">Size:</string>
     <string name="image_upgrade_size_value">%d bytes</string>
+    <string name="image_upgrade_size_value_suit">%d bytes (SUIT envelope)</string>
     <string name="image_upgrade_hash">Hash:</string>
     <string name="image_upgrade_status">State:</string>
     <string name="image_upgrade_speed">%.1f kB/s</string>
