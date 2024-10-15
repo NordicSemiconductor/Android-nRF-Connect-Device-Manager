@@ -8,13 +8,13 @@ apply plugin: 'com.android.application'
 apply from: rootProject.file("gradle/git-tag-version.gradle")
 
 android {
-    compileSdk 34
+    compileSdk 35
     namespace "io.runtime.mcumgr.sample"
 
     defaultConfig {
         applicationId "no.nordicsemi.android.nrfconnectdevicemanager"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode getVersionCodeFromTags()
         versionName getVersionNameFromTags()
         resConfig "en"
@@ -74,7 +74,7 @@ dependencies {
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
 
     // Timber & SLF4J
-    implementation 'uk.kulikov:slf4j2-timber:1.1'
+    implementation 'uk.kulikov:slf4j2-timber:1.2'
     implementation 'no.nordicsemi.android:log-timber:2.5.0'
 
     // Mcu Mgr
