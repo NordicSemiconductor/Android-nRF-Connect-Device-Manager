@@ -408,7 +408,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         try {
             final byte[] hash = SUITImage.getHash(data);
             binding.fileHash.setText(StringUtils.toHex(hash));
-            binding.fileSize.setText(getString(R.string.image_upgrade_size_value, data.length));
+            binding.fileSize.setText(getString(R.string.image_upgrade_size_value_suit, data.length));
             binding.actionStart.setEnabled(true);
             binding.status.setText(R.string.image_upgrade_status_ready);
             requiresModeSelection = false;
