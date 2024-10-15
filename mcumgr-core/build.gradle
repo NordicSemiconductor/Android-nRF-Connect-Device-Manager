@@ -10,12 +10,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 34
+    compileSdk 35
     namespace "io.runtime.mcumgr"
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 34
+        targetSdkVersion 35
     }
 
     buildTypes {
