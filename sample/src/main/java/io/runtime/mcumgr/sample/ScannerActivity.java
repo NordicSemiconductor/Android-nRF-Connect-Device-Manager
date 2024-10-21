@@ -8,15 +8,22 @@ package io.runtime.mcumgr.sample;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.PreferenceManager;
@@ -50,6 +57,13 @@ public class ScannerActivity extends AppCompatActivity implements Injectable {
         // setTheme, this is preferred in our case, as this also work for older platforms.
         setTheme(R.style.AppTheme);
 
+        EdgeToEdge.enable(this,
+                SystemBarStyle.dark(Color.TRANSPARENT),
+                SystemBarStyle.light(
+                        ContextCompat.getColor(this, R.color.colorSurfaceContainer),
+                        ContextCompat.getColor(this, R.color.colorSurfaceContainer)
+                )
+        );
         super.onCreate(savedInstanceState);
 
         // Set up the splash screen.
@@ -94,6 +108,11 @@ public class ScannerActivity extends AppCompatActivity implements Injectable {
 
         setSupportActionBar(binding.toolbar);
         getSupportActionBar().setTitle(R.string.app_name);
+        ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar, (v, insets) -> {
+            final Insets bars = insets.getInsets(WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.navigationBars());
+            v.setPadding(bars.left, 0, bars.right, 0);
+            return insets;
+        });
 
         final BottomNavigationView navMenu = binding.navMenu;
         navMenu.setSelectedItemId(R.id.nav_scanner);
