@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.AndroidViewModel;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -74,7 +75,12 @@ public class SavedDevicesViewModel extends AndroidViewModel {
         if (ActivityCompat.checkSelfPermission(getApplication(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        final Set<BluetoothDevice> devices = adapter.getBondedDevices();
+        final Set<BluetoothDevice> devices = new HashSet<>();
+        for (BluetoothDevice device : adapter.getBondedDevices()) {
+            if (device.getType() != BluetoothDevice.DEVICE_TYPE_CLASSIC) {
+                devices.add(device);
+            }
+        }
         devicesLiveData.setDevices(devices);
         if (!devices.isEmpty()) {
             scannerStateLiveData.recordFound();
