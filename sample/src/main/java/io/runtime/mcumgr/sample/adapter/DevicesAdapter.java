@@ -28,6 +28,7 @@ import io.runtime.mcumgr.sample.viewmodel.scanner.DevicesLiveData;
 public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
     private List<DiscoveredBluetoothDevice> devices;
     private OnItemClickListener onItemClickListener;
+    private int horizontalPadding = 0;
 
     @FunctionalInterface
     public interface OnItemClickListener {
@@ -48,6 +49,17 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
         onItemClickListener = listener;
     }
 
+    /**
+     * Sets the horizontal padding of the item view.
+     * <p>
+     * This is used for cutouts. The padding will be set on both sides of the item view.
+     *
+     * @param padding the padding in pixels.
+     */
+    public void setHorizontalPadding(final int padding) {
+        horizontalPadding = padding;
+    }
+
     public DevicesAdapter(final LifecycleOwner owner, final DevicesLiveData devicesLiveData) {
         setHasStableIds(true);
         devicesLiveData.observe(owner, devices -> {
@@ -63,6 +75,10 @@ public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHold
     public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
         final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         final DeviceItemBinding binding = DeviceItemBinding.inflate(inflater, parent, false);
+        binding.getRoot().setPadding(
+                horizontalPadding, binding.getRoot().getPaddingTop(),
+                horizontalPadding, binding.getRoot().getPaddingBottom()
+        );
         return new ViewHolder(binding);
     }
 
