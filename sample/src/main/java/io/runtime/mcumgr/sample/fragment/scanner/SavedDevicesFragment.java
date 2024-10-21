@@ -24,6 +24,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -76,6 +79,11 @@ public class SavedDevicesFragment extends Fragment implements Injectable, Device
         final DevicesAdapter adapter =
                 new DevicesAdapter(getViewLifecycleOwner(), scannerViewModel.getDevices());
         adapter.setOnItemClickListener(this);
+        ViewCompat.setOnApplyWindowInsetsListener(recyclerView, (v, insets) -> {
+            final Insets bars = insets.getInsets(WindowInsetsCompat.Type.displayCutout());
+            adapter.setHorizontalPadding(Math.max(bars.left, bars.right));
+            return WindowInsetsCompat.CONSUMED;
+        });
         recyclerView.setAdapter(adapter);
 
         // Set up permission request launcher

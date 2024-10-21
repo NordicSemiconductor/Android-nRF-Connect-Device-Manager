@@ -27,7 +27,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.view.MenuProvider;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
@@ -43,9 +46,9 @@ import io.runtime.mcumgr.sample.adapter.DevicesAdapter;
 import io.runtime.mcumgr.sample.databinding.FragmentScannerBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.Utils;
+import io.runtime.mcumgr.sample.viewmodel.ViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.scanner.ScannerStateLiveData;
 import io.runtime.mcumgr.sample.viewmodel.scanner.ScannerViewModel;
-import io.runtime.mcumgr.sample.viewmodel.ViewModelFactory;
 
 public class ScannerFragment extends Fragment implements Injectable, DevicesAdapter.OnItemClickListener {
 
@@ -82,6 +85,11 @@ public class ScannerFragment extends Fragment implements Injectable, DevicesAdap
         final DevicesAdapter adapter =
                 new DevicesAdapter(getViewLifecycleOwner(), scannerViewModel.getDevices());
         adapter.setOnItemClickListener(this);
+        ViewCompat.setOnApplyWindowInsetsListener(recyclerView, (v, insets) -> {
+            final Insets bars = insets.getInsets(WindowInsetsCompat.Type.displayCutout());
+            adapter.setHorizontalPadding(Math.max(bars.left, bars.right));
+            return WindowInsetsCompat.CONSUMED;
+        });
         recyclerView.setAdapter(adapter);
 
         // Set up permission request launcher
