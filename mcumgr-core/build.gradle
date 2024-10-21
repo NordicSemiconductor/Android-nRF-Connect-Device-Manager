@@ -43,7 +43,7 @@ android {
 
 dependencies {
     // Annotations
-    implementation 'org.jetbrains:annotations:26.0.0'
+    implementation 'org.jetbrains:annotations:26.0.1'
 
     // Logging
     implementation 'org.slf4j:slf4j-api:2.0.16'
@@ -62,7 +62,7 @@ dependencies {
 
     // Test
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.2'
 }
 
 // === Maven Central configuration ===
