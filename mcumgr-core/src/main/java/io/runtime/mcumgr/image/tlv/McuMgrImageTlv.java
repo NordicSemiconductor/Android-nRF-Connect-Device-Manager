@@ -25,10 +25,17 @@ import io.runtime.mcumgr.image.McuMgrImageHeader;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class McuMgrImageTlv {
 
+    // See link below for more info on the image TLV types
+    // https://github.com/mcu-tools/mcuboot/blob/9331c924ba69a32e142d1bf724443d99405c3323/boot/bootutil/include/bootutil/image.h#L95
+
     /** Hash of the public key. Used for legacy versions of mcuboot. */
     public final static int IMG_TLV_SHA256_V1 = 0x01;
     /** SHA256 of image hdr and body */
     public final static int IMG_TLV_SHA256 = 0x10;
+    /** SHA384 of image hdr and body */
+    public final static int IMG_TLV_SHA384 = 0x11;
+    /** SHA512 of image hdr and body */
+    public final static int IMG_TLV_SHA512 = 0x12;
     /** RSA2048 of hash output */
     public final static int IMG_TLV_RSA2048_PSS = 0x20;
     /** ECDSA of hash output */
@@ -105,8 +112,12 @@ public class McuMgrImageTlv {
 
     public byte @Nullable [] getHash() {
         for (McuMgrImageTlvTrailerEntry entry : getTrailerEntries()) {
+            if (entry.type == IMG_TLV_SHA512)
+                return entry.value;
+            if (entry.type == IMG_TLV_SHA384)
+                return entry.value;
             if (mIsLegacy && entry.type == IMG_TLV_SHA256_V1 ||
-                    !mIsLegacy && entry.type == IMG_TLV_SHA256) {
+               !mIsLegacy && entry.type == IMG_TLV_SHA256) {
                 return entry.value;
             }
         }
