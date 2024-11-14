@@ -6,18 +6,18 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 import io.runtime.mcumgr.sample.di.component.McuMgrViewModelSubComponent;
 import io.runtime.mcumgr.sample.viewmodel.FileBrowserViewModel;
-import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
 
 public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
     private final Map<Class<? extends ViewModel>, Callable<? extends ViewModel>> creators;
@@ -27,7 +27,6 @@ public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
         creators = new HashMap<>();
         // we cannot inject view models directly because they won't be bound to the owner's
         // view model scope.
-        creators.put(MainViewModel.class, viewModelSubComponent::mainViewModel);
         creators.put(DeviceStatusViewModel.class, viewModelSubComponent::deviceStatusViewModel);
         creators.put(EchoViewModel.class, viewModelSubComponent::echoViewModel);
         creators.put(ResetViewModel.class, viewModelSubComponent::resetViewModel);

@@ -8,9 +8,9 @@ package io.runtime.mcumgr.sample.di.component;
 
 import dagger.Subcomponent;
 import io.runtime.mcumgr.sample.viewmodel.FileBrowserViewModel;
-import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.EchoViewModel;
+import io.runtime.mcumgr.sample.viewmodel.mcumgr.ExecViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesDownloadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.FilesUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageControlViewModel;
@@ -20,7 +20,6 @@ import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUploadViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
-import io.runtime.mcumgr.sample.viewmodel.mcumgr.ExecViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.StatsViewModel;
 
 /**
@@ -34,8 +33,6 @@ public interface McuMgrViewModelSubComponent {
     interface Builder {
         McuMgrViewModelSubComponent build();
     }
-
-    MainViewModel mainViewModel();
 
     DeviceStatusViewModel deviceStatusViewModel();
     EchoViewModel echoViewModel();

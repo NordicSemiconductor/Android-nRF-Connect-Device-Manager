@@ -30,7 +30,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -39,6 +38,7 @@ import javax.inject.Inject;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasAndroidInjector;
+import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.sample.application.Dagger2Application;
 import io.runtime.mcumgr.sample.databinding.ActivityMainBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
@@ -47,7 +47,6 @@ import io.runtime.mcumgr.sample.fragment.FilesFragment;
 import io.runtime.mcumgr.sample.fragment.ImageFragment;
 import io.runtime.mcumgr.sample.fragment.LogsStatsFragment;
 import io.runtime.mcumgr.sample.fragment.ShellFragment;
-import io.runtime.mcumgr.sample.viewmodel.MainViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
 @SuppressWarnings("ConstantConditions")
@@ -60,7 +59,7 @@ public class MainActivity extends AppCompatActivity
     @Inject
     McuMgrViewModelFactory viewModelFactory;
     @Inject
-    BluetoothDevice device;
+    McuMgrTransport mcuMgrTransport;
     @Inject
     @Nullable
     Uri logSessionUri;
@@ -114,9 +113,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
         final String deviceAddress = device.getAddress();
-
-        new ViewModelProvider(this, viewModelFactory)
-                .get(MainViewModel.class);
 
         // Configure the view.
         final Toolbar toolbar = binding.toolbar;
@@ -191,5 +187,14 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (isFinishing()) {
+            mcuMgrTransport.release();
+        }
     }
 }
