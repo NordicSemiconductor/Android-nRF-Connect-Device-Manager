@@ -19,6 +19,7 @@ class UploadCache extends SUITUpgradeTask {
 
     private final byte @NotNull [] data;
     private final int targetId;
+    private boolean canceled = false;
 
     /**
      * Upload controller used to pause, resume, and cancel upload. Set when the upload is started.
@@ -76,6 +77,12 @@ class UploadCache extends SUITUpgradeTask {
             }
         };
 
+        // Check if the task was canceled before starting the upload.
+        if (canceled) {
+            callback.onUploadCanceled();
+            return;
+        }
+
         LOG.info("Uploading cache image with target partition ID: {} ({} bytes)", targetId, data.length);
         final SUITUpgradePerformer.Settings settings = performer.getSettings();
         final SUITManager manager = new SUITManager(performer.getTransport());
@@ -90,11 +97,17 @@ class UploadCache extends SUITUpgradeTask {
 
     @Override
     public void pause() {
-        mUploadController.pause();
+        if (mUploadController != null) {
+            mUploadController.pause();
+        }
     }
 
     @Override
     public void cancel() {
-        mUploadController.cancel();
+        if (mUploadController != null) {
+            mUploadController.cancel();
+        } else {
+            canceled = true;
+        }
     }
 }
