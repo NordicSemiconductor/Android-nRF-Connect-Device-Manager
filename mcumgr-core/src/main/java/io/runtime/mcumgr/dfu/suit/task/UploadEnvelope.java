@@ -18,10 +18,12 @@ class UploadEnvelope extends SUITUpgradeTask {
     private final static Logger LOG = LoggerFactory.getLogger(UploadEnvelope.class);
     private final byte @NotNull [] envelope;
     private final boolean deferInstall;
+    private boolean canceled = false;
 
     /**
      * Upload controller used to pause, resume, and cancel upload. Set when the upload is started.
      */
+    @Nullable
     private TransferController mUploadController;
 
     public UploadEnvelope(final byte @NotNull [] envelope, final boolean deferInstall) {
@@ -72,6 +74,12 @@ class UploadEnvelope extends SUITUpgradeTask {
             }
         };
 
+        // Check if the task was canceled before starting the upload.
+        if (canceled) {
+            callback.onUploadCanceled();
+            return;
+        }
+
         LOG.info("Uploading SUIT envelope of size: {}", envelope.length);
         final SUITUpgradePerformer.Settings settings = performer.getSettings();
         final SUITManager manager = new SUITManager(performer.getTransport());
@@ -86,11 +94,17 @@ class UploadEnvelope extends SUITUpgradeTask {
 
     @Override
     public void pause() {
-        mUploadController.pause();
+        if (mUploadController != null) {
+            mUploadController.pause();
+        }
     }
 
     @Override
     public void cancel() {
-        mUploadController.cancel();
+        if (mUploadController != null) {
+            mUploadController.cancel();
+        } else {
+            canceled = true;
+        }
     }
 }
