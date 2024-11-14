@@ -401,7 +401,7 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
         // The value after the release type, if greater than 0, is the release number.
         // Normal releases have no release number.
         ReleaseType type = ReleaseType.NORMAL;
-        int major = 0, minor = 0, patch = 0, releaseNumber = 0;
+        int major = 0, minor = 0, patch = 0, releaseNumber = -1;
 
         // Iterate over the semantic version array.
         for (int i = 0; i < semanticVersion.length; i++) {
@@ -435,6 +435,6 @@ public class McuMgrManifestStateResponse extends McuMgrResponse {
                 }
             }
         }
-        return major + "." + minor + "." + patch + type.text + (releaseNumber > 0 ? "." + releaseNumber : "");
+        return major + "." + minor + "." + patch + type.text + (releaseNumber >= 0 ? "." + releaseNumber : "");
     }
 }
