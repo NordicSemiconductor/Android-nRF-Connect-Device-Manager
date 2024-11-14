@@ -19,10 +19,12 @@ class UploadResource extends SUITUpgradeTask {
 
     private final byte @NotNull [] data;
     private final int sessionId;
+    private boolean canceled = false;
 
     /**
      * Upload controller used to pause, resume, and cancel upload. Set when the upload is started.
      */
+    @Nullable
     private TransferController mUploadController;
 
     public UploadResource(
@@ -79,6 +81,12 @@ class UploadResource extends SUITUpgradeTask {
             }
         };
 
+        // Check if the task was canceled before starting the upload.
+        if (canceled) {
+            callback.onUploadCanceled();
+            return;
+        }
+
         LOG.info("Uploading resource with session ID: {} ({} bytes)", sessionId, data.length);
         final SUITUpgradePerformer.Settings settings = performer.getSettings();
         final SUITManager manager = new SUITManager(performer.getTransport());
@@ -93,11 +101,17 @@ class UploadResource extends SUITUpgradeTask {
 
     @Override
     public void pause() {
-        mUploadController.pause();
+        if (mUploadController != null) {
+            mUploadController.pause();
+        }
     }
 
     @Override
     public void cancel() {
-        mUploadController.cancel();
+        if (mUploadController != null) {
+            mUploadController.cancel();
+        } else {
+            canceled = true;
+        }
     }
 }
