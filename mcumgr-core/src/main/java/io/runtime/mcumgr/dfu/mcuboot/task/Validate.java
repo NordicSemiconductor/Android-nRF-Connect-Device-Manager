@@ -59,7 +59,7 @@ class Validate extends FirmwareUpgradeTask {
 		manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_QUERY_BOOTLOADER, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrBootloaderInfoResponse response) {
-				LOG.trace("Bootloader name: {}", response.bootloader);
+				LOG.debug("Bootloader name: {}", response.bootloader);
 
 				if ("MCUboot".equals(response.bootloader)) {
 					manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_MCUBOOT_QUERY_MODE, new McuMgrCallback<>() {
@@ -73,6 +73,7 @@ class Validate extends FirmwareUpgradeTask {
 
 						@Override
 						public void onError(@NotNull McuMgrException error) {
+							LOG.debug("onError: {}", error.toString());
 							// Pretend nothing happened.
 							validate(performer, false, true);
 						}
@@ -85,6 +86,7 @@ class Validate extends FirmwareUpgradeTask {
 
 			@Override
 			public void onError(@NotNull final McuMgrException error) {
+				LOG.debug("onError: {}", error.toString());
 				// Pretend nothing happened.
 				validate(performer, false, true);
 			}
@@ -101,16 +103,20 @@ class Validate extends FirmwareUpgradeTask {
 	private void validate(@NotNull final TaskManager<Settings, State> performer,
 						  final boolean noSwap,
 						  final boolean allowRevert) {
+		LOG.debug("validate: performer: {}, noSwap: {}, allowRevert: {}", performer, noSwap, allowRevert);
+
 		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(performer.getTransport());
 
 		manager.list(new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrImageStateResponse response) {
-				LOG.trace("Validation response: {}", response);
+				LOG.debug("Validation response: {}", response);
 
 				// Check for an error return code.
 				if (!response.isSuccess()) {
+					LOG.debug("Validation failed: response.getReturnCode(): {}", response.getReturnCode());
+
 					performer.onTaskFailed(Validate.this, new McuMgrErrorException(response.getReturnCode()));
 					return;
 				}
@@ -119,6 +125,7 @@ class Validate extends FirmwareUpgradeTask {
 				McuMgrImageStateResponse.ImageSlot[] slots = response.images;
 				if (slots == null) {
 					LOG.error("Missing images information: {}", response);
+
 					performer.onTaskFailed(Validate.this, new McuMgrException("Missing images information"));
 					return;
 				}
@@ -133,12 +140,23 @@ class Validate extends FirmwareUpgradeTask {
 				// one of the images. In that case, we need to remove images for this image index,
 				// as that core is already up-to-date.
 				if (images.getImages().size() > 1) {
+					LOG.debug("images.getImages().size(): {}", images.getImages().size());
+
 					// Iterate over all slots looking for active ones.
 					for (final McuMgrImageStateResponse.ImageSlot slot : slots) {
+						LOG.debug("slot: {}", slot);
+
 						if (slot.active) {
+							LOG.debug("slot is active: {}", slot);
+
 							// Check if any of the images has the same hash as the image on the active slot.
 							for (final TargetImage image : images.getImages()) {
+								LOG.debug("image: {}", image);
+
 								final ImageWithHash mcuMgrImage = image.image;
+
+								LOG.debug("slot.hash: {}, mcuMgrImage.getHash(): {}", slot.hash, mcuMgrImage.getHash());
+
 								if (slot.image == image.imageIndex && Arrays.equals(slot.hash, mcuMgrImage.getHash())) {
 									// The image was found on an active slot, which means that core
 									// does not need to be updated.
@@ -162,6 +180,8 @@ class Validate extends FirmwareUpgradeTask {
 
 				// For each image that is to be sent, check if the same image has already been sent.
 				for (final TargetImage image : images.getImages()) {
+					LOG.debug("image: {}", image);
+
 					final int imageIndex = image.imageIndex;
 					final ImageWithHash mcuMgrImage = image.image;
 
@@ -173,13 +193,20 @@ class Validate extends FirmwareUpgradeTask {
 					boolean confirmed = false; // Image has booted and confirmed itself
 					boolean active = false;    // Image is currently running
 					for (final McuMgrImageStateResponse.ImageSlot slot : slots) {
+						LOG.debug("slot: {}", slot);
+
 						// Skip slots of a different core than the image is for.
-						if (slot.image != imageIndex)
+						if (slot.image != imageIndex) {
+							LOG.debug("slot: {}, slot.image != imageIndex, continuing …", slot);
+
 							continue;
+						}
 
 						// If the same image was found in any of the slots, the upload will not be
 						// required. The image may need testing or confirming, or may already be running.
 						if (Arrays.equals(slot.hash, mcuMgrImage.getHash())) {
+							LOG.debug("slot: {}, slot.hash equals mcuMgrImage.getHash(): {}", slot, mcuMgrImage.getHash());
+
 							found = true;
 							pending = slot.pending;
 							permanent = slot.permanent;
@@ -195,12 +222,16 @@ class Validate extends FirmwareUpgradeTask {
 							break;
 						} else {
 							if (slot.slot == image.slot) {
+								LOG.debug("slot: {}, slot.slot == image.slot", slot);
+
 								// The `image.slot` determines to which slot the image will be uploaded.
 								// If the image on the target slot is active, we cannot send there
 								// anything, so we skip this image. It will not be uploaded.
 								// This can happen on the primary slot or, when Direct XIP feature
 								// is enabled, also on the secondary slot.
 								if (slot.active) {
+									LOG.debug("slot: {}, slot.active, skip and continue …", slot);
+
 									skip = true;
 									continue;
 								}
@@ -232,9 +263,13 @@ class Validate extends FirmwareUpgradeTask {
 						}
 					}
 					if (skip) {
+						LOG.debug("skipping …");
+
 						continue;
 					}
 					if (!found) {
+						LOG.debug("!found");
+
 						performer.enqueue(new Upload(mcuMgrImage.getData(), imageIndex));
 						if (mcuMgrImage.needsConfirmation() && (!allowRevert || mode == Mode.NONE)) {
 							resetRequired = true;
@@ -248,6 +283,8 @@ class Validate extends FirmwareUpgradeTask {
 						continue;
 					}
 					if (allowRevert && mode != Mode.NONE) {
+						LOG.debug("mode: {}", mode);
+
 						switch (mode) {
 							case TEST_AND_CONFIRM: {
 								// If the image is not pending (test command has not been sent) and not
@@ -297,8 +334,12 @@ class Validate extends FirmwareUpgradeTask {
 
 				// Enqueue uploading all cache images.
 				final List<CacheImage> cacheImages = images.getCacheImages();
+				LOG.debug("cacheImages: {}", cacheImages);
+
 				if (cacheImages != null) {
 					for (final CacheImage cacheImage : cacheImages) {
+						LOG.debug("cacheImage: {}", cacheImage);
+
 						performer.enqueue(new Upload(cacheImage.image, cacheImage.partitionId));
 					}
 				}
@@ -318,12 +359,16 @@ class Validate extends FirmwareUpgradeTask {
 
 			@Override
 			public void onError(@NotNull final McuMgrException e) {
+				LOG.debug("onError: e: {}", e.toString());
+
 				performer.onTaskFailed(Validate.this, e);
 			}
 		});
 	}
 
 	private String parseMode(final int mode) {
+		LOG.debug("parseMode: mode: {}", mode);
+
 		switch (mode) {
 			case 0: return "Single App";
 			case 1: return "Swap Scratch";
