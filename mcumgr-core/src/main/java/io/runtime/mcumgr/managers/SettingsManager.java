@@ -78,7 +78,7 @@ public class SettingsManager extends McuManager {
     public interface Response extends HasReturnCode {
 
         @Nullable
-        default SettingsManager.ReturnCode getOsReturnCode() {
+        default SettingsManager.ReturnCode getSettingsReturnCode() {
             McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
             if (groupReturnCode == null) {
                 if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
