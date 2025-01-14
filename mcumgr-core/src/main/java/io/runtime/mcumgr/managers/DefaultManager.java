@@ -363,11 +363,19 @@ public class DefaultManager extends McuManager {
      * When used as query in {@link #bootloaderInfo(String)} command, returns string representing
      * bootloader name.
      */
-    public static String BOOTLOADER_INFO_QUERY_BOOTLOADER = null;
+    public static final String BOOTLOADER_INFO_QUERY_BOOTLOADER = null;
     /**
      * For bootloader with name "MCUboot" returns the bootloader mode.
      */
-    public static String BOOTLOADER_INFO_MCUBOOT_QUERY_MODE = "mode";
+    public static final String BOOTLOADER_INFO_MCUBOOT_QUERY_MODE = "mode";
+    /**
+     * For bootloader with name "MCUboot" returns the id of a b0 slot with higher version.
+     * <p>
+     * The b0 is a bootloader that boots MCUboot and is used to upgrade MCUboot itself. It has 2
+     * slots: primary (0) and secondary (1) and can boot from either of them.
+     * @see <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/samples/bootloader/README.html">nRF Secure Immutable Bootloader B0</a>
+     */
+    public static final String BOOTLOADER_INFO_QUERY_ACTIVE_B0_SLOT = "active_b0_slot";
 
     /**
      * Reads the Bootloader info (asynchronous).
@@ -378,6 +386,7 @@ public class DefaultManager extends McuManager {
      * 	            For bootloader named "MCUboot" use {@link #BOOTLOADER_INFO_MCUBOOT_QUERY_MODE} to get
      * 	            the bootloader mode. If query yields no answer, the response will contain
      * 	            an {@link ReturnCode#QUERY_YIELDS_NO_ANSWER} error.
+     * 	            Use {@link #BOOTLOADER_INFO_QUERY_ACTIVE_B0_SLOT} to get the ID of an active B0 slot.
      * @param callback the asynchronous callback.
      */
     public void bootloaderInfo(@Nullable String query, @NotNull McuMgrCallback<McuMgrBootloaderInfoResponse> callback) {
@@ -398,6 +407,7 @@ public class DefaultManager extends McuManager {
      * 	            For bootloader named "MCUboot" use {@link #BOOTLOADER_INFO_MCUBOOT_QUERY_MODE} to get
      * 	            the bootloader mode. If query yields no answer, the response will contain
      * 	            an {@link ReturnCode#QUERY_YIELDS_NO_ANSWER} error.
+     * 	            Use {@link #BOOTLOADER_INFO_QUERY_ACTIVE_B0_SLOT} to get the ID of an active B0 slot.
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
