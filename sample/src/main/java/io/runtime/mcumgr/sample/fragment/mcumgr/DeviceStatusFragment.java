@@ -118,6 +118,18 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                 binding.bootloaderMode.setText(R.string.status_unknown);
             }
         });
+        viewModel.getActiveB0Slot().observe(getViewLifecycleOwner(), slot -> {
+            if (slot != null) {
+                final CharSequence[] slots = getResources().getTextArray(R.array.b0_slots);
+                if (slot >= 0 && slot < slots.length) {
+                    binding.activeB0Slot.setText(slots[slot]);
+                } else {
+                    binding.bootloaderMode.setText(getString(R.string.status_unknown_value, slot));
+                }
+            } else {
+                binding.activeB0Slot.setText(R.string.status_unknown);
+            }
+        });
         viewModel.getAppInfo().observe(getViewLifecycleOwner(), kernel -> {
             if (kernel != null) {
                 binding.kernel.setText(kernel);

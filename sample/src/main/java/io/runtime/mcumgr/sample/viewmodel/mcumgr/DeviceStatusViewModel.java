@@ -6,17 +6,17 @@
 
 package io.runtime.mcumgr.sample.viewmodel.mcumgr;
 
-import org.jetbrains.annotations.NotNull;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import androidx.lifecycle.Observer;
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
 import io.runtime.mcumgr.ble.McuMgrBleTransport;
@@ -36,6 +36,7 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
     private final MutableLiveData<McuMgrBufferParams> bufferLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> bootloaderNameLiveData = new MutableLiveData<>();
     private final MutableLiveData<Integer> bootloaderModeLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Integer> activeB0Slot = new MutableLiveData<>();
     private final MutableLiveData<String> appInfoLiveData = new MutableLiveData<>();
     private final Observer<ConnectionState> connectionStateObserver = connectionState -> {
         if (connectionState == ConnectionState.READY) {
@@ -43,17 +44,19 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
             // 1. MCU Manager parameters
             // 2. Application info (parameter: "sv" will return the kernel name and version)
             // 3. Bootloader name
+            // 4. Active b0 slot
             // and, if the bootloader is "MCUboot":
-            // 4. Bootloader mode
-            readMcuMgrParams(() -> readAppInfo("sv", () -> readBootloaderName((name) -> {
+            // 5. Bootloader mode
+            readMcuMgrParams(() -> readAppInfo("sv", () -> readBootloaderName((name) -> readActiveSlot(() -> {
                 if ("MCUboot".equals(name)) {
                     readMcuBootMode(null);
                 }
-            })));
+            }))));
         } else {
             bufferLiveData.postValue(null);
-            bootloaderModeLiveData.postValue(null);
             bootloaderNameLiveData.postValue(null);
+            bootloaderModeLiveData.postValue(null);
+            activeB0Slot.postValue(null);
             appInfoLiveData.postValue(null);
         }
     };
@@ -108,6 +111,8 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
     public LiveData<String> getBootloaderName() { return bootloaderNameLiveData; }
 
     public LiveData<Integer> getBootloaderMode() { return bootloaderModeLiveData; }
+
+    public LiveData<Integer> getActiveB0Slot() { return activeB0Slot; }
 
     public LiveData<String> getAppInfo() { return appInfoLiveData; }
 
@@ -233,6 +238,33 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
             @Override
             public void onError(@NotNull McuMgrException error) {
                 bootloaderModeLiveData.postValue(null);
+                if (then != null) {
+                    then.run();
+                }
+            }
+        });
+    }
+
+    /**
+     * Reads the ID active slot of the bootloader.
+     * This method is only supported by MCUboot bootloader.
+     *
+     * @param then a callback to be invoked when the active slot is read.
+     * @noinspection SameParameterValue
+     */
+    private void readActiveSlot(@Nullable final Runnable then) {
+        defaultManager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_QUERY_ACTIVE_B0_SLOT, new McuMgrCallback<>() {
+            @Override
+            public void onResponse(@NotNull McuMgrBootloaderInfoResponse response) {
+                activeB0Slot.postValue(response.activeB0Slot);
+                if (then != null) {
+                    then.run();
+                }
+            }
+
+            @Override
+            public void onError(@NotNull McuMgrException error) {
+                activeB0Slot.postValue(null);
                 if (then != null) {
                     then.run();
                 }

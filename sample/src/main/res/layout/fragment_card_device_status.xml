@@ -139,6 +139,26 @@
             app:layout_constraintTop_toBottomOf="@+id/bootloader_name_label"/>
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/active_b0_slot_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="16dp"
+            android:text="@string/status_active_b0_slot_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode_label"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/active_b0_slot"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/status_unknown"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode_label"/>
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/kernel_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -147,7 +167,7 @@
             android:text="@string/status_kernel"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode_label"/>
+            app:layout_constraintTop_toBottomOf="@+id/active_b0_slot_label"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/kernel"
@@ -157,7 +177,7 @@
             android:text="@string/status_unknown"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode_label"/>
+            app:layout_constraintTop_toBottomOf="@+id/active_b0_slot_label"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

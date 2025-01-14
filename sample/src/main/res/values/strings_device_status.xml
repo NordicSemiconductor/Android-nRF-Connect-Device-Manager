@@ -12,6 +12,7 @@
     <string name="status_mcumgr_buffer_size_label">Buffer details:</string>
     <string name="status_bootloader_name_label">Bootloader name:</string>
     <string name="status_bootloader_mode_label">Bootloader mode:</string>
+    <string name="status_active_b0_slot_label">Active B0 slot:</string>
     <string name="status_kernel">Kernel:</string>
 
     <string name="status_not_connected">Not connected</string>
@@ -33,12 +34,17 @@
     <string name="status_mcumgr_buffer_size">%d x %d bytes</string>
 
     <string-array name="bootloader_modes">
-        <item>Single App</item>
-        <item>Swap Scratch</item>
-        <item>Overwrite-only</item>
-        <item>Swap Without Scratch</item>
-        <item>Direct XIP Without Revert</item>
-        <item>Direct XIP With Revert</item>
-        <item>RAM Loader</item>
+        <item>Single App (0)</item>
+        <item>Swap Scratch (1)</item>
+        <item>Overwrite-only (2)</item>
+        <item>Swap Without Scratch (3)</item>
+        <item>Direct XIP Without Revert (4)</item>
+        <item>Direct XIP With Revert (5)</item>
+        <item>RAM Loader (6)</item>
+    </string-array>
+
+    <string-array name="b0_slots">
+        <item>Primary (0)</item>
+        <item>Secondary (1)</item>
     </string-array>
 </resources>
