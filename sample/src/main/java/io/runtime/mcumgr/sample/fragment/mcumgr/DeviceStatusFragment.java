@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -21,6 +22,7 @@ import javax.inject.Inject;
 import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardDeviceStatusBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
+import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
@@ -46,6 +48,17 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentCardDeviceStatusBinding.inflate(inflater, container, false);
+        binding.toolbar.inflateMenu(R.menu.help);
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_help) {
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.status_dialog_help_title,
+                        R.string.status_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+            }
+            return false;
+        });
         return binding.getRoot();
     }
 
@@ -116,6 +129,18 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                 }
             } else {
                 binding.bootloaderMode.setText(R.string.status_unknown);
+            }
+        });
+        viewModel.getActiveB0Slot().observe(getViewLifecycleOwner(), slot -> {
+            if (slot != null) {
+                final CharSequence[] slots = getResources().getTextArray(R.array.b0_slots);
+                if (slot >= 0 && slot < slots.length) {
+                    binding.activeB0Slot.setText(slots[slot]);
+                } else {
+                    binding.bootloaderMode.setText(getString(R.string.status_unknown_value, slot));
+                }
+            } else {
+                binding.activeB0Slot.setText(R.string.status_unknown);
             }
         });
         viewModel.getAppInfo().observe(getViewLifecycleOwner(), kernel -> {

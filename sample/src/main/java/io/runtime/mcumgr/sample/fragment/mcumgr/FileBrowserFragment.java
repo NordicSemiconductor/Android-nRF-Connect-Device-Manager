@@ -9,11 +9,10 @@ package io.runtime.mcumgr.sample.fragment.mcumgr;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Toast;
-
-import org.jetbrains.annotations.NotNull;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -26,8 +25,9 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -50,10 +50,12 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
 
     private ActivityResultLauncher<String> fileBrowserLauncher;
     private FileBrowserViewModel viewModel;
+    private Handler handler;
 
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        handler = new Handler();
         viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(FileBrowserViewModel.class);
 
@@ -183,15 +185,9 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
                 }
 
                 onFileSelected(fileName, fileSize);
-                try {
-                    final CursorLoader cursorLoader = (CursorLoader) loader;
-                    final InputStream is = requireContext().getContentResolver()
-                            .openInputStream(cursorLoader.getUri());
-                    loadContent(is);
-                } catch (final FileNotFoundException e) {
-                    Timber.e(e, "File not found");
-                    onFileLoadingFailed(R.string.file_loader_error_no_uri);
-                }
+
+                final CursorLoader cursorLoader = (CursorLoader) loader;
+                new Thread(() -> loadContent(cursorLoader.getUri())).start();
             } else {
                 Timber.e("Empty cursor");
                 onFileLoadingFailed(R.string.file_loader_error_no_uri);
@@ -221,15 +217,16 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
     /**
      * Loads content from the stream.
      *
-     * @param is the input stream to read the file from.
+     * @param uri the URI of the file.
      */
-    private void loadContent(@Nullable final InputStream is) {
-        if (is == null) {
-            onFileLoadingFailed(R.string.file_loader_error_loading_file_failed);
-            return;
-        }
+    private void loadContent(@NonNull final Uri uri) {
+        try (final InputStream is = requireContext().getContentResolver()
+                .openInputStream(uri)) {
+            if (is == null) {
+                handler.post(() -> onFileLoadingFailed(R.string.file_loader_error_loading_file_failed));
+                return;
+            }
 
-        try {
             final BufferedInputStream buf = new BufferedInputStream(is);
             final int size = buf.available();
             final byte[] bytes = new byte[size];
@@ -246,7 +243,7 @@ public abstract class FileBrowserFragment extends Fragment implements LoaderMana
             setFileContent(bytes);
         } catch (final IOException e) {
             Timber.e(e, "Reading file content failed");
-            onFileLoadingFailed(R.string.file_loader_error_loading_file_failed);
+            handler.post(() -> onFileLoadingFailed(R.string.file_loader_error_loading_file_failed));
         }
     }
 }

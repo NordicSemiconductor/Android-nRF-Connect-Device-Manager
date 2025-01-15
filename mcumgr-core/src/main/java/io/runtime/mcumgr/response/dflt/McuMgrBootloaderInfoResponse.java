@@ -50,6 +50,18 @@ public class McuMgrBootloaderInfoResponse extends McuMgrOsResponse {
     @JsonProperty("bootloader")
     public String bootloader;
 
+    /** The active slot number is unknown. */
+    public static final int UNKNOWN_SLOT = -1;
+
+    /**
+     * The id of the active B0 slot. It can be either 0 (primary) or
+     * 1 (secondary). This is set only when the request was made with
+     * {@link io.runtime.mcumgr.managers.DefaultManager#BOOTLOADER_INFO_QUERY_ACTIVE_B0_SLOT}
+     * parameter, otherwise set to {@value #UNKNOWN_SLOT}.
+     */
+    @JsonProperty("active")
+    public int activeB0Slot = UNKNOWN_SLOT;
+
     @JsonCreator
     public McuMgrBootloaderInfoResponse() {}
 }

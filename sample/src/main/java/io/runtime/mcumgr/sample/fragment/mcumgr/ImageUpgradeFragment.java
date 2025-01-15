@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
+import io.runtime.mcumgr.dfu.mcuboot.model.ImageSet;
 import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.image.McuMgrImage;
@@ -41,13 +42,14 @@ import io.runtime.mcumgr.sample.databinding.FragmentCardImageUpgradeBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragment;
 import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
+import io.runtime.mcumgr.sample.dialog.SelectBinaryDialogFragment;
 import io.runtime.mcumgr.sample.observable.ConnectionParameters;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.utils.ZipPackage;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ImageUpgradeViewModel;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 
-public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable {
+public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable, SelectBinaryDialogFragment.OnBinarySelectedListener {
     private static final String PREF_ERASE_APP_SETTINGS = "pref_erase_app_settings";
     private static final String PREF_ESTIMATED_SWAP_TIME = "pref_estimated_swap_time";
     private static final String PREF_WINDOW_CAPACITY = "pref_window_capacity";
@@ -257,7 +259,10 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         });
 
         // Configure SELECT FILE action
-        binding.actionSelectFile.setOnClickListener(v -> selectFile("*/*"));
+        binding.actionSelectFile.setOnClickListener(v -> {
+            requiresModeSelection = true;
+            selectFile("*/*");
+        });
 
         // Restore START action state after rotation
         binding.actionStart.setEnabled(isFileLoaded());
@@ -268,7 +273,8 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 dialog.show(getChildFragmentManager(), null);
             } else {
                 // The mode doesn't matter for SUIT files as it's ignored.
-                start(FirmwareUpgradeManager.Mode.NONE);
+                // For MCUboot update this has to be Confirm Only.
+                start(FirmwareUpgradeManager.Mode.CONFIRM_ONLY);
             }
         });
 
@@ -345,7 +351,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     protected void onFileSelected(@NonNull final String fileName, final int fileSize) {
         binding.fileName.setText(fileName);
-        binding.fileSize.setText(getString(R.string.image_upgrade_size_value, fileSize));
     }
 
     @Override
@@ -354,9 +359,9 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             // Try parsing BIN file for single/main core (core0) update.
             final byte[] hash = McuMgrImage.getHash(data);
             binding.fileHash.setText(StringUtils.toHex(hash));
+            binding.fileSize.setText(getString(R.string.image_upgrade_size_value, data.length));
             binding.actionStart.setEnabled(true);
             binding.status.setText(R.string.image_upgrade_status_ready);
-            requiresModeSelection = true;
         } catch (final McuMgrException e) {
             // For multi-core devices images are bundled in a ZIP file.
             try {
@@ -368,6 +373,13 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
                 if (envelope != null) {
                     // Support for SUIT (Software Update for Internet of Things) format.
                     trySuitEnvelope(envelope);
+                    return;
+                }
+
+                final ImageSet mcubootBinaries = zip.getMcuBootBinaries();
+                if (mcubootBinaries != null && mcubootBinaries.getImages().size() > 1) {
+                    final DialogFragment dialog = SelectBinaryDialogFragment.getInstance(123);
+                    dialog.show(getChildFragmentManager(), null);
                     return;
                 }
 
@@ -402,6 +414,28 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     protected void onFileLoadingFailed(final int error) {
         binding.status.setText(error);
+    }
+
+    @Override
+    public void onBinarySelected(int requestId, int index) {
+        final byte[] data = getFileContent();
+        try {
+            final ZipPackage zip = new ZipPackage(data);
+            final TargetImage binary = zip.getBinaries().getImages().get(index);
+            requiresModeSelection = false;
+            setFileContent(binary.image.getData());
+        } catch (final Exception e) {
+            onFileLoadingFailed(R.string.image_error_file_not_valid);
+        }
+    }
+
+    @Override
+    public void onSelectingBinaryCancelled() {
+        binding.fileName.setText(null);
+        binding.fileHash.setText(null);
+        binding.fileSize.setText(null);
+        binding.status.setText(null);
+        clearFileContent();
     }
 
     private void trySuitEnvelope(@NonNull final byte[] data) {
