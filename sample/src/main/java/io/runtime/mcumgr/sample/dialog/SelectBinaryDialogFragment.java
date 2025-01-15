@@ -12,7 +12,7 @@ import androidx.fragment.app.DialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import io.runtime.mcumgr.sample.R;
-import io.runtime.mcumgr.sample.databinding.DialogSelectImageBinding;
+import io.runtime.mcumgr.sample.databinding.DialogSelectBinaryBinding;
 
 public class SelectBinaryDialogFragment extends DialogFragment {
 	private static final String ARG_REQUEST_ID = "requestId";
@@ -39,7 +39,7 @@ public class SelectBinaryDialogFragment extends DialogFragment {
 		final Bundle args = requireArguments();
 		final int requestId = args.getInt(ARG_REQUEST_ID);
 		final String[] slots = getResources().getStringArray(R.array.image_upgrade_slot);
-		final DialogSelectImageBinding binding = DialogSelectImageBinding.inflate(getLayoutInflater());
+		final DialogSelectBinaryBinding binding = DialogSelectBinaryBinding.inflate(getLayoutInflater());
 		binding.image.setAdapter(new ArrayAdapter<>(requireContext(), R.layout.drop_down_item, slots));
 		binding.image.setOnItemClickListener((parent, view, position, id) -> this.position = position);
 
