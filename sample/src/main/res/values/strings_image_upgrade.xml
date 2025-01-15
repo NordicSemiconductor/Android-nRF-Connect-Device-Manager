@@ -49,6 +49,18 @@
         <item>No Revert</item>
     </string-array>
 
+    <string name="image_upgrade_slot">MCUboot update</string>
+    <string name="image_upgrade_slot_descr">Select the MCUboot image to upload.
+        Each image targets a different B0 slot: Primary or Secondary. The selected image should target
+        the opposite slot to the active one.\n\nThe active B0 slot, if known, is displayed on the
+        Device Status pane.\n\nIf you are unsure which image to select, try the one for the Secondary slot.
+        If you select a wrong image the image will be ignored, try the other one next time.</string>
+    <string name="image_upgrade_slot_hint">Select image</string>
+    <string-array name="image_upgrade_slot">
+        <item>Image for the Primary slot</item>
+        <item>Image for the Secondary slot</item>
+    </string-array>
+
     <string name="image_upgrade_status_ready">READY</string>
     <string name="image_upgrade_status_validating">VALIDATING…</string>
     <string name="image_upgrade_status_uploading">UPLOADING…</string>
