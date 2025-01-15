@@ -47,4 +47,12 @@
         <item>Primary (0)</item>
         <item>Secondary (1)</item>
     </string-array>
+
+    <string name="status_dialog_help_title">Help</string>
+    <string name="status_dialog_help_message"><b>Buffer details</b> - number of mcumgr buffers and their size,
+        requires MCU Mgr Parameters command in OS Group.
+        \n<b>Bootloader name</b> - name of the bootloader, requires Bootloader Info command in OS Group.
+        \n<b>Bootloader mode</b> - mode of the MCUboot, requires MCUboot bootloader.
+        \n<b>Active B0 slot</b> - slot from which the nRF Secure Immutable Bootloader (NSIB), known also as B0, booted the application.
+        \n<b>Kernel</b> - kernel name and version, requires Application Info command in OS Group.</string>
 </resources>
