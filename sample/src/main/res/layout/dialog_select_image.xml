@@ -13,11 +13,6 @@
     android:paddingTop="16dp"
     android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/image_upgrade_slot_descr" />
-
     <com.google.android.material.textfield.TextInputLayout
         style="?textInputOutlinedExposedDropdownMenuStyle"
         android:layout_width="match_parent"
