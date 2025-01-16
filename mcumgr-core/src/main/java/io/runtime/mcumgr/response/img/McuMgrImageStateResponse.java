@@ -63,10 +63,10 @@ public class McuMgrImageStateResponse extends McuMgrResponse implements ImageMan
          */
         @JsonProperty("pending")
         public boolean pending;
-        /** An image is confirmed when it managed to boot on slot 0. */
+        /** An image is confirmed when it managed to boot from and was confirmed. */
         @JsonProperty("confirmed")
         public boolean confirmed;
-        /** An image is active when it is running on slot 0. */
+        /** An image is active when it is running. */
         @JsonProperty("active")
         public boolean active;
         /** An image is permanent after it was confirmed using <i>confirm</i> command. */
