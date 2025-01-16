@@ -33,6 +33,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 import io.runtime.mcumgr.response.UploadResponse;
 import io.runtime.mcumgr.response.img.McuMgrCoreLoadResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageResponse;
+import io.runtime.mcumgr.response.img.McuMgrImageSlotResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageStateResponse;
 import io.runtime.mcumgr.response.img.McuMgrImageUploadResponse;
 import io.runtime.mcumgr.transfer.Download;
@@ -208,7 +209,7 @@ public class ImageManager extends TransferManager {
     private final static int ID_CORELIST = 3;
     private final static int ID_CORELOAD = 4;
     private final static int ID_ERASE = 5;
-    private final static int ID_ERASE_STATE = 6;
+    private final static int ID_SLOT_INFO = 6;
 
     /**
      * Construct an image manager.
@@ -513,55 +514,23 @@ public class ImageManager extends TransferManager {
     }
 
     /**
-     * Erase the state of secondary slot of main image (asynchronous).
+     * Reads slot information (asynchronous).
      *
      * @param callback the asynchronous callback.
      */
-    public void eraseState(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
-        eraseState(0, callback);
+    public void slots(@NotNull McuMgrCallback<McuMgrImageSlotResponse> callback) {
+        send(OP_READ, ID_SLOT_INFO, null, SHORT_TIMEOUT, McuMgrImageSlotResponse.class, callback);
     }
 
     /**
-     * Erase the state of secondary slot of the main image (asynchronous).
-     *
-     * @param image    the image number, default is 0. Use 0 for core0, 1 for core1, etc.
-     * @param callback the asynchronous callback.
-     */
-    public void eraseState(int image, @NotNull McuMgrCallback<McuMgrImageResponse> callback) {
-        HashMap<String, Object> payloadMap = null;
-        if (image > 0) {
-            payloadMap = new HashMap<>();
-            payloadMap.put("image", image);
-        }
-        send(OP_WRITE, ID_ERASE_STATE, payloadMap, DEFAULT_TIMEOUT, McuMgrImageResponse.class, callback);
-    }
-
-    /**
-     * Erase the state of secondary slot of the main image (synchronous).
+     * Reads slot information (synchronous).
      *
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrImageResponse eraseState() throws McuMgrException {
-        return eraseState(0);
-    }
-
-    /**
-     * Erase the state of secondary slot of given image (synchronous).
-     *
-     * @param image the image number, default is 0. Use 0 for core0, 1 for core1, etc.
-     * @return The response.
-     * @throws McuMgrException Transport error. See cause.
-     */
-    @NotNull
-    public McuMgrImageResponse eraseState(int image) throws McuMgrException {
-        HashMap<String, Object> payloadMap = null;
-        if (image > 0) {
-            payloadMap = new HashMap<>();
-            payloadMap.put("image", image);
-        }
-        return send(OP_WRITE, ID_ERASE_STATE, payloadMap, SHORT_TIMEOUT, McuMgrImageResponse.class);
+    public McuMgrImageSlotResponse slots() throws McuMgrException {
+        return send(OP_READ, ID_SLOT_INFO, null, SHORT_TIMEOUT, McuMgrImageSlotResponse.class);
     }
 
     /**
