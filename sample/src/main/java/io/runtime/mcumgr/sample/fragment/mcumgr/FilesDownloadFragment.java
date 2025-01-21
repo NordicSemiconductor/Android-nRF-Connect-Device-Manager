@@ -84,6 +84,15 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         }
     }
 
+    /**
+     * A custom Activity result contract to create a new document.
+     * <p>
+     * The one form {@link androidx.activity.result.contract.ActivityResultContracts} requires
+     * setting the MIME TYPE at the time of registration and cannot be changed later.
+     * <p>
+     * This contract allows to set the MIME TYPE when the file name is known.
+     * @see FileData
+     */
     static class CreateDocument extends ActivityResultContract<FileData, Uri> {
 
         @NonNull
