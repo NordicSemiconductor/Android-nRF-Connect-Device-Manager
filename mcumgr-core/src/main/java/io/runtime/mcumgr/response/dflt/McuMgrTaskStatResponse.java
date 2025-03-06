@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.response.dflt;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
@@ -48,6 +49,7 @@ public class McuMgrTaskStatResponse extends McuMgrOsResponse {
     /**
      * Structure containing information about a running task.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TaskStat {
         /** Task Priority. */
         @JsonProperty("prio")

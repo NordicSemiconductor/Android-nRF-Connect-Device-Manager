@@ -7,11 +7,9 @@
 package io.runtime.mcumgr.response.dflt;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** @noinspection unused*/
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class McuMgrBootloaderInfoResponse extends McuMgrOsResponse {
     // MCUboot modes are explained here: https://docs.mcuboot.com/design.html#image-slots
 

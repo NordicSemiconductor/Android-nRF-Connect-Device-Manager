@@ -32,9 +32,9 @@ public class McuMgrLogResponse extends McuMgrResponse {
     @JsonCreator
     public McuMgrLogResponse() {}
 
+    /** @noinspection unused*/
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class LogResult {
-
         public static final int LOG_TYPE_STREAM = 0;
         public static final int LOG_TYPE_MEMORY = 1;
         public static final int LOG_TYPE_STORAGE = 2;
@@ -62,9 +62,9 @@ public class McuMgrLogResponse extends McuMgrResponse {
         public LogResult() {}
     }
 
+    /** @noinspection unused*/
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Entry {
-
         public static final int LOG_LEVEL_DEBUG = 0;
         public static final int LOG_LEVEL_INFO = 1;
         public static final int LOG_LEVEL_WARN = 2;
