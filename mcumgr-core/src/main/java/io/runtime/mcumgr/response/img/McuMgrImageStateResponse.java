@@ -6,6 +6,7 @@
 package io.runtime.mcumgr.response.img;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.runtime.mcumgr.managers.ImageManager;
@@ -35,6 +36,7 @@ public class McuMgrImageStateResponse extends McuMgrResponse implements ImageMan
     /**
      * The single image slot data structure.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ImageSlot {
         /**
          * The image number used for multi-core devices.
