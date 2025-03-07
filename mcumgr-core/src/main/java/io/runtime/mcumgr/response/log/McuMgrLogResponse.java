@@ -116,7 +116,6 @@ public class McuMgrLogResponse extends McuMgrResponse {
          * The first 4 bytes of the build ID (image hash) which was running when this log entry was
          * written by the device.
          */
-        @Nullable
         @JsonProperty("imghash")
         public byte[] imghash;
 

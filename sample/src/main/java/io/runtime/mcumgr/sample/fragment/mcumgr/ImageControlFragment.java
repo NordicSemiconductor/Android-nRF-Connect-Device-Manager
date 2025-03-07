@@ -204,7 +204,7 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
                             slot.version,
                             StringUtils.toHex(slot.hash),
                             slot.bootable, slot.pending, slot.confirmed,
-                            slot.active, slot.permanent));
+                            slot.active, slot.permanent, slot.compressed));
                 }
             } else {
                 builder.append("\nNo image information");
