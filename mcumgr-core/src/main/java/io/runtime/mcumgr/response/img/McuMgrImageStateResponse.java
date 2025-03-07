@@ -74,6 +74,9 @@ public class McuMgrImageStateResponse extends McuMgrResponse implements ImageMan
         /** An image is permanent after it was confirmed using <i>confirm</i> command. */
         @JsonProperty("permanent")
         public boolean permanent;
+        /** A flag indicating whether the image is compressed. */
+        @JsonProperty("compressed")
+        public boolean compressed;
 
         @JsonCreator
         public ImageSlot() {}
