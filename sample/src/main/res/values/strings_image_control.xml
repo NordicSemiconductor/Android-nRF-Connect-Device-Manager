@@ -35,7 +35,7 @@
 		• Downgrade Prevention Policy: %s\n
 		• Independent Updateability Policy: %s\n
 		• Signature Verification Policy: %s\n
-		• Digest: 0x%s\n
+		• Digest: %s\n
 		• Digest Algorithm: %s\n
 		• Signature Verification: %s\n
 		• Sequence number: 0x%X\n
