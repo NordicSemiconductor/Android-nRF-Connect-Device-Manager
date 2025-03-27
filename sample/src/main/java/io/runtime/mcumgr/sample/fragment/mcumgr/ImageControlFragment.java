@@ -162,6 +162,7 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
                 final String vendor = manifest.isVendorNordic() ? "Nordic Semiconductor ASA" : "Unknown";
                 final String classIdName = manifest.getKnownClassName();
                 final String version = manifest.getVersion();
+                final String digest = manifest.digest != null ? ByteUtil.byteArrayToHex(manifest.digest, "0x%02X") : null;
                 builder.append(getString(R.string.image_suit_manifest_details,
                         manifest.getClassId().toString().toUpperCase(Locale.ROOT),
                         classIdName != null ? classIdName : "Unknown",
@@ -169,7 +170,7 @@ public class ImageControlFragment extends Fragment implements Injectable, Select
                         manifest.downgradePreventionPolicy,
                         manifest.independentUpdateabilityPolicy,
                         manifest.signatureVerificationPolicy,
-                        ByteUtil.byteArrayToHex(manifest.digest, "%02X"),
+                        digest,
                         manifest.digestAlgorithm,
                         manifest.signatureCheck,
                         manifest.sequenceNumber,
