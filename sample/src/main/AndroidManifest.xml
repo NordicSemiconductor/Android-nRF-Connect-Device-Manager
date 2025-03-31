@@ -65,7 +65,8 @@
 		android:supportsRtl="false"
 		android:theme="@style/AppTheme"
 		android:enableOnBackInvokedCallback="true"
-		tools:ignore="GoogleAppIndexingWarning">
+		tools:ignore="GoogleAppIndexingWarning"
+        tools:targetApi="33">
 
 		<activity
 			android:name=".ScannerActivity"
