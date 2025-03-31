@@ -39,6 +39,11 @@
 	 it is left here for readability.
 	-->
 	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+	<!--
+	 This app may show a notification when a firmware is available for
+	 a Fast Pair device. It is registered as companion app.
+	-->
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 	<!-- Bluetooth LE is required. -->
 	<uses-feature
@@ -100,6 +105,18 @@
 			android:name=".MainActivity"
 			android:parentActivityName=".ScannerActivity"
 			android:windowSoftInputMode="adjustPan" />
+
+		<!--
+		 Register the Fast Pair firmware update receiver.
+		 See: https://developers.google.com/nearby/fast-pair/companion-apps#firmware_update_intent
+		-->
+		<receiver
+			android:name=".application.FastPairFirmwareUpdateReceiver"
+			android:exported="true">
+			<intent-filter>
+				<action android:name="com.google.android.gms.nearby.fastpair.ACTION_FIRMWARE_UPDATE_BROADCAST" />
+			</intent-filter>
+		</receiver>
 	</application>
 
 </manifest>

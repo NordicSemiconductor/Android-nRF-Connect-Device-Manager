@@ -8,6 +8,7 @@ package io.runtime.mcumgr.sample;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import androidx.activity.SystemBarStyle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
@@ -140,6 +142,19 @@ public class ScannerActivity extends AppCompatActivity implements Injectable {
         } else {
             scannerFragment = getSupportFragmentManager().findFragmentByTag("scanner");
             savedFragment = getSupportFragmentManager().findFragmentByTag("saved");
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        // Request POST_NOTIFICATIONS permission if not granted.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[] { android.Manifest.permission.POST_NOTIFICATIONS }, 0);
+            }
         }
     }
 
