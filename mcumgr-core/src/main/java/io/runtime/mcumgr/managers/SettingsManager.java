@@ -230,7 +230,7 @@ public class SettingsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void commit(@NotNull McuMgrCallback<McuMgrResponse> callback) {
-        send(OP_WRITE, ID_DELETE, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
+        send(OP_WRITE, ID_COMMIT, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
     /**
@@ -241,7 +241,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse commit() throws McuMgrException {
-        return send(OP_WRITE, ID_DELETE, null, SHORT_TIMEOUT, McuMgrResponse.class);
+        return send(OP_WRITE, ID_COMMIT, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
     /**
