@@ -25,7 +25,8 @@
 		• Pending: %B\n
 		• Confirmed: %B\n
 		• Active: %B\n
-		• Permanent: %B</string>
+		• Permanent: %B\n
+		• Compressed: %B</string>
 
 	<string name="image_suit_manifest_role">%d. %s (role: 0x%02X)\n</string>
 	<string name="image_suit_manifest_details">
@@ -34,7 +35,7 @@
 		• Downgrade Prevention Policy: %s\n
 		• Independent Updateability Policy: %s\n
 		• Signature Verification Policy: %s\n
-		• Digest: 0x%s\n
+		• Digest: %s\n
 		• Digest Algorithm: %s\n
 		• Signature Verification: %s\n
 		• Sequence number: 0x%X\n

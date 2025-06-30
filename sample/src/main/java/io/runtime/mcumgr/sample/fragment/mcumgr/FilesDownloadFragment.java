@@ -6,9 +6,12 @@
 
 package io.runtime.mcumgr.sample.fragment.mcumgr;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.SpannableString;
@@ -22,7 +25,11 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.MimeTypeMap;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
@@ -30,7 +37,10 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -59,12 +69,62 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     private InputMethodManager imm;
     private String partition;
 
+    private ActivityResultLauncher<FileData> saveFileLauncher;
+
+    static class FileData {
+        private final String fileName;
+        private final String mimeType;
+
+        public FileData(String fileName) {
+            this.fileName = fileName;
+
+            final String ext = MimeTypeMap.getFileExtensionFromUrl(fileName);
+            final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+            this.mimeType = Objects.requireNonNullElse(mimeType, "*/*");
+        }
+    }
+
+    /**
+     * A custom Activity result contract to create a new document.
+     * <p>
+     * The one form {@link androidx.activity.result.contract.ActivityResultContracts} requires
+     * setting the MIME TYPE at the time of registration and cannot be changed later.
+     * <p>
+     * This contract allows to set the MIME TYPE when the file name is known.
+     * @see FileData
+     */
+    static class CreateDocument extends ActivityResultContract<FileData, Uri> {
+
+        @NonNull
+        @Override
+        public Intent createIntent(@NonNull Context context, FileData input) {
+            return new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .setType(input.mimeType)
+                    .putExtra(Intent.EXTRA_TITLE, input.fileName);
+        }
+
+        @Nullable
+        @Override
+        public SynchronousResult<Uri> getSynchronousResult(@NonNull Context context, FileData input) {
+            return null;
+        }
+
+        @Override
+        public Uri parseResult(int resultCode, @Nullable Intent intent) {
+            if (resultCode == Activity.RESULT_OK && intent != null)
+                return intent.getData();
+            return null;
+        }
+    }
+
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(FilesDownloadViewModel.class);
         imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        saveFileLauncher = registerForActivityResult(new CreateDocument(), this::save);
     }
 
     @Nullable
@@ -127,6 +187,10 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                 viewModel.download(binding.filePath.getText().toString());
             }
         });
+        binding.actionSave.setOnClickListener(v -> {
+            final String fileName = binding.fileName.getText().toString();
+            saveFileLauncher.launch(new FileData(fileName));
+        });
     }
 
     @Override
@@ -139,11 +203,29 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
         imm.hideSoftInputFromWindow(binding.fileName.getWindowToken(), 0);
     }
 
+    /**
+     * Saves the downloaded file to the selected location.
+     * @param uri the URI of the file to save to.
+     */
+    private void save(final @Nullable Uri uri) {
+        final byte[] data = viewModel.getResponse().getValue();
+        if (uri == null || data == null)
+            return;
+        try (final OutputStream os = requireContext().getContentResolver().openOutputStream(uri)) {
+            os.write(data);
+            os.flush();
+            Toast.makeText(requireContext(), R.string.files_download_saved, Toast.LENGTH_SHORT).show();
+        } catch (final IOException e) {
+            printError(new McuMgrException(e));
+        }
+    }
+
     private void printContent(@Nullable final byte[] data) {
         binding.divider.setVisibility(View.VISIBLE);
         binding.fileResult.setVisibility(View.VISIBLE);
         binding.image.setVisibility(View.VISIBLE);
         binding.image.setImageDrawable(null);
+        binding.actionSave.setEnabled(false);
 
         if (data == null) {
             binding.fileResult.setText(R.string.files_download_error_file_not_found);
@@ -160,6 +242,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                             0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
                     binding.fileResult.setText(spannable);
                     binding.image.setImageBitmap(bitmap);
+                    binding.actionSave.setEnabled(true);
                 } else {
                     final String content = new String(data);
                     final SpannableString spannable = new SpannableString(
@@ -167,6 +250,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
                     spannable.setSpan(new StyleSpan(Typeface.BOLD),
                             0, path.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
                     binding.fileResult.setText(spannable);
+                    binding.actionSave.setEnabled(true);
                 }
             }
         }
@@ -175,6 +259,8 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     private void printError(@Nullable final McuMgrException error) {
         binding.divider.setVisibility(View.VISIBLE);
         binding.fileResult.setVisibility(View.VISIBLE);
+        binding.actionSave.setEnabled(false);
+        binding.image.setImageDrawable(null);
 
         String message = StringUtils.toString(requireContext(), error);
         if (error instanceof McuMgrErrorException e) {

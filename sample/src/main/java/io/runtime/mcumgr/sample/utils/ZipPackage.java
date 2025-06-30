@@ -2,6 +2,7 @@ package io.runtime.mcumgr.sample.utils;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -35,7 +36,7 @@ public final class ZipPackage {
 		@Keep
 		private static class File {
 			/**
-			 * The file type. Expected vales are: "application", "bin", "suit-envelope".
+			 * The file type. Expected vales are: "application", "bin", "suit-envelope", "cache", "mcuboot".
 			 */
 			private String type;
 			/**
@@ -65,7 +66,7 @@ public final class ZipPackage {
 			 * be sent.
 			 * @since NCS v 2.5, nRF Connect Device Manager 1.8.
 			 */
-			private int slot = TargetImage.SLOT_SECONDARY;
+			private int slot = -1; // If not set in manifest TargetImage.SLOT_SECONDARY will be used (see getBinaries(type) below).
 			/**
 			 * The target partition ID. This parameter is valid for files with type `cache`.
 			 */
@@ -101,17 +102,50 @@ public final class ZipPackage {
 		}
 	}
 
+	@NonNull
 	public ImageSet getBinaries() throws IOException, McuMgrException {
-		final ImageSet binaries = new ImageSet();
+		final ImageSet binaries = getBinaries(null);
+		if (binaries == null)
+			return new ImageSet();
+		return binaries;
+	}
+
+	@Nullable
+	public ImageSet getMcuBootBinaries() throws IOException, McuMgrException {
+		return getBinaries("mcuboot");
+	}
+
+	@Nullable
+	private ImageSet getBinaries(final @Nullable String type) throws IOException, McuMgrException {
+		ImageSet binaries = null;
 
 		// Search for images.
+		int i = 0;
 		for (final Manifest.File file: manifest.files) {
-			final String name = file.file;
-			final byte[] content = entries.get(name);
-			if (content == null)
-				throw new IOException("File not found: " + name);
+			if (type == null || type.equals(file.type)) {
+				final String name = file.file;
+				final byte[] content = entries.get(name);
+				if (content == null)
+					throw new IOException("File not found: " + name);
 
-			binaries.add(new TargetImage(file.imageIndex, file.slot, content));
+				if (binaries == null)
+					binaries = new ImageSet();
+
+				int slot = file.slot;
+				// If slot wasn't set from json, set it to the default value.
+				if (slot < 0) {
+					if ("mcuboot".equals(file.type)) {
+						// Before nRF Connect SDK 3.0 slot was not given for mcuboot updates.
+						// Instead, slots were assigned in order of appearance in the manifest.
+						slot = i++;
+					} else {
+						// By default, send the image to the secondary slot, even if they are
+						// later swapped to the primary slot.
+						slot = TargetImage.SLOT_SECONDARY;
+					}
+				}
+				binaries.add(new TargetImage(file.imageIndex, slot, content));
+			}
 		}
 		return binaries;
 	}
@@ -122,6 +156,7 @@ public final class ZipPackage {
 	 * This is valid only for SUIT updates using SUIT manager.
 	 * @return The SUIT envelope, or null if not present in the ZIP.
 	 */
+	@Nullable
 	public byte[] getSuitEnvelope() {
 		// First, search for an entry of type "suit-envelope".
 		for (final Manifest.File file: manifest.files) {
@@ -146,8 +181,9 @@ public final class ZipPackage {
 	 * @return The cache images, or null if not present in the ZIP.
 	 * @throws IOException if at least one of the cache images is missing.
 	 */
+	@Nullable
 	public CacheImageSet getCacheBinaries() throws IOException {
-		final CacheImageSet cache = new CacheImageSet();
+		CacheImageSet cache = null;
 
 		// Search for images.
 		for (final Manifest.File file: manifest.files) {
@@ -157,11 +193,11 @@ public final class ZipPackage {
 				if (content == null)
 					throw new IOException("File not found: " + name);
 
+				if (cache == null)
+					cache = new CacheImageSet();
 				cache.add(file.partition, content);
 			}
 		}
-		if (cache.getImages().isEmpty())
-			return null;
 		return cache;
 	}
 

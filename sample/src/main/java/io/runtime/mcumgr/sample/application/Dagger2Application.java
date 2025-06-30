@@ -15,6 +15,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationChannelCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import javax.inject.Inject;
 
@@ -48,6 +50,9 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
         // Hack based on: https://github.com/JakeWharton/timber/issues/484#issuecomment-2008724303
         //noinspection DataFlowIssue
         Timber.plant((Timber.Tree) (Object) new Timber.DebugTree());
+
+        // Register the notification channel for Fast Pair firmware updates.
+        registerNotificationChannels();
     }
 
     @Override
@@ -105,5 +110,23 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
             builder.logSessionUri(logger.getSession().getSessionUri());
         }
         builder.build().update(this);
+    }
+
+    /**
+     * Registers Notifications Channels.
+     */
+    private void registerNotificationChannels() {
+        // https://developers.google.com/nearby/fast-pair/companion-apps#firmware_update_intent
+        final NotificationChannelCompat channel = new NotificationChannelCompat
+                .Builder(FastPairFirmwareUpdateReceiver.NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
+                .setName("Fast Pair")
+                .setDescription("Notifications regarding Fast Pair firmware updates. These notifications will only show up when you have a Fast Pair accessory with the companion app set to nRF Connect Device Manager.")
+                .setLightsEnabled(true)
+                .setLightColor(0x0000FF)
+                .setShowBadge(false)
+                .build();
+
+        final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.createNotificationChannel(channel);
     }
 }

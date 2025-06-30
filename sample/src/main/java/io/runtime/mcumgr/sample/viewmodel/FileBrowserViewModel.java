@@ -1,10 +1,10 @@
 package io.runtime.mcumgr.sample.viewmodel;
 
-import javax.inject.Inject;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import javax.inject.Inject;
 
 public class FileBrowserViewModel extends ViewModel {
 	private final MutableLiveData<byte[]> fileContent = new MutableLiveData<>();
@@ -15,7 +15,7 @@ public class FileBrowserViewModel extends ViewModel {
 	}
 
 	public void setFileContent(final byte[] fileContent) {
-		this.fileContent.setValue(fileContent);
+		this.fileContent.postValue(fileContent);
 	}
 
 	public LiveData<byte[]> getFileContent() {

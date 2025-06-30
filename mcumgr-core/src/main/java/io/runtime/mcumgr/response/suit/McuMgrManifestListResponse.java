@@ -7,6 +7,7 @@
 package io.runtime.mcumgr.response.suit;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ import io.runtime.mcumgr.response.McuMgrResponse;
 /** @noinspection unused*/
 public class McuMgrManifestListResponse extends McuMgrResponse {
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Manifest {
         /**
          * The manifest role.

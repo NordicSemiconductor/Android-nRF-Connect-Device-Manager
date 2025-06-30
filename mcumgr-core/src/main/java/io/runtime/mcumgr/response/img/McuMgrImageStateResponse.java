@@ -6,6 +6,7 @@
 package io.runtime.mcumgr.response.img;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.runtime.mcumgr.managers.ImageManager;
@@ -35,6 +36,7 @@ public class McuMgrImageStateResponse extends McuMgrResponse implements ImageMan
     /**
      * The single image slot data structure.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ImageSlot {
         /**
          * The image number used for multi-core devices.
@@ -63,15 +65,18 @@ public class McuMgrImageStateResponse extends McuMgrResponse implements ImageMan
          */
         @JsonProperty("pending")
         public boolean pending;
-        /** An image is confirmed when it managed to boot on slot 0. */
+        /** An image is confirmed when it managed to boot from and was confirmed. */
         @JsonProperty("confirmed")
         public boolean confirmed;
-        /** An image is active when it is running on slot 0. */
+        /** An image is active when it is running. */
         @JsonProperty("active")
         public boolean active;
         /** An image is permanent after it was confirmed using <i>confirm</i> command. */
         @JsonProperty("permanent")
         public boolean permanent;
+        /** A flag indicating whether the image is compressed. */
+        @JsonProperty("compressed")
+        public boolean compressed;
 
         @JsonCreator
         public ImageSlot() {}

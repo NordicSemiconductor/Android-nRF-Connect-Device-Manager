@@ -333,7 +333,7 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void poll(@NotNull McuMgrCallback<McuMgrPollResponse> callback) {
-        send(OP_READ, ID_MISSING_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class, callback);
+        send(OP_READ, ID_MISSING_IMAGE_STATE, null, DEFAULT_TIMEOUT, McuMgrPollResponse.class, callback);
     }
 
     /**
@@ -356,7 +356,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrPollResponse poll() throws McuMgrException {
-        return send(OP_READ, ID_MISSING_IMAGE_STATE, null, SHORT_TIMEOUT, McuMgrPollResponse.class);
+        return send(OP_READ, ID_MISSING_IMAGE_STATE, null, DEFAULT_TIMEOUT, McuMgrPollResponse.class);
     }
 
     /**

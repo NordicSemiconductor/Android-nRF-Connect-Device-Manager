@@ -8,6 +8,7 @@ package io.runtime.mcumgr.response.dflt;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
@@ -30,6 +31,7 @@ public class McuMgrMpStatResponse extends McuMgrOsResponse {
      * Information describing a memory pool, used to return OS information
      * to the management layer.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MpStat {
         /** Size of the memory blocks in the pool. */
         @JsonProperty("blksiz")

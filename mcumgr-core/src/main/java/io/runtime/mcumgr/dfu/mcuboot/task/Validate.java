@@ -176,7 +176,6 @@ class Validate extends FirmwareUpgradeTask {
 
 				// The flag indicates whether a reset operation should be performed during the process.
 				boolean resetRequired = false;
-				boolean initialResetRequired = false;
 
 				// For each image that is to be sent, check if the same image has already been sent.
 				for (final TargetImage image : images.getImages()) {
@@ -221,43 +220,70 @@ class Validate extends FirmwareUpgradeTask {
 							}
 							break;
 						} else {
+							// The `image.slot` determines to which slot the image will be uploaded.
+							// If the target slot of the image matches the slot number it means that
+							// a Direct XIP mode is used. In that case the firmware comes in two
+							// versions, one for each slot. We need to determine which one to send.
 							if (slot.slot == image.slot) {
-								LOG.debug("slot: {}, slot.slot == image.slot", slot);
+								// There are 5 cases the slots can be in:
+								//
+								// In "Swap" mode slots A and B are primary and secondary slots.
+								// In "Direct XIP" mode, slot A is the confirmed one, and slot B is the
+								// other one, but any of them can be primary.
+								//
+								// ----------------------------|--------|-----------|-----------------------|---------------------|
+								//                    | Normal | Tested | Confirmed | Test Mode Unconfirmed | Test Mode Confirmed |
+								// ----------------------------|--------|-----------|-----------------------|---------------------|
+								// Slot A | active    |   *    |   *    |    *      |                       |                     |
+								//        | confirmed |   *    |   *    |    *      |           *           |         *           |
+								//        | pending   |        |        |           |                       |                     |
+								//        | permanent |        |        |           |                       |                     |
+								// ----------------------------|--------|-----------|-----------------------|---------------------|
+								// Slot B | active    |        |        |           |           *           |         *           |
+								//        | confirmed |        |        |           |                       |                     |
+								//		  | pending   |        |   *    |    *      |                       |         *           |
+								//		  | permanent |        |        |    *      |                       |         *           |
+								// ----------------------------|--------|-----------|-----------------------|---------------------|
+								//
+								// Update can only be made in the Normal state, where the "other" slot is
+								// empty or has "pending" flag clear (the existing firmware will get
+								// erased automatically if needed).
+								// Sending Reset command will have the following effect:
+								// - Confirmed             -> Normal
+								// - Tested                -> Test Mode Unconfirmed
+								// - Test Mode Unconfirmed -> Normal
+								// - Test Mode Confirmed   -> Normal
 
-								// The `image.slot` determines to which slot the image will be uploaded.
-								// If the image on the target slot is active, we cannot send there
-								// anything, so we skip this image. It will not be uploaded.
+								// If the slot is pending or the device is in test mode (one slot
+								// is confirmed and the other active), we need to reset
+								// the device before uploading the image. Both slots in that case
+								// are in use and cannot be erased.
+								//
+								// Reset will cause MCUboot to boot the other slot and change flags,
+								// so we need to Validate again.
+								// Note:
+								//    It may happen that initial reset will be done two times.
+								//    If the image on the secondary slot has been marked as pending
+								//    (using Test command), the reset will switch the device to Test
+								//    mode. In that case, the image on the primary slot will be marked
+								//    as confirmed, and the one on the secondary slot as active.
+								//    Again, neither can be erased. Second reset will switch the device
+								//    back to the primary slot, and the secondary image will be erased
+								//    automatically.
+								if (slot.pending || slot.confirmed != slot.active) {
+									// Both slots are in use, we need to reset the device.
+									performer.enqueue(new ResetBeforeUpload(noSwap));
+									// And schedule the validation again.
+									performer.enqueue(new Validate(mode, images));
+									performer.onTaskCompleted(Validate.this);
+									return;
+								}
+								// If the image on the target slot is confirmed we cannot send
+								// there anything, so we skip this image. It will not be uploaded.
 								// This can happen on the primary slot or, when Direct XIP feature
 								// is enabled, also on the secondary slot.
-								if (slot.active) {
-									LOG.debug("slot: {}, slot.active, skip and continue …", slot);
-
-									skip = true;
-									continue;
-								}
-								// A different image in the secondary slot of required image may be found
-								// in 3 cases:
-
-								// 1. All flags are clear -> a previous update has taken place.
-								//    The slot will be overridden automatically. Nothing needs to be done.
-								if (!slot.pending && !slot.confirmed) {
-									continue;
-								}
-
-								// 2. The confirmed flag is set -> the device is in test mode.
-								//    In that case we need to reset the device to restore the original
-								//    image. We could also confirm the image-under-test, but that's more
-								//    risky.
 								if (slot.confirmed) {
-									initialResetRequired = true;
-								}
-
-								// 3. The pending or permanent flags are set -> the test or confirm
-								//    command have been sent before, but reset was not performed.
-								//    In that case we have to reset before uploading, as pending
-								//    slot cannot be overwritten (NO MEMORY error would be returned).
-								if (slot.pending || slot.permanent) {
-									initialResetRequired = true;
+									skip = true;
 								}
 							}
 						}
@@ -345,9 +371,6 @@ class Validate extends FirmwareUpgradeTask {
 				}
 
 				// To make sure the reset command are added just once, they're added based on flags.
-				if (initialResetRequired) {
-					performer.enqueue(new ResetBeforeUpload(noSwap));
-				}
 				if (resetRequired) {
 					if (settings.eraseAppSettings)
 						performer.enqueue(new EraseStorage());
