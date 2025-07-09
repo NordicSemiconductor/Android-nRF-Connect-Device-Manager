@@ -13,14 +13,17 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
 
 import io.runtime.mcumgr.managers.DefaultManager;
+import io.runtime.mcumgr.sample.R;
 import io.runtime.mcumgr.sample.databinding.FragmentCardResetBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
+import io.runtime.mcumgr.sample.dialog.HelpDialogFragment;
 import io.runtime.mcumgr.sample.utils.StringUtils;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import io.runtime.mcumgr.sample.viewmodel.mcumgr.ResetViewModel;
@@ -47,6 +50,17 @@ public class ResetFragment extends Fragment implements Injectable {
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentCardResetBinding.inflate(inflater, container, false);
+        binding.toolbar.inflateMenu(R.menu.help);
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_help) {
+                final DialogFragment dialog = HelpDialogFragment.getInstance(
+                        R.string.reset_dialog_help_title,
+                        R.string.reset_dialog_help_message);
+                dialog.show(getChildFragmentManager(), null);
+                return true;
+            }
+            return false;
+        });
         return binding.getRoot();
     }
 
