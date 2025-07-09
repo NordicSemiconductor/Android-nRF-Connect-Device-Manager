@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import javax.inject.Inject;
 
+import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.sample.databinding.FragmentCardResetBinding;
 import io.runtime.mcumgr.sample.di.Injectable;
 import io.runtime.mcumgr.sample.utils.StringUtils;
@@ -55,7 +56,12 @@ public class ResetFragment extends Fragment implements Injectable {
 
         viewModel.getError().observe(getViewLifecycleOwner(), e -> binding.resetError.setText(StringUtils.toString(requireContext(), e)));
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> binding.actionReset.setEnabled(!busy));
-        binding.actionReset.setOnClickListener(v -> viewModel.reset());
+        binding.actionReset.setOnClickListener(v -> {
+            final int bootMode = binding.optionBootloader.isChecked()
+                    ? DefaultManager.BOOT_MODE_TYPE_BOOTLOADER : DefaultManager.BOOT_MODE_TYPE_NORMAL;
+            final boolean force = binding.optionForce.isChecked();
+            viewModel.reset(bootMode, force);
+        });
     }
 
     @Override

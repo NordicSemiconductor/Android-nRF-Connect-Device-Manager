@@ -8,4 +8,7 @@
 <resources>
     <string name="reset_title">Reset</string>
     <string name="reset_action">Send Reset Command</string>
+
+    <string name="reset_option_bootloader">Switch to bootloader mode</string>
+    <string name="reset_option_force">Force reset</string>
 </resources>

@@ -27,6 +27,26 @@
             app:layout_constraintTop_toTopOf="parent"
             app:title="@string/reset_title"/>
 
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/option_bootloader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            android:text="@string/reset_option_bootloader"/>
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/option_force"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/option_bootloader"
+            android:text="@string/reset_option_force"/>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_reset"
             style="@style/Widget.Material3.Button.UnelevatedButton"
@@ -38,7 +58,7 @@
             app:backgroundTint="@color/button_destructive"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+            app:layout_constraintTop_toBottomOf="@+id/option_force"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/reset_error"
