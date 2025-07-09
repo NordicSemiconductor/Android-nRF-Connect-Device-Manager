@@ -158,7 +158,10 @@ public class ImageManager extends TransferManager {
         IMAGE_CONFIRMATION_DENIED(32),
 
         /** Setting test to active slot is not allowed */
-        IMAGE_SETTING_TEST_TO_ACTIVE_DENIED(33);
+        IMAGE_SETTING_TEST_TO_ACTIVE_DENIED(33),
+
+        /** Current active slot for image cannot be determined */
+        ACTIVE_SLOT_NOT_KNOWN(34);
 
         private final int mCode;
 
