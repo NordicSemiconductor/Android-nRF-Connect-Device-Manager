@@ -1,33 +1,38 @@
 ext.getVersionCodeFromTags = { ->
     try {
-        def code = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-list', '--count', 'HEAD'
-            standardOutput = code
-        }
+        def numberOfCommits = providers
+                .exec { commandLine 'git', 'rev-list', '--count', 'HEAD' }
+                .getStandardOutput()
+                .asText.get().trim()
+                .toInteger()
+
         def now = ZonedDateTime.now(ZoneId.of("UTC"))
         def year = String.format("%02d", now.year % 100)
         def month = String.format("%02d", now.monthValue)
         def day = String.format("%02d", now.dayOfMonth)
-        def revisions = String.format("%02d", code.toString().trim().toInteger() % 100)
+        def revisions = String.format("%02d", numberOfCommits % 100)
         def version = String.format("%s%s%s%s", year, month, day, revisions).toInteger()
         return version
     }
-    catch (ignored) {
+    catch (error) {
+        println("Failed to get version code from git rev-list, using default value: -1")
+        error.printStackTrace()
         return -1
     }
 }
 
 ext.getVersionNameFromTags = { ->
     try {
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'describe', '--tags', '--abbrev=0'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim().split("%")[0]
+        def tag = providers
+                .exec { commandLine 'git', 'describe', '--tags', '--abbrev=0' }
+                .getStandardOutput()
+                .asText.get().trim()
+
+        return tag.split("%")[0]
     }
-    catch (ignored) {
+    catch (error) {
+        println("Failed to get version name from git tags, using default value: null")
+        error.printStackTrace()
         return null
     }
 }
