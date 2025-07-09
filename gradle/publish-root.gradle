@@ -7,12 +7,14 @@ if (secretPropsFile.exists()) {
     p.each { name, value -> ext[name] = value }
 }
 
-// Set up Sonatype repository
+// Set up Sonatype OSSRH Staging API repository
+// https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
 
 nexusPublishing {
 
     repositories {
         sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
             stagingProfileId = System.env.SONATYPE_STAGING_PROFILE_ID
             username = System.env.OSSR_USERNAME
             password = System.env.OSSR_PASSWORD
