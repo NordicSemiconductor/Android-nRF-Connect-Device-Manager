@@ -38,16 +38,25 @@ import io.runtime.mcumgr.response.dflt.McuMgrTaskStatResponse;
 public class DefaultManager extends McuManager {
     public enum ReturnCode implements McuMgrGroupReturnCode {
         /** No error, this is implied if there is no ret value in the response */
-       OK(0),
+        OK(0),
 
         /** Unknown error occurred. */
-       UNKNOWN(1),
+        UNKNOWN(1),
 
         /** The provided format value is not valid. */
-       INVALID_FORMAT(2),
+        INVALID_FORMAT(2),
 
         /** Query was not recognized. */
-       QUERY_YIELDS_NO_ANSWER(3);
+        QUERY_YIELDS_NO_ANSWER(3),
+
+        /** RTC is not set */
+        RTC_NOT_SET(4),
+
+        /** RTC command failed */
+        RTC_COMMAND_FAILED(5),
+
+        /** Query was recognized but there is no valid value for the response. */
+        QUERY_RESPONSE_VALUE_NOT_VALID(6);
 
         private final int mCode;
 

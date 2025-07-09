@@ -28,6 +28,9 @@
 		<item>Unknown error (1)</item>
 		<item>Invalid format (2)</item>
 		<item>Yields no answer (3)</item>
+		<item>RTC not set (4)</item>
+		<item>RTC command failed (5)</item>
+		<item>Query response value not valid (6)</item>
 	</string-array>
 
 	<string-array name="mcu_mgr_img_error">
@@ -65,6 +68,7 @@
 		<item>Data overrun (31)</item>
 		<item>Confirmation denied (32)</item>
 		<item>Testing active slot denied (33)</item>
+		<item>Active slot not known (34)</item>
 	</string-array>
 
 	<string-array name="mcu_mgr_settings_error">
