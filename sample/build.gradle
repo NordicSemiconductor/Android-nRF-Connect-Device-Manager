@@ -8,13 +8,13 @@ apply plugin: 'com.android.application'
 apply from: rootProject.file("gradle/git-tag-version.gradle")
 
 android {
-    compileSdk 35
+    compileSdk 36
     namespace "io.runtime.mcumgr.sample"
 
     defaultConfig {
         applicationId "no.nordicsemi.android.nrfconnectdevicemanager"
         minSdkVersion 21
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode getVersionCodeFromTags()
         versionName getVersionNameFromTags()
         resConfig "en"
@@ -54,7 +54,7 @@ android {
 
 dependencies {
     implementation 'androidx.activity:activity:1.10.1'
-    implementation 'androidx.fragment:fragment:1.8.6'
+    implementation 'androidx.fragment:fragment:1.8.8'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
@@ -64,11 +64,11 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
 
     // Dagger 2
-    implementation 'com.google.dagger:dagger:2.54'
-    implementation 'com.google.dagger:dagger-android:2.54'
-    implementation 'com.google.dagger:dagger-android-support:2.54'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.54'
-    annotationProcessor 'com.google.dagger:dagger-android-processor:2.54'
+    implementation 'com.google.dagger:dagger:2.56.2'
+    implementation 'com.google.dagger:dagger-android:2.56.2'
+    implementation 'com.google.dagger:dagger-android-support:2.56.2'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.56.2'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.56.2'
 
     // Brings the new BluetoothLeScanner API to older platforms
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
@@ -81,7 +81,7 @@ dependencies {
     implementation project(':mcumgr-ble')
 
     // GSON
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'com.google.code.gson:gson:2.13.1'
 
     // Test
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
