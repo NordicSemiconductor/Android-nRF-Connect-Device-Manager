@@ -10,6 +10,8 @@ package io.runtime.mcumgr.managers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
@@ -107,6 +109,23 @@ public class DefaultManager extends McuManager {
     private final static int ID_APP_INFO = 7;
     private final static int ID_BOOTLOADER_INFO = 8;
 
+    /** This mode (default) reboots the device to the application. */
+    public static final int BOOT_MODE_TYPE_NORMAL = 0;
+    /** On supported devices this mode reboots the device into a bootloader or firmware loader mode. */
+    public static final int BOOT_MODE_TYPE_BOOTLOADER = 1;
+
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface BootMode {
+        /**
+         * Normal boot mode, the device will boot into the application.
+         */
+        int NORMAL = BOOT_MODE_TYPE_NORMAL;
+
+        /**
+         * Bootloader mode, the device will boot into a bootloader or firmware loader.
+         */
+        int BOOTLOADER = BOOT_MODE_TYPE_BOOTLOADER;
+    }
     /**
      * Construct an default manager.
      *
@@ -268,22 +287,92 @@ public class DefaultManager extends McuManager {
 
     /**
      * Reset the device (asynchronous).
+     * <p>
+     * As <code>boot_mode</code> and <code>force</code> parameters are not provided, the device will
+     * reboot into the application mode (normal boot mode) and the reset will not be forced
+     * (assuming <code>CONFIG_MCUMGR_GRP_OS_RESET_HOOK</code> enabled).
      *
      * @param callback the asynchronous callback.
+     * @see <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/services/device_mgmt/smp_groups/smp_group_0.html#system_reset">Documentation</a>
      */
     public void reset(@NotNull McuMgrCallback<McuMgrOsResponse> callback) {
-        send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
+        reset(BOOT_MODE_TYPE_NORMAL, false, callback);
     }
 
     /**
      * Reset the device (synchronous).
+     * <p>
+     * As <code>boot_mode</code> and <code>force</code> parameters are not provided, the device will
+     * reboot into the application mode (normal boot mode) and the reset will not be forced
+     * (assuming <code>CONFIG_MCUMGR_GRP_OS_RESET_HOOK</code> enabled).
      *
      * @return The response.
      * @throws McuMgrException Transport error. See cause.
+     * @see <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/services/device_mgmt/smp_groups/smp_group_0.html#system_reset">Documentation</a>
      */
     @NotNull
     public McuMgrOsResponse reset() throws McuMgrException {
-        return send(OP_WRITE, ID_RESET, null, SHORT_TIMEOUT, McuMgrOsResponse.class);
+        return reset(BOOT_MODE_TYPE_NORMAL, false);
+    }
+
+    /**
+     * Reset the device (asynchronous).
+     * <p>
+     * By default, this command is accepted in all conditions, however if the
+     * <code>CONFIG_MCUMGR_GRP_OS_RESET_HOOK</code> is enabled and an application
+     * registers a callback, the callback will be called when this command is issued
+     * and can be used to perform any necessary tidy operations prior to the module
+     * rebooting, or to reject the reset request outright altogether with an error
+     * response.
+     *
+     * @param bootMode The boot mode to use for the reset, defaults to {@link #BOOT_MODE_TYPE_NORMAL}.
+     * @param force Should the reset be forced not allowing application to reject it, defaults to false.
+     * @param callback the asynchronous callback.
+     * @see <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/services/device_mgmt/smp_groups/smp_group_0.html#system_reset">Documentation</a>
+     */
+    public void reset(@BootMode int bootMode, boolean force, @NotNull McuMgrCallback<McuMgrOsResponse> callback) {
+        HashMap<String, Object> payloadMap = null;
+        if (bootMode > BOOT_MODE_TYPE_NORMAL || force) {
+            payloadMap = new HashMap<>();
+            if (bootMode > BOOT_MODE_TYPE_NORMAL) {
+                payloadMap.put("boot_mode", bootMode);
+            }
+            if (force) {
+                payloadMap.put("force", true);
+            }
+        }
+        send(OP_WRITE, ID_RESET, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
+    }
+
+    /**
+     * Reset the device (synchronous).
+     * <p>
+     * By default, this command is accepted in all conditions, however if the
+     * <code>CONFIG_MCUMGR_GRP_OS_RESET_HOOK</code> is enabled and an application
+     * registers a callback, the callback will be called when this command is issued
+     * and can be used to perform any necessary tidy operations prior to the module
+     * rebooting, or to reject the reset request outright altogether with an error
+     * response.
+     *
+     * @param bootMode The boot mode to use for the reset, defaults to {@link #BOOT_MODE_TYPE_NORMAL}.
+     * @param force Should the reset be forced not allowing application to reject it, defaults to false.
+     * @return The response.
+     * @throws McuMgrException Transport error. See cause.
+     * @see <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/services/device_mgmt/smp_groups/smp_group_0.html#system_reset">Documentation</a>
+     */
+    @NotNull
+    public McuMgrOsResponse reset(@BootMode int bootMode, boolean force) throws McuMgrException {
+        HashMap<String, Object> payloadMap = null;
+        if (bootMode > BOOT_MODE_TYPE_NORMAL || force) {
+            payloadMap = new HashMap<>();
+            if (bootMode > BOOT_MODE_TYPE_NORMAL) {
+                payloadMap.put("boot_mode", bootMode);
+            }
+            if (force) {
+                payloadMap.put("force", true);
+            }
+        }
+        return send(OP_WRITE, ID_RESET, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class);
     }
 
     /**
