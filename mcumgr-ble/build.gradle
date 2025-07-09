@@ -5,6 +5,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
@@ -26,6 +27,13 @@ android {
         }
     }
 
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
     compileOptions {
         // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
         // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
@@ -34,11 +42,13 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
-        // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
-        // which employs an outdated version of r8 that can only handle java11 bytecode
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    kotlin {
+        compilerOptions {
+            // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with
+            // java11 so as to ensure that we don't break the "classic xamarin (mono)" toolchain for C# android-java-bindings
+            // which employs an outdated version of r8 that can only handle java11 bytecode
+            jvmTarget = JvmTarget.JVM_11
+        }
     }
 }
 
@@ -47,13 +57,13 @@ dependencies {
     api project(':mcumgr-core')
 
     // Import the BLE Library
-    api 'no.nordicsemi.android:ble:2.10.0'
+    api 'no.nordicsemi.android:ble:2.10.2'
 
     // Logging
-    implementation 'org.slf4j:slf4j-api:2.0.16'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
 
     // Kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
