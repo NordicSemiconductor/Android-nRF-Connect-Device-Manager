@@ -8,4 +8,16 @@
 <resources>
     <string name="reset_title">Reset</string>
     <string name="reset_action">Send Reset Command</string>
+
+    <string name="reset_option_bootloader">Switch to bootloader mode</string>
+    <string name="reset_option_force">Force reset</string>
+
+    <string name="reset_dialog_help_title">Help</string>
+    <string name="reset_dialog_help_message">This card lets you remotely restart the device.
+        A reset is required to complete a Firmware Update or Factory Reset.
+        \n\n<b>Switch to Bootloader Mode</b>: If supported by the firmware, this option restarts the
+        device into bootloader (firmware loader) mode.
+        \n\n<b>Force Reset</b>: If the firmware is compiled with <i>Reset Hook</i> that can reject reset
+        commands, enabling this option forces the reset even if it’s initially denied.
+	</string>
 </resources>
