@@ -1,4 +1,4 @@
-[ ![Download](https://maven-badges.herokuapp.com/maven-central/no.nordicsemi.android/mcumgr-ble/badge.svg?style=plastic) ](https://search.maven.org/search?q=g:no.nordicsemi.android)
+![Maven Central Version](https://img.shields.io/maven-central/v/no.nordicsemi.android/mcumgr-core?link=https%3A%2F%2Fcentral.sonatype.com%2Fsearch%3Fq%3Dno.nordicsemi.android)
 
 # nRF Connect Device Manager
 
