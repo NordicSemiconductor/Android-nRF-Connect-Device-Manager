@@ -10,7 +10,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -170,10 +169,5 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         if (onReleaseCallback != null) {
             onReleaseCallback.onReleased();
         }
-    }
-
-    @Override
-    public int getMinLogPriority() {
-        return Log.DEBUG;
     }
 }
