@@ -17,7 +17,7 @@ android {
         targetSdkVersion 36
         versionCode getVersionCodeFromTags()
         versionName getVersionNameFromTags()
-        resConfig "en"
+        resourceConfigurations += ['en']
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
