@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Mode;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
@@ -59,7 +60,7 @@ class Validate extends FirmwareUpgradeTask {
 		manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_QUERY_BOOTLOADER, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrBootloaderInfoResponse response) {
-				LOG.trace("Bootloader name: {}", response.bootloader);
+				LOG.info("Bootloader name: {}", response.bootloader);
 
 				if ("MCUboot".equals(response.bootloader)) {
 					manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_MCUBOOT_QUERY_MODE, new McuMgrCallback<>() {
@@ -364,7 +365,19 @@ class Validate extends FirmwareUpgradeTask {
 
 			@Override
 			public void onError(@NotNull final McuMgrException e) {
-				performer.onTaskFailed(Validate.this, e);
+				// In case of a Firmware Loader mode, the application returns NOT_SUPPORTED
+				// for Image List command. A reset to bootloader modes is required.
+				// For now, before the automatic reset is implemented, we just
+				// notify the user that the reset is required.
+				// Use DefaultManager.reset(BOOT_MODE_TYPE_BOOTLOADER, false, callback).
+				if (forcePrimarySlot &&
+					e instanceof McuMgrErrorException &&
+					((McuMgrErrorException) e).getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
+					performer.onTaskFailed(Validate.this,
+							new McuMgrException("Reset to Firmware Loader required."));
+				} else {
+					performer.onTaskFailed(Validate.this, e);
+				}
 			}
 		});
 	}
