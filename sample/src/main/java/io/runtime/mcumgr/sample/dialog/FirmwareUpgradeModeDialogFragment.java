@@ -35,7 +35,7 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
         if (savedInstanceState != null) {
             selectedItem = savedInstanceState.getInt(SIS_ITEM);
         } else {
-            selectedItem = 0;
+            selectedItem = 2; // CONFIRM_ONLY
         }
 
         return new MaterialAlertDialogBuilder(requireContext())
@@ -57,16 +57,11 @@ public class FirmwareUpgradeModeDialogFragment extends DialogFragment {
     }
 
     private FirmwareUpgradeManager.Mode getMode() {
-        switch (selectedItem) {
-            case 3:
-                return FirmwareUpgradeManager.Mode.NONE;
-            case 2:
-                return FirmwareUpgradeManager.Mode.CONFIRM_ONLY;
-            case 1:
-                return FirmwareUpgradeManager.Mode.TEST_ONLY;
-            case 0:
-            default:
-                return FirmwareUpgradeManager.Mode.TEST_AND_CONFIRM;
-        }
+        return switch (selectedItem) {
+            case 3 -> FirmwareUpgradeManager.Mode.NONE;
+            case 2 -> FirmwareUpgradeManager.Mode.CONFIRM_ONLY;
+            case 1 -> FirmwareUpgradeManager.Mode.TEST_ONLY;
+            default -> FirmwareUpgradeManager.Mode.TEST_AND_CONFIRM;
+        };
     }
 }
