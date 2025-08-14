@@ -11,7 +11,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 36
+    compileSdkVersion 36
     namespace "io.runtime.mcumgr.ble"
 
     defaultConfig {
