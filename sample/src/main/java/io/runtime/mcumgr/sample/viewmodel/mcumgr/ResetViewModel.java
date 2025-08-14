@@ -15,6 +15,7 @@ import javax.inject.Named;
 
 import io.runtime.mcumgr.McuMgrCallback;
 import io.runtime.mcumgr.McuMgrTransport;
+import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.managers.DefaultManager;
 import io.runtime.mcumgr.response.dflt.McuMgrOsResponse;
@@ -57,7 +58,9 @@ public class ResetViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
-                errorLiveData.postValue(error);
+                if (!(error instanceof McuMgrDisconnectedException)) {
+                    errorLiveData.postValue(error);
+                }
                 postReady();
             }
         });
