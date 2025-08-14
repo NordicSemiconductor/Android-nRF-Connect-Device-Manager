@@ -29,6 +29,8 @@ public class McuMgrBootloaderInfoResponse extends McuMgrOsResponse {
     public static final int MODE_DIRECT_XIP_WITH_REVERT	= 5;
     /** MCUboot is in RAM loader mode. */
     public static final int MODE_RAM_LOADER = 6;
+    /** MCUboot is in Firmware Loader mode. */
+    public static final int MODE_FIRMWARE_LOADER = 7;
 
     // Note: other modes may be added in the future.
 
