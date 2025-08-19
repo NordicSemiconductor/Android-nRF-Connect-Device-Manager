@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Mode;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
 import io.runtime.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
@@ -59,7 +60,7 @@ class Validate extends FirmwareUpgradeTask {
 		manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_QUERY_BOOTLOADER, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrBootloaderInfoResponse response) {
-				LOG.trace("Bootloader name: {}", response.bootloader);
+				LOG.info("Bootloader name: {}", response.bootloader);
 
 				if ("MCUboot".equals(response.bootloader)) {
 					manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_MCUBOOT_QUERY_MODE, new McuMgrCallback<>() {
@@ -67,26 +68,30 @@ class Validate extends FirmwareUpgradeTask {
 						public void onResponse(@NotNull McuMgrBootloaderInfoResponse response) {
 							LOG.info("Bootloader is in mode: {}, no downgrade: {}", parseMode(response.mode), response.noDowngrade);
 							validate(performer,
-									response.mode == McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP || response.mode == McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP_WITH_REVERT,
-									response.mode != McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP);
+									response.mode ==  McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP ||
+									response.mode == McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP_WITH_REVERT ||
+									response.mode == McuMgrBootloaderInfoResponse.MODE_FIRMWARE_LOADER,
+									response.mode != McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP &&
+									response.mode != McuMgrBootloaderInfoResponse.MODE_FIRMWARE_LOADER,
+									response.mode == McuMgrBootloaderInfoResponse.MODE_FIRMWARE_LOADER);
 						}
 
 						@Override
 						public void onError(@NotNull McuMgrException error) {
 							// Pretend nothing happened.
-							validate(performer, false, true);
+							validate(performer, false, true, false);
 						}
 					});
 				} else {
 					// It's some unknown bootloader. Try sending the old way.
-					validate(performer, false, true);
+					validate(performer, false, true, false);
 				}
 			}
 
 			@Override
 			public void onError(@NotNull final McuMgrException error) {
 				// Pretend nothing happened.
-				validate(performer, false, true);
+				validate(performer, false, true, false);
 			}
 		});
 	}
@@ -97,10 +102,15 @@ class Validate extends FirmwareUpgradeTask {
 	 * @param performer The task performer.
 	 * @param noSwap Whether the bootloader is in Direct XIP mode and there will be no swapping.
 	 * @param allowRevert Whether the bootloader requires confirming images.
+	 * @param forcePrimarySlot Whether the image should be sent to the primary slot (0) despite
+	 *                         the flags. This is a case for Firmware Loader, where the secondary
+	 *                         slot is used for the firmware loader itself and we always update
+	 *                         the primary slot.
 	 */
 	private void validate(@NotNull final TaskManager<Settings, State> performer,
 						  final boolean noSwap,
-						  final boolean allowRevert) {
+						  final boolean allowRevert,
+						  final boolean forcePrimarySlot) {
 		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(performer.getTransport());
 
@@ -193,6 +203,13 @@ class Validate extends FirmwareUpgradeTask {
 							}
 							break;
 						} else {
+							// In the Firmware Loader mode, the secondary slot is used for the
+							// firmware loader itself. Updating the app or the loader is done
+							// using the primary slot only.
+							if (forcePrimarySlot) {
+								slot.slot = TargetImage.SLOT_PRIMARY;
+							}
+
 							// The `image.slot` determines to which slot the image will be uploaded.
 							// If the target slot of the image matches the slot number it means that
 							// a Direct XIP mode is used. In that case the firmware comes in two
@@ -243,7 +260,10 @@ class Validate extends FirmwareUpgradeTask {
 								//    Again, neither can be erased. Second reset will switch the device
 								//    back to the primary slot, and the secondary image will be erased
 								//    automatically.
-								if (slot.pending || slot.confirmed != slot.active) {
+								// Note 2:
+								//    In the Firmware Loader mode the primary slot is always erasable
+								//    even with the confirmed flag is set.
+								if (!forcePrimarySlot && slot.pending || slot.confirmed != slot.active) {
 									// Both slots are in use, we need to reset the device.
 									performer.enqueue(new ResetBeforeUpload(noSwap));
 									// And schedule the validation again.
@@ -345,7 +365,19 @@ class Validate extends FirmwareUpgradeTask {
 
 			@Override
 			public void onError(@NotNull final McuMgrException e) {
-				performer.onTaskFailed(Validate.this, e);
+				// In case of a Firmware Loader mode, the application returns NOT_SUPPORTED
+				// for Image List command. A reset to bootloader modes is required.
+				// For now, before the automatic reset is implemented, we just
+				// notify the user that the reset is required.
+				// Use DefaultManager.reset(BOOT_MODE_TYPE_BOOTLOADER, false, callback).
+				if (forcePrimarySlot &&
+					e instanceof McuMgrErrorException &&
+					((McuMgrErrorException) e).getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
+					performer.onTaskFailed(Validate.this,
+							new McuMgrException("Reset to Firmware Loader required."));
+				} else {
+					performer.onTaskFailed(Validate.this, e);
+				}
 			}
 		});
 	}
@@ -359,6 +391,7 @@ class Validate extends FirmwareUpgradeTask {
 			case 4: return "Direct XIP Without Revert";
 			case 5: return "Direct XIP With Revert";
 			case 6: return "RAM Loader";
+			case 7: return "Firmware Loader";
 			default: return "Unknown (" + mode + ")";
 		}
 	}

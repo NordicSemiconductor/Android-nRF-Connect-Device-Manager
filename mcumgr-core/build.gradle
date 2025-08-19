@@ -11,7 +11,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 36
+    compileSdkVersion 36
     namespace "io.runtime.mcumgr"
 
     defaultConfig {
@@ -72,7 +72,7 @@ dependencies {
 
     // Test
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
 }
 
 // === Maven Central configuration ===
