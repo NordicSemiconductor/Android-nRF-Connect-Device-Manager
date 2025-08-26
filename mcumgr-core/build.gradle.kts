@@ -52,10 +52,10 @@ dependencies {
     // Annotations
     implementation(libs.annotations)
 
-    // Logging
+    // Logging using SLF4J. Specify binding in the application.
     implementation(libs.slf4j)
 
-    // Kotlin
+    // Kotlin Coroutines
     implementation(libs.kotlinx.coroutines.core)
 
     // Import CBOR parser - version 2.14+ requires Android 8
@@ -68,5 +68,5 @@ dependencies {
     implementation(libs.fasterxml.databind)
 
     // Test
-    testImplementation(libs.junit4)
+    testImplementation(libs.kotlin.test)
 }

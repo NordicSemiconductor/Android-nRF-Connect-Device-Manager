@@ -55,12 +55,12 @@ dependencies {
     // Import the BLE Library
     api(libs.nordic.ble)
 
-    // Logging
+    // Logging using SLF4J. Specify binding in the application.
     implementation(libs.slf4j)
 
-    // Kotlin
+    // Kotlin Coroutines
     implementation(libs.kotlinx.coroutines.core)
 
-    testImplementation(libs.junit4)
+    // Test
     testImplementation(libs.kotlin.test)
 }
