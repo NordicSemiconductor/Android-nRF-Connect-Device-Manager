@@ -141,13 +141,14 @@ modes determine the commands sent after the upload step. The `FirmwareUpgradeMan
 configured to perform these different methods using `setMode(FirmwareUpgradeManager.Mode mode)`.
 The different firmware upgrade modes are as follows:
 
-* **`TEST_AND_CONFIRM`**: This mode is the **default and recommended mode** for performing upgrades
+* **`TEST_AND_CONFIRM`**: This mode is the **recommended mode** for performing upgrades
   due to it's ability to recover from a bad firmware upgrade. Note, that the device must support
   this feature. Currently, multi-core devices (based on nRF5340) do not support this mode.
   The process for this mode is `UPLOAD`, `TEST`, `RESET`, `CONFIRM`.
 * **`CONFIRM_ONLY`**: This mode may be used for devices with revert disabled. If the device fails
   to boot into the new image, it will not be able to recover and will need to be re-flashed.
-  The process for this mode is `UPLOAD`, `CONFIRM`, `RESET`.
+  The process for this mode is `UPLOAD`, `CONFIRM`, `RESET`. This is the **default** mode,
+  as some devices don't support reverting firmware (test mode).
 * **`TEST_ONLY`**: This mode is useful if you want to run tests on the new image running before
   confirming it manually as the primary boot image.
   This mode is recommended for devices that do not support reverting images, i.e. multi core devices.
