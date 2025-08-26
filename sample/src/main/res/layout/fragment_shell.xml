@@ -14,7 +14,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_shell"
-        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ExecFragment"
+        android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ExecFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
