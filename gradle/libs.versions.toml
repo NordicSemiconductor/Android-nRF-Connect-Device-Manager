@@ -21,7 +21,7 @@ slf4j = "2.0.17"
 slf4j-timber = "1.2"
 gson = "2.13.1"
 #noinspection NewerVersionAvailable
-fasterxml = "2.13.5" # don't update
+fasterxml = "2.19.2" # don't update
 
 nordic-ble = "2.10.2"
 nordic-log = "2.5.0"
