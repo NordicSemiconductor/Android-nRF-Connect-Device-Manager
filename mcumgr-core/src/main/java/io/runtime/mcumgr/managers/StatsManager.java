@@ -107,7 +107,7 @@ public class StatsManager extends McuManager {
     public void read(@Nullable String module, @NotNull McuMgrCallback<McuMgrStatResponse> callback) {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", module);
-        send(OP_READ, ID_READ, payloadMap, SHORT_TIMEOUT, McuMgrStatResponse.class, callback);
+        send(OP_READ, ID_READ, payloadMap, MEDIUM_TIMEOUT, McuMgrStatResponse.class, callback);
     }
 
     /**
@@ -121,7 +121,7 @@ public class StatsManager extends McuManager {
     public McuMgrStatResponse read(@Nullable String module) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", module);
-        return send(OP_READ, ID_READ, payloadMap, SHORT_TIMEOUT, McuMgrStatResponse.class);
+        return send(OP_READ, ID_READ, payloadMap, MEDIUM_TIMEOUT, McuMgrStatResponse.class);
     }
 
     /**
@@ -130,7 +130,7 @@ public class StatsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void list(@NotNull McuMgrCallback<McuMgrStatListResponse> callback) {
-        send(OP_READ, ID_LIST, null, SHORT_TIMEOUT, McuMgrStatListResponse.class, callback);
+        send(OP_READ, ID_LIST, null, MEDIUM_TIMEOUT, McuMgrStatListResponse.class, callback);
     }
 
     /**
@@ -141,6 +141,6 @@ public class StatsManager extends McuManager {
      */
     @NotNull
     public McuMgrStatListResponse list() throws McuMgrException {
-        return send(OP_READ, ID_LIST, null, SHORT_TIMEOUT, McuMgrStatListResponse.class);
+        return send(OP_READ, ID_LIST, null, MEDIUM_TIMEOUT, McuMgrStatListResponse.class);
     }
 }
