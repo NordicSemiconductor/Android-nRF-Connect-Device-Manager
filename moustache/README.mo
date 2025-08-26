@@ -21,6 +21,12 @@ new version to get future updates. See [migration guide](#migration-from-the-ori
 
 ## Importing
 
+> [!Important]
+> In version 3.0 the package name has been changed from `io.runtime.mcumgr` to `no.nordicsemi.android.mcumgr`.
+> Use Find and Replace tool in Android Studio to replace all occurrences in your project.
+
+For versions 2.x use *version2* branch or tags.
+
 #### McuManager BLE (Recommended)
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/NordicSemiconductor/Android-BLE-Library).
 
