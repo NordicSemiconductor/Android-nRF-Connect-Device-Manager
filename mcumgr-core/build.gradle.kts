@@ -20,7 +20,7 @@ nordicNexusPublishing {
     POM_ARTIFACT_ID = "mcumgr-core"
     POM_NAME = "Mcu Manager Core"
 
-    POM_DESCRIPTION = "A mobile management library for devices running Apache Mynewt and Zephyr (DFU, logs, stats, config, etc.)."
+    POM_DESCRIPTION = "A mobile management library for devices running nRF Connect SDK, Zephyr or Apache Mynewt (DFU, file system, logs, stats, config, etc.)."
     POM_URL = "https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager.git"
     POM_SCM_URL = "https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager.git"
     POM_SCM_CONNECTION = "scm:git@github.com:NordicSemiconductor/Android-nRF-Connect-Device-Manager.git"
