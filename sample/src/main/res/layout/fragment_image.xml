@@ -15,7 +15,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_image_upgrade"
-        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment"
+        android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
@@ -23,7 +23,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_image_upload"
-        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ImageUploadFragment"
+        android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageUploadFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
@@ -31,7 +31,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_image_control"
-        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ImageControlFragment"
+        android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageControlFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
@@ -39,7 +39,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_image_settings"
-        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ImageSettingsFragment"
+        android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageSettingsFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
@@ -47,7 +47,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_reset"
-        android:name="io.runtime.mcumgr.sample.fragment.mcumgr.ResetFragment"
+        android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ResetFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"

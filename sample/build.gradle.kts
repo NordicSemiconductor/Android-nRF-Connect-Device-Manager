@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "io.runtime.mcumgr.sample"
+    namespace = "no.nordicsemi.android.mcumgr.sample"
 
     defaultConfig {
         applicationId = "no.nordicsemi.android.nrfconnectdevicemanager"

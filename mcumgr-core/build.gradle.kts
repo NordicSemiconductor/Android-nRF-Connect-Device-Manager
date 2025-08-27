@@ -28,7 +28,7 @@ nordicNexusPublishing {
 }
 
 android {
-    namespace = "io.runtime.mcumgr"
+    namespace = "no.nordicsemi.android.mcumgr"
 
     compileOptions {
         // for now and foreseeable future we intentionally set the build system to emit bytecode that is compatible with

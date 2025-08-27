@@ -106,7 +106,7 @@
             app:layout_constraintTop_toTopOf="@+id/status_label"
             tools:text="@string/image_upgrade_status_uploading" />
 
-        <io.runtime.mcumgr.sample.graph.ThroughputGraph
+        <no.nordicsemi.android.mcumgr.sample.graph.ThroughputGraph
             android:id="@+id/graph"
             android:layout_width="0dp"
             android:layout_height="100dp"

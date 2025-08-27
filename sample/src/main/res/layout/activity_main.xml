@@ -58,7 +58,7 @@
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/fragment_device_status"
-                    android:name="io.runtime.mcumgr.sample.fragment.mcumgr.DeviceStatusFragment"
+                    android:name="no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.DeviceStatusFragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
