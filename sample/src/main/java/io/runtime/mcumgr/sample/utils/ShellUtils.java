@@ -8,10 +8,10 @@ package io.runtime.mcumgr.sample.utils;
 
 import android.content.SharedPreferences;
 
-import java.util.Set;
-
 import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
+
+import java.util.Set;
 
 public class ShellUtils {
     private static final String PREFS_RECENTS = "shell_recents";
@@ -22,7 +22,10 @@ public class ShellUtils {
     public ShellUtils(@NonNull final SharedPreferences preferences) {
         this.preferences = preferences;
 
-        this.recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
+        // Making sure the returned set is not modified.
+        // https://developer.android.com/reference/android/content/SharedPreferences#getStringSet(java.lang.String,%20java.util.Set%3Cjava.lang.String%3E)
+        final Set<String> recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
+        this.recents = new ArraySet<>(recents);
     }
 
     /**

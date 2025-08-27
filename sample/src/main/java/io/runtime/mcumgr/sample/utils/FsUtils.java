@@ -12,12 +12,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
 
-import java.util.Set;
-
 import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import java.util.Set;
 
 public class FsUtils {
     private static final String PREFS_RECENTS = "recents";
@@ -32,7 +32,10 @@ public class FsUtils {
         this.preferences = preferences;
         this.partitionLiveData.setValue(getPartitionString());
 
-        this.recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
+        // Making sure the returned set is not modified.
+        // https://developer.android.com/reference/android/content/SharedPreferences#getStringSet(java.lang.String,%20java.util.Set%3Cjava.lang.String%3E)
+        final Set<String> recents = preferences.getStringSet(PREFS_RECENTS, new ArraySet<>());
+        this.recents = new ArraySet<>(recents);
     }
 
     /**
