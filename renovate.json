@@ -2,5 +2,20 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "groupName": "kotlin",
+      "matchPackageNames": [
+        "/com.google.devtools.ksp/",
+        "/org.jetbrains.kotlin.*/"
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "/com.fasterxml.jackson.*/"
+      ],
+      "enabled": false
+    }
   ]
 }
