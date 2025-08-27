@@ -1,27 +1,26 @@
 [versions]
 androidGradlePlugin = "8.12.1"
+androidxActivity = "1.10.1"
+androidxEspresso = "3.7.0"
+androidxTestRunner = "1.7.0"
 cardview = "1.0.0"
 constraintlayout = "2.2.1"
 coreSplashscreen = "1.0.1"
 dagger = "2.57.1"
+#noinspection NewerVersionAvailable
+fasterxml = "2.13.5" # don't update
 fragment = "1.8.9"
-kotlin = "2.2.10" # When changes minor, update also kotlinAndroid.ktin AGP
-androidxActivity = "1.10.1"
-androidxEspresso = "3.7.0"
-androidxTestRunner = "1.7.0"
-hilt = "2.57.1"
-junit4 = "4.13.2"
-kotlinxCoroutines = "1.10.2"
+gson = "2.13.1"
 javaAnnotations = "26.0.2" # https://github.com/JetBrains/java-annotations
+junit4 = "4.13.2"
+kotlin = "2.2.10" # When changes minor, update also kotlinAndroid.ktin AGP
+kotlinxCoroutines = "1.10.2"
 leakcanary = "2.14"
 material = "1.12.0"
 preference = "1.2.1"
 recyclerview = "1.4.0"
 slf4j = "2.0.17"
 slf4j-timber = "1.2"
-gson = "2.13.1"
-#noinspection NewerVersionAvailable
-fasterxml = "2.13.5" # don't update
 
 nordic-ble = "2.10.2"
 nordic-log = "2.5.0"
@@ -55,7 +54,6 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-timber = { group = "uk.kulikov", name = "slf4j2-timber", version.ref = "slf4j-timber" }
@@ -71,14 +69,9 @@ nordic-application = { id = "no.nordicsemi.android.plugin.application", version.
 nordic-library = { id = "no.nordicsemi.android.plugin.library", version.ref = "nordicPlugins" }
 nordic-hilt = { id = "no.nordicsemi.android.plugin.hilt", version.ref = "nordicPlugins" }
 nordic-kotlin-android = { id = "no.nordicsemi.android.plugin.kotlin", version.ref = "nordicPlugins" }
-nordic-kotlin-jvm = { id = "no.nordicsemi.jvm.plugin.kotlin", version.ref = "nordicPlugins" }
 nordic-nexus-android = { id = "no.nordicsemi.android.plugin.nexus", version.ref = "nordicPlugins" }
-nordic-nexus-jvm = { id = "no.nordicsemi.jvm.plugin.nexus", version.ref = "nordicPlugins" }
 nordic-dokka = { id = "no.nordicsemi.plugin.dokka", version.ref = "nordicPlugins" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-dokka = { id = "org.jetbrains.dokka", version.ref = "dokkaPlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }

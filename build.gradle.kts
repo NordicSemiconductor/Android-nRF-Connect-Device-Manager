@@ -9,10 +9,7 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
-    alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.hilt) apply false
 
     // This plugin is used to generate Dokka documentation.
     alias(libs.plugins.kotlin.dokka) apply false
@@ -26,9 +23,7 @@ plugins {
     alias(libs.plugins.nordic.library) apply false
     alias(libs.plugins.nordic.hilt) apply false
     alias(libs.plugins.nordic.kotlin.android) apply false
-    alias(libs.plugins.nordic.kotlin.jvm) apply false
     alias(libs.plugins.nordic.nexus.android) apply false
-    alias(libs.plugins.nordic.nexus.jvm) apply false
 }
 
 // Configure main Dokka page
