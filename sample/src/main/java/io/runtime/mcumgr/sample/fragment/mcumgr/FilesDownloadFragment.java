@@ -221,7 +221,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     }
 
     private void printContent(@Nullable final byte[] data) {
-        binding.divider.setVisibility(View.VISIBLE);
+        binding.divider2.setVisibility(View.VISIBLE);
         binding.fileResult.setVisibility(View.VISIBLE);
         binding.image.setVisibility(View.VISIBLE);
         binding.image.setImageDrawable(null);
@@ -257,7 +257,7 @@ public class FilesDownloadFragment extends Fragment implements Injectable {
     }
 
     private void printError(@Nullable final McuMgrException error) {
-        binding.divider.setVisibility(View.VISIBLE);
+        binding.divider2.setVisibility(View.VISIBLE);
         binding.fileResult.setVisibility(View.VISIBLE);
         binding.actionSave.setEnabled(false);
         binding.image.setImageDrawable(null);
