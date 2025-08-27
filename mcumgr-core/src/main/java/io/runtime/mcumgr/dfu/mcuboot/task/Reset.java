@@ -70,6 +70,11 @@ class Reset extends FirmwareUpgradeTask {
 
 				// Calculate the delay need that we need to wait until the swap is complete.
 				long now = SystemClock.elapsedRealtime();
+				if (mResetResponseTime == 0) {
+					// In case the response to Reset command wasn't received before the disconnection
+					// start counting remaining time from now.
+					mResetResponseTime = now;
+				}
 				long timeSinceReset = now - mResetResponseTime;
 				long remainingTime = settings.estimatedSwapTime - timeSinceReset;
 				final Runnable complete = () -> performer.onTaskCompleted(Reset.this);
