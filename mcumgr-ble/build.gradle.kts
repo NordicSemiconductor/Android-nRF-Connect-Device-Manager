@@ -20,7 +20,7 @@ nordicNexusPublishing {
     POM_ARTIFACT_ID = "mcumgr-ble"
     POM_NAME = "Mcu Manager BLE Transport"
 
-    POM_DESCRIPTION = "A mobile management library for devices running Apache Mynewt and Zephyr (DFU, logs, stats, config, etc.)."
+    POM_DESCRIPTION = "A Bluetooth LE transport implementation for the Mcu Manager library."
     POM_URL = "https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager.git"
     POM_SCM_URL = "https://github.com/NordicSemiconductor/Android-nRF-Connect-Device-Manager.git"
     POM_SCM_CONNECTION = "scm:git@github.com:NordicSemiconductor/Android-nRF-Connect-Device-Manager.git"
