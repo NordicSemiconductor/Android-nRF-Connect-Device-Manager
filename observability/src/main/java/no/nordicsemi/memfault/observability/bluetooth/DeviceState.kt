@@ -4,7 +4,7 @@ package no.nordicsemi.memfault.observability.bluetooth
 
 import no.nordicsemi.kotlin.ble.core.ConnectionState
 import no.nordicsemi.memfault.observability.bluetooth.DeviceState.Disconnected.Reason
-import no.nordicsemi.memfault.observability.data.MemfaultConfig
+import no.nordicsemi.memfault.observability.data.DeviceConfig
 
 /**
  * Represents the state of the device Bluetooth LE connection.
@@ -19,7 +19,7 @@ sealed class DeviceState {
 	 *
 	 * @property config The configuration obtained from the device using GATT.
 	 */
-	data class Connected(val config: MemfaultConfig) : DeviceState()
+	data class Connected(val config: DeviceConfig) : DeviceState()
 	/** The device is currently disconnecting. */
 	data object Disconnecting : DeviceState()
 	/** The device is disconnected. */

@@ -29,33 +29,16 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@file:Suppress("unused")
-
-package no.nordicsemi.memfault.observability
-
-import no.nordicsemi.memfault.observability.bluetooth.DeviceState
-import no.nordicsemi.memfault.observability.data.Chunk
-import no.nordicsemi.memfault.observability.data.MemfaultConfig
-import no.nordicsemi.memfault.observability.internet.UploadingStatus
+package no.nordicsemi.memfault.observability.data
 
 /**
- * The state of the Memfault Observability feature.
- *
- * @property deviceStatus The current status of the Bluetooth LE connection.
- * @property uploadingStatus The current status of the uploading process.
- * @property chunks A list of chunks that were received in this session.
+ * The configuration data obtained from the device using Monitoring & Diagnostics Service.
  */
-data class MemfaultState(
-    val deviceStatus: DeviceState = DeviceState.Disconnected(),
-    val uploadingStatus: UploadingStatus = UploadingStatus.Idle,
-    val chunks: List<Chunk> = emptyList()
-) {
-    /** Number of chunks that are ready to be uploaded. */
-    val pendingChunks: Int = chunks.filter { !it.isUploaded }.size
-    /** Total number of bytes uploaded. */
-    val bytesUploaded: Int = chunks.filter { it.isUploaded }.sumOf { it.data.size }
-    /** The configuration obtained from the device using GATT. */
-    val config: MemfaultConfig?
-        get() = (deviceStatus as? DeviceState.Connected)?.config
-}
-
+data class DeviceConfig(
+    /** The authorisation header to be used for the request. */
+    val authorisationToken: String,
+    /** The URL to Cloud Chunks API. */
+    val url: String,
+    /** The device ID, also known as device Serial Number. */
+    val deviceId: String,
+)

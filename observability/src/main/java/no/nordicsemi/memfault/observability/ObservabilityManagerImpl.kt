@@ -48,24 +48,24 @@ import kotlinx.coroutines.withContext
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.memfault.observability.bluetooth.DeviceState
-import no.nordicsemi.memfault.observability.bluetooth.MemfaultDiagnosticsService
+import no.nordicsemi.memfault.observability.bluetooth.MonitoringAndDiagnosticsService
 import no.nordicsemi.memfault.observability.data.PersistentChunkQueue
-import no.nordicsemi.memfault.observability.internal.MemfaultScope
-import no.nordicsemi.memfault.observability.internet.MemfaultCloudManager
+import no.nordicsemi.memfault.observability.internal.Scope
+import no.nordicsemi.memfault.observability.internet.ChunkManager
 import kotlin.time.Duration.Companion.milliseconds
 
-internal class MemfaultDiagnosticsManagerImpl(
+internal class ObservabilityManagerImpl(
     context: Context,
-) : MemfaultDiagnosticsManager {
+) : ObservabilityManager {
     /** The Application Context. */
     private val context = context.applicationContext
 
-    private val _state = MutableStateFlow(MemfaultState())
-    override val state: StateFlow<MemfaultState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(ObservabilityManager.State())
+    override val state: StateFlow<ObservabilityManager.State> = _state.asStateFlow()
 
-    private var bleManager: MemfaultDiagnosticsService? = null
+    private var bleManager: MonitoringAndDiagnosticsService? = null
     private var chunkQueue: PersistentChunkQueue? = null
-    private var uploadManager: MemfaultCloudManager? = null
+    private var uploadManager: ChunkManager? = null
     private var job: Job? = null
 
     @RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
@@ -73,11 +73,11 @@ internal class MemfaultDiagnosticsManagerImpl(
         check(job == null) { "Already connected to a peripheral" }
 
         // Start the manager in a new scope.
-        job = MemfaultScope.launch {
+        job = Scope.launch {
             val scope = this
 
             // Set up the manager that will collect diagnostic chunks from the device.
-            bleManager = MemfaultDiagnosticsService(centralManager, peripheral, scope)
+            bleManager = MonitoringAndDiagnosticsService(centralManager, peripheral, scope)
                 .apply {
                     // Collect the state of the BLE manager and update the state flow.
                     var connection: Job? = null
@@ -101,7 +101,7 @@ internal class MemfaultDiagnosticsManagerImpl(
                                             }
                                             .launchIn(this)
                                     }
-                                    uploadManager = MemfaultCloudManager(
+                                    uploadManager = ChunkManager(
                                         config = state.config,
                                         chunkQueue = chunkQueue
                                     ).also { manager ->
@@ -130,7 +130,7 @@ internal class MemfaultDiagnosticsManagerImpl(
                         }
                         .onCompletion {
                             // Manager is closing. Clean up and remove all uploaded chunks from the queue.
-                            MemfaultScope.launch {
+                            Scope.launch {
                                 chunkQueue?.deleteUploaded()
                             }
 

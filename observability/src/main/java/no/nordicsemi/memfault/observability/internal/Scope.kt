@@ -29,25 +29,10 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internet
+package no.nordicsemi.memfault.observability.internal
 
-/**
- * Status of chunks uploading process.
- */
-sealed interface UploadingStatus {
-    /** The chunks are not uploaded at the moment. */
-    data object Idle : UploadingStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
-    /** The chunks are currently being uploaded. */
-    data object InProgress : UploadingStatus
-
-    /**
-     * Uploading chunks has been suspended.
-     *
-     * This status may be used when the Internet connection is lost or when the server
-     * is not reachable.
-     *
-     * @property delayInSeconds The delay in seconds before the next attempt to upload chunks.
-     */
-    data class Suspended(val delayInSeconds: Long) : UploadingStatus
-}
+internal val Scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

@@ -1,13 +1,13 @@
 package no.nordicsemi.memfault.observability.data
 
 /**
- * Represents a chunk of Memfault Observability data received from the device
- * using Memfault Diagnostics Service.
+ * Represents a chunk of Observability data received from the device
+ * using Monitoring & Diagnostics Service.
  *
  * @property chunkNumber The number of the chunk, in range from 0-31
  * @property data The bytes received.
  * @property deviceId The device ID of the device from which the chunk was received.
- * @property isUploaded A flag indicating whether the chunk has been uploaded to the Memfault Cloud.
+ * @property isUploaded A flag indicating whether the chunk has been uploaded to the nRF Cloud.
  */
 data class Chunk(
     val chunkNumber: Int,

@@ -39,20 +39,45 @@ import kotlinx.coroutines.flow.StateFlow
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.ble.client.android.native
-import no.nordicsemi.memfault.observability.internal.MemfaultScope
+import no.nordicsemi.memfault.observability.bluetooth.DeviceState
+import no.nordicsemi.memfault.observability.data.Chunk
+import no.nordicsemi.memfault.observability.data.DeviceConfig
+import no.nordicsemi.memfault.observability.internal.Scope
+import no.nordicsemi.memfault.observability.internet.ChunkManager
 
 /**
  * Class responsible for managing connection with the remote IoT device which supports
- * Memfault Monitoring & Diagnostic Service.
+ * Monitoring & Diagnostic Service.
  *
  * The manager connects to the device and uploads all downloaded chunks to the cloud.
  *
  * Data can be emitted any time so the connection should be maintained as long as needed.
  *
- * @see <a href="https://app.memfault.com">Memfault console</a>
- * @see <a href="https://docs.memfault.com/docs/mcu/mds">Memfault Monitoring & Diagnostic GATT Service</a>
+ * @see <a href="https://app.memfault.com">Console</a>
+ * @see <a href="https://docs.memfault.com/docs/mcu/mds">Monitoring & Diagnostic GATT Service</a>
  */
-interface MemfaultDiagnosticsManager {
+interface ObservabilityManager {
+
+    /**
+     * The state of the nRF Cloud Observability feature.
+     *
+     * @property deviceStatus The current status of the Bluetooth LE connection.
+     * @property uploadingStatus The current status of the uploading process.
+     * @property chunks A list of chunks that were received in this session.
+     */
+    data class State(
+        val deviceStatus: DeviceState = DeviceState.Disconnected(),
+        val uploadingStatus: ChunkManager.Status = ChunkManager.Status.Idle,
+        val chunks: List<Chunk> = emptyList()
+    ) {
+        /** Number of chunks that are ready to be uploaded. */
+        val pendingChunks: Int = chunks.filter { !it.isUploaded }.size
+        /** Total number of bytes uploaded. */
+        val bytesUploaded: Int = chunks.filter { it.isUploaded }.sumOf { it.data.size }
+        /** The configuration obtained from the device using GATT. */
+        val config: DeviceConfig?
+            get() = (deviceStatus as? DeviceState.Connected)?.config
+    }
 
     /**
      * The state of the manager.
@@ -62,12 +87,12 @@ interface MemfaultDiagnosticsManager {
      *  - Uploading status which may be suspended due to lack of Internet connection or server overload.
      *  - Chunks information.
      */
-    val state: StateFlow<MemfaultState>
+    val state: StateFlow<State>
 
     /**
      * Function used to connect to the selected Bluetooth LE peripheral.
      *
-     * The peripheral must support Memfault Diagnostic Service.
+     * The peripheral must support Monitoring & Diagnostic Service.
      *
      * Chunks upload will start immediately after establishing the connection.
      *
@@ -84,7 +109,7 @@ interface MemfaultDiagnosticsManager {
     /**
      * Function used to connect to the selected Bluetooth LE peripheral.
      *
-     * The peripheral must support Memfault Diagnostic Service.
+     * The peripheral must support Monitoring & Diagnostic Service.
      *
      * Chunks upload will start immediately after establishing the connection.
      *
@@ -93,7 +118,7 @@ interface MemfaultDiagnosticsManager {
      * @throws IllegalStateException if the manager is already connected to a peripheral.
      */
     fun connect(context: Context, device: BluetoothDevice) {
-        val centralManager = CentralManager.Factory.native(context, MemfaultScope)
+        val centralManager = CentralManager.Factory.native(context, Scope)
         val peripheral = centralManager.getPeripheralById(device.address)!!
         connect(peripheral, centralManager)
     }
@@ -106,13 +131,13 @@ interface MemfaultDiagnosticsManager {
     companion object {
 
         /**
-         * This function creates a new instance of [MemfaultDiagnosticsManager].
+         * This function creates a new instance of [ObservabilityManager].
          *
          * @param context Android [Context] need to initialize the chunks database.
-         * @return new [MemfaultDiagnosticsManager] instance
+         * @return new [ObservabilityManager] instance
          */
-        fun create(context: Context): MemfaultDiagnosticsManager {
-            return MemfaultDiagnosticsManagerImpl(context)
+        fun create(context: Context): ObservabilityManager {
+            return ObservabilityManagerImpl(context)
         }
     }
 }

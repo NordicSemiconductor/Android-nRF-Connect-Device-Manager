@@ -66,7 +66,7 @@ import no.nordicsemi.kotlin.ble.core.ConnectionState
 import no.nordicsemi.kotlin.ble.core.Manager
 import no.nordicsemi.kotlin.ble.core.OperationStatus
 import no.nordicsemi.kotlin.ble.core.WriteType
-import no.nordicsemi.memfault.observability.data.MemfaultConfig
+import no.nordicsemi.memfault.observability.data.DeviceConfig
 import no.nordicsemi.memfault.observability.internal.AuthorisationHeader
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
@@ -75,7 +75,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 /**
- * Memfault Monitoring & Diagnostics Service UUID.
+ * Monitoring & Diagnostics Service UUID.
  *
  * Find specification ih the [Documentation](https://docs.memfault.com/docs/mcu/mds).
  */
@@ -88,17 +88,17 @@ private val MDS_AUTHORISATION_CHARACTERISTIC_UUID      = Uuid.parse("54220004-f6
 private val MDS_DATA_EXPORT_CHARACTERISTIC_UUID        = Uuid.parse("54220005-f6a5-4007-a371-722f4ebd8436")
 
 /**
- * A client implementation of Memfault Monitoring & Diagnostics Service (MDS) that streams data
+ * A client implementation of Monitoring & Diagnostics Service (MDS) that streams data
  * from the device.
  *
  * This class connects to the device, discovers the MDS service, reads the configuration,
  * and streams diagnostics [chunks] from the device.
  */
-class MemfaultDiagnosticsService {
-	private val logger = LoggerFactory.getLogger(MemfaultDiagnosticsService::class.java)
+class MonitoringAndDiagnosticsService {
+	private val logger = LoggerFactory.getLogger(MonitoringAndDiagnosticsService::class.java)
 
 	/**
-	 * Creates a new instance of [MemfaultDiagnosticsService] with the given [CentralManager] and [Peripheral].
+	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given [CentralManager] and [Peripheral].
 	 *
 	 * This constructor can be user with a 'native' or 'mock' [CentralManager].
 	 *
@@ -117,7 +117,7 @@ class MemfaultDiagnosticsService {
 	}
 
 	/**
-	 * Creates a new instance of [MemfaultDiagnosticsService] with the given [Context] and [BluetoothDevice].
+	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given [Context] and [BluetoothDevice].
 	 *
 	 * This constructor is for legacy applications that use the Android Bluetooth API.
 	 *
@@ -159,7 +159,7 @@ class MemfaultDiagnosticsService {
 	val chunks = _chunks.asSharedFlow()
 
 	/**
-	 * Starts the connection to the device and begins observing the Memfault Diagnostics Service.
+	 * Starts the connection to the device and begins observing the Monitoring & Diagnostics Service.
 	 *
 	 * Use [close] to stop the connection and cancel all observers.
 	 */
@@ -353,7 +353,7 @@ class MemfaultDiagnosticsService {
 		}
 	}
 
-	private suspend fun CoroutineScope.initialize(mds: RemoteService): MemfaultConfig {
+	private suspend fun CoroutineScope.initialize(mds: RemoteService): DeviceConfig {
 		// Read and emit device configuration.
 		val deviceId = mds.deviceIdCharacteristic.read()
 			.let { String(it) }
@@ -368,7 +368,7 @@ class MemfaultDiagnosticsService {
 			.onEach { _chunks.emit(it) }
 			.launchIn(this)
 
-		return MemfaultConfig(authorisationToken, url, deviceId)
+		return DeviceConfig(authorisationToken, url, deviceId)
 	}
 
 	private suspend fun start(mds: RemoteService) {

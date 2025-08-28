@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internet
+package no.nordicsemi.memfault.observability.internal
 
 import com.memfault.cloud.sdk.ChunkSender
 import com.memfault.cloud.sdk.SendChunksCallback
@@ -37,7 +37,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Sends the chunk to the Memfault Cloud.
+ * Sends the chunk to nRF Cloud.
  *
  * This is suspended version of [ChunkSender.send].
  *

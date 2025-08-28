@@ -55,7 +55,7 @@ android {
 
 dependencies {
     // The MemfaultCloud library provides convenience APIs for mobile applications that
-    // Interact with Memfault's web services.
+    // interact with web services.
     // https://github.com/memfault/memfault-cloud-android
     api(libs.memfault.cloud)
 
