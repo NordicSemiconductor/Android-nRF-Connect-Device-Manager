@@ -15,14 +15,18 @@ javaAnnotations = "26.0.2" # https://github.com/JetBrains/java-annotations
 junit4 = "4.13.2"
 kotlin = "2.2.10" # When changes minor, update also kotlinAndroid.ktin AGP
 kotlinxCoroutines = "1.10.2"
+ksp = "2.2.10-2.0.2"
 leakcanary = "2.14"
 material = "1.12.0"
+memfault-cloud = "2.0.5"
 preference = "1.2.1"
 recyclerview = "1.4.0"
+room = "2.7.2"
 slf4j = "2.0.17"
 slf4j-timber = "1.2"
 
 nordic-ble = "2.10.2"
+nordic-blek = "2.0.0-alpha07"
 nordic-log = "2.5.0"
 nordic-scanner = "1.6.0"
 
@@ -54,13 +58,19 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
+memfault-cloud = { group = "com.memfault.cloud", name = "cloud-android", version.ref = "memfault-cloud" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-timber = { group = "uk.kulikov", name = "slf4j2-timber", version.ref = "slf4j-timber" }
 leakcanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 
 # Nordic
 nordic-ble = { group = "no.nordicsemi.android", name = "ble", version.ref = "nordic-ble" }
+nordic-blek-client-android = { group = "no.nordicsemi.kotlin.ble", name = "client-android", version.ref = "nordic-blek" }
 nordic-log-timber = { group = "no.nordicsemi.android", name = "log-timber", version.ref = "nordic-log" }
 nordic-compat-scanner = { group = "no.nordicsemi.android.support.v18", name = "scanner", version.ref = "nordic-scanner" }
 
@@ -75,3 +85,4 @@ android-application = { id = "com.android.application", version.ref = "androidGr
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 kotlin-dokka = { id = "org.jetbrains.dokka", version.ref = "dokkaPlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
