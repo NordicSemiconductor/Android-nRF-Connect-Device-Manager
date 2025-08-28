@@ -29,13 +29,10 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internal.db
+package no.nordicsemi.android.observability.internal
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
-@Database(entities = [ChunkEntity::class], version = 1)
-internal abstract class ChunksDatabase : RoomDatabase() {
-
-    abstract fun chunksDao(): ChunksDao
-}
+internal val Scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

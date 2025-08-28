@@ -31,19 +31,19 @@
 
 @file:Suppress("unused")
 
-package no.nordicsemi.memfault.observability
+package no.nordicsemi.android.observability
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import kotlinx.coroutines.flow.StateFlow
+import no.nordicsemi.android.observability.bluetooth.DeviceState
+import no.nordicsemi.android.observability.data.Chunk
+import no.nordicsemi.android.observability.data.DeviceConfig
+import no.nordicsemi.android.observability.internal.Scope
+import no.nordicsemi.android.observability.internet.ChunkManager
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.ble.client.android.native
-import no.nordicsemi.memfault.observability.bluetooth.DeviceState
-import no.nordicsemi.memfault.observability.data.Chunk
-import no.nordicsemi.memfault.observability.data.DeviceConfig
-import no.nordicsemi.memfault.observability.internal.Scope
-import no.nordicsemi.memfault.observability.internet.ChunkManager
 
 /**
  * Class responsible for managing connection with the remote IoT device which supports

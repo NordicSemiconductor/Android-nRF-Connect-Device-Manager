@@ -32,7 +32,7 @@
 @file:OptIn(ExperimentalUuidApi::class)
 @file:Suppress("unused")
 
-package no.nordicsemi.memfault.observability.bluetooth
+package no.nordicsemi.android.observability.bluetooth
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
@@ -55,6 +55,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import no.nordicsemi.android.observability.data.DeviceConfig
+import no.nordicsemi.android.observability.internal.AuthorisationHeader
 import no.nordicsemi.kotlin.ble.client.RemoteService
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
@@ -66,8 +68,6 @@ import no.nordicsemi.kotlin.ble.core.ConnectionState
 import no.nordicsemi.kotlin.ble.core.Manager
 import no.nordicsemi.kotlin.ble.core.OperationStatus
 import no.nordicsemi.kotlin.ble.core.WriteType
-import no.nordicsemi.memfault.observability.data.DeviceConfig
-import no.nordicsemi.memfault.observability.internal.AuthorisationHeader
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds

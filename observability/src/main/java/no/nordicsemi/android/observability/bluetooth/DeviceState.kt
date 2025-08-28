@@ -1,10 +1,10 @@
 @file:Suppress("unused")
 
-package no.nordicsemi.memfault.observability.bluetooth
+package no.nordicsemi.android.observability.bluetooth
 
+import no.nordicsemi.android.observability.bluetooth.DeviceState.Disconnected.Reason
+import no.nordicsemi.android.observability.data.DeviceConfig
 import no.nordicsemi.kotlin.ble.core.ConnectionState
-import no.nordicsemi.memfault.observability.bluetooth.DeviceState.Disconnected.Reason
-import no.nordicsemi.memfault.observability.data.DeviceConfig
 
 /**
  * Represents the state of the device Bluetooth LE connection.

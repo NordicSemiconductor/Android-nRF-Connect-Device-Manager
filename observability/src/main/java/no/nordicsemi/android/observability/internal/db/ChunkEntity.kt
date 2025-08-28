@@ -29,28 +29,46 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internal.db
+package no.nordicsemi.android.observability.internal.db
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import no.nordicsemi.android.observability.data.Chunk
 
-@Dao
-internal interface ChunksDao {
+/**
+ * Represents a chunk of data that is stored in the database.
+ */
+@Entity(tableName = "chunks")
+internal data class ChunkEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    @ColumnInfo(name = "chunk_number")
+    val chunkNumber: Int,
+    @ColumnInfo(name = "data", typeAffinity = ColumnInfo.BLOB)
+    val data: ByteArray,
+    @ColumnInfo(name = "device_id")
+    val deviceId: String,
+    @ColumnInfo(name = "is_uploaded")
+    val isUploaded: Boolean
+)
 
-    @Query("SELECT * FROM chunks WHERE device_id = :deviceId ORDER BY id DESC")
-    fun getAll(deviceId: String): Flow<List<ChunkEntity>>
+/**
+ * Converts the received byte array to a [ChunkEntity].
+ *
+ * @param deviceId The device ID associated with the chunk.
+ * @return A [ChunkEntity] object that can be stored in the database.
+ */
+internal fun ByteArray.toEntity(deviceId: String) = ChunkEntity(
+    chunkNumber = this[0].toInt(),
+    data = this.copyOfRange(1, this.size),
+    isUploaded = false,
+    deviceId = deviceId,
+)
 
-    @Query("SELECT * FROM chunks WHERE is_uploaded = 0 AND device_id = :deviceId ORDER BY id ASC LIMIT :limit")
-    fun getNotUploaded(limit: Int, deviceId: String): List<ChunkEntity>
-
-    @Query("UPDATE chunks SET is_uploaded = 1 WHERE is_uploaded IN (SELECT is_uploaded FROM chunks WHERE is_uploaded = 0 AND device_id = :deviceId ORDER BY id ASC LIMIT :limit)")
-    fun markUploaded(limit: Int, deviceId: String)
-
-    @Insert
-    fun insert(chunk: ChunkEntity)
-
-    @Query("DELETE FROM chunks WHERE is_uploaded = 1")
-    fun clearUploaded()
-}
+/**
+ * Converts a [ChunkEntity] to a [Chunk].
+ *
+ * @return A [Chunk] object that is exposed to the application.
+ */
+internal fun ChunkEntity.toChunk(): Chunk = Chunk(chunkNumber, data, deviceId, isUploaded)

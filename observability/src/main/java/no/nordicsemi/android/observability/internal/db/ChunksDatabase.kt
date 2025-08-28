@@ -29,16 +29,13 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.data
+package no.nordicsemi.android.observability.internal.db
 
-/**
- * The configuration data obtained from the device using Monitoring & Diagnostics Service.
- */
-data class DeviceConfig(
-    /** The authorisation header to be used for the request. */
-    val authorisationToken: String,
-    /** The URL to Cloud Chunks API. */
-    val url: String,
-    /** The device ID, also known as device Serial Number. */
-    val deviceId: String,
-)
+import androidx.room.Database
+import androidx.room.RoomDatabase
+
+@Database(entities = [ChunkEntity::class], version = 1)
+internal abstract class ChunksDatabase : RoomDatabase() {
+
+    abstract fun chunksDao(): ChunksDao
+}

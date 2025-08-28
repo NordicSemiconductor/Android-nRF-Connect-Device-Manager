@@ -1,4 +1,4 @@
-package no.nordicsemi.memfault.observability.internal
+package no.nordicsemi.android.observability.internal
 
 /**
  * This class parses the Authorization Header read from a characteristic.

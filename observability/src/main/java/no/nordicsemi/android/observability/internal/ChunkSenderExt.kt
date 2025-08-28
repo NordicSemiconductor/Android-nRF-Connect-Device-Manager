@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internal
+package no.nordicsemi.android.observability.internal
 
 import com.memfault.cloud.sdk.ChunkSender
 import com.memfault.cloud.sdk.SendChunksCallback

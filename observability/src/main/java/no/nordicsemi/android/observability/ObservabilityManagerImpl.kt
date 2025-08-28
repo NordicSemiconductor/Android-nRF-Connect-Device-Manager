@@ -29,8 +29,9 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability
+package no.nordicsemi.android.observability
 
+import android.Manifest
 import android.content.Context
 import androidx.annotation.RequiresPermission
 import kotlinx.coroutines.Job
@@ -45,13 +46,13 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import no.nordicsemi.android.observability.bluetooth.DeviceState
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService
+import no.nordicsemi.android.observability.data.PersistentChunkQueue
+import no.nordicsemi.android.observability.internal.Scope
+import no.nordicsemi.android.observability.internet.ChunkManager
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
-import no.nordicsemi.memfault.observability.bluetooth.DeviceState
-import no.nordicsemi.memfault.observability.bluetooth.MonitoringAndDiagnosticsService
-import no.nordicsemi.memfault.observability.data.PersistentChunkQueue
-import no.nordicsemi.memfault.observability.internal.Scope
-import no.nordicsemi.memfault.observability.internet.ChunkManager
 import kotlin.time.Duration.Companion.milliseconds
 
 internal class ObservabilityManagerImpl(
@@ -68,7 +69,7 @@ internal class ObservabilityManagerImpl(
     private var uploadManager: ChunkManager? = null
     private var job: Job? = null
 
-    @RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     override fun connect(peripheral: Peripheral, centralManager: CentralManager) {
         check(job == null) { "Already connected to a peripheral" }
 

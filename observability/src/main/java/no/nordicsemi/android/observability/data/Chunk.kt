@@ -1,4 +1,4 @@
-package no.nordicsemi.memfault.observability.data
+package no.nordicsemi.android.observability.data
 
 /**
  * Represents a chunk of Observability data received from the device

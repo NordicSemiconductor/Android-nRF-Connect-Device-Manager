@@ -29,10 +29,16 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internal
+package no.nordicsemi.android.observability.data
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-
-internal val Scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+/**
+ * The configuration data obtained from the device using Monitoring & Diagnostics Service.
+ */
+data class DeviceConfig(
+    /** The authorisation header to be used for the request. */
+    val authorisationToken: String,
+    /** The URL to Cloud Chunks API. */
+    val url: String,
+    /** The device ID, also known as device Serial Number. */
+    val deviceId: String,
+)

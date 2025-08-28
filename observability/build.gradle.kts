@@ -50,7 +50,7 @@ nordicNexusPublishing {
 }
 
 android {
-    namespace = "no.nordicsemi.memfault.observability"
+    namespace = "no.nordicsemi.android.observability"
 }
 
 dependencies {

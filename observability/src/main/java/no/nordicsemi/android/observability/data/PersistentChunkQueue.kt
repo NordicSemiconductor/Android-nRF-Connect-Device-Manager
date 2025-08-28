@@ -1,13 +1,13 @@
-package no.nordicsemi.memfault.observability.data
+package no.nordicsemi.android.observability.data
 
 import android.content.Context
 import androidx.room.Room
 import com.memfault.cloud.sdk.ChunkQueue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import no.nordicsemi.memfault.observability.internal.db.ChunksDatabase
-import no.nordicsemi.memfault.observability.internal.db.toChunk
-import no.nordicsemi.memfault.observability.internal.db.toEntity
+import no.nordicsemi.android.observability.internal.db.ChunksDatabase
+import no.nordicsemi.android.observability.internal.db.toChunk
+import no.nordicsemi.android.observability.internal.db.toEntity
 
 /**
  * An implementation of [ChunkQueue] that stores chunks in a persistent database.

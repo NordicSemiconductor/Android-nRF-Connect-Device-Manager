@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.memfault.observability.internet
+package no.nordicsemi.android.observability.internet
 
 import com.memfault.cloud.sdk.ChunkQueue
 import com.memfault.cloud.sdk.ChunkSender
@@ -39,10 +39,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import no.nordicsemi.memfault.observability.data.DeviceConfig
-import no.nordicsemi.memfault.observability.data.PersistentChunkQueue
-import no.nordicsemi.memfault.observability.internal.ChunkSenderResult
-import no.nordicsemi.memfault.observability.internal.send
+import no.nordicsemi.android.observability.data.DeviceConfig
+import no.nordicsemi.android.observability.data.PersistentChunkQueue
+import no.nordicsemi.android.observability.internal.ChunkSenderResult
+import no.nordicsemi.android.observability.internal.send
 import java.net.URL
 import kotlin.time.Duration.Companion.seconds
 
