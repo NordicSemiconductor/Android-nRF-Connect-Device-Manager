@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 /*
  * Copyright (c) Nordic Semiconductor ASA, 2018-present
  *
@@ -6,6 +8,7 @@
 
 plugins {
     alias(libs.plugins.nordic.application)
+    alias(libs.plugins.nordic.kotlin.android)
 }
 
 android {
@@ -20,6 +23,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
+    }
+
     buildFeatures {
         viewBinding = true
     }
@@ -29,6 +38,11 @@ dependencies {
     // Mcu Mgr
     implementation(project(":mcumgr-ble"))
 
+    // Use nRF Cloud Observability feature with native BLE client.
+    implementation(project(":observability"))
+    implementation(libs.nordic.blek.client.android)
+
+    // AndroidX libraries
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.recyclerview)
