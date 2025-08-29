@@ -136,6 +136,7 @@ interface ObservabilityManager {
          * @param context Android [Context] need to initialize the chunks database.
          * @return new [ObservabilityManager] instance
          */
+        @JvmStatic
         fun create(context: Context): ObservabilityManager {
             return ObservabilityManagerImpl(context)
         }
