@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018, Nordic Semiconductor
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:paddingBottom="16dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:title="@string/observability_title"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mds_status_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/observability_status"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="@string/status_unknown"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/mds_status_label"
+            app:layout_constraintTop_toTopOf="@+id/mds_status_label"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mds_sent_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/observability_sent"
+            app:layout_constraintStart_toStartOf="@+id/mds_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/mds_status_label"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mds_sent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/observability_not_applicable"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/mds"
+            app:layout_constraintTop_toTopOf="@+id/mds_sent_label"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mds_pending_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/observability_pending"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/mds_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/mds_sent_label"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mds_pending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/observability_not_applicable"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/mds"
+            app:layout_constraintTop_toTopOf="@+id/mds_pending_label"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

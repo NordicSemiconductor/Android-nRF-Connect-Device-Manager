@@ -19,6 +19,7 @@ import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageControlFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageSettingsFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageUpgradeFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ImageUploadFragment;
+import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ObservabilityFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.ResetFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.mcumgr.StatsFragment;
 
@@ -31,6 +32,8 @@ public abstract class McuMgrFragmentBuildersModule {
     abstract EchoFragment contributeEchoFragment();
     @ContributesAndroidInjector
     abstract ResetFragment contributeResetFragment();
+    @ContributesAndroidInjector
+    abstract ObservabilityFragment contributeObservabilityFragment();
     @ContributesAndroidInjector
     abstract StatsFragment contributeStatsFragment();
     @ContributesAndroidInjector
