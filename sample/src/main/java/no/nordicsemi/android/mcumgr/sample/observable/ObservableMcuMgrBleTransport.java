@@ -21,14 +21,11 @@ import no.nordicsemi.android.ble.annotation.PhyValue;
 import no.nordicsemi.android.ble.callback.PhyCallback;
 import no.nordicsemi.android.ble.observer.BondingObserver;
 import no.nordicsemi.android.mcumgr.ble.McuMgrBleTransport;
-import no.nordicsemi.android.observability.ObservabilityManager;
 
 public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     private final MutableLiveData<ConnectionState> connectionState;
     private final MutableLiveData<BondingState> bondingState;
     private final MutableLiveData<ConnectionParameters> connectionParameters;
-
-    private final ObservabilityManager observabilityManager;
 
     @Nullable
     private OnReleaseCallback onReleaseCallback;
@@ -51,8 +48,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                                         @NonNull final BluetoothDevice device,
                                         @NonNull final Handler handler) {
         super(context, device, handler);
-
-        observabilityManager = ObservabilityManager.create(context);
 
         connectionState = new MutableLiveData<>(ConnectionState.of(context, device));
         setConnectionObserver(new no.nordicsemi.android.ble.observer.ConnectionObserver() {
@@ -78,8 +73,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
             @Override
             public void onDeviceReady(@NonNull final BluetoothDevice device) {
                 connectionState.postValue(ConnectionState.READY);
-
-                observabilityManager.connect(context, device);
             }
 
             @Override
@@ -94,7 +87,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                 } else {
                     connectionState.postValue(ConnectionState.DISCONNECTED);
                 }
-                observabilityManager.disconnect();
             }
         });
 
@@ -167,7 +159,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         disconnect()
                 // Handling a case when user releases the transport object without connecting to the device.
                 // In that case, the BluetoothDevice is not set and DisconnectRequest returns invalid state.
-                .invalid(this::close)
+                .then(device -> close())
                 .enqueue();
     }
 
