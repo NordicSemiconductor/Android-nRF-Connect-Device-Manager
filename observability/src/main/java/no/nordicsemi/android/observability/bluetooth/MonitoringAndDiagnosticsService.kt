@@ -39,6 +39,7 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -54,6 +55,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import no.nordicsemi.android.observability.data.DeviceConfig
 import no.nordicsemi.android.observability.internal.AuthorisationHeader
@@ -218,10 +220,15 @@ class MonitoringAndDiagnosticsService {
 		job = null
 	}
 
+	/**
+	 * This method connects the the peripheral and starts observing its state.
+	 *
+	 * It suspends until the scope is cancelled.
+	 */
 	private suspend fun CoroutineScope.connect(
 		centralManager: CentralManager,
 		peripheral: Peripheral,
-	) {
+	): Nothing {
 		// Observe the peripheral bond state to catch bonding failures.
 		var wasBonding = false
 		peripheral.bondState
@@ -254,6 +261,12 @@ class MonitoringAndDiagnosticsService {
 					// is not supported (disconnect() method called), or the connection was cancelled
 					// by the user.
 					is ConnectionState.Disconnected -> {
+						if (state.reason is ConnectionState.Disconnected.Reason.UnsupportedAddress) {
+							// This error is thrown in AutoConnect connection when there is no
+							// bonding. The library will transition to Direct connection automatically.
+							// Don't report this state.
+							return@onEach
+						}
 						_state.emit(state.toDeviceState(notSupported, bondingFailed))
 						if (state.isUserInitiated /* (includes not supported) */ ||
 							state.reason is ConnectionState.Disconnected.Reason.UnsupportedConfiguration) {
@@ -347,9 +360,12 @@ class MonitoringAndDiagnosticsService {
 		finally {
 			// Make sure the device is disconnected when the scope is cancelled.
 			// When it was already disconnected, this is a no-op.
-			peripheral.disconnect()
-			// The state collection was cancelled together with the scope. Emit the state manually.
-			_state.emit(DeviceState.Disconnected())
+			withContext(NonCancellable) {
+				peripheral.disconnect()
+
+				// The state collection was cancelled together with the scope. Emit the state manually.
+				_state.emit(peripheral.state.value.toDeviceState(notSupported, bondingFailed))
+			}
 		}
 	}
 
