@@ -72,6 +72,10 @@ interface ObservabilityManager {
     ) {
         /** Number of chunks that are ready to be uploaded. */
         val pendingChunks: Int = chunks.filter { !it.isUploaded }.size
+        /** Number of chunks uploaded to the cloud. */
+        val chunksUploaded: Int = chunks.filter { it.isUploaded }.size
+        /** Total number of bytes of pending chunks. */
+        val pendingBytes: Int = chunks.filter { !it.isUploaded }.sumOf { it.data.size }
         /** Total number of bytes uploaded. */
         val bytesUploaded: Int = chunks.filter { it.isUploaded }.sumOf { it.data.size }
         /** The configuration obtained from the device using GATT. */
