@@ -20,13 +20,13 @@ class ObservabilityViewModel @Inject constructor(
     context: Context,
     @Named("busy") busyState: MutableLiveData<Boolean?>
 ) : McuMgrViewModel(busyState) {
-    private val _chunksState: MutableLiveData<ObservabilityManager.State?> = MutableLiveData()
-    val chunksState = _chunksState as LiveData<ObservabilityManager.State?>
+    private val _state: MutableLiveData<ObservabilityManager.State?> = MutableLiveData()
+    val state = _state as LiveData<ObservabilityManager.State?>
 
     private val observabilityManager: ObservabilityManager = create(context)
         .apply {
-            state
-                .onEach { _chunksState.postValue(it) }
+            this.state
+                .onEach { _state.postValue(it) }
                 .launchIn(viewModelScope)
         }
 

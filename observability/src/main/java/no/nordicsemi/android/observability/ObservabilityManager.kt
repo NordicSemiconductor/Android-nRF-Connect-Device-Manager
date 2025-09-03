@@ -36,11 +36,14 @@ package no.nordicsemi.android.observability
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import kotlinx.coroutines.flow.StateFlow
-import no.nordicsemi.android.observability.bluetooth.DeviceState
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService.State.Connected
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService.State.Disconnected
 import no.nordicsemi.android.observability.data.Chunk
-import no.nordicsemi.android.observability.data.DeviceConfig
+import no.nordicsemi.android.observability.data.ChunksConfig
 import no.nordicsemi.android.observability.internal.Scope
 import no.nordicsemi.android.observability.internet.ChunkManager
+import no.nordicsemi.android.observability.internet.ChunkManager.State.Idle
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.ble.client.android.native
@@ -61,26 +64,29 @@ interface ObservabilityManager {
     /**
      * The state of the nRF Cloud Observability feature.
      *
-     * @property deviceStatus The current status of the Bluetooth LE connection.
-     * @property uploadingStatus The current status of the uploading process.
+     * @property state The current status of the Bluetooth LE connection.
+     * @property uploadingState The current status of the uploading process.
      * @property chunks A list of chunks that were received in this session.
      */
     data class State(
-        val deviceStatus: DeviceState = DeviceState.Disconnected(),
-        val uploadingStatus: ChunkManager.Status = ChunkManager.Status.Idle,
+        val state: MonitoringAndDiagnosticsService.State = Disconnected(),
+        val uploadingState: ChunkManager.State = Idle,
         val chunks: List<Chunk> = emptyList()
     ) {
         /** Number of chunks that are ready to be uploaded. */
-        val pendingChunks: Int = chunks.filter { !it.isUploaded }.size
+        val chunksPending: Int = chunks.filter { !it.isUploaded }.size
         /** Number of chunks uploaded to the cloud. */
         val chunksUploaded: Int = chunks.filter { it.isUploaded }.size
         /** Total number of bytes of pending chunks. */
-        val pendingBytes: Int = chunks.filter { !it.isUploaded }.sumOf { it.data.size }
+        val bytesPending: Int = chunks.filter { !it.isUploaded }.sumOf { it.data.size }
         /** Total number of bytes uploaded. */
         val bytesUploaded: Int = chunks.filter { it.isUploaded }.sumOf { it.data.size }
-        /** The configuration obtained from the device using GATT. */
-        val config: DeviceConfig?
-            get() = (deviceStatus as? DeviceState.Connected)?.config
+        /** The configuration obtained from the device using GATT.
+         *
+         * This is only available when the device is connected and MDS service was read successfully.
+         */
+        val config: ChunksConfig?
+            get() = (state as? Connected)?.config
     }
 
     /**

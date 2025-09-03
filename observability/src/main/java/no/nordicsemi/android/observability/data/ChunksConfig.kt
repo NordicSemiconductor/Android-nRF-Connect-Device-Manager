@@ -34,7 +34,7 @@ package no.nordicsemi.android.observability.data
 /**
  * The configuration data obtained from the device using Monitoring & Diagnostics Service.
  */
-data class DeviceConfig(
+data class ChunksConfig(
     /** The authorisation header to be used for the request. */
     val authorisationToken: String,
     /** The URL to Cloud Chunks API. */

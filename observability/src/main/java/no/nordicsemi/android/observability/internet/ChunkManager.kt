@@ -39,7 +39,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import no.nordicsemi.android.observability.data.DeviceConfig
+import no.nordicsemi.android.observability.data.ChunksConfig
 import no.nordicsemi.android.observability.data.PersistentChunkQueue
 import no.nordicsemi.android.observability.internal.ChunkSenderResult
 import no.nordicsemi.android.observability.internal.send
@@ -61,7 +61,7 @@ import kotlin.time.Duration.Companion.seconds
  * @property status A [StateFlow] representing the current status of the manager.
  */
 class ChunkManager(
-    config: DeviceConfig,
+    config: ChunksConfig,
     chunkQueue: ChunkQueue? = null,
 ) {
     /**
@@ -71,12 +71,12 @@ class ChunkManager(
      * It switches to [InProgress] when uploading chunks and to [Suspended] when
      * an error occurs and the upload is suspended for a certain delay.
      */
-    sealed interface Status {
+    sealed interface State {
         /** The chunks are not uploaded at the moment. */
-        data object Idle : Status
+        data object Idle : State
 
         /** The chunks are currently being uploaded. */
-        data object InProgress : Status
+        data object InProgress : State
 
         /**
          * Uploading chunks has been suspended.
@@ -86,11 +86,11 @@ class ChunkManager(
          *
          * @property delayInSeconds The delay in seconds before the next attempt to upload chunks.
          */
-        data class Suspended(val delayInSeconds: Long) : Status
+        data class Suspended(val delayInSeconds: Long) : State
     }
 
-    private val _status = MutableStateFlow<Status>(Status.Idle)
-    val status = _status.asStateFlow()
+    private val _state = MutableStateFlow<State>(State.Idle)
+    val status = _state.asStateFlow()
 
     /**
      * The Memfault Cloud object is used to access the Memfault API.
@@ -137,17 +137,17 @@ class ChunkManager(
 
         // If the state is suspended, we should not start a new upload.
         // It will resume automatically when the delay is over.
-        if (status.value is Status.Suspended) {
+        if (status.value is State.Suspended) {
             return@coroutineScope
         }
         // Change the status to InProgress to indicate that the upload is starting.
-        _status.value = Status.InProgress
+        _state.value = State.InProgress
 
         // Push the chunks from the queue to the cloud.
         val result = sender.send()
         when (result) {
             is ChunkSenderResult.Success -> {
-                _status.value = Status.Idle
+                _state.value = State.Idle
             }
             is ChunkSenderResult.Error -> {
                 retryAfter(result.delayInSeconds)
@@ -158,12 +158,12 @@ class ChunkManager(
     /**
      * Suspends the upload for a given number of seconds.
      *
-     * This method will update the status to [Status.Suspended] each second
+     * This method will update the status to [State.Suspended] each second
      * with the remaining time until the upload can be resumed.
      */
     private suspend fun retryAfter(numberOfSeconds: Long) {
         for (i in numberOfSeconds downTo 0) {
-            _status.value = Status.Suspended(i)
+            _state.value = State.Suspended(i)
             delay(1.seconds)
 
             // Stop the loop if the manager is closed.
@@ -171,7 +171,7 @@ class ChunkManager(
         }
 
         // Retry the upload after the delay.
-        _status.value = Status.InProgress
+        _state.value = State.InProgress
         uploadChunks()
     }
 
@@ -181,6 +181,6 @@ class ChunkManager(
     fun close() {
         closed = true
         memfaultCloud.deinit()
-        _status.value = Status.Idle
+        _state.value = State.Idle
     }
 }

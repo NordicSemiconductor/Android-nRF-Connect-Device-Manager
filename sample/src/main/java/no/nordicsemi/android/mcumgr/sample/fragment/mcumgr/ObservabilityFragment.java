@@ -19,7 +19,7 @@ import no.nordicsemi.android.mcumgr.sample.di.Injectable;
 import no.nordicsemi.android.mcumgr.sample.dialog.HelpDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.ObservabilityViewModel;
-import no.nordicsemi.android.observability.bluetooth.DeviceState;
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService.State;
 import no.nordicsemi.android.observability.internet.ChunkManager;
 
 public class ObservabilityFragment extends Fragment implements Injectable {
@@ -63,10 +63,10 @@ public class ObservabilityFragment extends Fragment implements Injectable {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel.getChunksState().observe(getViewLifecycleOwner(), state -> {
+        viewModel.getState().observe(getViewLifecycleOwner(), state -> {
             if (state != null) {
-                switch (state.getDeviceStatus()) {
-                    case DeviceState.Disconnected disconnected -> {
+                switch (state.getState()) {
+                    case State.Disconnected disconnected -> {
                         switch (disconnected.getReason()) {
                             case NOT_SUPPORTED ->
                                     binding.mds.setText(R.string.observability_not_supported);
@@ -76,26 +76,26 @@ public class ObservabilityFragment extends Fragment implements Injectable {
                                     binding.mds.setText(R.string.observability_disconnected);
                         }
                     }
-                    case DeviceState.Connecting ignored ->
+                    case State.Connecting ignored ->
                             binding.mds.setText(R.string.observability_connecting);
-                    case DeviceState.Initializing ignored ->
+                    case State.Initializing ignored ->
                             binding.mds.setText(R.string.observability_connecting);
-                    case DeviceState.Connected ignored1 -> {
-                        switch (state.getUploadingStatus()) {
-                            case ChunkManager.Status.Idle ignored -> {
+                    case State.Connected ignored1 -> {
+                        switch (state.getUploadingState()) {
+                            case ChunkManager.State.Idle ignored -> {
                                 binding.mds.setText(R.string.observability_connected);
                                 binding.mdsSent.setText(getResources().getQuantityString(R.plurals.observability_value, state.getChunksUploaded(), state.getChunksUploaded(), state.getBytesUploaded()));
-                                binding.mdsPending.setText(getResources().getQuantityString(R.plurals.observability_value, state.getPendingChunks(), state.getPendingChunks(), state.getPendingBytes()));
+                                binding.mdsPending.setText(getResources().getQuantityString(R.plurals.observability_value, state.getChunksPending(), state.getChunksPending(), state.getBytesPending()));
                             }
-                            case ChunkManager.Status.InProgress ignored -> {
+                            case ChunkManager.State.InProgress ignored -> {
                                 binding.mds.setText(R.string.observability_uploading);
                                 binding.mdsSent.setText(getResources().getQuantityString(R.plurals.observability_value, state.getChunksUploaded(), state.getChunksUploaded(), state.getBytesUploaded()));
-                                binding.mdsPending.setText(getResources().getQuantityString(R.plurals.observability_value, state.getPendingChunks(), state.getPendingChunks(), state.getPendingBytes()));
+                                binding.mdsPending.setText(getResources().getQuantityString(R.plurals.observability_value, state.getChunksPending(), state.getChunksPending(), state.getBytesPending()));
                             }
-                            case ChunkManager.Status.Suspended suspended ->{
+                            case ChunkManager.State.Suspended suspended ->{
                                 binding.mds.setText(getString(R.string.observability_suspended, suspended.getDelayInSeconds()));
                                 binding.mdsSent.setText(getResources().getQuantityString(R.plurals.observability_value, state.getChunksUploaded(), state.getChunksUploaded(), state.getBytesUploaded()));
-                                binding.mdsPending.setText(getResources().getQuantityString(R.plurals.observability_value, state.getPendingChunks(), state.getPendingChunks(), state.getPendingBytes()));
+                                binding.mdsPending.setText(getResources().getQuantityString(R.plurals.observability_value, state.getChunksPending(), state.getChunksPending(), state.getBytesPending()));
                             }
                             default -> {
                                 binding.mds.setText(R.string.status_unknown);

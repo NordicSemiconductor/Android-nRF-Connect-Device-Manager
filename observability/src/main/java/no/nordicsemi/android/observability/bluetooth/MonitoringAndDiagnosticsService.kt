@@ -57,8 +57,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import no.nordicsemi.android.observability.data.DeviceConfig
+import no.nordicsemi.android.observability.data.ChunksConfig
 import no.nordicsemi.android.observability.internal.AuthorisationHeader
+import no.nordicsemi.android.observability.internal.map
 import no.nordicsemi.kotlin.ble.client.RemoteService
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
@@ -98,6 +99,48 @@ private val MDS_DATA_EXPORT_CHARACTERISTIC_UUID        = Uuid.parse("54220005-f6
  */
 class MonitoringAndDiagnosticsService {
 	private val logger = LoggerFactory.getLogger(MonitoringAndDiagnosticsService::class.java)
+
+	/**
+	 * Represents the state of the device Bluetooth LE connection.
+	 */
+	sealed class State {
+		/** The device is currently connecting. */
+		data object Connecting : State()
+		/** The device is being initialized. */
+		data object Initializing : State()
+		/**
+		 * The device is connected and set up to receive Diagnostic data.
+		 *
+		 * @property config The configuration obtained from the device using GATT.
+		 */
+		data class Connected(val config: ChunksConfig) : State()
+		/** The device is currently disconnecting. */
+		data object Disconnecting : State()
+		/** The device is disconnected. */
+		data class Disconnected(val reason: Reason? = null) : State() {
+
+			/**
+			 * Represents the reason for disconnection or failure to connect.
+			 */
+			enum class Reason {
+				FAILED_TO_CONNECT,
+				NOT_SUPPORTED,
+				BONDING_FAILED,
+				CONNECTION_LOST,
+				TIMEOUT,
+			}
+
+			override fun equals(other: Any?): Boolean {
+				if (this === other) return true
+				if (other !is Disconnected) return false
+				return true
+			}
+
+			override fun hashCode(): Int {
+				return reason?.hashCode() ?: 0
+			}
+		}
+	}
 
 	/**
 	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given [CentralManager] and [Peripheral].
@@ -149,7 +192,7 @@ class MonitoringAndDiagnosticsService {
 	/** A flag set when the bonding process failed. */
 	private var bondingFailed = false
 
-	private val _state = MutableStateFlow<DeviceState>(DeviceState.Disconnected())
+	private val _state = MutableStateFlow<State>(State.Disconnected())
 	private val _chunks = MutableSharedFlow<ByteArray>(
 		extraBufferCapacity = 25,
 		onBufferOverflow = BufferOverflow.SUSPEND
@@ -181,7 +224,7 @@ class MonitoringAndDiagnosticsService {
 							assert(connection == null) { "Connection already started" }
 							val handler = CoroutineExceptionHandler { _, throwable ->
 								logger.error(throwable.message)
-								_state.update { DeviceState.Disconnected(DeviceState.Disconnected.Reason.FAILED_TO_CONNECT) }
+								_state.update { State.Disconnected(State.Disconnected.Reason.FAILED_TO_CONNECT) }
 								cancel()
 							}
 							connection = launch(handler) {
@@ -267,7 +310,7 @@ class MonitoringAndDiagnosticsService {
 							// Don't report this state.
 							return@onEach
 						}
-						_state.emit(state.toDeviceState(notSupported, bondingFailed))
+						_state.emit(state.map(notSupported, bondingFailed))
 						if (state.isUserInitiated /* (includes not supported) */ ||
 							state.reason is ConnectionState.Disconnected.Reason.UnsupportedConfiguration) {
 							// If the disconnection was initiated using disconnect() method,
@@ -284,7 +327,7 @@ class MonitoringAndDiagnosticsService {
 					// when the service is initialized. This is to make sure that not supported
 					// devices are not reported as connected.
 					else -> {
-						_state.emit(state.toDeviceState())
+						_state.emit(state.map())
 					}
 				}
 			}
@@ -331,12 +374,12 @@ class MonitoringAndDiagnosticsService {
 				// The exception will be caught in the catch block below.
 				checkNotNull(mds) { "Monitoring & Diagnostics Service not supported" }
 
-				_state.emit(value = DeviceState.Initializing)
+				_state.emit(value = State.Initializing)
 
 				// This method will throw if any of required characteristic is not supported.
 				val config = initialize(mds)
 
-				_state.emit(value = DeviceState.Connected(config))
+				_state.emit(value = State.Connected(config))
 
 				// Make sure the chunks are enabled only after the state changed to Connected.
 				start(mds)
@@ -364,12 +407,12 @@ class MonitoringAndDiagnosticsService {
 				peripheral.disconnect()
 
 				// The state collection was cancelled together with the scope. Emit the state manually.
-				_state.emit(peripheral.state.value.toDeviceState(notSupported, bondingFailed))
+				_state.emit(peripheral.state.value.map(notSupported, bondingFailed))
 			}
 		}
 	}
 
-	private suspend fun CoroutineScope.initialize(mds: RemoteService): DeviceConfig {
+	private suspend fun CoroutineScope.initialize(mds: RemoteService): ChunksConfig {
 		// Read and emit device configuration.
 		val deviceId = mds.deviceIdCharacteristic.read()
 			.let { String(it) }
@@ -384,7 +427,7 @@ class MonitoringAndDiagnosticsService {
 			.onEach { _chunks.emit(it) }
 			.launchIn(this)
 
-		return DeviceConfig(authorisationToken, url, deviceId)
+		return ChunksConfig(authorisationToken, url, deviceId)
 	}
 
 	private suspend fun start(mds: RemoteService) {

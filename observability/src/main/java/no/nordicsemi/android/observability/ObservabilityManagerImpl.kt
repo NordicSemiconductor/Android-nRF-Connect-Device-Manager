@@ -47,8 +47,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import no.nordicsemi.android.observability.bluetooth.DeviceState
 import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService.State.Connected
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService.State.Connecting
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService.State.Disconnected
 import no.nordicsemi.android.observability.data.PersistentChunkQueue
 import no.nordicsemi.android.observability.internal.Scope
 import no.nordicsemi.android.observability.internet.ChunkManager
@@ -82,9 +84,9 @@ internal class ObservabilityManagerImpl(
                     state
                         .drop(1)
                         .onEach { state ->
-                            _state.value = _state.value.copy(deviceStatus = state)
+                            _state.value = _state.value.copy(state = state)
 
-                            if (state is DeviceState.Connected) {
+                            if (state is Connected) {
                                 assert(connection?.isCancelled ?: true) {
                                     "Connection scope should be null or cancelled when the config is received"
                                 }
@@ -106,7 +108,7 @@ internal class ObservabilityManagerImpl(
                                     ).also { manager ->
                                         manager.status
                                             .onEach {
-                                                _state.value = _state.value.copy(uploadingStatus = it)
+                                                _state.value = _state.value.copy(uploadingState = it)
                                             }
                                             .launchIn(this)
                                         // Upload any chunks that were already in the queue.
@@ -129,12 +131,12 @@ internal class ObservabilityManagerImpl(
                                     }
                                 }
                             }
-                            if (state is DeviceState.Connecting) {
+                            if (state is Connecting) {
                                 // Otherwise, the device must have been disconnected.
                                 connection?.cancel()
                                 connection = null
                             }
-                            if (state is DeviceState.Disconnected) {
+                            if (state is Disconnected) {
                                 cancel()
                             }
                         }
