@@ -55,7 +55,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/image_upgrade_status"
-            android:paddingBottom="16dp"
             app:layout_constraintStart_toStartOf="@+id/file_name_label"
             app:layout_constraintTop_toBottomOf="@+id/file_hash" />
 
@@ -101,6 +100,7 @@
             android:layout_height="wrap_content"
             android:freezesText="true"
             android:textStyle="bold"
+            android:paddingBottom="16dp"
             app:layout_constraintEnd_toEndOf="@+id/file_name"
             app:layout_constraintStart_toStartOf="@+id/file_name"
             app:layout_constraintTop_toTopOf="@+id/status_label"
@@ -114,7 +114,7 @@
             tools:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/status_label" />
+            app:layout_constraintTop_toBottomOf="@+id/status" />
 
         <androidx.constraintlayout.widget.Group
             android:id="@+id/advanced_group"
@@ -246,6 +246,16 @@
             app:layout_constraintTop_toBottomOf="@+id/advanced_memory_alignment_layout" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/action_check_for_update"
+            style="@style/Widget.ActionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/image_check_for_update"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/file_name_label"
+            app:layout_constraintTop_toBottomOf="@+id/divider" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/action_select_file"
             style="@style/Widget.ActionButton"
             android:layout_width="wrap_content"
@@ -253,6 +263,8 @@
             android:text="@string/image_action_select"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/action_start"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/action_check_for_update"
             app:layout_constraintTop_toBottomOf="@+id/divider" />
 
         <com.google.android.material.button.MaterialButton

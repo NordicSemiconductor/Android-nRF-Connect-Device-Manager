@@ -42,14 +42,20 @@ import no.nordicsemi.android.mcumgr.sample.databinding.FragmentCardImageUpgradeB
 import no.nordicsemi.android.mcumgr.sample.di.Injectable;
 import no.nordicsemi.android.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.dialog.HelpDialogFragment;
+import no.nordicsemi.android.mcumgr.sample.dialog.ReleaseInformationDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.dialog.SelectBinaryDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.observable.ConnectionParameters;
 import no.nordicsemi.android.mcumgr.sample.utils.StringUtils;
 import no.nordicsemi.android.mcumgr.sample.utils.ZipPackage;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.ImageUpgradeViewModel;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
+import no.nordicsemi.android.ota.DownloadCallback;
+import no.nordicsemi.android.ota.OtaManager;
+import no.nordicsemi.android.ota.ReleaseBinary;
 
-public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable, SelectBinaryDialogFragment.OnBinarySelectedListener {
+public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable,
+        SelectBinaryDialogFragment.OnBinarySelectedListener,
+        ReleaseInformationDialogFragment.OnDownloadClickedListener {
     private static final String PREF_ERASE_APP_SETTINGS = "pref_erase_app_settings";
     private static final String PREF_ESTIMATED_SWAP_TIME = "pref_estimated_swap_time";
     private static final String PREF_WINDOW_CAPACITY = "pref_window_capacity";
@@ -174,6 +180,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.actionPauseResume.setText(state == ImageUpgradeViewModel.State.PAUSED ?
                     R.string.image_action_resume : R.string.image_action_pause);
 
+            binding.actionCheckForUpdate.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
             binding.actionSelectFile.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
             binding.actionStart.setVisibility(state.inProgress() ? View.GONE : View.VISIBLE);
             binding.actionCancel.setVisibility(state.inProgress() ? View.VISIBLE : View.GONE);
@@ -230,6 +237,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         }
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
+                binding.actionCheckForUpdate.setVisibility(View.VISIBLE);
                 binding.actionSelectFile.setVisibility(View.VISIBLE);
                 binding.actionStart.setVisibility(View.VISIBLE);
                 binding.actionCancel.setVisibility(View.GONE);
@@ -243,6 +251,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         });
         viewModel.getCancelledEvent().observe(getViewLifecycleOwner(), nothing -> {
             binding.status.setText(R.string.image_upgrade_status_cancelled);
+            binding.actionCheckForUpdate.setVisibility(View.VISIBLE);
             binding.actionSelectFile.setVisibility(View.VISIBLE);
             binding.actionStart.setVisibility(View.VISIBLE);
             binding.actionStart.setEnabled(false);
@@ -254,8 +263,25 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             binding.advancedMemoryAlignmentLayout.setEnabled(true);
         });
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy -> {
+            binding.actionCheckForUpdate.setEnabled(!busy);
             binding.actionSelectFile.setEnabled(!busy);
             binding.actionStart.setEnabled(isFileLoaded() && !busy);
+        });
+        viewModel.getOtaReadyEvent().observe(getViewLifecycleOwner(), releaseInformation -> {
+            final DialogFragment dialog = ReleaseInformationDialogFragment.getInstance(releaseInformation);
+            dialog.show(getChildFragmentManager(), null);
+        });
+        viewModel.getOtaNotSupportedEvent().observe(getViewLifecycleOwner(), nothing -> {
+            final DialogFragment dialog = HelpDialogFragment.getInstance(
+                    R.string.ota_dialog_not_supported_title,
+                    R.string.ota_dialog_not_supported_message,
+                    "https://mflt.io/nrf-app-discover-cloud-services");
+            dialog.show(getChildFragmentManager(), null);
+        });
+
+        // Configure Check for Updates button
+        binding.actionCheckForUpdate.setOnClickListener(v -> {
+            viewModel.checkForUpdate();
         });
 
         // Configure SELECT FILE action
@@ -414,6 +440,32 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
     @Override
     protected void onFileLoadingFailed(final int error) {
         binding.status.setText(error);
+    }
+
+    @Override
+    public void onDownload(final @NonNull String location) {
+        final OtaManager otaManager = new OtaManager();
+        otaManager.download(location, new DownloadCallback() {
+            @Override
+            public void onSuccess(@NonNull ReleaseBinary binary) {
+                final String fileName = binary.getName();
+                final byte[] content = binary.getBytes();
+                if (fileName != null) {
+                    onFileSelected(fileName, content.length);
+                }
+                setFileContent(content);
+            }
+
+            @Override
+            public void onNoContent() {
+                printError(new McuMgrException("No content"));
+            }
+
+            @Override
+            public void onError(@NotNull Throwable t) {
+                printError(new McuMgrException(t));
+            }
+        });
     }
 
     @Override

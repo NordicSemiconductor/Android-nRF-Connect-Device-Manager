@@ -42,6 +42,9 @@ dependencies {
     implementation(project(":observability"))
     implementation(libs.nordic.blek.client.android)
 
+    // Use nRF Cloud OTA feature to check for updates and download images for devices supporting it.
+    implementation(project(":ota"))
+
     // AndroidX libraries
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment)

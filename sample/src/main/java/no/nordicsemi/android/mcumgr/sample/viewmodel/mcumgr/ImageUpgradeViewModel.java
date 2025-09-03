@@ -41,6 +41,10 @@ import no.nordicsemi.android.mcumgr.sample.observable.ConnectionParameters;
 import no.nordicsemi.android.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 import no.nordicsemi.android.mcumgr.sample.utils.ZipPackage;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.SingleLiveEvent;
+import no.nordicsemi.android.ota.DeviceInfo;
+import no.nordicsemi.android.ota.OtaManager;
+import no.nordicsemi.android.ota.ReleaseCallback;
+import no.nordicsemi.android.ota.ReleaseInformation;
 import timber.log.Timber;
 
 public class ImageUpgradeViewModel extends McuMgrViewModel {
@@ -92,6 +96,9 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
     private final MutableLiveData<Boolean> advancedSettingsExpanded = new MutableLiveData<>();
     private final MutableLiveData<McuMgrException> errorLiveData = new MutableLiveData<>();
     private final SingleLiveEvent<Void> cancelledEvent = new SingleLiveEvent<>();
+
+    private final SingleLiveEvent<ReleaseInformation> otaReadyEvent = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Void> otaNotSupportedEvent = new SingleLiveEvent<>();
 
     private long uploadStartTimestamp;
 	private int imageSize, bytesSent, bytesSentSinceUploadStated, lastProgress;
@@ -272,6 +279,62 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
     @NonNull
     public LiveData<Void> getCancelledEvent() {
         return cancelledEvent;
+    }
+
+    @NonNull
+    public LiveData<ReleaseInformation> getOtaReadyEvent() {
+        return otaReadyEvent;
+    }
+
+    @NonNull
+    public LiveData<Void> getOtaNotSupportedEvent() {
+        return otaNotSupportedEvent;
+    }
+
+    public void checkForUpdate() {
+        if (bleTransport instanceof ObservableMcuMgrBleTransport ot) {
+            setBusy();
+            ot.connect(new McuMgrTransport.ConnectionCallback() {
+                @Override
+                public void onConnected() {
+                    final DeviceInfo deviceInfo = ot.getDeviceInfo();
+                    final String projectKey = ot.getProjectKey();
+                    if (deviceInfo == null || projectKey == null) {
+                        postReady();
+                        otaNotSupportedEvent.post();
+                        return;
+                    }
+                    final OtaManager otaManager = new OtaManager();
+                    otaManager.getLatestRelease(deviceInfo, projectKey, new ReleaseCallback() {
+                        @Override
+                        public void onSuccess(final @NotNull ReleaseInformation releaseInformation) {
+                            postReady();
+                            Timber.i("Latest release: %s", releaseInformation);
+                            otaReadyEvent.postValue(releaseInformation);
+                        }
+
+                        @Override
+                        public void onError(final @NotNull Throwable t) {
+                            postReady();
+                            errorLiveData.postValue(new McuMgrException(t));
+                        }
+                    });
+                }
+
+                @Override
+                public void onDeferred() {
+                    // This is never called with BLE transport.
+                }
+
+                @Override
+                public void onError(@NotNull Throwable t) {
+                    postReady();
+                    errorLiveData.postValue(new McuMgrException(t));
+                }
+            });
+        } else {
+            otaNotSupportedEvent.post();
+        }
     }
 
     public void upgrade(@NonNull final byte[] data,

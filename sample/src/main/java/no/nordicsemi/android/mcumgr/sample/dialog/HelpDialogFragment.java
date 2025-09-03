@@ -66,7 +66,7 @@ public class HelpDialogFragment extends AppCompatDialogFragment {
                 .setMessage(messageResId)
                 .setPositiveButton(android.R.string.ok, null);
         if (link != null) {
-            builder.setNeutralButton(R.string.observability_dialog_help_learn_more, (dialog, which) -> {
+            builder.setNeutralButton(R.string.action_learn_more, (dialog, which) -> {
                 final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(link));
                 try {
                     startActivity(browserIntent);
