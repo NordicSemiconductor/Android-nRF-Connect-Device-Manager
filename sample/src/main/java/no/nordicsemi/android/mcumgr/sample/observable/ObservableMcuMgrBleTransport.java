@@ -159,7 +159,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         disconnect()
                 // Handling a case when user releases the transport object without connecting to the device.
                 // In that case, the BluetoothDevice is not set and DisconnectRequest returns invalid state.
-                .invalid(this::close)
+                .then(device -> close())
                 .enqueue();
     }
 

@@ -70,9 +70,9 @@ public class DeviceStatusViewModel extends McuMgrViewModel {
         defaultManager = manager;
 
         final McuMgrTransport transport = manager.getTransporter();
-        if (transport instanceof ObservableMcuMgrBleTransport) {
-            connectionStateLiveData = ((ObservableMcuMgrBleTransport) transport).getState();
-            bondStateLiveData = ((ObservableMcuMgrBleTransport) transport).getBondingState();
+        if (transport instanceof ObservableMcuMgrBleTransport bleTransport) {
+            connectionStateLiveData = bleTransport.getState();
+            bondStateLiveData = bleTransport.getBondingState();
         } else {
             final MutableLiveData<ConnectionState> liveData = new MutableLiveData<>();
             transport.addObserver(new McuMgrTransport.ConnectionObserver() {

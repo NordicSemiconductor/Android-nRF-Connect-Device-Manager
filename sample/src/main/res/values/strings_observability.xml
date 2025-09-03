@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="observability_title">nRF Cloud Observability</string>
+    <string name="observability_status">Status:</string>
+    <string name="observability_sent">Sent:</string>
+    <string name="observability_pending">Pending:</string>
+
+    <string name="observability_not_applicable">N/A</string>
+    <plurals name="observability_value">
+        <item quantity="one">%d chunk (%d B)</item>
+        <item quantity="other">%d chunks (%d B)</item>
+    </plurals>
+
+    <string name="observability_not_supported">Not supported</string>
+    <string name="observability_connected">Connected</string>
+    <string name="observability_uploading">Uploading…</string>
+    <string name="observability_suspended">Suspended for %ds</string>
+    <string name="observability_connecting">Connecting…</string>
+    <string name="observability_disconnected">Disconnected</string>
+
+    <string name="observability_dialog_help_title">Help</string>
+    <string name="observability_dialog_help_message"><b>nRF Cloud Observability</b> is a comprehensive
+        suite of monitoring, diagnostics, and actionable insights for embedded devices.
+        It allows developers and engineering teams to track, analyze, and act on device behavior
+        and reliability in real time.
+        \n\nnRF Connect Device Manager forwards Chunks payload obtained from embedded devices
+        with <b>Monitoring &amp; Diagnostics Service (MDS)</b> to <b>nRF Cloud Services</b> for
+        analysis.</string>
+    <string name="observability_dialog_help_learn_more">Learn More</string>
+</resources>

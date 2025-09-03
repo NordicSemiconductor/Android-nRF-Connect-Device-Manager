@@ -30,6 +30,7 @@ public class McuMgrViewModelFactory implements ViewModelProvider.Factory {
         creators.put(DeviceStatusViewModel.class, viewModelSubComponent::deviceStatusViewModel);
         creators.put(EchoViewModel.class, viewModelSubComponent::echoViewModel);
         creators.put(ResetViewModel.class, viewModelSubComponent::resetViewModel);
+        creators.put(ObservabilityViewModel.class, viewModelSubComponent::observabilityViewModel);
         creators.put(StatsViewModel.class, viewModelSubComponent::statsViewModel);
         creators.put(McuMgrViewModel.class, viewModelSubComponent::mcuMgrViewModel);
         creators.put(FileBrowserViewModel.class, viewModelSubComponent::fileBrowserViewModel);
