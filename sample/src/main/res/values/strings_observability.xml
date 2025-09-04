@@ -26,5 +26,4 @@
         \n\nnRF Connect Device Manager forwards Chunks payload obtained from embedded devices
         with <b>Monitoring &amp; Diagnostics Service (MDS)</b> to <b>nRF Cloud Services</b> for
         analysis.</string>
-    <string name="observability_dialog_help_learn_more">Learn More</string>
 </resources>

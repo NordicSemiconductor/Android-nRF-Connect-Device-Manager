@@ -9,6 +9,7 @@
     <string name="image_action_switch_to_advanced">Advanced</string>
     <string name="image_action_switch_to_basic">Basic</string>
 
+    <string name="image_check_for_update">Check</string>
     <string name="image_action_select">Select File</string>
     <string name="image_action_pause">Pause</string>
     <string name="image_action_resume">Resume</string>
