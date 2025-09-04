@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import io.runtime.mcumgr.McuMgrCallback;
+import io.runtime.mcumgr.dfu.mcuboot.model.TargetImage;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
@@ -320,7 +321,9 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
         setBusy();
         errorLiveData.setValue(null);
-        manager.erase(image, new McuMgrCallback<>() {
+        manager.erase(TargetImage.SLOT_SECONDARY, new McuMgrCallback<>() {
+            private boolean triedOtherSlot = false;
+
             @Override
             public void onResponse(@NonNull final McuMgrImageResponse response) {
                 read();
@@ -328,6 +331,11 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
             @Override
             public void onError(@NonNull final McuMgrException error) {
+                if (!triedOtherSlot) {
+                    triedOtherSlot = true;
+                    manager.erase(TargetImage.SLOT_PRIMARY, this);
+                    return;
+                }
                 postError(error);
             }
         });
