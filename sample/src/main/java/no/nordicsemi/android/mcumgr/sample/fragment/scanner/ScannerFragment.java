@@ -140,9 +140,9 @@ public class ScannerFragment extends Fragment implements Injectable, DevicesAdap
 
         requireActivity().addMenuProvider(new MenuProvider() {
             @Override
-            public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+            public void onCreateMenu(@NonNull final Menu menu, @NonNull final MenuInflater menuInflater) {
                 menuInflater.inflate(R.menu.filter, menu);
-                menu.findItem(R.id.filter_uuid).setChecked(scannerViewModel.isUuidFilterEnabled());
+                menu.findItem(R.id.filter_names).setChecked(scannerViewModel.isNameFilterEnabled());
                 menu.findItem(R.id.filter_nearby).setChecked(scannerViewModel.isNearbyFilterEnabled());
             }
 
@@ -152,11 +152,11 @@ public class ScannerFragment extends Fragment implements Injectable, DevicesAdap
             }
 
             @Override
-            public boolean onMenuItemSelected(@NonNull MenuItem item) {
+            public boolean onMenuItemSelected(@NonNull final MenuItem item) {
                 final int itemId = item.getItemId();
-                if (itemId == R.id.filter_uuid) {
+                if (itemId == R.id.filter_names) {
                     item.setChecked(!item.isChecked());
-                    scannerViewModel.filterByUuid(item.isChecked());
+                    scannerViewModel.filterByName(item.isChecked());
                     return true;
                 }
                 if (itemId == R.id.filter_nearby) {

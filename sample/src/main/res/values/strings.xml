@@ -15,8 +15,8 @@
 	<string name="menu_collapse">Collapse</string>
 	<string name="menu_settings">Settings</string>
 	<string name="menu_filter">Filter</string>
-	<string name="menu_filter_uuid">Only devices advertising SMP UUID</string>
-	<string name="menu_filter_nearby">Only nearby devices</string>
+	<string name="menu_filter_names">Show only with names</string>
+	<string name="menu_filter_nearby">Show only nearby</string>
 
 	<string name="action_grant_permission">Grant permission</string>
 	<string name="action_settings">Settings</string>

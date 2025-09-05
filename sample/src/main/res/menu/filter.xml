@@ -16,10 +16,10 @@
 
         <menu>
             <item
-                android:id="@+id/filter_uuid"
+                android:id="@+id/filter_names"
                 android:checkable="true"
                 android:checked="true"
-                android:title="@string/menu_filter_uuid"/>
+                android:title="@string/menu_filter_names"/>
 
             <item
                 android:id="@+id/filter_nearby"

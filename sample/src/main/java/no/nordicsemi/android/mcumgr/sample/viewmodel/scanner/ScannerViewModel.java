@@ -32,7 +32,7 @@ import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 import timber.log.Timber;
 
 public class ScannerViewModel extends AndroidViewModel {
-    private static final String PREFS_FILTER_UUID_REQUIRED = "filter_uuid";
+    private static final String PREFS_FILTER_NAMED_ONLY = "filter_names";
     private static final String PREFS_FILTER_NEARBY_ONLY = "filter_nearby";
 
     /** MutableLiveData containing the list of devices. */
@@ -56,14 +56,14 @@ public class ScannerViewModel extends AndroidViewModel {
         super(application);
         this.preferences = preferences;
 
-        final boolean filterUuidRequired = isUuidFilterEnabled();
+        final boolean filterNamedOnly = isNameFilterEnabled();
         final boolean filerNearbyOnly = isNearbyFilterEnabled();
 
         scannerStateLiveData = new ScannerStateLiveData(
                 Utils.isBleEnabled(),
                 Utils.isLocationEnabled(application)
         );
-        devicesLiveData = new DevicesLiveData(filterUuidRequired, filerNearbyOnly);
+        devicesLiveData = new DevicesLiveData(filterNamedOnly, filerNearbyOnly);
         registerBroadcastReceivers(application);
     }
 
@@ -73,8 +73,8 @@ public class ScannerViewModel extends AndroidViewModel {
         unregisterBroadcastReceivers(getApplication());
     }
 
-    public boolean isUuidFilterEnabled() {
-        return preferences.getBoolean(PREFS_FILTER_UUID_REQUIRED, true);
+    public boolean isNameFilterEnabled() {
+        return preferences.getBoolean(PREFS_FILTER_NAMED_ONLY, true);
     }
 
     public boolean isNearbyFilterEnabled() {
@@ -103,12 +103,12 @@ public class ScannerViewModel extends AndroidViewModel {
      * even if they move away from the phone, or change the advertising packet. This is to
      * avoid removing devices from the list.
      *
-     * @param uuidRequired if true, the list will display only devices with SMP UUID
+     * @param nameRequired if true, the list will display only devices Local Name
      *                     in the advertising packet.
      */
-    public void filterByUuid(final boolean uuidRequired) {
-        preferences.edit().putBoolean(PREFS_FILTER_UUID_REQUIRED, uuidRequired).apply();
-        if (devicesLiveData.filterByUuid(uuidRequired))
+    public void filterByName(final boolean nameRequired) {
+        preferences.edit().putBoolean(PREFS_FILTER_NAMED_ONLY, nameRequired).apply();
+        if (devicesLiveData.filterByName(nameRequired))
             scannerStateLiveData.recordFound();
         else
             scannerStateLiveData.clearRecords();
