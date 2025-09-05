@@ -18,6 +18,14 @@ public class DiscoveredBluetoothDevice implements Parcelable {
     private int rssi;
     private int previousRssi;
     private int highestRssi = -128;
+    /**
+     * A flag indicating that the device advertised Local Name at least once.
+     * <p>
+     * Some devices advertise with multiple different advertising packets, some with and some
+     * without names. To avoid flickering with "Only named" filter enabled this will show
+     * devices that have or HAD local name in their advertising packet.
+     */
+    private boolean hadName;
 
     public DiscoveredBluetoothDevice(final ScanResult scanResult) {
         device = scanResult.getDevice();
@@ -35,6 +43,7 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         this.rssi = -128;
         this.highestRssi = -128;
         this.previousRssi = -128;
+        this.hadName = this.name != null && !this.name.isEmpty();
     }
 
     public BluetoothDevice getDevice() {
@@ -49,12 +58,19 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         return name;
     }
 
-    public int getRssi() {
-        return rssi;
+    /**
+     * A flag indicating that the device advertised Local Name at least once.
+     * <p>
+     * Some devices advertise with multiple different advertising packets, some with and some
+     * without names. To avoid flickering with "Only named" filter enabled this will show
+     * devices that have or HAD local name in their advertising packet.
+     */
+    public boolean hadName() {
+        return hadName;
     }
 
-    public ScanResult getScanResult() {
-        return lastScanResult;
+    public int getRssi() {
+        return rssi;
     }
 
     /**
@@ -101,6 +117,8 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         lastScanResult = scanResult;
         name = scanResult.getScanRecord() != null ?
                 scanResult.getScanRecord().getDeviceName() : null;
+        if (!hadName)
+            hadName = name != null && !name.isEmpty();
         previousRssi = rssi;
         rssi = scanResult.getRssi();
         if (highestRssi < rssi)
@@ -133,6 +151,7 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         rssi = in.readInt();
         previousRssi = in.readInt();
         highestRssi = in.readInt();
+        hadName = in.readInt() == 1;
     }
 
     @Override
@@ -143,6 +162,7 @@ public class DiscoveredBluetoothDevice implements Parcelable {
         parcel.writeInt(rssi);
         parcel.writeInt(previousRssi);
         parcel.writeInt(highestRssi);
+        parcel.writeInt(hadName ? 1 : 0);
     }
 
     @Override

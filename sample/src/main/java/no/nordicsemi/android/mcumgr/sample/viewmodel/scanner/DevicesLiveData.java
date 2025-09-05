@@ -7,17 +7,15 @@
 package no.nordicsemi.android.mcumgr.sample.viewmodel.scanner;
 
 import android.bluetooth.BluetoothDevice;
-import android.os.ParcelUuid;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import no.nordicsemi.android.mcumgr.ble.DefaultMcuMgrUuidConfig;
 import no.nordicsemi.android.mcumgr.sample.adapter.DiscoveredBluetoothDevice;
-import no.nordicsemi.android.support.v18.scanner.ScanRecord;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 
 /**
@@ -27,21 +25,20 @@ import no.nordicsemi.android.support.v18.scanner.ScanResult;
  */
 @SuppressWarnings("unused")
 public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
-    private static final ParcelUuid FILTER_UUID = new ParcelUuid(DefaultMcuMgrUuidConfig.SMP_SERVICE_UUID);
     private static final int FILTER_RSSI = -50; // [dBm]
 
     private final List<DiscoveredBluetoothDevice> devices = new ArrayList<>();
     private List<DiscoveredBluetoothDevice> filteredDevices = null;
-    private boolean filterUuidRequired;
+    private boolean filterNamedOnly;
     private boolean filterNearbyOnly;
 
     /* package */ DevicesLiveData() {
-        this.filterUuidRequired = false;
+        this.filterNamedOnly = false;
         this.filterNearbyOnly = false;
     }
 
-    /* package */ DevicesLiveData(final boolean filterUuidRequired, final boolean filterNearbyOnly) {
-        this.filterUuidRequired = filterUuidRequired;
+    /* package */ DevicesLiveData(final boolean filterNamedOnly, final boolean filterNearbyOnly) {
+        this.filterNamedOnly = filterNamedOnly;
         this.filterNearbyOnly = filterNearbyOnly;
     }
 
@@ -52,8 +49,8 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
         postValue(null);
     }
 
-    /* package */  boolean filterByUuid(final boolean uuidRequired) {
-        filterUuidRequired = uuidRequired;
+    /* package */  boolean filterByName(final boolean nameRequired) {
+        filterNamedOnly = nameRequired;
         return applyFilter();
     }
 
@@ -80,7 +77,7 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
 
         // Return true if the device was on the filtered list or is to be added.
         return (filteredDevices != null && filteredDevices.contains(device))
-                || (matchesUuidFilter(result) && matchesNearbyFilter(device.getHighestRssi()));
+                || (matchesNameFilter(device) && matchesNearbyFilter(device));
     }
 
     synchronized void setDevices(final Set<BluetoothDevice> devices) {
@@ -108,8 +105,7 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
     synchronized boolean applyFilter() {
         final List<DiscoveredBluetoothDevice> devices = new ArrayList<>();
         for (final DiscoveredBluetoothDevice device : this.devices) {
-            final ScanResult result = device.getScanResult();
-            if (matchesUuidFilter(result) && matchesNearbyFilter(device.getHighestRssi())) {
+            if (matchesNameFilter(device) && matchesNearbyFilter(device)) {
                 devices.add(device);
             }
         }
@@ -135,26 +131,18 @@ public class DevicesLiveData extends LiveData<List<DiscoveredBluetoothDevice>> {
     }
 
     @SuppressWarnings("SimplifiableIfStatement")
-    private boolean matchesUuidFilter(final ScanResult result) {
-        if (!filterUuidRequired)
+    private boolean matchesNameFilter(@NonNull final DiscoveredBluetoothDevice device) {
+        if (!filterNamedOnly)
             return true;
 
-        final ScanRecord record = result.getScanRecord();
-        if (record == null)
-            return false;
-
-        final List<ParcelUuid> uuids = record.getServiceUuids();
-        if (uuids == null)
-            return false;
-
-        return uuids.contains(FILTER_UUID);
+        return device.hadName();
     }
 
     @SuppressWarnings("SimplifiableIfStatement")
-    private boolean matchesNearbyFilter(final int rssi) {
+    private boolean matchesNearbyFilter(@NonNull final DiscoveredBluetoothDevice device) {
         if (!filterNearbyOnly)
             return true;
 
-        return rssi >= FILTER_RSSI;
+        return device.getHighestRssi() >= FILTER_RSSI;
     }
 }
