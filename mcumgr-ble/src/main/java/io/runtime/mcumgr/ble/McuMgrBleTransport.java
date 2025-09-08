@@ -672,8 +672,22 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Maximum supported MTU is 517, but that would mean the third packet is small.
         // If the packet could not be sent in the same connection interval as 2 big packets,
         // that would waste the whole connection interval for just around 20 bytes.
+        final boolean samsungS8Tab = Build.HARDWARE.equals("ums512_25c10");
         requestMtu(mInitialMtu)
-                .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
+                .with((device, mtu) -> {
+                    // Note: When Samsung A8 Tab requests higher MTU it only requests RX MTU to be > 23,
+                    //       leaving TX equal to 23 bytes. However, later it tries to send longer
+                    //       packets, causing the target device to disconnect.
+                    //       See: https://github.com/NordicSemiconductor/Android-DFU-Library/pull/408
+                    //       For that device set the max packet length unless the SMP reassembly is
+                    //       supported (see MCU Params request below). Some features, like
+                    //       DFU require sending longer packets.
+                    mMaxPacketLength = Math.max(samsungS8Tab ? 20 : (mtu - 3), mMaxPacketLength);
+                    if (samsungS8Tab) {
+                        log(Log.WARN, "Samsung A8 Tab detected, setting TX MTU to 23");
+                        overrideMtu(23);
+                    }
+                })
                 .fail((device, status) -> {
                     if (getMinLogPriority() <= Log.WARN) {
                         log(Log.WARN, "Failed to negotiate MTU, disconnecting...");
@@ -717,6 +731,13 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             mMaxPacketLength = response.bufSize;
                         } catch (final Exception e) {
                             // Ignore
+                        }
+                    }
+                    if (mMaxPacketLength < 70) {
+                        // First Image Upload packet has a overhead of 69 bytes. To send at least 1
+                        // byte of data, the buffer must be at least 70 bytes long.
+                        if (getMinLogPriority() <= Log.WARN) {
+                            log(Log.WARN, "Maximum packet size too small for some features i.e. DFU");
                         }
                     }
                 })
