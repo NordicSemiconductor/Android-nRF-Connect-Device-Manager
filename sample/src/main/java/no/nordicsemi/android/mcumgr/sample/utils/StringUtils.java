@@ -15,6 +15,7 @@ import no.nordicsemi.android.mcumgr.McuMgrErrorCode;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrDisconnectedException;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrNotSupportedException;
+import no.nordicsemi.android.mcumgr.ble.exception.McuMgrUnsupportedConfigurationException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrTimeoutException;
@@ -68,6 +69,8 @@ public class StringUtils {
             return context.getString(R.string.status_disconnected);
         } else if (error instanceof McuMgrNotSupportedException) {
             return context.getString(R.string.status_not_supported);
+        } else if (error instanceof McuMgrUnsupportedConfigurationException) {
+            return context.getString(R.string.status_unsupported_configuration);
         } else if (error instanceof McuMgrTimeoutException) {
             return context.getString(R.string.status_connection_timeout);
         }

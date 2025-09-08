@@ -199,6 +199,14 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
             AtomicReference<String> swType = new AtomicReference<>();
             AtomicReference<String> currentVersion = new AtomicReference<>();
             beginAtomicRequestQueue()
+                    .add(readCharacteristic(disSerialNumberCharacteristic)
+                            .with((device, data) -> serialNumber.set(data.getStringValue(0))))
+                    .add(readCharacteristic(disHwRevCharacteristic)
+                            .with((device, data) -> hwVersion.set(data.getStringValue(0))))
+                    .add(readCharacteristic(disFwRevCharacteristic)
+                            .with((device, data) -> currentVersion.set(data.getStringValue(0))))
+                    .add(readCharacteristic(disSwRevCharacteristic)
+                            .with((device, data) -> swType.set(data.getStringValue(0))))
                     .add(readCharacteristic(mdsAuthCharacteristic)
                             .with((device, data) -> {
                                 final String value = data.getStringValue(0);
@@ -210,14 +218,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                                     }
                                 }
                             }))
-                    .add(readCharacteristic(disSerialNumberCharacteristic)
-                            .with(((device, data) -> serialNumber.set(data.getStringValue(0)))))
-                    .add(readCharacteristic(disHwRevCharacteristic)
-                            .with(((device, data) -> hwVersion.set(data.getStringValue(0)))))
-                    .add(readCharacteristic(disFwRevCharacteristic)
-                            .with(((device, data) -> currentVersion.set(data.getStringValue(0)))))
-                    .add(readCharacteristic(disSwRevCharacteristic)
-                            .with(((device, data) -> swType.set(data.getStringValue(0)))))
                     .done(device -> deviceInfo = new DeviceInfo(
                             serialNumber.get(),
                             hwVersion.get(),
