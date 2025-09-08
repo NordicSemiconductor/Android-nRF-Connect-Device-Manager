@@ -41,6 +41,7 @@ import io.runtime.mcumgr.ble.callback.TransactionTimeoutException;
 import io.runtime.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
 import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
+import io.runtime.mcumgr.ble.exception.McuMgrUnsupportedConfigurationException;
 import io.runtime.mcumgr.ble.util.ResultCondition;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
@@ -441,9 +442,14 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         // This may also happen if service discovery ends with an error, which
                         // will trigger disconnection.
                         case FailCallback.REASON_REQUEST_FAILED:
-                            case FailCallback.REASON_DEVICE_DISCONNECTED:
-                        case     FailCallback.REASON_CANCELLED: {
+                        case FailCallback.REASON_DEVICE_DISCONNECTED:
+                        case FailCallback.REASON_CANCELLED: {
                             callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        }
+                        case FailCallback.REASON_UNSUPPORTED_CONFIGURATION: {
+                            log(Log.ERROR, "Android device failed to reply to PHY request, disable PHY LE 2M on the peripheral.");
+                            callback.onError(new McuMgrUnsupportedConfigurationException());
                             break;
                         }
                         case FailCallback.REASON_DEVICE_NOT_SUPPORTED: {
@@ -460,6 +466,8 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             break;
                         }
                         default: {
+                            if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION)
+                                log(Log.ERROR, "Unable to resume encryption, pairing removed from peer");
                             callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
                             break;
                         }                    }
@@ -486,6 +494,14 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     callback.onConnected();
                 })
                 .fail((device, status) -> {
+                    switch (status) {
+                        case FailCallback.REASON_UNSUPPORTED_CONFIGURATION:
+                            log(Log.ERROR, "Android device failed to reply to PHY request, disable PHY LE 2M on the peripheral.");
+                            break;
+                        case BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION:
+                            log(Log.ERROR, "Unable to resume encryption, pairing removed from peer");
+                            break;
+                    }
                     if (callback == null) {
                         return;
                     }
@@ -500,6 +516,10 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         case FailCallback.REASON_DEVICE_DISCONNECTED:
                         case FailCallback.REASON_CANCELLED: {
                             callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        }
+                        case FailCallback.REASON_UNSUPPORTED_CONFIGURATION: {
+                            callback.onError(new McuMgrUnsupportedConfigurationException());
                             break;
                         }
                         case FailCallback.REASON_DEVICE_NOT_SUPPORTED: {

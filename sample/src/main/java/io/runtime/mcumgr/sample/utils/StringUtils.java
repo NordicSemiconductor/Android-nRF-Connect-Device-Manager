@@ -15,6 +15,7 @@ import io.runtime.mcumgr.McuMgrErrorCode;
 import io.runtime.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
 import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
+import io.runtime.mcumgr.ble.exception.McuMgrUnsupportedConfigurationException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
 import io.runtime.mcumgr.exception.McuMgrException;
 import io.runtime.mcumgr.exception.McuMgrTimeoutException;
@@ -68,6 +69,8 @@ public class StringUtils {
             return context.getString(R.string.status_disconnected);
         } else if (error instanceof McuMgrNotSupportedException) {
             return context.getString(R.string.status_not_supported);
+        } else if (error instanceof McuMgrUnsupportedConfigurationException) {
+            return context.getString(R.string.status_unsupported_configuration);
         } else if (error instanceof McuMgrTimeoutException) {
             return context.getString(R.string.status_connection_timeout);
         }
