@@ -91,7 +91,8 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
                 int level = priority;
                 // Print messages starting with Sending and Received as APPLICATION level.
                 // Those contain parsed CBOR values and are printed in McuMgrBleTransport.
-                if (message.startsWith("Sending") || message.startsWith("Received") || message.startsWith("Upload completed")) {
+                if (message.startsWith("Sending") || message.startsWith("Received") ||
+                    message.startsWith("Upload completed") || message.startsWith("nRF")) {
                     level = LogContract.Log.Level.APPLICATION;
                 }
                 // RC is returned in case of an error. "err" is returned in Version 2 of SMP protocol.
