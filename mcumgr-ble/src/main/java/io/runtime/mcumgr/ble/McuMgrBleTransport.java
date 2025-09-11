@@ -40,6 +40,7 @@ import io.runtime.mcumgr.ble.callback.SmpTransaction;
 import io.runtime.mcumgr.ble.callback.TransactionTimeoutException;
 import io.runtime.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
+import io.runtime.mcumgr.ble.exception.McuMgrInsufficientAuthenticationException;
 import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
 import io.runtime.mcumgr.ble.exception.McuMgrUnsupportedConfigurationException;
 import io.runtime.mcumgr.ble.util.ResultCondition;
@@ -466,9 +467,12 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             break;
                         }
                         default: {
-                            if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION)
+                            if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION) {
                                 log(Log.ERROR, "Unable to resume encryption, pairing removed from peer");
-                            callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                                callback.onError(new McuMgrInsufficientAuthenticationException());
+                            } else {
+                                callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                            }
                             break;
                         }                    }
                 })
@@ -532,6 +536,10 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         }
                         case FailCallback.REASON_BLUETOOTH_DISABLED: {
                             callback.onError(new McuMgrBluetoothDisabledException());
+                            break;
+                        }
+                        case BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION: {
+                            callback.onError(new McuMgrInsufficientAuthenticationException());
                             break;
                         }
                         default: {
