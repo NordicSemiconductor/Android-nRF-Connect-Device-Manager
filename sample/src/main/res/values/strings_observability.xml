@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="observability_title">nRF Cloud Observability</string>
+    <string name="observability_title">Observability</string>
     <string name="observability_status">Status:</string>
-    <string name="observability_sent">Sent:</string>
     <string name="observability_pending">Pending:</string>
+    <string name="observability_sent">Uploaded:</string>
 
-    <string name="observability_not_applicable">N/A</string>
     <plurals name="observability_value">
         <item quantity="one">%d chunk (%d B)</item>
         <item quantity="other">%d chunks (%d B)</item>
     </plurals>
 
-    <string name="observability_not_supported">Not supported</string>
-    <string name="observability_connected">Connected</string>
+    <string name="observability_connected">Awaiting for chunks…</string>
     <string name="observability_uploading">Uploading…</string>
     <string name="observability_suspended">Suspended for %ds</string>
     <string name="observability_connecting">Connecting…</string>

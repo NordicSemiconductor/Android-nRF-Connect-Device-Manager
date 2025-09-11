@@ -77,8 +77,12 @@
         on devices configured with nRF Cloud OTA SDK.</string>
     <string name="ota_dialog_not_supported_learn_more">Learn More</string>
 
-    <string name="ota_update_available_title">Firmware Update Available</string>
+    <string name="ota_update_available_title">OTA Update Available</string>
     <string name="ota_update_available_message">A new firmware version %1$s is available (size: %2$d bytes).\n\nRelease notes:\n%3$s</string>
     <string name="ota_up_to_date_title">Your device is Up To Date</string>
     <string name="ota_up_to_date_message">You are using the latest firmware version.</string>
+
+    <string name="ota_network_unavailable_title">Network Unavailable</string>
+    <string name="ota_network_unavailable_message">A network connection is required to check for
+        updates. Please check your internet connection and try again.</string>
 </resources>

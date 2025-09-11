@@ -34,150 +34,228 @@
                 android:layout_gravity="end"
                 android:layout_marginEnd="16dp"
                 android:visibility="gone"
-                tools:visibility="visible"/>
+                tools:visibility="visible" />
         </com.google.android.material.appbar.MaterialToolbar>
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/connection_status_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/status_status_label"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"/>
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/connection_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/status_disconnected"
-            android:textAllCaps="true"
-            android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toTopOf="@+id/connection_status_label"/>
-
-        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bonding_status_label"
-            android:layout_width="wrap_content"
+            android:layout_width="130dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
             android:layout_marginStart="16dp"
             android:text="@string/status_bond_label"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bonding_status"
             android:layout_width="wrap_content"
             android:layout_height="21dp"
-            android:layout_marginStart="8dp"
             android:text="@string/status_not_bonded"
             android:textAllCaps="true"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/connection_status_label"/>
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/bonding_status_label" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/divider"
+            android:layout_width="12dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/bonding_status" />
+
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/subtitle_smp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textSize="12sp"
+            android:text="@string/status_subtitle_smp"
+            android:textColor="@color/colorPrimary"
+            app:layout_constraintBottom_toBottomOf="@+id/divider"
+            app:layout_constraintStart_toEndOf="@+id/divider"
+            app:layout_constraintTop_toTopOf="@+id/divider" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/subtitle_smp"
+            app:layout_constraintTop_toTopOf="@+id/divider" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mcumgr_supported_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/status_mcumgr_supported"
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/divider" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/mcumgr_supported"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:text="@string/status_unknown"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/mcumgr_supported_label" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/mcumgr_buffer_size_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
             android:text="@string/status_mcumgr_buffer_size_label"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bonding_status_label"/>
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/mcumgr_supported" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/mcumgr_buffer_size"
             android:layout_width="wrap_content"
             android:layout_height="21dp"
-            android:layout_marginStart="8dp"
             android:text="@string/status_unknown"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/bonding_status_label"/>
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/mcumgr_buffer_size_label" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bootloader_name_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
             android:text="@string/status_bootloader_name_label"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/mcumgr_buffer_size_label"/>
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/mcumgr_buffer_size" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bootloader_name"
             android:layout_width="wrap_content"
             android:layout_height="21dp"
-            android:layout_marginStart="8dp"
             android:text="@string/status_unknown"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/mcumgr_buffer_size_label"/>
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/bootloader_name_label" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bootloader_mode_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
             android:text="@string/status_bootloader_mode_label"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bootloader_name_label"/>
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/bootloader_name" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bootloader_mode"
             android:layout_width="wrap_content"
             android:layout_height="21dp"
-            android:layout_marginStart="8dp"
             android:text="@string/status_unknown"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/bootloader_name_label"/>
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/bootloader_mode_label" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/active_b0_slot_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
             android:text="@string/status_active_b0_slot_label"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode_label"/>
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/active_b0_slot"
             android:layout_width="wrap_content"
             android:layout_height="21dp"
-            android:layout_marginStart="8dp"
             android:text="@string/status_unknown"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/bootloader_mode_label"/>
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/active_b0_slot_label" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/kernel_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
             android:text="@string/status_kernel"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/active_b0_slot_label"/>
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/active_b0_slot" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/kernel"
             android:layout_width="wrap_content"
             android:layout_height="21dp"
-            android:layout_marginStart="8dp"
             android:text="@string/status_unknown"
             android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@+id/connection_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/active_b0_slot_label"/>
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/kernel_label" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/divider2"
+            android:layout_width="12dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/kernel" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/subtitle_nrf_cloud"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textSize="12sp"
+            android:text="@string/status_subtitle_nrf_cloud"
+            android:textColor="@color/colorPrimary"
+            app:layout_constraintBottom_toBottomOf="@+id/divider2"
+            app:layout_constraintStart_toEndOf="@+id/divider2"
+            app:layout_constraintTop_toTopOf="@+id/divider2" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/subtitle_nrf_cloud"
+            app:layout_constraintTop_toTopOf="@+id/divider2" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/ota_supported_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/status_ota"
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/divider2" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/ota_supported"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/status_unknown"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/ota_supported_label" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/observability_supported_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_mds"
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/ota_supported" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/observability_supported"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/status_unknown"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/observability_supported_label" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

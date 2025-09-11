@@ -11,7 +11,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.fragment.app.DialogFragment;
 
@@ -59,7 +58,8 @@ public class ReleaseInformationDialogFragment extends AppCompatDialogFragment {
         }
 
         final boolean updateAvailable = getArguments().getBoolean(ARG_UPDATE_AVAILABLE);
-        @StringRes final int titleResId = updateAvailable ?
+        final int iconResId = updateAvailable ? R.drawable.ic_dfu : R.drawable.ic_done;
+        final int titleResId = updateAvailable ?
                 R.string.ota_update_available_title : R.string.ota_up_to_date_title;
         final String message = updateAvailable ?
                 getString(R.string.ota_update_available_message,
@@ -69,7 +69,7 @@ public class ReleaseInformationDialogFragment extends AppCompatDialogFragment {
                 : getString(R.string.ota_up_to_date_message);
 
         final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
-                .setIcon(R.drawable.ic_help)
+                .setIcon(iconResId)
                 .setTitle(titleResId)
                 .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null);

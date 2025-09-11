@@ -13,11 +13,15 @@ import android.os.HandlerThread;
 
 import androidx.annotation.NonNull;
 
+import java.util.Objects;
+
 import dagger.Module;
 import dagger.Provides;
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.sample.di.McuMgrScope;
 import no.nordicsemi.android.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
+import no.nordicsemi.kotlin.ble.client.android.CentralManager;
+import no.nordicsemi.kotlin.ble.client.android.Peripheral;
 
 @Module
 public class McuMgrTransportModule {
@@ -31,6 +35,10 @@ public class McuMgrTransportModule {
         final Handler handler = new Handler(handlerThread.getLooper());
         final ObservableMcuMgrBleTransport transport = new ObservableMcuMgrBleTransport(context, device, handler);
         transport.setOnReleasedCallback(handlerThread::quitSafely);
+        // This is where we stopped lazy connection.
+        // Before, the device started connection on user action (button pressed).
+        // Now, it starts immediately when the transport is created.
+        transport.connect((McuMgrTransport.ConnectionCallback) null);
         return transport;
     }
 
@@ -41,5 +49,13 @@ public class McuMgrTransportModule {
         final HandlerThread handlerThread = new HandlerThread("McuMgrTransport");
         handlerThread.start(); // The handler thread is stopped in MainViewModel#onCleard().
         return handlerThread;
+    }
+
+    @Provides
+    @McuMgrScope
+    @NonNull
+    static Peripheral providePeripheral(@NonNull final CentralManager centralManager,
+                                        @NonNull final BluetoothDevice device) {
+        return Objects.requireNonNull(centralManager.getPeripheralById(device.getAddress()));
     }
 }

@@ -44,6 +44,7 @@ import no.nordicsemi.android.mcumgr.sample.dialog.FirmwareUpgradeModeDialogFragm
 import no.nordicsemi.android.mcumgr.sample.dialog.HelpDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.dialog.ReleaseInformationDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.dialog.SelectBinaryDialogFragment;
+import no.nordicsemi.android.mcumgr.sample.dialog.WarningDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.observable.ConnectionParameters;
 import no.nordicsemi.android.mcumgr.sample.utils.StringUtils;
 import no.nordicsemi.android.mcumgr.sample.utils.ZipPackage;
@@ -271,6 +272,12 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             final DialogFragment dialog = ReleaseInformationDialogFragment.getInstance(releaseInformation);
             dialog.show(getChildFragmentManager(), null);
         });
+        viewModel.getNetworkErrorEvent().observe(getViewLifecycleOwner(), throwable -> {
+            final DialogFragment dialog = WarningDialogFragment.getInstance(
+                    R.string.ota_network_unavailable_title,
+                    R.string.ota_network_unavailable_message);
+            dialog.show(getChildFragmentManager(), null);
+        });
         viewModel.getOtaNotSupportedEvent().observe(getViewLifecycleOwner(), nothing -> {
             final DialogFragment dialog = HelpDialogFragment.getInstance(
                     R.string.ota_dialog_not_supported_title,
@@ -280,9 +287,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         });
 
         // Configure Check for Updates button
-        binding.actionCheckForUpdate.setOnClickListener(v -> {
-            viewModel.checkForUpdate();
-        });
+        binding.actionCheckForUpdate.setOnClickListener(v -> viewModel.checkForUpdate());
 
         // Configure SELECT FILE action
         binding.actionSelectFile.setOnClickListener(v -> {

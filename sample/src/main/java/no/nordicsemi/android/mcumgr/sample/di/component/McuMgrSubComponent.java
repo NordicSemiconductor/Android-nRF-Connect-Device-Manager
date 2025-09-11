@@ -22,12 +22,14 @@ import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrFragmentBuildersModul
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrManagerModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrTransportModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrViewModelModule;
+import no.nordicsemi.android.mcumgr.sample.di.module.ObservabilityModule;
 
 @Subcomponent(modules = {
         McuMgrActivitiesModule.class,
         McuMgrFragmentBuildersModule.class,
         McuMgrViewModelModule.class,
         McuMgrTransportModule.class,
+        ObservabilityModule.class,
         McuMgrManagerModule.class
 })
 @McuMgrScope

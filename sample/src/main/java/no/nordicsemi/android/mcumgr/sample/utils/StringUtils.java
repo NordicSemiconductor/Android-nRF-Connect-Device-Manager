@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import no.nordicsemi.android.mcumgr.McuMgrErrorCode;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrDisconnectedException;
+import no.nordicsemi.android.mcumgr.ble.exception.McuMgrInsufficientAuthenticationException;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrNotSupportedException;
 import no.nordicsemi.android.mcumgr.ble.exception.McuMgrUnsupportedConfigurationException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
@@ -68,11 +69,13 @@ public class StringUtils {
                    error instanceof McuMgrBluetoothDisabledException) {
             return context.getString(R.string.status_disconnected);
         } else if (error instanceof McuMgrNotSupportedException) {
-            return context.getString(R.string.status_not_supported);
+            return context.getString(R.string.status_error_smp_not_supported);
         } else if (error instanceof McuMgrUnsupportedConfigurationException) {
-            return context.getString(R.string.status_unsupported_configuration);
+            return context.getString(R.string.status_error_unsupported_configuration);
         } else if (error instanceof McuMgrTimeoutException) {
-            return context.getString(R.string.status_connection_timeout);
+            return context.getString(R.string.status_error_connection_timeout);
+        } else if (error instanceof McuMgrInsufficientAuthenticationException) {
+            return context.getString(R.string.status_error_insufficient_authentication);
         }
         return error != null ?
                 error.getCause() != null ?

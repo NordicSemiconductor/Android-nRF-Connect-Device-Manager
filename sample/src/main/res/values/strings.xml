@@ -25,6 +25,7 @@
 	<string name="action_learn_more">Learn More</string>
 	<string name="action_download">Download</string>
 
+	<string name="not_applicable">N/A</string>
 	<string name="unknown_device">No name</string>
 	<string name="value_int">%d</string>
 

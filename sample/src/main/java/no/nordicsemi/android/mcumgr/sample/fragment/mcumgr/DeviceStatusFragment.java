@@ -25,6 +25,7 @@ import no.nordicsemi.android.mcumgr.sample.di.Injectable;
 import no.nordicsemi.android.mcumgr.sample.dialog.HelpDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
+import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService;
 
 public class DeviceStatusFragment extends Fragment implements Injectable {
 
@@ -53,7 +54,8 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
             if (item.getItemId() == R.id.action_help) {
                 final DialogFragment dialog = HelpDialogFragment.getInstance(
                         R.string.status_dialog_help_title,
-                        R.string.status_dialog_help_message);
+                        R.string.status_dialog_help_message,
+                        "https://mflt.io/nrf-app-discover-cloud-services");
                 dialog.show(getChildFragmentManager(), null);
                 return true;
             }
@@ -69,31 +71,36 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
         viewModel.getConnectionState().observe(getViewLifecycleOwner(), state -> {
             switch (state) {
                 case CONNECTING:
-                    binding.connectionStatus.setText(R.string.status_connecting);
+                    binding.mcumgrSupported.setText(R.string.status_connecting);
                     break;
                 case INITIALIZING:
-                    binding.connectionStatus.setText(R.string.status_initializing);
+                    binding.mcumgrSupported.setText(R.string.status_initializing);
                     break;
                 case READY:
-                    binding.connectionStatus.setText(R.string.status_connected);
+                    binding.mcumgrSupported.setText(R.string.status_connected);
                     break;
                 case DISCONNECTING:
-                    binding.connectionStatus.setText(R.string.status_disconnecting);
+                    binding.mcumgrSupported.setText(R.string.status_disconnecting);
                     break;
                 case DISCONNECTED:
-                    binding.connectionStatus.setText(R.string.status_disconnected);
+                    binding.mcumgrSupported.setText(R.string.status_disconnected);
                     break;
                 case TIMEOUT:
-                    binding.connectionStatus.setText(R.string.status_connection_timeout);
+                    binding.mcumgrSupported.setText(R.string.status_error_connection_timeout);
                     break;
                 case NOT_SUPPORTED:
-                    binding.connectionStatus.setText(R.string.status_not_supported);
+                    binding.mcumgrSupported.setText(R.string.status_not_supported);
+                    binding.mcumgrBufferSize.setText(R.string.not_applicable);
+                    binding.bootloaderMode.setText(R.string.not_applicable);
+                    binding.bootloaderName.setText(R.string.not_applicable);
+                    binding.activeB0Slot.setText(R.string.not_applicable);
+                    binding.kernel.setText(R.string.not_applicable);
                     break;
             }
         });
         viewModel.getBondState().observe(getViewLifecycleOwner(), state -> {
             switch (state) {
-                case NOT_BONDED:
+                case NONE:
                     binding.bondingStatus.setText(R.string.status_not_bonded);
                     break;
                 case BONDING:
@@ -106,7 +113,7 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
         });
         viewModel.getBufferParams().observe(getViewLifecycleOwner(), params -> {
             if (params != null) {
-                final String text = getString(R.string.status_mcumgr_buffer_size, params.count, params.size);
+                final String text = getString(R.string.status_mcumgr_buffer_size, params.getCount(), params.getSize());
                 binding.mcumgrBufferSize.setText(text);
             } else {
                 binding.mcumgrBufferSize.setText(R.string.status_unknown);
@@ -148,6 +155,34 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                 binding.kernel.setText(kernel);
             } else {
                 binding.kernel.setText(R.string.status_unknown);
+            }
+        });
+        viewModel.getOtaInfo().observe(getViewLifecycleOwner(), deviceInfo -> {
+            if (deviceInfo != null) {
+                binding.otaSupported.setText(R.string.status_supported);
+            } else {
+                binding.otaSupported.setText(R.string.status_not_supported);
+            }
+        });
+        viewModel.getObservabilityState().observe(getViewLifecycleOwner(), state -> {
+            switch (state) {
+                case MonitoringAndDiagnosticsService.State.Connecting ignored ->
+                        binding.observabilitySupported.setText(R.string.status_connecting);
+                case MonitoringAndDiagnosticsService.State.Initializing ignored ->
+                        binding.observabilitySupported.setText(R.string.status_connecting);
+                case MonitoringAndDiagnosticsService.State.Connected ignored ->
+                        binding.observabilitySupported.setText(R.string.status_mds_supported);
+                case MonitoringAndDiagnosticsService.State.Disconnected disconnected -> {
+                    switch (disconnected.getReason()) {
+                        case NOT_SUPPORTED -> binding.observabilitySupported.setText(R.string.status_not_supported);
+                        case BONDING_FAILED -> binding.observabilitySupported.setText(R.string.status_bonding_failed);
+                        case FAILED_TO_CONNECT, TIMEOUT, CONNECTION_LOST ->
+                                binding.observabilitySupported.setText(R.string.status_disconnected);
+                        case null -> binding.observabilitySupported.setText(R.string.status_disconnected);
+                    }
+                }
+                case null,
+                default -> binding.observabilitySupported.setText(R.string.status_unknown);
             }
         });
         viewModel.getBusyState().observe(getViewLifecycleOwner(), busy ->
