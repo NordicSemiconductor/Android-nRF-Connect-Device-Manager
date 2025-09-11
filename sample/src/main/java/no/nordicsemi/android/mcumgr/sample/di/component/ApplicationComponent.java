@@ -13,6 +13,7 @@ import dagger.android.AndroidInjectionModule;
 import dagger.android.support.AndroidSupportInjectionModule;
 import no.nordicsemi.android.mcumgr.sample.application.Dagger2Application;
 import no.nordicsemi.android.mcumgr.sample.di.module.ActivitiesModule;
+import no.nordicsemi.android.mcumgr.sample.di.module.CentralManagerModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.ContextModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.FragmentsModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrModule;
@@ -29,7 +30,8 @@ import no.nordicsemi.android.mcumgr.sample.di.module.ViewModelModule;
         ActivitiesModule.class,
         FragmentsModule.class,
         ViewModelModule.class,
-        McuMgrModule.class
+        McuMgrModule.class,
+        CentralManagerModule.class
 })
 @Singleton
 public interface ApplicationComponent {

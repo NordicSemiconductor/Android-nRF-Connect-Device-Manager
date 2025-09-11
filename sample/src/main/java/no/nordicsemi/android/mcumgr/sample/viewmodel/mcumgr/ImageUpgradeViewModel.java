@@ -99,6 +99,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
     private final SingleLiveEvent<ReleaseInformation> otaReadyEvent = new SingleLiveEvent<>();
     private final SingleLiveEvent<Void> otaNotSupportedEvent = new SingleLiveEvent<>();
+    private final SingleLiveEvent<Throwable> networkErrorEvent = new SingleLiveEvent<>();
 
     private long uploadStartTimestamp;
 	private int imageSize, bytesSent, bytesSentSinceUploadStated, lastProgress;
@@ -291,6 +292,11 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
         return otaNotSupportedEvent;
     }
 
+    @NonNull
+    public LiveData<Throwable> getNetworkErrorEvent() {
+        return networkErrorEvent;
+    }
+
     public void checkForUpdate() {
         if (bleTransport instanceof ObservableMcuMgrBleTransport ot) {
             setBusy();
@@ -309,14 +315,13 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                         @Override
                         public void onSuccess(final @NotNull ReleaseInformation releaseInformation) {
                             postReady();
-                            Timber.i("Latest release: %s", releaseInformation);
                             otaReadyEvent.postValue(releaseInformation);
                         }
 
                         @Override
                         public void onError(final @NotNull Throwable t) {
                             postReady();
-                            errorLiveData.postValue(new McuMgrException(t));
+                            networkErrorEvent.postValue(t);
                         }
                     });
                 }
@@ -327,9 +332,13 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
                 }
 
                 @Override
-                public void onError(@NotNull Throwable t) {
+                public void onError(final @NotNull Throwable t) {
                     postReady();
-                    errorLiveData.postValue(new McuMgrException(t));
+                    if (t instanceof McuMgrException e) {
+                        errorLiveData.postValue(e);
+                    } else {
+                        errorLiveData.postValue(new McuMgrException(t));
+                    }
                 }
             });
         } else {

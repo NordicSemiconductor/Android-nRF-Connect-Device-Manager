@@ -10,7 +10,6 @@ import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 import no.nordicsemi.android.mcumgr.sample.ScannerActivity;
 
-@SuppressWarnings("unused")
 @Module
 public abstract class ActivitiesModule {
     @ContributesAndroidInjector

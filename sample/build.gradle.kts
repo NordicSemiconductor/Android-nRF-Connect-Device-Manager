@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.nordic.application)
     alias(libs.plugins.nordic.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -56,12 +57,12 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.material)
 
-    // Dagger .12
+    // Dagger
     implementation(libs.dagger)
     implementation(libs.dagger.android)
     implementation(libs.dagger.android.support)
-    annotationProcessor(libs.dagger.compiler)
-    annotationProcessor(libs.dagger.android.processor)
+    ksp(libs.dagger.compiler)
+    ksp(libs.dagger.android.processor)
 
     // Brings the new BluetoothLeScanner API to older platforms
     implementation(libs.nordic.compat.scanner)

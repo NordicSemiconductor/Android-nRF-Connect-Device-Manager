@@ -9,21 +9,33 @@
     <string name="status_title">Device Status</string>
     <string name="status_status_label">Connection status:</string>
     <string name="status_bond_label">Bonding status:</string>
+    <string name="status_subtitle_smp">Device Management</string>
+    <string name="status_mcumgr_supported">SMP Service:</string>
     <string name="status_mcumgr_buffer_size_label">Buffer details:</string>
     <string name="status_bootloader_name_label">Bootloader name:</string>
     <string name="status_bootloader_mode_label">Bootloader mode:</string>
     <string name="status_active_b0_slot_label">Active B0 slot:</string>
     <string name="status_kernel">Kernel:</string>
+    <string name="status_subtitle_nrf_cloud">nRF Cloud</string>
+    <string name="status_ota">OTA:</string>
+    <string name="status_mds">Observability:</string>
 
     <string name="status_connecting">Connecting…</string>
     <string name="status_initializing">Initializing…</string>
     <string name="status_connected">Connected</string>
     <string name="status_disconnecting">Disconnecting…</string>
     <string name="status_disconnected">Disconnected</string>
-    <string name="status_not_supported">Device not supported</string>
-    <string name="status_unsupported_configuration">Internal Bluetooth error: PHY LE 2M request failed. Disable PHY LE 2M on the peripheral side.</string>
-    <string name="status_connection_failed">Connection failed</string>
-    <string name="status_connection_timeout">Connection timed out</string>
+
+    <string name="status_supported">Supported</string>
+    <string name="status_not_supported">Unavailable</string>
+    <string name="status_mds_supported">Streaming</string>
+    <string name="status_bonding_failed">Bonding failed</string>
+
+    <string name="status_error_unsupported_configuration">Internal Bluetooth error: PHY LE 2M request failed. Disable PHY LE 2M on the peripheral side.</string>
+    <string name="status_error_connection_failed">Connection failed</string>
+    <string name="status_error_connection_timeout">Connection timed out</string>
+    <string name="status_error_insufficient_authentication">Pairing information was removed from peer. Forget the device Bluetooth Settings and try again.</string>
+    <string name="status_error_smp_not_supported">SMP service not found</string>
 
     <string name="status_not_bonded">Not bonded</string>
     <string name="status_bonding">Bonding…</string>
@@ -50,10 +62,14 @@
     </string-array>
 
     <string name="status_dialog_help_title">Help</string>
-    <string name="status_dialog_help_message"><b>Buffer details</b> - number of mcumgr buffers and their size,
+    <string name="status_dialog_help_message"><b>SMP Service</b> - connection state to
+        Simple Management Protocol (SMP) service used by MCU Manager subsystem over Bluetooth LE.
+        \n<b>Buffer details</b> - number of MCU Manager buffers and their size,
         requires MCU Mgr Parameters command in OS Group.
         \n<b>Bootloader name</b> - name of the bootloader, requires Bootloader Info command in OS Group.
-        \n<b>Bootloader mode</b> - mode of the MCUboot, requires MCUboot bootloader.
+        \n<b>Bootloader mode</b> - mode of the MCUboot bootloader.
         \n<b>Active B0 slot</b> - slot from which the nRF Secure Immutable Bootloader (NSIB), known also as B0, booted the application.
-        \n<b>Kernel</b> - kernel name and version, requires Application Info command in OS Group.</string>
+        \n<b>Kernel</b> - kernel name and version, requires Application Info command in OS Group.\n
+        \n<b>OTA</b> - whether Firmware Over-the-Air Updates with nRF Cloud is supported.
+        \n<b>Observability</b> - allows collecting and analysis of metrics, coredumps and logs from devices in your fleet.</string>
 </resources>

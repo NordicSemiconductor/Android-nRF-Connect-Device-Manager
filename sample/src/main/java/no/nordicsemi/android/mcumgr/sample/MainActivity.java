@@ -48,6 +48,7 @@ import no.nordicsemi.android.mcumgr.sample.fragment.ImageFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.LogsStatsFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.ShellFragment;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
+import no.nordicsemi.android.observability.ObservabilityManager;
 
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends AppCompatActivity
@@ -60,6 +61,8 @@ public class MainActivity extends AppCompatActivity
     McuMgrViewModelFactory viewModelFactory;
     @Inject
     McuMgrTransport mcuMgrTransport;
+    @Inject
+    ObservabilityManager observabilityManager;
     @Inject
     @Nullable
     Uri logSessionUri;
@@ -195,6 +198,7 @@ public class MainActivity extends AppCompatActivity
 
         if (isFinishing()) {
             mcuMgrTransport.release();
+            observabilityManager.disconnect();
         }
     }
 }

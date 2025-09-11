@@ -69,7 +69,7 @@ public class ObservabilityFragment extends Fragment implements Injectable {
                     case State.Disconnected disconnected -> {
                         switch (disconnected.getReason()) {
                             case NOT_SUPPORTED ->
-                                    binding.mds.setText(R.string.observability_not_supported);
+                                    binding.mds.setText(R.string.status_not_supported);
                             case null ->
                                     binding.mds.setText(R.string.status_unknown);
                             default ->
@@ -99,8 +99,8 @@ public class ObservabilityFragment extends Fragment implements Injectable {
                             }
                             default -> {
                                 binding.mds.setText(R.string.status_unknown);
-                                binding.mdsSent.setText(R.string.observability_not_applicable);
-                                binding.mdsPending.setText(R.string.observability_not_applicable);
+                                binding.mdsSent.setText(R.string.not_applicable);
+                                binding.mdsPending.setText(R.string.not_applicable);
                             }
                         }
                     }
