@@ -1,6 +1,6 @@
 [versions]
 androidGradlePlugin = "8.13.0"
-androidxActivity = "1.10.1"
+androidxActivity = "1.11.0"
 androidxEspresso = "3.7.0"
 androidxTestRunner = "1.7.0"
 cardview = "1.0.0"
