@@ -13,7 +13,8 @@
     },
     {
       "matchPackageNames": [
-        "/com.fasterxml.jackson.*/"
+        "/com.fasterxml.jackson.*/",
+        "/androidx.room/"
       ],
       "enabled": false
     }
