@@ -631,7 +631,6 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
         errorLiveData.postValue(error);
         onSuitNotSupported = null;
         setLoggingEnabled(true);
-        Timber.e(error, "Upgrade failed");
         postReady();
     }
 
