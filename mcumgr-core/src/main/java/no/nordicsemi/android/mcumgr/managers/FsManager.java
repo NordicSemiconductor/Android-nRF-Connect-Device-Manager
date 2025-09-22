@@ -885,14 +885,14 @@ public class FsManager extends TransferManager {
                 public void onResponse(@NotNull McuMgrFsUploadResponse response) {
                     // Check for a McuManager error
                     if (response.rc != 0) {
-                        LOG.error("Upload failed due to McuManager error: {}", response.rc);
+                        LOG.error("Upload failed: {}", response.rc);
                         fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
 
                     // Check if upload hasn't been cancelled.
                     if (mTransferState == STATE_NONE) {
-                        LOG.info("Upload canceled");
+                        LOG.warn("Upload canceled");
                         resetTransfer();
                         mUploadCallback.onUploadCanceled();
                         mUploadCallback = null;
@@ -954,14 +954,14 @@ public class FsManager extends TransferManager {
                 public void onResponse(@NotNull McuMgrFsDownloadResponse response) {
                     // Check for a McuManager error.
                     if (response.rc != 0) {
-                        LOG.error("Download failed due to McuManager error: {}", response.rc);
+                        LOG.error("Download failed: {}", response.rc);
                         fail(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
 
                     // Check if download hasn't been cancelled.
                     if (mTransferState == STATE_NONE) {
-                        LOG.info("Download canceled");
+                        LOG.warn("Download canceled");
                         resetTransfer();
                         mDownloadCallback.onDownloadCanceled();
                         mDownloadCallback = null;
