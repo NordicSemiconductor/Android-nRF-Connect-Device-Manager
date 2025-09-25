@@ -35,12 +35,12 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     // For now, the parameters require by nRF Cloud OTA are accessible
     // using Device Information Service (DIS) and Monitoring and Diagnostics Service (MDS).
     private final UUID DIS_SERVICE_UUID = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb");
-    private final UUID DIS_SERIAL_NUMBER_UUID = UUID.fromString("00002a25-0000-1000-8000-00805f9b34fb");
     private final UUID DIS_FW_REV_UUID = UUID.fromString("00002a26-0000-1000-8000-00805f9b34fb");
     private final UUID DIS_HW_REV_UUID = UUID.fromString("00002a27-0000-1000-8000-00805f9b34fb");
     private final UUID DIS_SW_REV_UUID = UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb");
 
     private final UUID MDS_SERVICE_UUID = UUID.fromString("54220000-f6a5-4007-a371-722f4ebd8436");
+    private final UUID MDS_DEV_ID_CHAR_UUID = UUID.fromString("54220002-f6a5-4007-a371-722f4ebd8436");
     private final UUID MDS_AUTH_CHAR_UUID = UUID.fromString("54220004-f6a5-4007-a371-722f4ebd8436");
 
     private final MutableLiveData<ConnectionState> connectionState;
@@ -51,10 +51,10 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     private OnReleaseCallback onReleaseCallback;
 
     @Nullable
-    private BluetoothGattCharacteristic disSerialNumberCharacteristic, disFwRevCharacteristic,
+    private BluetoothGattCharacteristic disFwRevCharacteristic,
             disHwRevCharacteristic, disSwRevCharacteristic;
     @Nullable
-    private BluetoothGattCharacteristic mdsAuthCharacteristic;
+    private BluetoothGattCharacteristic mdsAuthCharacteristic, mdsDeviceIdCharacteristic;
     @Nullable
     private DeviceInfo deviceInfo;
     @Nullable
@@ -157,7 +157,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     protected boolean isAdditionalServiceSupported(@NonNull BluetoothGatt gatt) {
         final BluetoothGattService disService = gatt.getService(DIS_SERVICE_UUID);
         if (disService != null) {
-            disSerialNumberCharacteristic = disService.getCharacteristic(DIS_SERIAL_NUMBER_UUID);
             disFwRevCharacteristic = disService.getCharacteristic(DIS_FW_REV_UUID);
             disHwRevCharacteristic = disService.getCharacteristic(DIS_HW_REV_UUID);
             disSwRevCharacteristic = disService.getCharacteristic(DIS_SW_REV_UUID);
@@ -165,6 +164,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         final BluetoothGattService mdsService = gatt.getService(MDS_SERVICE_UUID);
         if (mdsService != null) {
             mdsAuthCharacteristic = mdsService.getCharacteristic(MDS_AUTH_CHAR_UUID);
+            mdsDeviceIdCharacteristic = mdsService.getCharacteristic(MDS_DEV_ID_CHAR_UUID);
         }
         // DIS and MDS are optional, so always return true.
         return true;
@@ -190,7 +190,7 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         //
         // Note: This is a temporary solution until we have a proper protocol, i.e. SMP.
         if (mdsAuthCharacteristic != null &&
-            disSerialNumberCharacteristic != null &&
+            mdsDeviceIdCharacteristic != null &&
             disFwRevCharacteristic != null &&
             disHwRevCharacteristic != null &&
             disSwRevCharacteristic != null) {
@@ -199,8 +199,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
             AtomicReference<String> swType = new AtomicReference<>();
             AtomicReference<String> currentVersion = new AtomicReference<>();
             beginAtomicRequestQueue()
-                    .add(readCharacteristic(disSerialNumberCharacteristic)
-                            .with((device, data) -> serialNumber.set(data.getStringValue(0))))
                     .add(readCharacteristic(disHwRevCharacteristic)
                             .with((device, data) -> hwVersion.set(data.getStringValue(0))))
                     .add(readCharacteristic(disFwRevCharacteristic)
@@ -218,6 +216,8 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                                     }
                                 }
                             }))
+                    .add(readCharacteristic(mdsDeviceIdCharacteristic)
+                            .with((device, data) -> serialNumber.set(data.getStringValue(0))))
                     .done(device -> deviceInfo = new DeviceInfo(
                             serialNumber.get(),
                             hwVersion.get(),
