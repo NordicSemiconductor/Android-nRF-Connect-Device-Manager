@@ -70,7 +70,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:enabled="false"
             android:text="@string/image_settings_action_erase"
             android:textColor="@color/button_destructive"
             app:layout_constraintBottom_toBottomOf="parent"
