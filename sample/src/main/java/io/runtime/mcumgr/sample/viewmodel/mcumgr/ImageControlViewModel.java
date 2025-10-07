@@ -321,7 +321,11 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
         setBusy();
         errorLiveData.setValue(null);
-        manager.erase(TargetImage.SLOT_SECONDARY, new McuMgrCallback<>() {
+        // Slots are numbered from 0:
+        // Image 0: slot 0 (primary), slot 1 (secondary)
+        // Image 1: slot 2 (primary), slot 3 (secondary)
+        // To calculate the slot number: (image * 2) + slot.
+        manager.erase(image * 2 + TargetImage.SLOT_SECONDARY, new McuMgrCallback<>() {
             private boolean triedOtherSlot = false;
 
             @Override
@@ -333,7 +337,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
             public void onError(@NonNull final McuMgrException error) {
                 if (!triedOtherSlot) {
                     triedOtherSlot = true;
-                    manager.erase(TargetImage.SLOT_PRIMARY, this);
+                    manager.erase(image * 2 + TargetImage.SLOT_PRIMARY, this);
                     return;
                 }
                 postError(error);
