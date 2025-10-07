@@ -14,6 +14,7 @@ import androidx.lifecycle.MutableLiveData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -72,8 +73,8 @@ public class ImageControlViewModel extends McuMgrViewModel {
         this.osManager = osManager;
         this.manager = manager;
         this.suitManager = suitManager;
-        // The current version supports 2 images.
-        this.hashes = new byte[2][];
+        // The current version supports 4 images.
+        this.hashes = new byte[4][];
     }
 
     @NonNull
@@ -107,11 +108,17 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public int[] getValidImages() {
-        if (hashes[0] != null && hashes[1] != null)
-            return new int[] { 0, 1 };
-        if (hashes[0] != null)
-            return new int[] { 0 };
-        return new int[] { 1 };
+        final List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < hashes.length; i++) {
+            if (hashes[i] != null)
+                list.add(i);
+        }
+        if (list.isEmpty())
+            return new int[] { 1 };
+        final int[] array = new int[list.size()];
+        for (int i = 0; i < list.size(); i++)
+            array[i] = list.get(i);
+        return array;
     }
 
     private void withBootloader(@NonNull OnBootloaderReceived callback) {
@@ -164,7 +171,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
         manager.list(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NonNull final McuMgrImageStateResponse response) {
-                hashes[0] = hashes[1] = null;
+                Arrays.fill(hashes, null);
                 // Save the hash of the unconfirmed images. They are required for sending test
                 // and confirm messages.
                 if (response.images != null) {
@@ -186,7 +193,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
 
     private void readSuit() {
         // Hashes are not used in SUIT mode.
-        hashes[0] = hashes[1] = null;
+        Arrays.fill(hashes, null);
 
         suitManager.listManifests(new McuMgrCallback<>() {
             @Override
@@ -240,8 +247,10 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public void test(final int image) {
-        if (image < 0 || hashes.length < image || hashes[image] == null)
+        if (image < 0 || hashes.length <= image || hashes[image] == null) {
+            postError(new McuMgrException("No slot found for selected image."));
             return;
+        }
 
         setBusy();
         errorLiveData.setValue(null);
@@ -259,7 +268,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public void confirm(final int image) {
-        if (image < 0 || hashes.length < image || hashes[image] == null) {
+        if (image < 0 || hashes.length <= image || hashes[image] == null) {
             // In SUIT hashes aren't used, but it's possible to send a Confirm command (without a hash).
             if (image == 1 && hashes.length == 2 && hashes[0] == null && hashes[1] == null) {
                 setBusy();
@@ -277,7 +286,9 @@ public class ImageControlViewModel extends McuMgrViewModel {
                         postError(error);
                     }
                 });
+                return;
             }
+            postError(new McuMgrException("No slot found for selected image."));
             return;
         }
 
@@ -297,7 +308,7 @@ public class ImageControlViewModel extends McuMgrViewModel {
     }
 
     public void erase(final int image) {
-        if (image < 0 || hashes.length < image || hashes[image] == null) {
+        if (image < 0 || hashes.length <= image || hashes[image] == null) {
             // In SUIT hashes aren't used, but it's possible to send CleanUp command.
             if (image == 1 && hashes.length == 2 && hashes[0] == null && hashes[1] == null) {
                 setBusy();
@@ -315,7 +326,9 @@ public class ImageControlViewModel extends McuMgrViewModel {
                         postError(error);
                     }
                 });
+                return;
             }
+            postError(new McuMgrException("No slot found for selected image."));
             return;
         }
 
