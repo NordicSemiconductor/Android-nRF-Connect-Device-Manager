@@ -22,6 +22,7 @@
     <string name="status_disconnecting">Disconnecting…</string>
     <string name="status_disconnected">Disconnected</string>
     <string name="status_not_supported">Device not supported</string>
+    <string name="status_unsupported_configuration">Internal Bluetooth error: PHY LE 2M request failed. Disable PHY LE 2M on the peripheral side.</string>
     <string name="status_connection_failed">Connection failed</string>
     <string name="status_connection_timeout">Connection timed out</string>
 

@@ -40,7 +40,9 @@ import io.runtime.mcumgr.ble.callback.SmpTransaction;
 import io.runtime.mcumgr.ble.callback.TransactionTimeoutException;
 import io.runtime.mcumgr.ble.exception.McuMgrBluetoothDisabledException;
 import io.runtime.mcumgr.ble.exception.McuMgrDisconnectedException;
+import io.runtime.mcumgr.ble.exception.McuMgrInsufficientAuthenticationException;
 import io.runtime.mcumgr.ble.exception.McuMgrNotSupportedException;
+import io.runtime.mcumgr.ble.exception.McuMgrUnsupportedConfigurationException;
 import io.runtime.mcumgr.ble.util.ResultCondition;
 import io.runtime.mcumgr.exception.InsufficientMtuException;
 import io.runtime.mcumgr.exception.McuMgrErrorException;
@@ -441,9 +443,14 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         // This may also happen if service discovery ends with an error, which
                         // will trigger disconnection.
                         case FailCallback.REASON_REQUEST_FAILED:
-                            case FailCallback.REASON_DEVICE_DISCONNECTED:
-                        case     FailCallback.REASON_CANCELLED: {
+                        case FailCallback.REASON_DEVICE_DISCONNECTED:
+                        case FailCallback.REASON_CANCELLED: {
                             callback.onError(new McuMgrDisconnectedException());
+                            break;
+                        }
+                        case FailCallback.REASON_UNSUPPORTED_CONFIGURATION: {
+                            log(Log.ERROR, "Android device failed to reply to PHY request, disable PHY LE 2M on the peripheral.");
+                            callback.onError(new McuMgrUnsupportedConfigurationException());
                             break;
                         }
                         case FailCallback.REASON_DEVICE_NOT_SUPPORTED: {
@@ -460,7 +467,12 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             break;
                         }
                         default: {
-                            callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                            if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION) {
+                                log(Log.ERROR, "Unable to resume encryption, pairing removed from peer");
+                                callback.onError(new McuMgrInsufficientAuthenticationException());
+                            } else {
+                                callback.onError(new McuMgrException(GattError.parseConnectionError(status)));
+                            }
                             break;
                         }                    }
                 })
@@ -486,6 +498,14 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                     callback.onConnected();
                 })
                 .fail((device, status) -> {
+                    switch (status) {
+                        case FailCallback.REASON_UNSUPPORTED_CONFIGURATION:
+                            log(Log.ERROR, "Android device failed to reply to PHY request, disable PHY LE 2M on the peripheral.");
+                            break;
+                        case BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION:
+                            log(Log.ERROR, "Unable to resume encryption, pairing removed from peer");
+                            break;
+                    }
                     if (callback == null) {
                         return;
                     }
@@ -502,6 +522,10 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             callback.onError(new McuMgrDisconnectedException());
                             break;
                         }
+                        case FailCallback.REASON_UNSUPPORTED_CONFIGURATION: {
+                            callback.onError(new McuMgrUnsupportedConfigurationException());
+                            break;
+                        }
                         case FailCallback.REASON_DEVICE_NOT_SUPPORTED: {
                             callback.onError(new McuMgrNotSupportedException());
                             break;
@@ -512,6 +536,10 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                         }
                         case FailCallback.REASON_BLUETOOTH_DISABLED: {
                             callback.onError(new McuMgrBluetoothDisabledException());
+                            break;
+                        }
+                        case BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION: {
+                            callback.onError(new McuMgrInsufficientAuthenticationException());
                             break;
                         }
                         default: {
@@ -672,8 +700,22 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // Maximum supported MTU is 517, but that would mean the third packet is small.
         // If the packet could not be sent in the same connection interval as 2 big packets,
         // that would waste the whole connection interval for just around 20 bytes.
+        final boolean samsungS8Tab = Build.HARDWARE.equals("ums512_25c10");
         requestMtu(mInitialMtu)
-                .with((device, mtu) -> mMaxPacketLength = Math.max(mtu - 3, mMaxPacketLength))
+                .with((device, mtu) -> {
+                    // Note: When Samsung A8 Tab requests higher MTU it only requests RX MTU to be > 23,
+                    //       leaving TX equal to 23 bytes. However, later it tries to send longer
+                    //       packets, causing the target device to disconnect.
+                    //       See: https://github.com/NordicSemiconductor/Android-DFU-Library/pull/408
+                    //       For that device set the max packet length unless the SMP reassembly is
+                    //       supported (see MCU Params request below). Some features, like
+                    //       DFU require sending longer packets.
+                    mMaxPacketLength = Math.max(samsungS8Tab ? 20 : (mtu - 3), mMaxPacketLength);
+                    if (samsungS8Tab) {
+                        log(Log.WARN, "Samsung A8 Tab detected, setting TX MTU to 23");
+                        overrideMtu(23);
+                    }
+                })
                 .fail((device, status) -> {
                     if (getMinLogPriority() <= Log.WARN) {
                         log(Log.WARN, "Failed to negotiate MTU, disconnecting...");
@@ -717,6 +759,13 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
                             mMaxPacketLength = response.bufSize;
                         } catch (final Exception e) {
                             // Ignore
+                        }
+                    }
+                    if (mMaxPacketLength < 70) {
+                        // First Image Upload packet has a overhead of 69 bytes. To send at least 1
+                        // byte of data, the buffer must be at least 70 bytes long.
+                        if (getMinLogPriority() <= Log.WARN) {
+                            log(Log.WARN, "Maximum packet size too small for some features i.e. DFU");
                         }
                     }
                 })
