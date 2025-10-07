@@ -481,6 +481,8 @@ public class ImageManager extends TransferManager {
      */
     public void erase(int slot, @NotNull McuMgrCallback<McuMgrImageResponse> callback) {
         HashMap<String, Object> payloadMap = null;
+        // By default, the "opposite" slot to the currently running one is erased.
+        // See: https://github.com/nrfconnect/sdk-zephyr/blob/f7859899ec7dbb21e0580eef25b229bda727f04a/subsys/mgmt/mcumgr/grp/img_mgmt/src/img_mgmt.c#L450
         if (slot != TargetImage.SLOT_SECONDARY) {
             payloadMap = new HashMap<>();
             payloadMap.put("slot", slot);
@@ -509,6 +511,8 @@ public class ImageManager extends TransferManager {
     @NotNull
     public McuMgrImageResponse erase(int slot) throws McuMgrException {
         HashMap<String, Object> payloadMap = null;
+        // By default, the "opposite" slot to the currently running one is erased.
+        // See: https://github.com/nrfconnect/sdk-zephyr/blob/f7859899ec7dbb21e0580eef25b229bda727f04a/subsys/mgmt/mcumgr/grp/img_mgmt/src/img_mgmt.c#L450
         if (slot != TargetImage.SLOT_SECONDARY) {
             payloadMap = new HashMap<>();
             payloadMap.put("slot", slot);
