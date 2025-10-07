@@ -470,7 +470,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     @Override
     public void connect(@Nullable final ConnectionCallback callback) {
-        if (isConnected()) {
+        if (isReady()) {
             if (callback != null) {
                 callback.onConnected();
             }
