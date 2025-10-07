@@ -57,13 +57,13 @@ class UploadEnvelope extends SUITUpgradeTask {
 
             @Override
             public void onUploadFailed(@NotNull final McuMgrException error) {
-                LOG.info("Upload failed: {}", error.getMessage());
+                LOG.error("Upload failed: {}", error.getMessage());
                 performer.onTaskFailed(UploadEnvelope.this, error);
             }
 
             @Override
             public void onUploadCanceled() {
-                LOG.info("Uploading canceled");
+                LOG.warn("Uploading canceled");
                 performer.onTaskCompleted(UploadEnvelope.this);
             }
 

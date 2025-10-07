@@ -868,7 +868,7 @@ public class ImageManager extends TransferManager {
                     // Check for a McuManager error.
                     if (response.rc != 0) {
                         // TODO when the image in slot 1 is confirmed, this will return ENOMEM (2).
-                        LOG.error("Upload failed due to McuManager error: {}", response.rc);
+                        LOG.error("Upload failed: {}", response.rc);
                         failUpload(new McuMgrErrorException(McuMgrErrorCode.valueOf(response.rc)));
                         return;
                     }
@@ -881,7 +881,7 @@ public class ImageManager extends TransferManager {
                             System.currentTimeMillis());
 
                     if (mUploadState == STATE_NONE) {
-                        LOG.debug("Upload canceled!");
+                        LOG.warn("Upload canceled");
                         resetUpload();
                         mUploadCallback.onUploadCanceled();
                         mUploadCallback = null;
@@ -890,7 +890,7 @@ public class ImageManager extends TransferManager {
 
                     // Check if the upload has finished.
                     if (mUploadOffset == mImageData.length) {
-                        LOG.debug("Upload finished!");
+                        LOG.info("Upload finished");
                         resetUpload();
                         mUploadCallback.onUploadFinished();
                         mUploadCallback = null;
