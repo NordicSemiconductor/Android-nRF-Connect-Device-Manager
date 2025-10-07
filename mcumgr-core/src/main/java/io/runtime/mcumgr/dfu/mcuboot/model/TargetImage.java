@@ -56,7 +56,7 @@ public class TargetImage {
      * This constructor creates a basic image targeting specified core (image index). The binary will
      * be sent to the secondary slot (slot = 1) for that core.
      * <p>
-     * This constructor can be used to send an update to a mutli-core device that does not support
+     * This constructor can be used to send an update to a multi-core device that does not support
      * Direct XIP (option to boot an image from a non-primary image).
      * @param imageIndex an index of the core (0 is the main (app) core, 1 is secondary (network) core, etc.
      * @param data the signed binary to be sent.
