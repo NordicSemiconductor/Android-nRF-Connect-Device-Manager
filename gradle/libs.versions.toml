@@ -31,7 +31,7 @@ nordic-blek = "2.0.0-alpha08"
 nordic-log = "2.5.0"
 nordic-scanner = "1.6.0"
 
-nordicPlugins = "2.9"
+nordicPlugins = "2.10"
 dokkaPlugin = "2.0.0"
 swiperefreshlayout = "1.1.0"
 
