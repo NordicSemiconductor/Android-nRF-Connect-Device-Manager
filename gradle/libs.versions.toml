@@ -6,7 +6,7 @@ androidxTestRunner = "1.7.0"
 cardview = "1.0.0"
 constraintlayout = "2.2.1"
 coreSplashscreen = "1.0.1"
-dagger = "2.57.1"
+dagger = "2.57.2"
 #noinspection NewerVersionAvailable
 fasterxml = "2.13.5" # don't update
 fragment = "1.8.9"
