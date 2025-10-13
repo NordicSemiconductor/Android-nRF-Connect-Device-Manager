@@ -27,7 +27,7 @@ slf4j = "2.0.17"
 slf4j-timber = "1.2"
 
 nordic-ble = "2.11.0"
-nordic-blek = "2.0.0-alpha08"
+nordic-blek = "2.0.0-alpha09"
 nordic-log = "2.5.0"
 nordic-scanner = "1.6.0"
 
