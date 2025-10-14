@@ -53,7 +53,8 @@ class Test extends FirmwareUpgradeTask {
 						if (slot.pending) {
 							performer.onTaskCompleted(Test.this);
 						} else {
-							performer.onTaskFailed(Test.this, new McuMgrException("Tested image is not in a pending state."));
+							LOG.warn("Pending flag of slot {} of image {} not set. Possible reason: downgrade prevention enabled", slot.slot, slot.image);
+							performer.onTaskFailed(Test.this, new McuMgrException("Downgrade forbidden"));
 						}
 						return;
 					}
