@@ -53,6 +53,7 @@ import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFacto
 import no.nordicsemi.android.ota.DownloadCallback;
 import no.nordicsemi.android.ota.OtaManager;
 import no.nordicsemi.android.ota.ReleaseBinary;
+import timber.log.Timber;
 
 public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable,
         SelectBinaryDialogFragment.OnBinarySelectedListener,
@@ -65,7 +66,7 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
 
     @Inject
     McuMgrViewModelFactory viewModelFactory;
-    
+
     private FragmentCardImageUpgradeBinding binding;
 
     private ImageUpgradeViewModel viewModel;
@@ -273,9 +274,9 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
             dialog.show(getChildFragmentManager(), null);
         });
         viewModel.getNetworkErrorEvent().observe(getViewLifecycleOwner(), throwable -> {
-            final DialogFragment dialog = WarningDialogFragment.getInstance(
-                    R.string.ota_network_unavailable_title,
-                    R.string.ota_network_unavailable_message);
+            final String errorMessage = createDetailedErrorMessage(throwable);
+            final int titleRes = isHttpError(throwable) ? R.string.ota_http_error_title : R.string.ota_network_unavailable_title;
+            final DialogFragment dialog = WarningDialogFragment.getInstance(titleRes, errorMessage);
             dialog.show(getChildFragmentManager(), null);
         });
         viewModel.getOtaNotSupportedEvent().observe(getViewLifecycleOwner(), nothing -> {
@@ -523,5 +524,69 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
         spannable.setSpan(new StyleSpan(Typeface.BOLD),
                 0, message.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
         binding.status.setText(spannable);
+    }
+
+    private String createDetailedErrorMessage(@Nullable final Throwable throwable) {
+        if (throwable == null) {
+            return getString(R.string.ota_network_unavailable_message);
+        }
+
+        final StringBuilder message = new StringBuilder();
+        final String errorDetails = throwable.getMessage();
+
+        if (isHttpError(throwable)) {
+            // For HTTP errors, show a clean message with status code
+            message.append("Failed to communicate with the server.");
+
+            if (errorDetails != null && errorDetails.contains("Unexpected response:")) {
+                // Extract HTTP status code from "Unexpected response: 400 BAD REQUEST" format
+                String[] parts = errorDetails.split("Unexpected response: ");
+                if (parts.length > 1) {
+                    String responsePart = parts[1].trim();
+                    String[] statusParts = responsePart.split(" ");
+                    if (statusParts.length > 0) {
+                        String statusCode = statusParts[0];
+                        String statusText = responsePart.substring(statusCode.length()).trim();
+
+                        message.append("\n\nHTTP Status: ").append(statusCode);
+
+                        // Add the status text if available
+                        if (!statusText.isEmpty()) {
+                            message.append(" (").append(statusText).append(")");
+                        }
+                    }
+                }
+            }
+        } else {
+            // For non-HTTP errors (network connectivity issues)
+            message.append(getString(R.string.ota_network_unavailable_message));
+
+            if (errorDetails != null) {
+                message.append("\n\nError: ").append(errorDetails);
+            }
+        }
+
+        return message.toString();
+    }
+
+    private boolean isHttpError(@Nullable final Throwable throwable) {
+        if (throwable == null) return false;
+
+        // Enhanced logging to capture all available error information
+        Timber.i("Network error details:");
+        Timber.i("  Message: %s", throwable.getMessage());
+        Timber.i("  Class: %s", throwable.getClass().getSimpleName());
+
+        // Log the full stack trace and any cause information
+        Throwable cause = throwable.getCause();
+        int level = 0;
+        while (cause != null && level < 5) { // Prevent infinite loops
+            Timber.i("  Cause[%d]: %s - %s", level, cause.getClass().getSimpleName(), cause.getMessage());
+            cause = cause.getCause();
+            level++;
+        }
+
+        final String message = throwable.getMessage();
+        return message != null && message.contains("Unexpected response:");
     }
 }

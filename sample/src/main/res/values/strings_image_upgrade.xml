@@ -85,4 +85,6 @@
     <string name="ota_network_unavailable_title">Network Unavailable</string>
     <string name="ota_network_unavailable_message">A network connection is required to check for
         updates. Please check your internet connection and try again.</string>
+
+    <string name="ota_http_error_title">Server Error</string>
 </resources>
