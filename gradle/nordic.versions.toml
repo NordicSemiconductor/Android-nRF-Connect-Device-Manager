@@ -1,0 +1,11 @@
+[versions]
+ble = "2.11.0"
+blek = "2.0.0-alpha09"
+log = "2.5.0"
+scanner = "1.6.0"
+
+[libraries]
+ble = { group = "no.nordicsemi.android", name = "ble", version.ref = "ble" }
+blek-client-android = { group = "no.nordicsemi.kotlin.ble", name = "client-android", version.ref = "blek" }
+log-timber = { group = "no.nordicsemi.android", name = "log-timber", version.ref = "log" }
+compat-scanner = { group = "no.nordicsemi.android.support.v18", name = "scanner", version.ref = "scanner" }

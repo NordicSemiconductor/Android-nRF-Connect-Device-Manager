@@ -41,7 +41,7 @@ dependencies {
 
     // Use nRF Cloud Observability feature with native BLE client.
     implementation(project(":observability"))
-    implementation(libs.nordic.blek.client.android)
+    implementation(nordic.blek.client.android)
 
     // Use nRF Cloud OTA feature to check for updates and download images for devices supporting it.
     implementation(project(":ota"))
@@ -65,11 +65,11 @@ dependencies {
     ksp(libs.dagger.android.processor)
 
     // Brings the new BluetoothLeScanner API to older platforms
-    implementation(libs.nordic.compat.scanner)
+    implementation(nordic.compat.scanner)
 
     // Timber & SLF4J
     implementation(libs.slf4j.timber)
-    implementation(libs.nordic.log.timber)
+    implementation(nordic.log.timber)
 
     // GSON
     implementation(libs.gson)

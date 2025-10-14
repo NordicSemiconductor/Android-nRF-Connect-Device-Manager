@@ -61,7 +61,7 @@ dependencies {
 
     // By default, the native Central Manager is used, but user may set mock implementation
     // from "no.nordicsemi.kotlin.ble:client-android-mock".
-    implementation(libs.nordic.blek.client.android)
+    implementation(nordic.blek.client.android)
 
     implementation(libs.kotlinx.coroutines.android)
 

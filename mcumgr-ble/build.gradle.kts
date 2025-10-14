@@ -53,7 +53,7 @@ dependencies {
     api(project(":mcumgr-core"))
 
     // Import the BLE Library
-    api(libs.nordic.ble)
+    api(nordic.ble)
 
     // Logging using SLF4J. Specify binding in the application.
     implementation(libs.slf4j)
