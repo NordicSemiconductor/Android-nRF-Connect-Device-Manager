@@ -39,7 +39,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.material)
 
-    // Dagger .12
+    // Dagger
     implementation(libs.dagger)
     implementation(libs.dagger.android)
     implementation(libs.dagger.android.support)
@@ -47,11 +47,11 @@ dependencies {
     annotationProcessor(libs.dagger.android.processor)
 
     // Brings the new BluetoothLeScanner API to older platforms
-    implementation(libs.nordic.compat.scanner)
+    implementation(nordic.compat.scanner)
 
     // Timber & SLF4J
     implementation(libs.slf4j.timber)
-    implementation(libs.nordic.log.timber)
+    implementation(nordic.log.timber)
 
     // GSON
     implementation(libs.gson)
