@@ -87,6 +87,4 @@ rootProject.name = "nRF Connect Device Manager"
 
 include(":mcumgr-core")
 include(":mcumgr-ble")
-include(":observability")
-include(":ota")
 include(":sample")
