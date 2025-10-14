@@ -15,7 +15,9 @@ public class TargetImage {
     /** Target image index (core index) for the image. */
     public final int imageIndex;
     /**
-     *  Target slot for the image. By default images are run from the primary slot.
+     *  Target slot for the image: {@link #SLOT_PRIMARY} or {@link #SLOT_SECONDARY}.
+     *  <p>
+     *  By default images are run from the primary slot.
      *  An update will be written to the secondary slot and will be swapped to the primary slot
      *  after it is confirmed and reset.
      *  <p>
@@ -23,6 +25,10 @@ public class TargetImage {
      *  slot. The image has to be compiled for this slot. A ZIP package in that case may
      *  contain both images. In that case only the one compiled for the available slot will be sent,
      *  there is no swapping and the image is run directly from the slot that it was sent to.
+     *  <p>
+     *  Note: If the value given to the constructor is greater than 1, it will be truncated to
+     *        the reminder of division by 2. Some implementations number slots as (image * 2 + slot),
+     *        i.e. slot 3 is secondary slot of image 1.
      */
     public final int slot;
     /**
@@ -83,7 +89,10 @@ public class TargetImage {
      */
     public TargetImage(int imageIndex, int slot, byte @NotNull [] data) throws McuMgrException {
         this.imageIndex = imageIndex;
-        this.slot = slot;
+        // In manifest.json slots may be numbered 0 (primary) and 1 (secondary), or 0, 1, 2, 3, etc.,
+        // where each even number is a primary slot and each odd number is a secondary slot.
+        // As the values returned by Image Read command are 0 and 1, let's normalize this value.
+        this.slot = slot % 2;
         ImageWithHash tmp;
         try {
             tmp = McuMgrImage.fromBytes(data);
