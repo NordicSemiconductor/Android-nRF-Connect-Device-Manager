@@ -62,11 +62,14 @@ class Confirm extends FirmwareUpgradeTask {
 							if (slot.permanent || slot.confirmed) {
 								performer.onTaskCompleted(Confirm.this);
 							} else {
-								performer.onTaskFailed(Confirm.this, new McuMgrException("Image not confirmed."));
+								LOG.warn("Permanent flag of slot {} of image {} not set. Possible reason: downgrade prevention enabled", slot.slot, slot.image);
+								performer.onTaskFailed(Confirm.this, new McuMgrException("Downgrade forbidden"));
 							}
 							return;
 						}
 					}
+					performer.onTaskFailed(Confirm.this, new McuMgrException("Confirmed image not found"));
+					return;
 				}
 				// SUIT implementation of Image manager does not return images from Confirm command.
 				// Instead, the device will reset and the new image will be booted.
