@@ -9,14 +9,21 @@
     <string name="reset_title">Reset</string>
     <string name="reset_action">Send Reset Command</string>
 
-    <string name="reset_option_bootloader">Switch to bootloader mode</string>
+    <string name="reset_option_bootloader">Switch to Firmware Loader mode</string>
+    <string name="reset_option_bootloader_param">boot_mode = 1</string>
     <string name="reset_option_force">Force reset</string>
+    <string name="reset_option_force_param">force = true</string>
+    <string name="reset_custom_name">Advertising name</string>
+    <string name="reset_custom_name_default">FL_12345</string>
 
     <string name="reset_dialog_help_title">Help</string>
     <string name="reset_dialog_help_message">This card lets you remotely restart the device.
         A reset is required to complete a Firmware Update or Factory Reset.
-        \n\n<b>Switch to Bootloader Mode</b>: If supported by the firmware, this option restarts the
-        device into bootloader (firmware loader) mode.
+        \n\n<b>Switch to Firmware Loader</b>: This option sends the Reset command with `boot_mode\u00A0=\u00A01`.
+        If supported, this causes the device to enter the Firmware Loader mode after the reset.
+        \n\n<b>Advertising name</b>: Supported devices may advertise with a custom Complete Local Name
+        in the Firmware Loader mode. If left empty, the default advertising name will be used.
+        McuMgr Settings Group is required for this feature.
         \n\n<b>Force Reset</b>: If the firmware is compiled with <i>Reset Hook</i> that can reject reset
         commands, enabling this option forces the reset even if it’s initially denied.
 	</string>

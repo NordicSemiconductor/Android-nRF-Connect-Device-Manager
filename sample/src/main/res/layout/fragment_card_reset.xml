@@ -29,23 +29,79 @@
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/option_bootloader"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@string/reset_option_bootloader"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"
-            android:text="@string/reset_option_bootloader"/>
+            app:layout_constraintEnd_toStartOf="@id/option_bootloader_hint"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+        <TextView
+            android:id="@+id/option_bootloader_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/reset_option_bootloader_param"
+            android:textSize="12sp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/option_bootloader"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/option_bootloader" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/option_name"
+            style="?textInputOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="32dp"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:hint="@string/reset_custom_name"
+            app:endIconDrawable="@drawable/ic_delete"
+            app:endIconMode="clear_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/option_bootloader"
+            app:layout_constraintTop_toBottomOf="@+id/option_bootloader">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/option_name_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:text="@string/reset_custom_name_default"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/option_force"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            app:layout_constraintEnd_toStartOf="@id/option_force_hint"
+            app:layout_constraintStart_toStartOf="@+id/option_bootloader"
+            app:layout_constraintTop_toBottomOf="@+id/option_name"
+            android:text="@string/reset_option_force"/>
+
+        <TextView
+            android:id="@+id/option_force_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/reset_option_force_param"
+            android:textSize="12sp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/option_force"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/option_force" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="@color/colorDivider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/option_bootloader"
-            android:text="@string/reset_option_force"/>
+            app:layout_constraintTop_toBottomOf="@+id/option_force"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/action_reset"
@@ -54,11 +110,12 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:text="@string/reset_action"
             app:backgroundTint="@color/button_destructive"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/option_force"/>
+            app:layout_constraintTop_toBottomOf="@+id/divider"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/reset_error"
@@ -68,11 +125,13 @@
             android:layout_marginStart="8dp"
             android:textColor="@color/colorDestructive"
             android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/action_reset"
-            tools:text="Error: Not supported"/>
+            tools:text="Not supported (8)"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
