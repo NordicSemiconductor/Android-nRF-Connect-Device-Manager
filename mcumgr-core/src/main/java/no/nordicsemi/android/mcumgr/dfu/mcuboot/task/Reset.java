@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
+
 import no.nordicsemi.android.mcumgr.McuMgrCallback;
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
@@ -14,11 +16,20 @@ import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
 import no.nordicsemi.android.mcumgr.managers.DefaultManager;
+import no.nordicsemi.android.mcumgr.managers.SettingsManager;
+import no.nordicsemi.android.mcumgr.response.McuMgrResponse;
 import no.nordicsemi.android.mcumgr.response.dflt.McuMgrOsResponse;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 
 class Reset extends FirmwareUpgradeTask {
 	private final static Logger LOG = LoggerFactory.getLogger(Reset.class);
+
+	/**
+	 * The key used to set the advertising name for the Firmware Loader mode.
+	 * <p>
+	 * This uses the Settings manager.
+	 */
+	private final static String KEY_SET_NAME = "fw_loader/adv_name";
 
 	/**
 	 * The timestamp at which the response to Reset command was received.
@@ -29,9 +40,19 @@ class Reset extends FirmwareUpgradeTask {
 	private long mResetResponseTime;
 
 	private final boolean mNoSwap;
+	private final int mBootMode;
+	private final String mAdvName;
 
 	Reset(final boolean noSwap) {
 		this.mNoSwap = noSwap;
+		this.mBootMode = 0;
+		this.mAdvName = null;
+	}
+
+	Reset(final @NotNull String advName) {
+		this.mNoSwap = true;
+		this.mBootMode = DefaultManager.BOOT_MODE_TYPE_BOOTLOADER;
+		this.mAdvName = advName;
 	}
 
 	@Override
@@ -88,8 +109,54 @@ class Reset extends FirmwareUpgradeTask {
 			}
 		});
 
+		if (mAdvName != null) {
+			setName(mAdvName, performer, () -> reset(mBootMode, performer));
+			return;
+		}
+		reset(mBootMode, performer);
+	}
+
+	private void setName(@NotNull final String advName, @NotNull final TaskManager<Settings, State> performer, @NotNull final Runnable then) {
+		final McuMgrTransport transport = performer.getTransport();
+		final SettingsManager manager = new SettingsManager(transport);
+
+		LOG.trace("Switching to firmware loader (name: {})...", mAdvName);
+
+		// Setting the name uses Settings group. The name is sent as bytes, not a string.
+		final byte[] nameData = advName.getBytes(StandardCharsets.UTF_8);
+		manager.write(KEY_SET_NAME, nameData, new McuMgrCallback<>() {
+			@Override
+			public void onResponse(@NotNull final McuMgrResponse response) {
+				LOG.trace("Saving settings...");
+				manager.save(new McuMgrCallback<>() {
+                    @Override
+                    public void onResponse(@NotNull McuMgrResponse response) {
+						LOG.info("Firmware Loader name set to: {}", advName);
+                        then.run();
+                    }
+
+                    @Override
+                    public void onError(@NotNull McuMgrException error) {
+						LOG.error("Failed to save settings", error);
+                        performer.onTaskFailed(Reset.this, error);
+                    }
+                });
+			}
+
+			@Override
+			public void onError(@NotNull final McuMgrException error) {
+				LOG.error("Failed to set Firmware Loader advertising name. Connect to the device in this mode manually", error);
+				performer.onTaskFailed(Reset.this, new McuMgrException("Connect to the Firmware Loader manually and retry"));
+			}
+		});
+	}
+
+	private void reset(final int bootMode, @NotNull final TaskManager<Settings, State> performer) {
+		final McuMgrTransport transport = performer.getTransport();
 		final DefaultManager manager = new DefaultManager(transport);
-		manager.reset(new McuMgrCallback<>() {
+
+		LOG.trace("Resetting (boot mode: {})...", bootMode);
+		manager.reset(bootMode, false, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrOsResponse response) {
 				// Check for an error return code.

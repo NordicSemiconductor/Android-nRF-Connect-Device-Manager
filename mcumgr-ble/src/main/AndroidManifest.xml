@@ -1,4 +1,4 @@
-<manifest
+<manifest xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
@@ -12,10 +12,26 @@
     <!--
       This is a new RUNTIME type permission for Android 12+, required
       to connect to a Bluetooth LE device.
-
-      Note: Apps may also need BLUETOOTH_SCAN permission, but this library
-            does not handle scanning.
      -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+
+    <!--
+      This is a new RUNTIME type permission for Android 12+, required
+      to scan for Bluetooth LE devices.
+
+      Scanning is only required when the device McuBoot bootloader is in Firmware Loader mode.
+      In this mode, the device needs to reset to that mode before a firmware update can be performed.
+      Firmware Loader uses a different Bluetooth Address than the normal application mode,
+      so scanning is necessary to find the device in this mode.
+
+      The "neverForLocation" flag indicates that the app does not use
+      Bluetooth scanning for location purposes. iBeacons and Eddystone will not be reported
+      as scan results. Should you want to update firmware on beacons, override this permission
+      in your app's manifest without the "neverForLocation" flag.
+     -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="31" />
 
 </manifest>

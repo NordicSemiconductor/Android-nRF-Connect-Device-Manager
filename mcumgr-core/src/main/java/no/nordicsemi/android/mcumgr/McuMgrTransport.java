@@ -69,6 +69,23 @@ public interface McuMgrTransport {
     }
 
     /**
+     * Receives callbacks from an explicit call to {@link #changeMode}.
+     */
+    interface ModeChangeCallback {
+        /**
+         * Called when mode change attempt succeeds.
+         */
+        void onModeChanged();
+
+        /**
+         * Called when the mode change attempt has failed.
+         *
+         * @param t The mode change failure reason.
+         */
+        void onError(@NotNull Throwable t);
+    }
+
+    /**
      * Gets the scheme for this transport (see {@link McuMgrScheme}).
      *
      * @return The transport's scheme.
@@ -116,6 +133,19 @@ public interface McuMgrTransport {
      * @param callback An optional callback to receive the result of the connection attempt.
      */
     void connect(@Nullable ConnectionCallback callback);
+
+    /**
+     * Changes the transport mode.
+     *
+     * The change is transport-specific and may not be supported by all transport schemes.
+     *
+     * An example may be to connect to the same device using a different Device Address.
+     *
+     * @param name the mode name.
+     * @param callback An optional callback to receive the result of the mode change.
+     * @return true if the mode change was initiated successfully, false otherwise.
+     */
+    boolean changeMode(@NotNull String name, @Nullable ModeChangeCallback callback);
 
     /**
      * Releases the transport connection. When the connection is already closed this method does

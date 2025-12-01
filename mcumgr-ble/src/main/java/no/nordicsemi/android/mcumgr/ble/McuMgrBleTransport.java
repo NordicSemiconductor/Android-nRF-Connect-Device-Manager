@@ -7,11 +7,17 @@
 package no.nordicsemi.android.mcumgr.ble;
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -26,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -112,6 +119,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      * The Bluetooth device for this transporter.
      */
     private final BluetoothDevice mDevice;
+    private BluetoothDevice mDeviceBootloader;
 
     /**
      * An instance of a merger used to merge SMP packets that are split into multiple BLE packets.
@@ -212,6 +220,9 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     @NonNull
     @Override
     public BluetoothDevice getBluetoothDevice() {
+        if (mDeviceBootloader != null) {
+            return mDeviceBootloader;
+        }
         return mDevice;
     }
 
@@ -366,7 +377,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         // If device is not connected, connect.
         // If the device was already connected, the completion callback will be called immediately.
         final boolean wasConnected = isConnected();
-        connect(mDevice)
+        connect(getBluetoothDevice())
                 .done(device -> {
                     if (!wasConnected) {
                         notifyConnected();
@@ -488,7 +499,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
             }
             return;
         }
-        connect(mDevice)
+        connect(getBluetoothDevice())
                 .retry(3, 500)
                 .done(device -> {
                     notifyConnected();
@@ -557,6 +568,65 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         disconnect().enqueue();
     }
 
+    @Override
+    public boolean changeMode(@NonNull String name, @Nullable ModeChangeCallback callback) {
+        // The transport needs to be disconnected in order to change the mode.
+        if (isConnected()) {
+            return false;
+        }
+
+        // For BLE transport, changing the mode means scanning for a device with a given name.
+        // It is intended to switch between application and bootloader modes.
+        // In the bootloader mode (Firmware Loader) the advertises changes its Bluetooth Address,
+        // hence the need to scan for it.
+        final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter == null) {
+            return false;
+        }
+        final BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+        if (scanner == null) {
+            return false;
+        }
+        final ScanFilter filter = new ScanFilter.Builder()
+                .setDeviceName(name)
+                .build();
+        final List<ScanFilter> filters = Collections.singletonList(filter);
+        final ScanSettings settings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build();
+
+        final Handler handler = new Handler(Looper.getMainLooper());
+
+        final ScanCallback scanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                handler.removeCallbacksAndMessages(null);
+                scanner.stopScan(this);
+                mDeviceBootloader = result.getDevice();
+                if (callback != null)
+                    callback.onModeChanged();
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                handler.removeCallbacksAndMessages(null);
+                scanner.stopScan(this);
+                if (callback != null)
+                    callback.onError(new McuMgrException("Scan failed with error: " + errorCode));
+            }
+        };
+
+        // This code will run if the scan is not stopped within the timeout.
+        handler.postDelayed(() -> {
+            scanner.stopScan(scanCallback);
+            if (callback != null)
+                callback.onError(new McuMgrException("Scan for '" + name + "' timed out"));
+        }, 3000);
+
+        scanner.startScan(filters, settings, scanCallback);
+        return true;
+    }
+
     /**
      * Requests the given connection priority. On Android, the connection priority is the
      * equivalent of connection parameters. Acceptable values are:
@@ -579,7 +649,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
      *                 {@link BluetoothGatt#CONNECTION_PRIORITY_LOW_POWER}.
      */
     public void requestConnPriority(@ConnectionPriority final int priority) {
-        connect(mDevice)
+        connect(getBluetoothDevice())
                 .retry(3, 500)
                 .done(device -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -808,6 +878,8 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         mSmpCharacteristicWrite = null;
         mSmpCharacteristicNotify = null;
         mMaxPacketLength = 0;
+        // Next reconnection will happen to the original device, not bootloader.
+        mDeviceBootloader = null;
         onAdditionalServicesInvalidated();
         runOnCallbackThread(this::notifyDisconnected);
     }

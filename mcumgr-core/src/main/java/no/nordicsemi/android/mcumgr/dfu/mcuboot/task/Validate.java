@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import no.nordicsemi.android.mcumgr.McuMgrCallback;
 import no.nordicsemi.android.mcumgr.McuMgrErrorCode;
@@ -32,11 +33,21 @@ class Validate extends FirmwareUpgradeTask {
 	private final ImageSet images;
 	@NotNull
 	private final Mode mode;
+	private final boolean forceReset;
 
 	Validate(final @NotNull Mode mode,
 			 final @NotNull ImageSet images) {
 		this.mode = mode;
 		this.images = images;
+		this.forceReset = false;
+	}
+
+	private Validate(final @NotNull Mode mode,
+					 final @NotNull ImageSet images,
+					 final boolean forceReset) {
+		this.mode = mode;
+		this.images = images;
+		this.forceReset = forceReset;
 	}
 
 	@Override
@@ -167,7 +178,7 @@ class Validate extends FirmwareUpgradeTask {
 				// in the right (given 2 lines above) order.
 
 				// The flag indicates whether a reset operation should be performed during the process.
-				boolean resetRequired = false;
+				boolean resetRequired = forceReset;
 
 				// For each image that is to be sent, check if the same image has already been sent.
 				for (final TargetImage image : images.getImages()) {
@@ -373,8 +384,12 @@ class Validate extends FirmwareUpgradeTask {
 				if (forcePrimarySlot &&
 					e instanceof McuMgrErrorException &&
 					((McuMgrErrorException) e).getCode() == McuMgrErrorCode.NOT_SUPPORTED) {
-					performer.onTaskFailed(Validate.this,
-							new McuMgrException("Reset to Firmware Loader required."));
+					final int randomNumber = (int) (Math.random() * 99999);
+					final String advName = String.format(Locale.US, "FL_%05d", randomNumber);
+					performer.enqueue(new ResetBeforeUpload(advName));
+					performer.enqueue(new Scan(advName));
+					performer.enqueue(new Validate(mode, images, true));
+					performer.onTaskCompleted(Validate.this);
 				} else {
 					performer.onTaskFailed(Validate.this, e);
 				}

@@ -189,7 +189,7 @@ public class SettingsManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse write(@Nullable String name, @Nullable String value)
+    public McuMgrResponse write(@Nullable String name, byte @NotNull [] value)
             throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
