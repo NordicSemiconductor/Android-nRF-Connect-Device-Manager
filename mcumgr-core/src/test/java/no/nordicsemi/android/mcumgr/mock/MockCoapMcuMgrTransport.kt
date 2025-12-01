@@ -63,16 +63,20 @@ class MockCoapMcuMgrTransport(
      * Unimplemented.
      */
     override fun addObserver(observer: McuMgrTransport.ConnectionObserver) =
-        throw IllegalStateException("Not implemented.")
+        TODO("Not yet implemented")
 
     override fun removeObserver(observer: McuMgrTransport.ConnectionObserver) =
-        throw IllegalStateException("Not implemented.")
+        TODO("Not yet implemented")
 
     override fun release() =
-        throw IllegalStateException("Not implemented.")
+        TODO("Not yet implemented")
 
     override fun connect(callback: McuMgrTransport.ConnectionCallback?) =
-        throw IllegalStateException("Not implemented.")
+        TODO("Not yet implemented")
+
+    override fun changeMode(name: String, callback: McuMgrTransport.ModeChangeCallback?): Boolean {
+        TODO("Not yet implemented")
+    }
 }
 
 

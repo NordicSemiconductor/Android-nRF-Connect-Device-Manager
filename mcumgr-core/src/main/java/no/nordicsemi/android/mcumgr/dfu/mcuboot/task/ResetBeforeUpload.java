@@ -6,6 +6,10 @@ class ResetBeforeUpload extends Reset {
 		super(noSwap);
 	}
 
+	ResetBeforeUpload(final String name) {
+		super(name);
+	}
+
 	@Override
 	public int getPriority() {
 		return PRIORITY_RESET_INITIAL;
