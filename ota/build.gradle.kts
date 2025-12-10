@@ -53,12 +53,17 @@ android {
 }
 
 dependencies {
+    implementation(project(":mcumgr-core"))
+
     // The MemfaultCloud library provides convenience APIs for mobile applications that
     // interact with web services.
     // https://github.com/memfault/memfault-cloud-android
     implementation(libs.memfault.cloud)
 
     implementation(libs.kotlinx.coroutines.android)
+
+    //noinspection NewerVersionAvailable
+    implementation(libs.fasterxml.databind)
 
     // Use SLF4J for logging.
     implementation(libs.slf4j)
