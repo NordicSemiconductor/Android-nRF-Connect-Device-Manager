@@ -72,15 +72,15 @@ public class StatsManager extends McuManager {
     public interface Response extends HasReturnCode {
 
         @Nullable
-        default BasicManager.ReturnCode getOsReturnCode() {
+        default StatsManager.ReturnCode getStatsReturnCode() {
             McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
             if (groupReturnCode == null) {
                 if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
-                    return BasicManager.ReturnCode.OK;
+                    return StatsManager.ReturnCode.OK;
                 }
-                return BasicManager.ReturnCode.UNKNOWN;
+                return StatsManager.ReturnCode.UNKNOWN;
             }
-            return BasicManager.ReturnCode.valueOf(groupReturnCode);
+            return StatsManager.ReturnCode.valueOf(groupReturnCode);
         }
     }
 

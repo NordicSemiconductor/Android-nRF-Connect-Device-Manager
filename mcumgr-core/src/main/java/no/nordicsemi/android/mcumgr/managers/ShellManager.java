@@ -56,15 +56,15 @@ public class ShellManager extends McuManager {
 	public interface Response extends HasReturnCode {
 
 		@Nullable
-		default BasicManager.ReturnCode getOsReturnCode() {
+		default ShellManager.ReturnCode getShellReturnCode() {
 			McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
 			if (groupReturnCode == null) {
 				if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {
-					return BasicManager.ReturnCode.OK;
+					return ShellManager.ReturnCode.OK;
 				}
-				return BasicManager.ReturnCode.UNKNOWN;
+				return ShellManager.ReturnCode.UNKNOWN;
 			}
-			return BasicManager.ReturnCode.valueOf(groupReturnCode);
+			return ShellManager.ReturnCode.valueOf(groupReturnCode);
 		}
 	}
 
