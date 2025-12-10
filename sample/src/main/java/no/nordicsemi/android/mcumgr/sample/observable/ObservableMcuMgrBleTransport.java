@@ -230,7 +230,6 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
                         }
                     })
                     .enqueue();
-
         }
     }
 
