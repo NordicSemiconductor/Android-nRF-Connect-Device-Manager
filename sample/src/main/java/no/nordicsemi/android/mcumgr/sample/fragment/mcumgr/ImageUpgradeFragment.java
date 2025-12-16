@@ -53,7 +53,6 @@ import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFacto
 import no.nordicsemi.android.ota.DownloadCallback;
 import no.nordicsemi.android.ota.OtaManager;
 import no.nordicsemi.android.ota.ReleaseBinary;
-import timber.log.Timber;
 
 public class ImageUpgradeFragment extends FileBrowserFragment implements Injectable,
         SelectBinaryDialogFragment.OnBinarySelectedListener,
@@ -571,20 +570,6 @@ public class ImageUpgradeFragment extends FileBrowserFragment implements Injecta
 
     private boolean isHttpError(@Nullable final Throwable throwable) {
         if (throwable == null) return false;
-
-        // Enhanced logging to capture all available error information
-        Timber.i("Network error details:");
-        Timber.i("  Message: %s", throwable.getMessage());
-        Timber.i("  Class: %s", throwable.getClass().getSimpleName());
-
-        // Log the full stack trace and any cause information
-        Throwable cause = throwable.getCause();
-        int level = 0;
-        while (cause != null && level < 5) { // Prevent infinite loops
-            Timber.i("  Cause[%d]: %s - %s", level, cause.getClass().getSimpleName(), cause.getMessage());
-            cause = cause.getCause();
-            level++;
-        }
 
         final String message = throwable.getMessage();
         return message != null && message.contains("Unexpected response:");

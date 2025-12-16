@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -314,6 +315,8 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
                         @Override
                         public void onError(final @NotNull Throwable t) {
+                            logError(t);
+
                             // If there's no Memfault group, read the same data from Device Information Service (DIS).
                             // This is legacy mode. It will be removed in the future with the following:
                             if (t instanceof McuMgrException) {
@@ -334,6 +337,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
                                     @Override
                                     public void onError(final @NotNull Throwable t) {
+                                        logError(t);
                                         postReady();
                                         networkErrorEvent.postValue(t);
                                     }
@@ -664,5 +668,12 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
         if (bleTransport != null) {
             bleTransport.setLoggingEnabled(enabled);
         }
+    }
+
+    private void logError(final @NotNull Throwable throwable) {
+        // This gets logged to nRF Logger:
+        Timber.e(throwable.getMessage());
+        // This goes only to LogCat.
+        Log.e("ImageUpgradeViewModel", "Network error", throwable);
     }
 }
