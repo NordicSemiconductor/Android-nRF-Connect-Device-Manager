@@ -8,6 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import no.nordicsemi.android.mcumgr.McuMgrCallback
+import no.nordicsemi.android.mcumgr.McuMgrTransport
+import no.nordicsemi.android.mcumgr.exception.McuMgrException
+import no.nordicsemi.android.ota.mcumgr.MemfaultDeviceInfoResponse
+import no.nordicsemi.android.ota.mcumgr.MemfaultManager
+import no.nordicsemi.android.ota.mcumgr.MemfaultProjectKeyResponse
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -20,6 +26,85 @@ import kotlin.coroutines.resumeWithException
  * from nRF Cloud Services.
  */
 class OtaManager {
+
+    /**
+     * Gets the information about the latest release for the given device from nRF Cloud Services
+     * by reading required data using the given transport.
+     *
+     * This method is using Memfault group (id = 128) to get the:
+     * - device Serial Number
+     * - device Hardware Version
+     * - device Software Type
+     * - current firmware version
+     * - the project key
+     *
+     * and then requesting the release information form nRF Cloud.
+     * @param transport The transport to use to send commands.
+     * @throws McuMgrException if reading the device information fails.
+     */
+    suspend fun getLatestRelease(
+        transport: McuMgrTransport,
+    ): ReleaseInformation {
+        val memfaultManager = MemfaultManager(transport)
+
+        val deviceInfo = suspendCancellableCoroutine { continuation ->
+            memfaultManager.info(object : McuMgrCallback<MemfaultDeviceInfoResponse> {
+                override fun onResponse(response: MemfaultDeviceInfoResponse) {
+                    continuation.resume(response.toDeviceInfo())
+                }
+
+                override fun onError(error: McuMgrException) {
+                    continuation.resumeWithException(error)
+                }
+            })
+        }
+        val projectKey = suspendCancellableCoroutine { continuation ->
+            memfaultManager.projectKey(object : McuMgrCallback<MemfaultProjectKeyResponse> {
+                override fun onResponse(response: MemfaultProjectKeyResponse) {
+                    continuation.resume(response.projectKey)
+                }
+
+                override fun onError(error: McuMgrException) {
+                    continuation.resumeWithException(error)
+                }
+            })
+        }
+        return getLatestRelease(deviceInfo, projectKey)
+    }
+
+    /**
+     * Gets the information about the latest release for the given device from nRF Cloud Services
+     * by reading required data using the given transport.
+     *
+     * This method is using Memfault group (id = 128) to get the:
+     * - device Serial Number
+     * - device Hardware Version
+     * - device Software Type
+     * - current firmware version
+     * - the project key
+     *
+     * and then requesting the release information form nRF Cloud.
+     * @param transport The transport to use to send commands.
+     * @param callback A callback with the [ReleaseInformation] object containing details about the
+     * latest release or an error.
+     */
+    fun getLatestRelease(
+        transport: McuMgrTransport,
+        callback: ReleaseCallback,
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val result = getLatestRelease(transport)
+                withContext(Dispatchers.Main) {
+                    callback.onSuccess(result)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    callback.onError(e)
+                }
+            }
+        }
+    }
 
     /**
      * Gets the latest release for the given device from nRF Cloud Services.
@@ -62,6 +147,16 @@ class OtaManager {
         })
     }
 
+    /**
+     * Gets the latest release for the given device from nRF Cloud Services.
+     *
+     * @param deviceInfo Information about the device, such as hardware version, software type and
+     * current firmware version.
+     * @param projectKey The project API key from nRF Cloud. You can find it in the project settings
+     * on the nRF Cloud web portal.
+     * @param callback A callback with the [ReleaseInformation] object containing details about the
+     * latest release or an error.
+     */
     fun getLatestRelease(
         deviceInfo: DeviceInfo,
         projectKey: String,
@@ -81,6 +176,14 @@ class OtaManager {
         }
     }
 
+    /**
+     * Downloads the release binary from the given location.
+     *
+     * @param location The URL of the release binary. It can be obtained using [getLatestRelease]
+     * from [ReleaseInformation.UpdateAvailable].
+     * @return A [ReleaseBinary] object containing the name of the downloaded file and its content,
+     * or null if the received data has no content.
+     */
     suspend fun download(location: String): ReleaseBinary? = withContext(Dispatchers.IO) {
         val url = URL(location)
         var connection: HttpURLConnection? = null

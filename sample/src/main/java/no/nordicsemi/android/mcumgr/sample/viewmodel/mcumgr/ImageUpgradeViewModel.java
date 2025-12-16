@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -303,15 +304,9 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
             ot.connect(new McuMgrTransport.ConnectionCallback() {
                 @Override
                 public void onConnected() {
-                    final DeviceInfo deviceInfo = ot.getDeviceInfo();
-                    final String projectKey = ot.getProjectKey();
-                    if (deviceInfo == null || projectKey == null) {
-                        postReady();
-                        otaNotSupportedEvent.post();
-                        return;
-                    }
+                    // First, try getting device info by reading from Memfault group.
                     final OtaManager otaManager = new OtaManager();
-                    otaManager.getLatestRelease(deviceInfo, projectKey, new ReleaseCallback() {
+                    otaManager.getLatestRelease(ot, new ReleaseCallback() {
                         @Override
                         public void onSuccess(final @NotNull ReleaseInformation releaseInformation) {
                             postReady();
@@ -320,8 +315,37 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
 
                         @Override
                         public void onError(final @NotNull Throwable t) {
-                            postReady();
-                            networkErrorEvent.postValue(t);
+                            logError(t);
+
+                            // If there's no Memfault group, read the same data from Device Information Service (DIS).
+                            // This is legacy mode. It will be removed in the future with the following:
+                            if (t instanceof McuMgrException) {
+                                final DeviceInfo deviceInfo = ot.getDeviceInfo();
+                                final String projectKey = ot.getProjectKey();
+                                if (deviceInfo == null || projectKey == null) {
+                                    postReady();
+                                    otaNotSupportedEvent.post();
+                                    return;
+                                }
+
+                                otaManager.getLatestRelease(deviceInfo, projectKey, new ReleaseCallback() {
+                                    @Override
+                                    public void onSuccess(final @NotNull ReleaseInformation releaseInformation) {
+                                        postReady();
+                                        otaReadyEvent.postValue(releaseInformation);
+                                    }
+
+                                    @Override
+                                    public void onError(final @NotNull Throwable t) {
+                                        logError(t);
+                                        postReady();
+                                        networkErrorEvent.postValue(t);
+                                    }
+                                });
+                            } else {
+                                postReady();
+                                networkErrorEvent.postValue(t);
+                            }
                         }
                     });
                 }
@@ -644,5 +668,12 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
         if (bleTransport != null) {
             bleTransport.setLoggingEnabled(enabled);
         }
+    }
+
+    private void logError(final @NotNull Throwable throwable) {
+        // This gets logged to nRF Logger:
+        Timber.e(throwable.getMessage());
+        // This goes only to LogCat.
+        Log.e("ImageUpgradeViewModel", "Network error", throwable);
     }
 }

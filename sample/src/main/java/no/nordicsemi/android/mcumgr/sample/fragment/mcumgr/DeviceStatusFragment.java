@@ -24,8 +24,10 @@ import no.nordicsemi.android.mcumgr.sample.databinding.FragmentCardDeviceStatusB
 import no.nordicsemi.android.mcumgr.sample.di.Injectable;
 import no.nordicsemi.android.mcumgr.sample.dialog.HelpDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
+import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.FeatureState;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService;
+import no.nordicsemi.android.ota.DeviceInfo;
 
 public class DeviceStatusFragment extends Fragment implements Injectable {
 
@@ -95,6 +97,7 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                     binding.bootloaderName.setText(R.string.not_applicable);
                     binding.activeB0Slot.setText(R.string.not_applicable);
                     binding.kernel.setText(R.string.not_applicable);
+                    binding.otaSupported.setText(R.string.status_not_supported);
                     break;
             }
         });
@@ -157,11 +160,17 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                 binding.kernel.setText(R.string.status_unknown);
             }
         });
-        viewModel.getOtaInfo().observe(getViewLifecycleOwner(), deviceInfo -> {
-            if (deviceInfo != null) {
-                binding.otaSupported.setText(R.string.status_supported);
-            } else {
-                binding.otaSupported.setText(R.string.status_not_supported);
+        viewModel.getOtaInfo().observe(getViewLifecycleOwner(), state -> {
+            switch (state) {
+                case FeatureState.NotSupported ignored ->
+                        binding.otaSupported.setText(R.string.status_not_supported);
+                case FeatureState.Supported<DeviceInfo> info -> {
+                        binding.otaSupported.setText(R.string.status_supported);
+                        final DeviceInfo deviceInfo = info.getResult();
+                        binding.otaVersion.setText(getString(R.string.status_ota_version_value, deviceInfo.getCurrentVersion(), deviceInfo.getSoftwareType()));
+                        binding.otaHwVersion.setText(deviceInfo.getHardwareVersion());
+                }
+                case null, default -> binding.otaSupported.setText(R.string.status_unknown);
             }
         });
         viewModel.getObservabilityState().observe(getViewLifecycleOwner(), state -> {

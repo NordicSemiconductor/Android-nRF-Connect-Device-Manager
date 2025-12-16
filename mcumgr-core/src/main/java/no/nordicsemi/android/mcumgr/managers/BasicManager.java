@@ -66,7 +66,7 @@ public class BasicManager extends McuManager {
     public interface Response extends HasReturnCode {
 
         @Nullable
-        default BasicManager.ReturnCode getOsReturnCode() {
+        default BasicManager.ReturnCode getBasicReturnCode() {
             McuMgrResponse.GroupReturnCode groupReturnCode = getGroupReturnCode();
             if (groupReturnCode == null) {
                 if (getReturnCodeValue() == McuMgrErrorCode.OK.value()) {

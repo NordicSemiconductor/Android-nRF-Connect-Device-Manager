@@ -18,6 +18,9 @@
     <string name="status_kernel">Kernel:</string>
     <string name="status_subtitle_nrf_cloud">nRF Cloud</string>
     <string name="status_ota">OTA:</string>
+    <string name="status_ota_version">• SW Version:</string>
+    <string name="status_ota_version_value">%s (%s)</string>
+    <string name="status_ota_hw_version">• HW Version:</string>
     <string name="status_mds">Observability:</string>
 
     <string name="status_connecting">Connecting…</string>
