@@ -21,6 +21,7 @@ import no.nordicsemi.android.mcumgr.managers.SettingsManager;
 import no.nordicsemi.android.mcumgr.managers.ShellManager;
 import no.nordicsemi.android.mcumgr.managers.StatsManager;
 import no.nordicsemi.android.mcumgr.sample.di.McuMgrScope;
+import no.nordicsemi.android.ota.mcumgr.MemfaultManager;
 
 @Module
 public class McuMgrManagerModule {
@@ -89,5 +90,11 @@ public class McuMgrManagerModule {
     @McuMgrScope
     static SUITUpgradeManager provideSUITUpgradeManager(final McuMgrTransport transport) {
         return new SUITUpgradeManager(transport);
+    }
+
+    @Provides
+    @McuMgrScope
+    static MemfaultManager provideMemfaultManager(final McuMgrTransport transport) {
+        return new MemfaultManager(transport);
     }
 }

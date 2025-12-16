@@ -24,13 +24,24 @@ import no.nordicsemi.android.mcumgr.sample.observable.ObservableMcuMgrBleTranspo
 import no.nordicsemi.android.observability.ObservabilityManager
 import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService
 import no.nordicsemi.android.ota.DeviceInfo
+import no.nordicsemi.android.ota.mcumgr.MemfaultDeviceInfoResponse
+import no.nordicsemi.android.ota.mcumgr.MemfaultManager
+import no.nordicsemi.android.ota.mcumgr.MemfaultProjectKeyResponse
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.ble.core.BondState
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 
+sealed class FeatureState<out T> {
+    class Supported<T>(val result: T) : FeatureState<T>()
+    object NotSupported : FeatureState<Nothing>()
+    object Unknown : FeatureState<Nothing>()
+}
+
 class DeviceStatusViewModel @Inject internal constructor(
     private val defaultManager: DefaultManager,
+    private val memfaultManager: MemfaultManager,
     peripheral: Peripheral,
     observabilityManager: ObservabilityManager,
     @Named("busy") state: MutableLiveData<Boolean?>?
@@ -43,37 +54,31 @@ class DeviceStatusViewModel @Inject internal constructor(
     private val bootloaderModeLiveData = MutableLiveData<Int?>()
     private val activeB0SlotLiveData = MutableLiveData<Int?>()
     private val appInfoLiveData = MutableLiveData<String?>()
-    private val otaLiveData = MutableLiveData<DeviceInfo?>()
+    private val otaLiveData = MutableLiveData<FeatureState<DeviceInfo>>(FeatureState.Unknown)
     private val observabilityLiveData = MutableLiveData<MonitoringAndDiagnosticsService.State?>()
     private val connectionStateObserver = Observer { connectionState: ConnectionState? ->
         if (connectionState == ConnectionState.READY) {
-            // If the OTA information was read, including the Project Key, notify view.
-            val transport = defaultManager.transporter
-            if (transport is ObservableMcuMgrBleTransport && transport.projectKey != null) {
-                otaLiveData.postValue(transport.deviceInfo)
-            } else {
-                otaLiveData.postValue(null)
-            }
             // Read sequentially:
             // 1. MCU Manager parameters
             // 2. Application info (parameter: "sv" will return the kernel name and version)
-            // 3. Bootloader name
-            // 4. Active b0 slot
+            // 3. Read Memfault OTA device information
+            // 4. Bootloader name
+            // 5. Active b0 slot
             // and, if the bootloader is "MCUboot":
-            // 5. Bootloader mode
+            // 6. Bootloader mode
             readMcuMgrParams {
                 readAppInfo("sv") {
-                    readBootloaderName { name ->
-                        readActiveSlot {
-                            if ("MCUboot" == name) {
-                                readMcuBootMode(null)
+                    readOta {
+                        readBootloaderName { name ->
+                            readActiveSlot {
+                                if ("MCUboot" == name) {
+                                    readMcuBootMode(null)
+                                }
                             }
                         }
                     }
                 }
             }
-        } else {
-            otaLiveData.postValue(null)
         }
     }
 
@@ -128,7 +133,7 @@ class DeviceStatusViewModel @Inject internal constructor(
     val appInfo: LiveData<String?>
         get() = appInfoLiveData
 
-    val otaInfo: LiveData<DeviceInfo?>
+    val otaInfo: LiveData<FeatureState<DeviceInfo>?>
         get() = otaLiveData
 
     val observabilityState: LiveData<MonitoringAndDiagnosticsService.State?>
@@ -269,5 +274,51 @@ class DeviceStatusViewModel @Inject internal constructor(
                     then?.run()
                 }
             })
+    }
+
+    /**
+     * For the purpose of nRF Cloud OTA read the device properties:
+     * - Serial number
+     * - Hardware version
+     * - Software type
+     * - Current software version
+     * - Memfault Project key
+     */
+    private fun readOta(then: Runnable?) {
+        memfaultManager.projectKey(object : McuMgrCallback<MemfaultProjectKeyResponse?> {
+            override fun onResponse(response: MemfaultProjectKeyResponse) {
+                val projectKey = response.projectKey
+
+                memfaultManager.info(object : McuMgrCallback<MemfaultDeviceInfoResponse?> {
+                    override fun onResponse(response: MemfaultDeviceInfoResponse) {
+                        val deviceInfo = response.toDeviceInfo()
+
+                        Timber.i("nRF Cloud OTA Supported: $deviceInfo, Project Key: $projectKey")
+                        otaLiveData.postValue(FeatureState.Supported(deviceInfo))
+                        then?.run()
+                    }
+
+                    override fun onError(error: McuMgrException) {
+                        otaLiveData.postValue(FeatureState.NotSupported)
+                        then?.run()
+                    }
+                })
+            }
+
+            override fun onError(error: McuMgrException) {
+                // If Memfault group is not supported, check if the data were read
+                // using Device Information Service (temporary, legacy solution, will be removed).
+                val transport = defaultManager.transporter
+                if (transport is ObservableMcuMgrBleTransport && transport.projectKey != null) {
+                    val featureState = transport.deviceInfo
+                        ?.let { FeatureState.Supported(it) } ?: FeatureState.NotSupported
+                    otaLiveData.postValue(featureState)
+                } else {
+                    otaLiveData.postValue(FeatureState.NotSupported)
+                }
+                then?.run()
+            }
+        })
+
     }
 }

@@ -24,8 +24,10 @@ import no.nordicsemi.android.mcumgr.sample.databinding.FragmentCardDeviceStatusB
 import no.nordicsemi.android.mcumgr.sample.di.Injectable;
 import no.nordicsemi.android.mcumgr.sample.dialog.HelpDialogFragment;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.DeviceStatusViewModel;
+import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.FeatureState;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import no.nordicsemi.android.observability.bluetooth.MonitoringAndDiagnosticsService;
+import no.nordicsemi.android.ota.DeviceInfo;
 
 public class DeviceStatusFragment extends Fragment implements Injectable {
 
@@ -95,6 +97,7 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                     binding.bootloaderName.setText(R.string.not_applicable);
                     binding.activeB0Slot.setText(R.string.not_applicable);
                     binding.kernel.setText(R.string.not_applicable);
+                    binding.otaSupported.setText(R.string.status_not_supported);
                     break;
             }
         });
@@ -158,10 +161,12 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
             }
         });
         viewModel.getOtaInfo().observe(getViewLifecycleOwner(), deviceInfo -> {
-            if (deviceInfo != null) {
-                binding.otaSupported.setText(R.string.status_supported);
-            } else {
-                binding.otaSupported.setText(R.string.status_not_supported);
+            switch (deviceInfo) {
+                case FeatureState.NotSupported ignored ->
+                        binding.otaSupported.setText(R.string.status_not_supported);
+                case FeatureState.Supported<DeviceInfo> ignored ->
+                        binding.otaSupported.setText(R.string.status_supported);
+                case null, default -> binding.otaSupported.setText(R.string.status_unknown);
             }
         });
         viewModel.getObservabilityState().observe(getViewLifecycleOwner(), state -> {

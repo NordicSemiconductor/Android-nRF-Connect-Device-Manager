@@ -32,11 +32,16 @@ import no.nordicsemi.android.ota.DeviceInfo;
 
 
 public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
-    // For now, the parameters require by nRF Cloud OTA are accessible
-    // using Device Information Service (DIS) and Monitoring and Diagnostics Service (MDS).
+    // Note:
+    // Using Device Information Service for reading Memfault device information will be
+    // removed in the future. It was replaced by a Memfault Group in McuMgr.
+    @Deprecated
     private final UUID DIS_SERVICE_UUID = UUID.fromString("0000180a-0000-1000-8000-00805f9b34fb");
+    @Deprecated
     private final UUID DIS_FW_REV_UUID = UUID.fromString("00002a26-0000-1000-8000-00805f9b34fb");
+    @Deprecated
     private final UUID DIS_HW_REV_UUID = UUID.fromString("00002a27-0000-1000-8000-00805f9b34fb");
+    @Deprecated
     private final UUID DIS_SW_REV_UUID = UUID.fromString("00002a28-0000-1000-8000-00805f9b34fb");
 
     private final UUID MDS_SERVICE_UUID = UUID.fromString("54220000-f6a5-4007-a371-722f4ebd8436");
@@ -50,13 +55,16 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
     @Nullable
     private OnReleaseCallback onReleaseCallback;
 
+    @Deprecated
     @Nullable
     private BluetoothGattCharacteristic disFwRevCharacteristic,
             disHwRevCharacteristic, disSwRevCharacteristic;
     @Nullable
     private BluetoothGattCharacteristic mdsAuthCharacteristic, mdsDeviceIdCharacteristic;
+    @Deprecated
     @Nullable
     private DeviceInfo deviceInfo;
+    @Deprecated
     @Nullable
     private String projectKey;
 
@@ -188,7 +196,8 @@ public class ObservableMcuMgrBleTransport extends McuMgrBleTransport {
         // If Device Information Service or Monitoring and Diagnostics Service
         // or any of the required characteristics are not present, skip reading the values.
         //
-        // Note: This is a temporary solution until we have a proper protocol, i.e. SMP.
+        // Note: This is a temporary solution. It was replaced with Memfault Group in McuMgr.
+        //       This will be removed in the future.
         if (mdsAuthCharacteristic != null &&
             mdsDeviceIdCharacteristic != null &&
             disFwRevCharacteristic != null &&
