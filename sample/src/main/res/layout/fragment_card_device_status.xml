@@ -238,12 +238,48 @@
             app:layout_constraintTop_toTopOf="@+id/ota_supported_label" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/ota_version_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_ota_version"
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/ota_supported" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/ota_version"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/status_unknown"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/ota_version_label" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/ota_hw_version_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_ota_hw_version"
+            app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toBottomOf="@+id/ota_version" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/ota_hw_version"
+            android:layout_width="wrap_content"
+            android:layout_height="21dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/status_unknown"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/bonding_status_label"
+            app:layout_constraintTop_toTopOf="@+id/ota_hw_version_label" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/observability_supported_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/status_mds"
             app:layout_constraintStart_toStartOf="@+id/bonding_status_label"
-            app:layout_constraintTop_toBottomOf="@+id/ota_supported" />
+            app:layout_constraintTop_toBottomOf="@+id/ota_hw_version" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/observability_supported"

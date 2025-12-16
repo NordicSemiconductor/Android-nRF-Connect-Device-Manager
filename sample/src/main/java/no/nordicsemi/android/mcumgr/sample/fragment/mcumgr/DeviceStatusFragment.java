@@ -160,12 +160,16 @@ public class DeviceStatusFragment extends Fragment implements Injectable {
                 binding.kernel.setText(R.string.status_unknown);
             }
         });
-        viewModel.getOtaInfo().observe(getViewLifecycleOwner(), deviceInfo -> {
-            switch (deviceInfo) {
+        viewModel.getOtaInfo().observe(getViewLifecycleOwner(), state -> {
+            switch (state) {
                 case FeatureState.NotSupported ignored ->
                         binding.otaSupported.setText(R.string.status_not_supported);
-                case FeatureState.Supported<DeviceInfo> ignored ->
+                case FeatureState.Supported<DeviceInfo> info -> {
                         binding.otaSupported.setText(R.string.status_supported);
+                        final DeviceInfo deviceInfo = info.getResult();
+                        binding.otaVersion.setText(getString(R.string.status_ota_version_value, deviceInfo.getCurrentVersion(), deviceInfo.getSoftwareType()));
+                        binding.otaHwVersion.setText(deviceInfo.getHardwareVersion());
+                }
                 case null, default -> binding.otaSupported.setText(R.string.status_unknown);
             }
         });
