@@ -69,7 +69,9 @@ dependencyResolutionManagement {
         // Use Nordic Gradle Version Catalog with common external libraries versions.
         // Link: https://github.com/NordicSemiconductor/Android-Gradle-Plugins
         create("libs") {
-            from("no.nordicsemi.android.gradle:version-catalog:2.10-4")
+            // Note: Freeze at 2.11, 2.12+ increased minSdk to 23:
+            // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/releases/tag/2.12-2
+            from("no.nordicsemi.android.gradle:version-catalog:2.11.3-1")
         }
         // Fixed versions for Nordic libraries.
         create("nordic") {

@@ -319,7 +319,7 @@ public class ImageUpgradeViewModel extends McuMgrViewModel {
             // HTTP(S) transport is currently not supported.
             suitManager.setResourceCallback(new SUITUpgradeManager.OnResourceRequiredCallback() {
                 @Override
-                public void onResourceRequired(@NotNull URI uri, SUITUpgradeManager.@NotNull ResourceCallback callback) {
+                public void onResourceRequired(@NotNull URI uri, @NonNull SUITUpgradeManager.ResourceCallback callback) {
                     callback.error(new UnsupportedOperationException("Resource required callback not supported."));
                 }
 
