@@ -13,6 +13,12 @@
     },
     {
       "matchPackageNames": [
+        "no.nordicsemi.android.gradle:version-catalog"
+      ],
+      "allowedVersions": "/^2\\.11\\..*$/"
+    },
+    {
+      "matchPackageNames": [
         "/com.fasterxml.jackson.*/",
         "/androidx.room/"
       ],
