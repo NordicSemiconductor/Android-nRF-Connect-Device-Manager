@@ -35,7 +35,7 @@
 package no.nordicsemi.android.observability.bluetooth
 
 import android.bluetooth.BluetoothDevice
-import android.content.Context
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -71,6 +71,7 @@ import no.nordicsemi.kotlin.ble.core.ConnectionState
 import no.nordicsemi.kotlin.ble.core.Manager
 import no.nordicsemi.kotlin.ble.core.OperationStatus
 import no.nordicsemi.kotlin.ble.core.WriteType
+import no.nordicsemi.kotlin.ble.environment.android.NativeAndroidEnvironment
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -143,7 +144,8 @@ class MonitoringAndDiagnosticsService {
 	}
 
 	/**
-	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given [CentralManager] and [Peripheral].
+	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given
+	 * [CentralManager] and [Peripheral].
 	 *
 	 * This constructor can be user with a 'native' or 'mock' [CentralManager].
 	 *
@@ -162,21 +164,22 @@ class MonitoringAndDiagnosticsService {
 	}
 
 	/**
-	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given [Context] and [BluetoothDevice].
+	 * Creates a new instance of [MonitoringAndDiagnosticsService] with the given
+	 * [NativeAndroidEnvironment] and [BluetoothDevice].
 	 *
 	 * This constructor is for legacy applications that use the Android Bluetooth API.
 	 *
-	 * @param context The application context.
+	 * @param environment The native Android Environment object.
 	 * @param bluetoothDevice The Bluetooth device to connect to.
 	 * @param scope The coroutine scope.
 	 */
 	constructor(
-		context: Context,
+		environment: NativeAndroidEnvironment,
 		bluetoothDevice: BluetoothDevice,
 		scope: CoroutineScope
 	) {
 		this.scope = scope
-		this.centralManager = CentralManager.Factory.native(context, scope)
+		this.centralManager = CentralManager.native(environment, scope)
 		this.peripheral = centralManager.getPeripheralById(bluetoothDevice.address)!!
 	}
 
@@ -264,9 +267,9 @@ class MonitoringAndDiagnosticsService {
 	}
 
 	/**
-	 * This method connects the the peripheral and starts observing its state.
+	 * This method connects the peripheral and starts observing its state.
 	 *
-	 * It suspends until the scope is cancelled.
+	 * It suspends until the scope is canceled.
 	 */
 	private suspend fun CoroutineScope.connect(
 		centralManager: CentralManager,
@@ -301,7 +304,7 @@ class MonitoringAndDiagnosticsService {
 			.onEach { state ->
 				when (state) {
 					// Disconnected state is emitted when the connection is lost, when the device
-					// is not supported (disconnect() method called), or the connection was cancelled
+					// is not supported (disconnect() method called), or the connection was canceled
 					// by the user.
 					is ConnectionState.Disconnected -> {
 						if (state.reason is ConnectionState.Disconnected.Reason.UnsupportedAddress) {
@@ -314,7 +317,7 @@ class MonitoringAndDiagnosticsService {
 						if (state.isUserInitiated /* (includes not supported) */ ||
 							state.reason is ConnectionState.Disconnected.Reason.UnsupportedConfiguration) {
 							// If the disconnection was initiated using disconnect() method,
-							// it might have been cancelled, or the device is not supported.
+							// it might have been canceled, or the device is not supported.
 							// Either way, cancel auto-reconnection by cancelling the scope.
 							cancel()
 						}
@@ -401,12 +404,12 @@ class MonitoringAndDiagnosticsService {
 
 		try { awaitCancellation() }
 		finally {
-			// Make sure the device is disconnected when the scope is cancelled.
+			// Make sure the device is disconnected when the scope is canceled.
 			// When it was already disconnected, this is a no-op.
 			withContext(NonCancellable) {
 				peripheral.disconnect()
 
-				// The state collection was cancelled together with the scope. Emit the state manually.
+				// The state collection was canceled together with the scope. Emit the state manually.
 				_state.emit(peripheral.state.value.map(notSupported, bondingFailed))
 			}
 		}
@@ -422,10 +425,20 @@ class MonitoringAndDiagnosticsService {
 			.let { AuthorisationHeader.parse(it) }
 
 		// Start listening to data collected by the device.
-		mds.dataExportCharacteristic.subscribe()
-			.buffer()
+		val deferred = CompletableDeferred<Unit>()
+		mds.dataExportCharacteristic
+			// Subscribe and enable notifications (on collection).
+			.subscribe { deferred.complete(Unit) }
+			// This will catch an exception thrown when subscribe fails,
+			// i.e. OperationFailedException(reason=Subscribe not permitted)
+			.catch { deferred.completeExceptionally(it) }
+			.buffer() // TODO is that needed?
+			// Emit the chunks to the flow.
 			.onEach { _chunks.emit(it) }
 			.launchIn(this)
+
+		// Make sure the notifications are enabled and subscribed to before returning.
+		deferred.await()
 
 		return ChunksConfig(authorisationToken, url, deviceId)
 	}

@@ -49,6 +49,7 @@ import no.nordicsemi.android.mcumgr.sample.fragment.LogsStatsFragment;
 import no.nordicsemi.android.mcumgr.sample.fragment.ShellFragment;
 import no.nordicsemi.android.mcumgr.sample.viewmodel.mcumgr.McuMgrViewModelFactory;
 import no.nordicsemi.android.observability.ObservabilityManager;
+import no.nordicsemi.kotlin.ble.core.android.AndroidEnvironment;
 
 @SuppressWarnings("ConstantConditions")
 public class MainActivity extends AppCompatActivity
@@ -63,6 +64,8 @@ public class MainActivity extends AppCompatActivity
     McuMgrTransport mcuMgrTransport;
     @Inject
     ObservabilityManager observabilityManager;
+    @Inject
+    AndroidEnvironment environment;
     @Inject
     @Nullable
     Uri logSessionUri;
@@ -85,7 +88,7 @@ public class MainActivity extends AppCompatActivity
         // Otherwise, Dagger2 will fail to inflate this Activity.
         // The target has to be set here, otherwise restoring the state will fail had the
         // Activity been destroyed and recreated.
-        // Is should only be done once, when the Activity is created for the first time.
+        // It should only be done once, when the Activity is created for the first time.
         if (savedInstanceState == null) {
             ((Dagger2Application) getApplication()).setTarget(device);
         }
@@ -199,6 +202,7 @@ public class MainActivity extends AppCompatActivity
         if (isFinishing()) {
             mcuMgrTransport.release();
             observabilityManager.disconnect();
+            environment.close();
         }
     }
 }
