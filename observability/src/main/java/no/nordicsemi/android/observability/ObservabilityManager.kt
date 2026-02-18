@@ -47,6 +47,7 @@ import no.nordicsemi.android.observability.internet.ChunkManager.State.Idle
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.Peripheral
 import no.nordicsemi.kotlin.ble.client.android.native
+import no.nordicsemi.kotlin.ble.environment.android.NativeAndroidEnvironment
 
 /**
  * Class responsible for managing connection with the remote IoT device which supports
@@ -123,12 +124,12 @@ interface ObservabilityManager {
      *
      * Chunks upload will start immediately after establishing the connection.
      *
-     * @param context Android [Context] need to initialize the chunks database.
+     * @param environment The native Android Environment object.
      * @param device [BluetoothDevice] to which the manager should connect.
      * @throws IllegalStateException if the manager is already connected to a peripheral.
      */
-    fun connect(context: Context, device: BluetoothDevice) {
-        val centralManager = CentralManager.Factory.native(context, Scope)
+    fun connect(environment: NativeAndroidEnvironment, device: BluetoothDevice) {
+        val centralManager = CentralManager.native(environment, Scope)
         val peripheral = centralManager.getPeripheralById(device.address)!!
         connect(peripheral, centralManager)
     }

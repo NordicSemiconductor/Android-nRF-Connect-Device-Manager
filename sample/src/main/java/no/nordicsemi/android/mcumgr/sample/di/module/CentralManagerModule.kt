@@ -1,27 +1,42 @@
 package no.nordicsemi.android.mcumgr.sample.di.module
 
 import android.content.Context
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import no.nordicsemi.android.mcumgr.sample.di.McuMgrScope
 import no.nordicsemi.kotlin.ble.client.android.CentralManager
 import no.nordicsemi.kotlin.ble.client.android.native
-import javax.inject.Singleton
+import no.nordicsemi.kotlin.ble.core.android.AndroidEnvironment
+import no.nordicsemi.kotlin.ble.environment.android.NativeAndroidEnvironment
 
 @Module
 class CentralManagerModule {
 
     @Provides
-    @Singleton
+    @McuMgrScope
     fun providesIoScope(): CoroutineScope {
         return CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     @Provides
-    @Singleton
-    fun providesCentralManager(context: Context, scope: CoroutineScope): CentralManager {
-        return CentralManager.Factory.native(context, scope)
+    @McuMgrScope
+    fun providesEnvironment(context: Context): NativeAndroidEnvironment {
+        return NativeAndroidEnvironment.getInstance(context, isNeverForLocationFlagSet = true)
     }
+
+    @Provides
+    @McuMgrScope
+    fun providesCentralManager(environment: NativeAndroidEnvironment, scope: CoroutineScope): CentralManager {
+        return CentralManager.native(environment, scope)
+    }
+}
+
+@Module
+abstract class EnvironmentModule {
+    @Binds
+    abstract fun providesAndroidEnvironment(nativeEnvironment: NativeAndroidEnvironment): AndroidEnvironment
 }

@@ -17,6 +17,8 @@ import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.sample.MainActivity;
 import no.nordicsemi.android.mcumgr.sample.application.Dagger2Application;
 import no.nordicsemi.android.mcumgr.sample.di.McuMgrScope;
+import no.nordicsemi.android.mcumgr.sample.di.module.CentralManagerModule;
+import no.nordicsemi.android.mcumgr.sample.di.module.EnvironmentModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrActivitiesModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrFragmentBuildersModule;
 import no.nordicsemi.android.mcumgr.sample.di.module.McuMgrManagerModule;
@@ -29,6 +31,8 @@ import no.nordicsemi.android.mcumgr.sample.di.module.ObservabilityModule;
         McuMgrFragmentBuildersModule.class,
         McuMgrViewModelModule.class,
         McuMgrTransportModule.class,
+        CentralManagerModule.class,
+        EnvironmentModule.class,
         ObservabilityModule.class,
         McuMgrManagerModule.class
 })
