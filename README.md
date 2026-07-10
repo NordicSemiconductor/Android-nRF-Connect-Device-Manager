@@ -225,6 +225,12 @@ and released as [mcumgr_flutter](https://pub.dev/packages/mcumgr_flutter) on pub
 .NET MAUI (old Xamarin) version of this library is available [here](https://github.com/Laerdal/Laerdal.McuMgr)
 and released as [Laerdal.McuMgr](https://www.nuget.org/packages/Laerdal.McuMgr) on NuGet.
 
+### Expo
+
+Unofficial Expo modules for both iOS and Android that are based on this library are available: 
+* [expo-nordic-dfu](https://github.com/getquip/expo-nordic-dfu)
+* [react-native-mcu-manager](https://github.com/playerdata/react-native-mcu-manager)
+
 ### React Native
 
 As of now we are not aware of any React Native library that supports McuManager protocol.
