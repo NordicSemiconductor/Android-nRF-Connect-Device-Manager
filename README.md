@@ -56,7 +56,7 @@ For versions 2.x use *version2* branch or tags.
 Contains the core and a BLE transport implementation using Nordic's [Android-BLE-Library v2](https://github.com/nordicsemi/Android-BLE-Library).
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:3.4.0'
+implementation 'no.nordicsemi.android:mcumgr-ble:3.4.1'
 ```
 
 The core module will be included automatically.
@@ -67,7 +67,7 @@ The core module will be included automatically.
 Core dependency only. Use if you want to provide your own transport implementation.
 
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-core:3.4.0'
+implementation 'no.nordicsemi.android:mcumgr-core:3.4.1'
 ```
 
 > Latest version targeting API 30 (Android 11) is 0.13.0-beta07.
@@ -76,14 +76,14 @@ implementation 'no.nordicsemi.android:mcumgr-core:3.4.0'
 Integration with nRF Cloud Over-the-Air (OTA) firmware update services.
 
 ```groovy
-implementation 'no.nordicsemi.android:ota:3.4.0'
+implementation 'no.nordicsemi.android:ota:3.4.1'
 ```
 
 ### McuManager Observability
 Integration with nRF Cloud Monitoring & Diagnostics Service (MDS).
 
 ```groovy
-implementation 'no.nordicsemi.android:observability:3.4.0'
+implementation 'no.nordicsemi.android:observability:3.4.1'
 ```
 
 ### Migration from the original repo
@@ -96,7 +96,7 @@ implementation 'io.runtime.mcumgr:mcumgr-ble:0.XX.X'
 ```
 to
 ```groovy
-implementation 'no.nordicsemi.android:mcumgr-ble:3.4.0'
+implementation 'no.nordicsemi.android:mcumgr-ble:3.4.1'
 ```
 
 Starting from version 3.0.0, the package name has changed from `io.runtime.mcumgr` to `no.nordicsemi.android.mcumgr`.
