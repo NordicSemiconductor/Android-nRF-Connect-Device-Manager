@@ -2,20 +2,17 @@ package no.nordicsemi.android.mcumgr.dfu.suit.task;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.McuMgrCallback;
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradeManager;
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradePerformer;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.managers.SUITManager;
 import no.nordicsemi.android.mcumgr.response.McuMgrResponse;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 
 class BeginInstall extends SUITUpgradeTask {
-    private final static Logger LOG = LoggerFactory.getLogger(BeginInstall.class);
-
     @Override
     public int getPriority() {
         return PRIORITY_PROCESS;
@@ -28,9 +25,10 @@ class BeginInstall extends SUITUpgradeTask {
 
     @Override
     public void start(@NotNull TaskManager<SUITUpgradePerformer.Settings, SUITUpgradeManager.State> performer) {
-        LOG.trace("Starting deferred install");
+        final McuMgrLogger log = performer.getLog();
 
         final SUITManager manager = new SUITManager(performer.getTransport());
+        manager.setLogger(log.getSink());
         manager.beginDeferredInstall(new McuMgrCallback<>() {
             @Override
             public void onResponse(@NotNull McuMgrResponse response) {

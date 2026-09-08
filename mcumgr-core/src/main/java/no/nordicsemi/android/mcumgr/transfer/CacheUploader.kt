@@ -35,7 +35,8 @@ open class CacheUploader(
     windowCapacity,
     memoryAlignment,
     suitManager.mtu,
-    suitManager.scheme
+    suitManager.scheme,
+    suitManager.logSink,
 ) {
     override fun write(requestMap: Map<String, Any>, timeout: Long, callback: (UploadResult) -> Unit) {
         suitManager.uploadAsync(requestMap, timeout, callback)

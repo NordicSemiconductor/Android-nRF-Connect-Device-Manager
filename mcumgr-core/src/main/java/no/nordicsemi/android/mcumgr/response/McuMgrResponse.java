@@ -12,8 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,8 +28,6 @@ import no.nordicsemi.android.mcumgr.util.CBOR;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class McuMgrResponse implements HasReturnCode {
 
-    private final static Logger LOG = LoggerFactory.getLogger(McuMgrResponse.class);
-
     /**
      * The raw return code found in most McuMgr response payloads. If a rc value is not explicitly
      * stated, a value of 0 is assumed.
@@ -42,7 +38,7 @@ public class McuMgrResponse implements HasReturnCode {
     /**
      * Since version 2 of the SMP protocol, a more detailed return code is returned in the response.
      * The "rc" field is still present, but is reserved for the manager and returns parsing errors,
-     * lack of requested group, etc, while the "err" field contains the return code from the group.
+     * lack of requested group, etc., while the "err" field contains the return code from the group.
      * <p>
      * Each group defines its own error codes, which may describe the issue in more detail than before.
      * <p>
@@ -95,8 +91,7 @@ public class McuMgrResponse implements HasReturnCode {
         try {
             return CBOR.toString(mPayload);
         } catch (IOException e) {
-            LOG.error("Failed to parse response", e);
-            return "Failed to parse response";
+            return "Failed to parse response: " + e.getMessage();
         }
     }
 
@@ -194,7 +189,7 @@ public class McuMgrResponse implements HasReturnCode {
     }
 
     /**
-     * If this response is from a CoAP transport scheme, get the CoAP response code. Otherwise this
+     * If this response is from a CoAP transport scheme, get the CoAP response code. Otherwise, this
      * method will return 0. The code returned from this method should always indicate a successful
      * response because, on error, a McuMgrCoapException will be thrown (triggering the onError
      * callback for asynchronous request).
@@ -282,7 +277,7 @@ public class McuMgrResponse implements HasReturnCode {
         //
         // As a workaround, the code below goes through the payload byte array and replaces "ret"
         // with "err". To avoid false-positive replacements, the code checks if the payload is
-        // shorted than 21 bytes and "ret" is followed by 0xBF (map(*)).
+        // shorter than 21 bytes and "ret" is followed by 0xBF (map(*)).
         //
         // There are some hidden assumptions here:
         // 1. If "ret" is returned as a Response Code, it is always the only field in the response.
@@ -363,7 +358,6 @@ public class McuMgrResponse implements HasReturnCode {
             throws IOException, McuMgrCoapException {
         // If the code class indicates a CoAP error response, throw a McuMgrCoapException
         if (codeClass == 4 || codeClass == 5) {
-            LOG.error("Received CoAP Error response, throwing McuMgrCoapException");
             throw new McuMgrCoapException(bytes, codeClass, codeDetail);
         }
 

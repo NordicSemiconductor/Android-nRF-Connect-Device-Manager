@@ -28,6 +28,3 @@
 
 # Keep all Response classes as they are used reflectively by Jackson.
 -keep class no.nordicsemi.android.mcumgr.response.** { *; }
-
-# SLF4J
--dontwarn org.slf4j.impl.StaticLoggerBinder

@@ -29,9 +29,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -61,10 +58,13 @@ import no.nordicsemi.android.mcumgr.exception.InsufficientMtuException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrTimeoutException;
+import no.nordicsemi.android.mcumgr.log.Category;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.managers.DefaultManager;
 import no.nordicsemi.android.mcumgr.response.McuMgrResponse;
 import no.nordicsemi.android.mcumgr.response.dflt.McuMgrParamsResponse;
 import no.nordicsemi.android.mcumgr.util.CBOR;
+import no.nordicsemi.kotlin.log.Log.Sink;
 
 /**
  * The McuMgrBleTransport is an implementation for the {@link McuMgrScheme#BLE} transport scheme.
@@ -82,7 +82,14 @@ import no.nordicsemi.android.mcumgr.util.CBOR;
 @SuppressWarnings("unused")
 public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
-    private static final Logger LOG = LoggerFactory.getLogger(McuMgrBleTransport.class);
+    /**
+     * The logger of this transport, reporting under {@link Category#TRANSPORT}.
+     * <p>
+     * Nothing is logged until a sink is assigned using
+     * {@link #setLogger(Sink)}.
+     */
+    @NonNull
+    private final McuMgrLogger LOG;
 
     /**
      * The SMP service UUID.
@@ -211,6 +218,11 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
         mHandler = handler;
         mDevice = device;
         mUUIDConfig = uuidConfig;
+        // The address of the device given here identifies this transport in the log for its whole
+        // lifetime. Note that changeMode() may point the transport at the Firmware Loader, which
+        // advertises with a different address, but that is still the same physical device, so all
+        // of its entries stay under the address it was created with.
+        LOG = new McuMgrLogger(Category.TRANSPORT, device.getAddress());
     }
 
     /**
@@ -298,7 +310,26 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
     //*******************************************************************************************
 
     /**
+     * Sets the sink receiving the log entries emitted by this transport.
+     * <p>
+     * The entries are reported under {@link Category#TRANSPORT}, with the Bluetooth LE address
+     * of the device as the source. Set to null (the default) to stop logging.
+     * <p>
+     * Note, that low-level Bluetooth LE events are only reported when they have also been
+     * enabled using {@link #setLoggingEnabled(boolean)}.
+     *
+     * @param logger the sink to receive the log entries, or null.
+     * @since 4.0
+     */
+    public void setLogger(@Nullable Sink<Category> logger) {
+        LOG.setSink(logger);
+    }
+
+    /**
      * Allows to enable low-level logging. If enabled, all BLE events will be logged.
+     * <p>
+     * The entries are only delivered when a sink has been set using
+     * {@link #setLogger(Sink)}.
      *
      * @param enabled true to enable logging, false to disable (default).
      */
@@ -979,7 +1010,7 @@ public class McuMgrBleTransport extends BleManager implements McuMgrTransport {
 
     @NonNull
     @SuppressLint("DiscouragedPrivateApi")
-    private static BluetoothGattCharacteristic cloneCharacteristic(@NonNull BluetoothGattCharacteristic characteristic) {
+    private BluetoothGattCharacteristic cloneCharacteristic(@NonNull BluetoothGattCharacteristic characteristic) {
         BluetoothGattCharacteristic clone;
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
             // On older versions of android we have to use reflection in order

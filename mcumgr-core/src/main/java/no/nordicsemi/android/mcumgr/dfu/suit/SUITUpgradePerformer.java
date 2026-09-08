@@ -2,8 +2,6 @@ package no.nordicsemi.android.mcumgr.dfu.suit;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.dfu.FirmwareUpgradeCallback;
@@ -12,12 +10,11 @@ import no.nordicsemi.android.mcumgr.dfu.suit.model.CacheImageSet;
 import no.nordicsemi.android.mcumgr.dfu.suit.task.PerformDfu;
 import no.nordicsemi.android.mcumgr.dfu.suit.task.SUITUpgradeTask;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.task.Task;
 import no.nordicsemi.android.mcumgr.task.TaskPerformer;
 
 public class SUITUpgradePerformer extends TaskPerformer<SUITUpgradePerformer.Settings, SUITUpgradeManager.State> {
-    private final static Logger LOG = LoggerFactory.getLogger(SUITUpgradePerformer.class);
-
     public static class Settings {
         @NotNull
         public FirmwareUpgradeSettings settings;
@@ -39,7 +36,9 @@ public class SUITUpgradePerformer extends TaskPerformer<SUITUpgradePerformer.Set
     @NotNull
     private final FirmwareUpgradeCallback<SUITUpgradeManager.State> callback;
 
-    SUITUpgradePerformer(@NotNull final FirmwareUpgradeCallback<SUITUpgradeManager.State> callback) {
+    SUITUpgradePerformer(@NotNull final FirmwareUpgradeCallback<SUITUpgradeManager.State> callback,
+                         @NotNull final McuMgrLogger logger) {
+        super(logger);
         this.callback = callback;
     }
 

@@ -2,12 +2,11 @@ package no.nordicsemi.android.mcumgr.dfu.suit.task;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradeManager;
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradePerformer;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.managers.SUITManager;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 import no.nordicsemi.android.mcumgr.transfer.EnvelopeUploader;
@@ -15,7 +14,6 @@ import no.nordicsemi.android.mcumgr.transfer.TransferController;
 import no.nordicsemi.android.mcumgr.transfer.UploadCallback;
 
 class UploadEnvelope extends SUITUpgradeTask {
-    private final static Logger LOG = LoggerFactory.getLogger(UploadEnvelope.class);
     private final byte @NotNull [] envelope;
     private final boolean deferInstall;
     private boolean canceled = false;
@@ -43,6 +41,8 @@ class UploadEnvelope extends SUITUpgradeTask {
 
     @Override
     public void start(@NotNull TaskManager<SUITUpgradePerformer.Settings, SUITUpgradeManager.State> performer) {
+        final McuMgrLogger log = performer.getLog();
+
         // Should we resume?
         if (mUploadController != null) {
             mUploadController.resume();
@@ -57,19 +57,19 @@ class UploadEnvelope extends SUITUpgradeTask {
 
             @Override
             public void onUploadFailed(@NotNull final McuMgrException error) {
-                LOG.error("Upload failed: {}", error.getMessage());
+                log.error("Upload failed: {}", error.getMessage());
                 performer.onTaskFailed(UploadEnvelope.this, error);
             }
 
             @Override
             public void onUploadCanceled() {
-                LOG.warn("Uploading canceled");
+                log.warn("Uploading canceled");
                 performer.onTaskCompleted(UploadEnvelope.this);
             }
 
             @Override
             public void onUploadCompleted() {
-                LOG.info("Uploading complete");
+                log.info("Uploading complete");
                 performer.onTaskCompleted(UploadEnvelope.this);
             }
         };
@@ -80,9 +80,10 @@ class UploadEnvelope extends SUITUpgradeTask {
             return;
         }
 
-        LOG.info("Uploading SUIT envelope of size: {}", envelope.length);
+        log.info("Uploading SUIT envelope of size: {}", envelope.length);
         final SUITUpgradePerformer.Settings settings = performer.getSettings();
         final SUITManager manager = new SUITManager(performer.getTransport());
+        manager.setLogger(log.getSink());
         mUploadController =	new EnvelopeUploader(
                 manager,
                 envelope,

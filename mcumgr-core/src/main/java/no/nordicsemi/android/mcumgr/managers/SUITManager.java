@@ -1,8 +1,6 @@
 package no.nordicsemi.android.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,8 +28,6 @@ import no.nordicsemi.android.mcumgr.util.CBOR;
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SUITManager extends McuManager {
-    private final static Logger LOG = LoggerFactory.getLogger(SUITManager.class);
-
     // Link to src: https://github.com/nrfconnect/sdk-nrf/blob/7b1f88d8009719d50fd389487257675246ff4a70/subsys/mgmt/suitfu/src/suitfu_mgmt_priv.h#L41-L50
 
     /**
@@ -95,6 +91,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse listManifests() throws McuMgrException {
+        LOG.trace("Listing manifests");
         return send(OP_READ, ID_MANIFEST_LIST, null, SHORT_TIMEOUT, McuMgrManifestListResponse.class);
     }
 
@@ -106,6 +103,7 @@ public class SUITManager extends McuManager {
      * @param callback The response callback.
      */
     public void listManifests(@NotNull McuMgrCallback<McuMgrManifestListResponse> callback) {
+        LOG.trace("Listing manifests");
         send(OP_READ, ID_MANIFEST_LIST, null, SHORT_TIMEOUT, McuMgrManifestListResponse.class, callback);
     }
 
@@ -117,6 +115,7 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void getManifestState(int role, @NotNull McuMgrCallback<McuMgrManifestStateResponse> callback) {
+        LOG.trace("Getting manifest state for role {}", role);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("role", role);
         send(OP_READ, ID_MANIFEST_STATE, payloadMap, SHORT_TIMEOUT, McuMgrManifestStateResponse.class, new McuMgrCallback<>() {
@@ -144,6 +143,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrManifestStateResponse getManifestState(int role) throws McuMgrException {
+        LOG.trace("Getting manifest state for role {}", role);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("role", role);
         final McuMgrManifestStateResponse response = send(OP_READ, ID_MANIFEST_STATE, payloadMap, SHORT_TIMEOUT, McuMgrManifestStateResponse.class);
@@ -272,6 +272,7 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void beginDeferredInstall(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Starting deferred install");
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("len", 0);
         payloadMap.put("off", 0);
@@ -303,6 +304,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse beginDeferredInstall() throws McuMgrException {
+        LOG.trace("Starting deferred install");
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("len", 0);
         payloadMap.put("off", 0);
@@ -314,7 +316,7 @@ public class SUITManager extends McuManager {
     }
 
     /**
-     * Poll for required image (asynchronous). This should be called after the install was started
+     * Poll for required image (asynchronous). This should be called after the installation was started
      * either by sending the Envelope without deferred install, or by calling
      * {@link #beginDeferredInstall(McuMgrCallback)}.
      * <p>
@@ -333,11 +335,12 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void poll(@NotNull McuMgrCallback<McuMgrPollResponse> callback) {
+        LOG.trace("Polling for images");
         send(OP_READ, ID_MISSING_IMAGE_STATE, null, DEFAULT_TIMEOUT, McuMgrPollResponse.class, callback);
     }
 
     /**
-     * Poll for required image (synchronous). This should be called after the install was started
+     * Poll for required image (synchronous). This should be called after the installation was started
      * either by sending the Envelope without deferred install, or by calling {@link #beginDeferredInstall()}.
      * <p>
      * SUIT command sequence has the ability of conditional execution of directives, i.e. based
@@ -356,6 +359,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrPollResponse poll() throws McuMgrException {
+        LOG.trace("Polling for images");
         return send(OP_READ, ID_MISSING_IMAGE_STATE, null, DEFAULT_TIMEOUT, McuMgrPollResponse.class);
     }
 
@@ -457,6 +461,7 @@ public class SUITManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void cleanup(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Cleaning up");
         send(OP_WRITE, ID_CLEANUP, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
@@ -468,6 +473,7 @@ public class SUITManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse cleanup() throws McuMgrException {
+        LOG.trace("Cleaning up");
         return send(OP_WRITE, ID_CLEANUP, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
     }
 

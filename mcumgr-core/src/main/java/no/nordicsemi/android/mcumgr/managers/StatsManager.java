@@ -105,6 +105,7 @@ public class StatsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void read(@Nullable String module, @NotNull McuMgrCallback<McuMgrStatResponse> callback) {
+        LOG.trace("Reading stat for {}", module);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", module);
         send(OP_READ, ID_READ, payloadMap, MEDIUM_TIMEOUT, McuMgrStatResponse.class, callback);
@@ -119,6 +120,7 @@ public class StatsManager extends McuManager {
      */
     @NotNull
     public McuMgrStatResponse read(@Nullable String module) throws McuMgrException {
+        LOG.trace("Reading stat for {}", module);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", module);
         return send(OP_READ, ID_READ, payloadMap, MEDIUM_TIMEOUT, McuMgrStatResponse.class);
@@ -130,6 +132,7 @@ public class StatsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void list(@NotNull McuMgrCallback<McuMgrStatListResponse> callback) {
+        LOG.trace("Listing stats");
         send(OP_READ, ID_LIST, null, MEDIUM_TIMEOUT, McuMgrStatListResponse.class, callback);
     }
 
@@ -141,6 +144,7 @@ public class StatsManager extends McuManager {
      */
     @NotNull
     public McuMgrStatListResponse list() throws McuMgrException {
+        LOG.trace("Listing stats");
         return send(OP_READ, ID_LIST, null, MEDIUM_TIMEOUT, McuMgrStatListResponse.class);
     }
 }

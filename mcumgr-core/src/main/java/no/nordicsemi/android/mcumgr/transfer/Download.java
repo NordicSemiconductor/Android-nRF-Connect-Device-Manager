@@ -3,8 +3,6 @@ package no.nordicsemi.android.mcumgr.transfer;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.McuMgrErrorCode;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
@@ -14,8 +12,6 @@ import no.nordicsemi.android.mcumgr.response.McuMgrResponse;
 
 @SuppressWarnings("unused")
 public abstract class Download extends Transfer {
-    private final static Logger LOG = LoggerFactory.getLogger(Download.class);
-
     @Nullable
     private final DownloadCallback mCallback;
 
@@ -60,9 +56,6 @@ public abstract class Download extends Transfer {
         final int length = Math.min(response.data.length, mData.length - response.off);
         if (length <= 0) {
             throw new McuMgrException("Download offset too big: " + response.off + " (file length: " + mData.length + ", received: " + response.data.length + ")");
-        }
-        if (length != response.data.length) {
-            LOG.warn("Received more data than expected. Expected: {}, received: {}", length, response.data.length);
         }
 
         // Copy received mData to the buffer.

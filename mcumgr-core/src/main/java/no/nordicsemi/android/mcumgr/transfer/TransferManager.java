@@ -10,7 +10,6 @@ import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.exception.InsufficientMtuException;
 
 public class TransferManager extends McuManager {
-
     private ExecutorService mExecutor;
 
     /**
@@ -24,7 +23,7 @@ public class TransferManager extends McuManager {
     }
 
     /**
-     * Start an upload.
+     * Starts the upload process.
      * <p>
      * If there is an active transfer being executed on this manager, the transfer will be queued.
      *
@@ -37,7 +36,7 @@ public class TransferManager extends McuManager {
     }
 
     /**
-     * Start an upload.
+     * Starts the upload process.
      * <p>
      * If there is an active transfer being executed on this manager, the transfer will be queued.
      *
@@ -50,11 +49,11 @@ public class TransferManager extends McuManager {
     }
 
     /**
-     * Start an download.
+     * Starts the download process.
      * <p>
      * If there is an active transfer being executed on this manager, the download will be queued.
      *
-     * @param download The upload to start.
+     * @param download The download to start.
      * @return The controller used to pause, resume, or cancel the download.
      */
     @NotNull
@@ -63,11 +62,11 @@ public class TransferManager extends McuManager {
     }
 
     /**
-     * Start an download.
+     * Start a download.
      * <p>
      * If there is an active transfer being executed on this manager, the download will be queued.
      *
-     * @param download The upload to start.
+     * @param download The download to start.
      * @return The controller used to pause, resume, or cancel the download.
      */
     @NotNull
@@ -77,11 +76,10 @@ public class TransferManager extends McuManager {
 
     @NotNull
     private synchronized TransferController startTransfer(@NotNull final Transfer transfer) {
-
         final TransferCallable transferCallable = new TransferCallable(transfer);
 
         /*
-         * Wrap the callable in the in an runnable which catches InsufficientMtuException and
+         * Wrap the callable in the in a runnable which catches InsufficientMtuException and
          * retries the transfer once.
          */
         getTransferExecutor().execute(new Runnable() {

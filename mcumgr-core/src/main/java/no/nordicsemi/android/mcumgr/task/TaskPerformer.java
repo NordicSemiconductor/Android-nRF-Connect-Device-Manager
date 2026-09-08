@@ -1,5 +1,6 @@
 package no.nordicsemi.android.mcumgr.task;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,13 +9,27 @@ import java.util.Queue;
 
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 
 public abstract class TaskPerformer<S, State> {
+
+	/**
+	 * The logger of the manager owning this performer. Tasks obtain it through
+	 * {@link TaskManager#getLog()}, so that a whole firmware upgrade logs under one category
+	 * and to one sink.
+	 */
+	@NotNull
+	protected final McuMgrLogger LOG;
 
 	@Nullable
 	private TaskManagerImpl manager;
 
-	public TaskPerformer() {
+	/**
+	 * @param logger the logger of the manager owning this performer.
+	 */
+	@ApiStatus.Internal
+	public TaskPerformer(@NotNull final McuMgrLogger logger) {
+		LOG = logger;
 	}
 
 	public void start(@NotNull final McuMgrTransport transport,
@@ -122,6 +137,12 @@ public abstract class TaskPerformer<S, State> {
 
 		private boolean isPaused() {
 			return paused;
+		}
+
+		@NotNull
+		@Override
+		public McuMgrLogger getLog() {
+			return LOG;
 		}
 
 		@NotNull

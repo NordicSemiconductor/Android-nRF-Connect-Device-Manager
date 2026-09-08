@@ -9,10 +9,7 @@ package no.nordicsemi.android.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -29,15 +26,12 @@ import no.nordicsemi.android.mcumgr.response.log.McuMgrLevelListResponse;
 import no.nordicsemi.android.mcumgr.response.log.McuMgrLogListResponse;
 import no.nordicsemi.android.mcumgr.response.log.McuMgrLogResponse;
 import no.nordicsemi.android.mcumgr.response.log.McuMgrModuleListResponse;
-import no.nordicsemi.android.mcumgr.util.CBOR;
 
 /**
  * Log command group manager.
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class LogManager extends McuManager {
-
-    private final static Logger LOG = LoggerFactory.getLogger(LogManager.class);
 
     // Command IDs
     private final static int ID_READ = 0;
@@ -78,6 +72,7 @@ public class LogManager extends McuManager {
                      @Nullable Long minIndex,
                      @Nullable Date minTimestamp,
                      @NotNull McuMgrCallback<McuMgrLogResponse> callback) {
+        LOG.trace("Reading log (name: {}, minIndex: {}, minTimestamp: {})", logName, minIndex, minTimestamp);
         HashMap<String, Object> payloadMap = new HashMap<>();
         if (logName != null) {
             payloadMap.put("log_name", logName);
@@ -114,6 +109,7 @@ public class LogManager extends McuManager {
     public McuMgrLogResponse show(@Nullable String logName, @Nullable Long minIndex,
                                   @Nullable Date minTimestamp)
             throws McuMgrException {
+        LOG.trace("Reading log (name: {}, minIndex: {}, minTimestamp: {})", logName, minIndex, minTimestamp);
         HashMap<String, Object> payloadMap = new HashMap<>();
         if (logName != null) {
             payloadMap.put("log_name", logName);
@@ -133,6 +129,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void clear(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Clearing logs");
         send(OP_WRITE, ID_CLEAR, null, DEFAULT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
@@ -144,6 +141,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse clear() throws McuMgrException {
+        LOG.trace("Clearing logs");
         return send(OP_WRITE, ID_CLEAR, null, DEFAULT_TIMEOUT, McuMgrResponse.class);
     }
 
@@ -155,6 +153,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void moduleList(@NotNull McuMgrCallback<McuMgrModuleListResponse> callback) {
+        LOG.trace("Requesting list of log modules");
         send(OP_READ, ID_MODULE_LIST, null, SHORT_TIMEOUT, McuMgrModuleListResponse.class, callback);
     }
 
@@ -168,6 +167,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrModuleListResponse moduleList() throws McuMgrException {
+        LOG.trace("Requesting list of log modules");
         return send(OP_READ, ID_MODULE_LIST, null, SHORT_TIMEOUT, McuMgrModuleListResponse.class);
     }
 
@@ -177,6 +177,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void levelList(@NotNull McuMgrCallback<McuMgrLevelListResponse> callback) {
+        LOG.trace("Requesting list of log levels");
         send(OP_READ, ID_LEVEL_LIST, null, SHORT_TIMEOUT, McuMgrLevelListResponse.class, callback);
     }
 
@@ -188,6 +189,7 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrLevelListResponse levelList() throws McuMgrException {
+        LOG.trace("Requesting list of log levels");
         return send(OP_READ, ID_LEVEL_LIST, null, SHORT_TIMEOUT, McuMgrLevelListResponse.class);
     }
 
@@ -199,6 +201,7 @@ public class LogManager extends McuManager {
      * @param callback the response callback.
      */
     public void logsList(@NotNull McuMgrCallback<McuMgrLogListResponse> callback) {
+        LOG.trace("Requesting list of logs");
         send(OP_READ, ID_LOGS_LIST, null, SHORT_TIMEOUT, McuMgrLogListResponse.class, callback);
     }
 
@@ -212,42 +215,45 @@ public class LogManager extends McuManager {
      */
     @NotNull
     public McuMgrLogListResponse logsList() throws McuMgrException {
+        LOG.trace("Requesting list of logs");
         return send(OP_READ, ID_LOGS_LIST, null, SHORT_TIMEOUT, McuMgrLogListResponse.class);
     }
 
     /**
      * Get all log entries from all logs on the device (synchronous).
+     * <p>
+     * The logs are read one after another, each in as many requests as it takes to reach its
+     * last entry. This method either returns every entry from every log, or throws: if a request
+     * fails part-way through, the entries already collected from the preceding logs are discarded
+     * together with the exception. To keep partial results, iterate the logs returned by
+     * {@link #logsList()} and call {@link #getAllFromState(State)} for each of them instead,
+     * keeping the states that succeeded.
+     * <p>
+     * A device that reports no logs at all is not an error, and gives an empty map.
      *
      * @return A mapping of log name to state.
+     * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public synchronized Map<String, State> getAll() {
+    public synchronized Map<String, State> getAll() throws McuMgrException {
+        // Get available logs
         HashMap<String, State> logStates = new HashMap<>();
-        try {
-            // Get available logs
-            McuMgrLogListResponse logListResponse = logsList();
-            LOG.debug("Available logs: {}", logListResponse);
-
-            if (logListResponse.log_list == null) {
-                LOG.warn("No logs available on this device");
-                return logStates;
-            }
-
-            // For each log, get all the available logs
-            for (String logName : logListResponse.log_list) {
-                LOG.debug("Getting logs from: {}", logName);
-                // Put a new State mapping if necessary
-                State state = logStates.get(logName);
-                if (state == null) {
-                    state = new State(logName);
-                    logStates.put(logName, state);
-                }
-                state = getAllFromState(state);
-                logStates.put(state.getName(), state);
-            }
+        McuMgrLogListResponse logListResponse = logsList();
+        if (logListResponse.log_list == null) {
+            LOG.warn("No logs found");
             return logStates;
-        } catch (McuMgrException e) {
-            LOG.error("Transport error while getting available logs", e);
+        }
+
+        // For each log, get all the available logs
+        for (String logName : logListResponse.log_list) {
+            // Put a new State mapping if necessary
+            State state = logStates.get(logName);
+            if (state == null) {
+                state = new State(logName);
+                logStates.put(logName, state);
+            }
+            state = getAllFromState(state);
+            logStates.put(state.getName(), state);
         }
         return logStates;
     }
@@ -258,18 +264,14 @@ public class LogManager extends McuManager {
      *
      * @param state The log state to collect logs from.
      * @return The log state with updated next index and entry list.
+     * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public State getAllFromState(@NotNull State state) {
+    public State getAllFromState(@NotNull State state) throws McuMgrException {
         // Loop until we run out of entries or encounter a problem
         while (true) {
             // Get the next set of entries for this log
             McuMgrLogResponse showResponse = showNext(state);
-            // Check for an error
-            if (showResponse == null) {
-                LOG.error("Show logs resulted in an error");
-                break;
-            }
 //            // Check for an index mismatch
 //            if (showResponse.next_index < state.getNextIndex())
 //                LOG.warn("Next index mismatch state.nextIndex=" + state.getNextIndex() +
@@ -280,14 +282,14 @@ public class LogManager extends McuManager {
 //            }
             // Check that the logs collected are not null or empty
             if (showResponse.logs == null || showResponse.logs.length == 0) {
-                LOG.error("No logs returned in the response.");
+                LOG.warn("No logs found");
                 break;
             }
             // Get the log result object
             McuMgrLogResponse.LogResult log = showResponse.logs[0];
             // If we don't have any more entries, break out of this log to the next.
             if (log.entries == null || log.entries.length == 0) {
-                LOG.debug("No more entries left for this log.");
+                LOG.debug("No more entries");
                 break;
             }
             // Get the index of the last entry in the list and set the LogState nextIndex
@@ -306,21 +308,11 @@ public class LogManager extends McuManager {
      *
      * @param state The state to get logs from.
      * @return The show response.
+     * @throws McuMgrException Transport error. See cause.
      */
-    @Nullable
-    public McuMgrLogResponse showNext(@NotNull State state) {
-        LOG.debug("Show logs: name={}, nextIndex={}", state.getName(), state.getNextIndex());
-        try {
-            McuMgrLogResponse response = show(state.getName(), state.getNextIndex(), null);
-            LOG.trace("Show logs response: {}", CBOR.toString(response.getPayload()));
-            return response;
-        } catch (McuMgrException e) {
-            LOG.error("Requesting next set of logs failed", e);
-        } catch (IOException e) {
-            LOG.error("Parsing response failed", e);
-        }
-
-        return null;
+    @NotNull
+    public McuMgrLogResponse showNext(@NotNull State state) throws McuMgrException {
+        return show(state.getName(), state.getNextIndex(), null);
     }
 
     //******************************************************************

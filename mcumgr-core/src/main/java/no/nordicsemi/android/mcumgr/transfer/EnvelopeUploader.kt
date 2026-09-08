@@ -38,7 +38,8 @@ open class EnvelopeUploader(
     windowCapacity,
     memoryAlignment,
     suitManager.mtu,
-    suitManager.scheme
+    suitManager.scheme,
+    suitManager.logSink,
 ) {
     override fun getAdditionalSize(offset: Int): Int =
         // "defer_install": 0x6D64656665725F696E7374616C6C + 0xF5 (true)

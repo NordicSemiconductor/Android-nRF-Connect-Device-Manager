@@ -41,7 +41,8 @@ open class ImageUploader(
     windowCapacity,
     memoryAlignment,
     imageManager.mtu,
-    imageManager.scheme
+    imageManager.scheme,
+    imageManager.logSink,
 ) {
     override fun write(requestMap: Map<String, Any>, timeout: Long, callback: (UploadResult) -> Unit) {
         imageManager.uploadAsync(requestMap, timeout, callback)

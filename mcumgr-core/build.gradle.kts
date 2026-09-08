@@ -55,8 +55,8 @@ dependencies {
     // Annotations
     implementation(libs.annotations)
 
-    // Logging using SLF4J. Specify binding in the application.
-    implementation(libs.slf4j)
+    // Logging facade. Assign a Log.Sink to a manager or a transport in the application.
+    api(nordic.kotlin.log)
 
     // Kotlin Coroutines
     implementation(libs.kotlinx.coroutines.core)

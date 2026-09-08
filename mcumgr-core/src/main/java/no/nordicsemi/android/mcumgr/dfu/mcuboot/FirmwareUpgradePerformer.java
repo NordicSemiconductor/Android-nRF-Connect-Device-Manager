@@ -2,8 +2,6 @@ package no.nordicsemi.android.mcumgr.dfu.mcuboot;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.dfu.FirmwareUpgradeCallback;
@@ -14,19 +12,20 @@ import no.nordicsemi.android.mcumgr.dfu.mcuboot.model.ImageSet;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.task.FirmwareUpgradeTask;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.task.PerformDfu;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.task.Task;
 import no.nordicsemi.android.mcumgr.task.TaskPerformer;
 
 public class FirmwareUpgradePerformer extends TaskPerformer<Settings, State> {
-	private final static Logger LOG = LoggerFactory.getLogger(FirmwareUpgradePerformer.class);
-
 	/**
 	 * Firmware upgrade callback passed into the constructor or set before the upload has started.
 	 */
 	@NotNull
 	private final FirmwareUpgradeCallback<State> callback;
 
-	FirmwareUpgradePerformer(@NotNull final FirmwareUpgradeCallback<State> callback) {
+	FirmwareUpgradePerformer(@NotNull final FirmwareUpgradeCallback<State> callback,
+							 @NotNull final McuMgrLogger logger) {
+		super(logger);
 		this.callback = callback;
 	}
 

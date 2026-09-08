@@ -67,9 +67,6 @@ dependencies {
 
     //noinspection NewerVersionAvailable
     implementation(libs.fasterxml.databind)
-
-    // Use SLF4J for logging.
-    implementation(libs.slf4j)
 }
 
 dokka {
