@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -38,6 +39,13 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
 
     private Timber.Tree logger;
 
+    /**
+     * The device the {@link McuMgrSubComponent} is currently built for, or null if no target
+     * has been set in this process yet.
+     */
+    @Nullable
+    private BluetoothDevice target;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -61,11 +69,39 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
     }
 
     /**
-     * Binds the target {@link BluetoothDevice} with the Dagger2 sub component.
+     * Forgets the current target, so that the next time the device is opened a new
+     * {@link McuMgrSubComponent} is built.
+     * <p>
+     * This must be called when the session is torn down, because releasing the transport also
+     * quits its handler thread and closes the Bluetooth environment, leaving the objects held by
+     * the subcomponent unusable.
+     */
+    public void clearTarget() {
+        target = null;
+    }
+
+    /**
+     * Binds the target {@link BluetoothDevice} with the Dagger2 subcomponent, building it if
+     * it isn't already built for that device in this process.
+     * <p>
+     * The sub component contributes the injector factory for
+     * {@link no.nordicsemi.android.mcumgr.sample.MainActivity}, so it must exist before that
+     * Activity is injected. Calling this again for the device it is already built for does
+     * nothing, as rebuilding would replace the transport and the managers and cancel whatever
+     * is in progress.
      *
      * @param device the target device.
      */
     public void setTarget(@NonNull final BluetoothDevice device) {
+        // Already built for this device in this process, nothing to do. Note that this cannot be
+        // decided from the Activity's savedInstanceState: that bundle survives the process being
+        // killed, so it is non-null both when the Activity is recreated in a live process, where
+        // the subcomponent is still there, and when the user returns to the app after its
+        // process was reclaimed, where it is not.
+        if (device.equals(target)) {
+            return;
+        }
+
         if (logger != null) {
             Timber.uproot(logger);
             logger = null;
@@ -111,6 +147,7 @@ public class Dagger2Application extends Application implements HasAndroidInjecto
             builder.logSessionUri(logger.getSession().getSessionUri());
         }
         builder.build().update(this);
+        target = device;
     }
 
     /**
