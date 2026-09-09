@@ -4,8 +4,17 @@ import org.jetbrains.annotations.NotNull;
 
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 
 public interface TaskManager<S, State> {
+
+	/**
+	 * Returns the logger of the manager owning the performer that runs the task. Tasks should
+	 * log through it, so that all entries of a single firmware upgrade share a category
+	 * and a sink.
+	 */
+	@NotNull
+	McuMgrLogger getLog();
 
 	@NotNull
 	McuMgrTransport getTransport();

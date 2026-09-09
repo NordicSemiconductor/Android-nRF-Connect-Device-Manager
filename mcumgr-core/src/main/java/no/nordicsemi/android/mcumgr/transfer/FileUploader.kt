@@ -20,7 +20,8 @@ open class FileUploader(
     windowCapacity,
     memoryAlignment,
     fsManager.mtu,
-    fsManager.scheme
+    fsManager.scheme,
+    fsManager.logSink,
 ) {
     override fun write(requestMap: Map<String, Any>, timeout: Long, callback: (UploadResult) -> Unit) {
         fsManager.uploadAsync(requestMap, timeout, callback)

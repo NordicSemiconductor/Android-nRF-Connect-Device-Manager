@@ -2,8 +2,6 @@ package no.nordicsemi.android.mcumgr.dfu.mcuboot;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.dfu.FirmwareUpgradeCallback;
@@ -12,6 +10,9 @@ import no.nordicsemi.android.mcumgr.dfu.FirmwareUpgradeSettings;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.model.ImageSet;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.model.TargetImage;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.Category;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
+import no.nordicsemi.kotlin.log.Log;
 
 /**
  * Manages a McuManager firmware upgrade. Once initialized, <b>this object can only perform a single
@@ -32,7 +33,13 @@ import no.nordicsemi.android.mcumgr.exception.McuMgrException;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class FirmwareUpgradeManager implements FirmwareUpgradeController {
 
-    private final static Logger LOG = LoggerFactory.getLogger(FirmwareUpgradeManager.class);
+    /**
+     * The logger of this manager, reporting under {@link Category#DFU}.
+     * <p>
+     * Nothing is logged until a sink is assigned using {@link #setLogger(Log.Sink)}.
+     */
+    @NotNull
+    private final McuMgrLogger LOG = new McuMgrLogger(Category.DFU);
 
     //******************************************************************
     // Firmware Upgrade State
@@ -204,7 +211,7 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
     private final FirmwareUpgradeCallback.Executor<State> mInternalCallback;
 
     /**
-     * The manager mode. By default the {@link Mode#TEST_AND_CONFIRM} mode is set.
+     * The manager mode. By default, the {@link Mode#TEST_AND_CONFIRM} mode is set.
      */
     private Mode mMode = Mode.TEST_AND_CONFIRM;
 
@@ -234,7 +241,20 @@ public class FirmwareUpgradeManager implements FirmwareUpgradeController {
         mTransport = transport;
         mInternalCallback = new FirmwareUpgradeCallback.Executor<>();
         mInternalCallback.setCallback(callback);
-        mPerformer = new FirmwareUpgradePerformer(mInternalCallback);
+        mPerformer = new FirmwareUpgradePerformer(mInternalCallback, LOG);
+    }
+
+    /**
+     * Sets the sink receiving the log entries emitted by the firmware upgrade.
+     * <p>
+     * The entries are reported under {@link Category#DFU}, except for those emitted by
+     * the managers used internally. Set to null (the default) to stop logging.
+     *
+     * @param logger the sink to receive the log entries, or null.
+     * @since 4.0
+     */
+    public void setLogger(@Nullable final Log.Sink<Category> logger) {
+        LOG.setSink(logger);
     }
 
     /**

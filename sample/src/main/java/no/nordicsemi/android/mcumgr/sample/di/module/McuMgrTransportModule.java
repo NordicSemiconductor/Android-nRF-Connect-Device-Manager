@@ -18,10 +18,12 @@ import java.util.Objects;
 import dagger.Module;
 import dagger.Provides;
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
+import no.nordicsemi.android.mcumgr.log.Category;
 import no.nordicsemi.android.mcumgr.sample.di.McuMgrScope;
 import no.nordicsemi.android.mcumgr.sample.observable.ObservableMcuMgrBleTransport;
 import no.nordicsemi.kotlin.ble.client.android.CentralManager;
 import no.nordicsemi.kotlin.ble.client.android.Peripheral;
+import no.nordicsemi.kotlin.log.Log;
 
 @Module
 public class McuMgrTransportModule {
@@ -31,9 +33,11 @@ public class McuMgrTransportModule {
     @NonNull
     static McuMgrTransport provideMcuMgrTransport(@NonNull final Context context,
                                                   @NonNull final BluetoothDevice device,
-                                                  @NonNull final HandlerThread handlerThread) {
+                                                  @NonNull final HandlerThread handlerThread,
+                                                  @NonNull final Log.Sink<Category> logger) {
         final Handler handler = new Handler(handlerThread.getLooper());
         final ObservableMcuMgrBleTransport transport = new ObservableMcuMgrBleTransport(context, device, handler);
+        transport.setLogger(logger);
         transport.setOnReleasedCallback(handlerThread::quitSafely);
         // This is where we stopped lazy connection.
         // Before, the device started connection on user action (button pressed).

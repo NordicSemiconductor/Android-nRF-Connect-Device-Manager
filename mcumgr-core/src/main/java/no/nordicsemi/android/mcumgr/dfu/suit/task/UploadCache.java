@@ -2,12 +2,11 @@ package no.nordicsemi.android.mcumgr.dfu.suit.task;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradeManager;
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradePerformer;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.managers.SUITManager;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 import no.nordicsemi.android.mcumgr.transfer.CacheUploader;
@@ -15,8 +14,6 @@ import no.nordicsemi.android.mcumgr.transfer.TransferController;
 import no.nordicsemi.android.mcumgr.transfer.UploadCallback;
 
 class UploadCache extends SUITUpgradeTask {
-    private final static Logger LOG = LoggerFactory.getLogger(UploadCache.class);
-
     private final byte @NotNull [] data;
     private final int targetId;
     private boolean canceled = false;
@@ -46,6 +43,8 @@ class UploadCache extends SUITUpgradeTask {
 
     @Override
     public void start(@NotNull TaskManager<SUITUpgradePerformer.Settings, SUITUpgradeManager.State> performer) {
+        final McuMgrLogger log = performer.getLog();
+
         // Should we resume?
         if (mUploadController != null) {
             mUploadController.resume();
@@ -60,19 +59,19 @@ class UploadCache extends SUITUpgradeTask {
 
             @Override
             public void onUploadFailed(@NotNull final McuMgrException error) {
-                LOG.error("Upload failed: {}", error.getMessage());
+                log.error("Upload failed: {}", error.getMessage());
                 performer.onTaskFailed(UploadCache.this, error);
             }
 
             @Override
             public void onUploadCanceled() {
-                LOG.warn("Uploading cancelled");
+                log.warn("Uploading cancelled");
                 performer.onTaskCompleted(UploadCache.this);
             }
 
             @Override
             public void onUploadCompleted() {
-                LOG.info("Uploading complete");
+                log.info("Uploading complete");
                 performer.onTaskCompleted(UploadCache.this);
             }
         };
@@ -83,9 +82,10 @@ class UploadCache extends SUITUpgradeTask {
             return;
         }
 
-        LOG.info("Uploading cache image with target partition ID: {} ({} bytes)", targetId, data.length);
+        log.info("Uploading cache image with target partition ID: {} ({} bytes)", targetId, data.length);
         final SUITUpgradePerformer.Settings settings = performer.getSettings();
         final SUITManager manager = new SUITManager(performer.getTransport());
+        manager.setLogger(log.getSink());
         mUploadController =	new CacheUploader(
                 manager,
                 targetId,

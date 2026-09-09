@@ -113,6 +113,7 @@ public class ShellManager extends McuManager {
 	public void exec(@NotNull String cmd, @Nullable String[] argv,
 					 long timeout,
 					 @NotNull McuMgrCallback<McuMgrExecResponse> callback) {
+		LOG.trace("Executing: {} with arguments: {}", cmd, argv);
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		if (argv == null || argv.length == 0) {
 			payloadMap.put("argv", new String[] { cmd });
@@ -152,6 +153,7 @@ public class ShellManager extends McuManager {
 	 */
 	@NotNull
 	public McuMgrExecResponse exec(@NotNull String cmd, @Nullable String[] argv, long timeout) throws McuMgrException {
+		LOG.trace("Executing: {} with arguments: {}", cmd, argv);
 		HashMap<String, Object> payloadMap = new HashMap<>();
 		if (argv == null || argv.length == 0) {
 			payloadMap.put("argv", new String[] { cmd });

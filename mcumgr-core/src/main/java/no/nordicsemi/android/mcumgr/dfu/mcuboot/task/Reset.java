@@ -1,12 +1,12 @@
 package no.nordicsemi.android.mcumgr.dfu.mcuboot.task;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import no.nordicsemi.android.mcumgr.McuMgrCallback;
@@ -15,6 +15,7 @@ import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.managers.DefaultManager;
 import no.nordicsemi.android.mcumgr.managers.SettingsManager;
 import no.nordicsemi.android.mcumgr.response.McuMgrResponse;
@@ -22,8 +23,6 @@ import no.nordicsemi.android.mcumgr.response.dflt.McuMgrOsResponse;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 
 class Reset extends FirmwareUpgradeTask {
-	private final static Logger LOG = LoggerFactory.getLogger(Reset.class);
-
 	/**
 	 * The key used to set the advertising name for the Firmware Loader mode.
 	 * <p>
@@ -68,6 +67,8 @@ class Reset extends FirmwareUpgradeTask {
 
 	@Override
 	public void start(@NotNull final TaskManager<Settings, State> performer) {
+		final McuMgrLogger log = performer.getLog();
+
 		final Settings settings = performer.getSettings();
 		final McuMgrTransport transport = performer.getTransport();
 
@@ -79,7 +80,7 @@ class Reset extends FirmwareUpgradeTask {
 
 			@Override
 			public void onDisconnected() {
-				LOG.info("Device disconnected");
+				log.info("Device disconnected");
 
 				transport.removeObserver(this);
 
@@ -101,8 +102,8 @@ class Reset extends FirmwareUpgradeTask {
 				final Runnable complete = () -> performer.onTaskCompleted(Reset.this);
 
 				if (remainingTime > 0) {
-					LOG.trace("Waiting remaining {} ms for the swap operation to complete", remainingTime);
-					new Handler().postDelayed(complete, remainingTime);
+					log.trace("Waiting remaining {} ms for the swap operation to complete", remainingTime);
+					new Handler(Looper.getMainLooper()).postDelayed(complete, remainingTime);
 				} else {
 					complete.run();
 				}
@@ -117,27 +118,30 @@ class Reset extends FirmwareUpgradeTask {
 	}
 
 	private void setName(@NotNull final String advName, @NotNull final TaskManager<Settings, State> performer, @NotNull final Runnable then) {
+		final McuMgrLogger log = performer.getLog();
+
 		final McuMgrTransport transport = performer.getTransport();
 		final SettingsManager manager = new SettingsManager(transport);
+		manager.setLogger(log.getSink());
 
-		LOG.trace("Switching to firmware loader (name: {})...", mAdvName);
+		log.trace("Switching to firmware loader (name: {})...", mAdvName);
 
 		// Setting the name uses Settings group. The name is sent as bytes, not a string.
-		final byte[] nameData = advName.getBytes(StandardCharsets.UTF_8);
+        //noinspection CharsetObjectCanBeUsed
+        final byte[] nameData = advName.getBytes(Charset.forName("UTF-8"));
 		manager.write(KEY_SET_NAME, nameData, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrResponse response) {
-				LOG.trace("Saving settings...");
 				manager.save(new McuMgrCallback<>() {
                     @Override
                     public void onResponse(@NotNull McuMgrResponse response) {
-						LOG.info("Firmware Loader name set to: {}", advName);
+						log.info("Firmware Loader name set to: {}", advName);
                         then.run();
                     }
 
                     @Override
                     public void onError(@NotNull McuMgrException error) {
-						LOG.error("Failed to save settings", error);
+						log.error("Failed to save settings");
                         performer.onTaskFailed(Reset.this, error);
                     }
                 });
@@ -145,17 +149,19 @@ class Reset extends FirmwareUpgradeTask {
 
 			@Override
 			public void onError(@NotNull final McuMgrException error) {
-				LOG.error("Failed to set Firmware Loader advertising name. Connect to the device in this mode manually", error);
-				performer.onTaskFailed(Reset.this, new McuMgrException("Connect to the Firmware Loader manually and retry"));
+				log.error("Failed to set Firmware Loader advertising name. Connect to the device in this mode manually");
+				performer.onTaskFailed(Reset.this, new McuMgrException("Connect to the Firmware Loader manually and retry", error));
 			}
 		});
 	}
 
 	private void reset(final int bootMode, @NotNull final TaskManager<Settings, State> performer) {
+		final McuMgrLogger log = performer.getLog();
+
 		final McuMgrTransport transport = performer.getTransport();
 		final DefaultManager manager = new DefaultManager(transport);
+		manager.setLogger(log.getSink());
 
-		LOG.trace("Resetting (boot mode: {})...", bootMode);
 		manager.reset(bootMode, false, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrOsResponse response) {
@@ -165,7 +171,7 @@ class Reset extends FirmwareUpgradeTask {
 					return;
 				}
 				mResetResponseTime = SystemClock.elapsedRealtime();
-				LOG.trace("Reset request success. Waiting for disconnect...");
+				log.trace("Reset request success. Waiting for disconnect...");
 			}
 
 			@Override

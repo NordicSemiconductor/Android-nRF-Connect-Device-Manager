@@ -111,9 +111,7 @@ public class SettingsManager extends McuManager {
      */
     public void read(@NotNull String name,
                      @NotNull McuMgrCallback<McuMgrSettingsReadResponse> callback) {
-        HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("name", name);
-        send(OP_READ, ID_READ_WRITE, payloadMap, SHORT_TIMEOUT, McuMgrSettingsReadResponse.class, callback);
+        read(name, null, callback);
     }
 
     /**
@@ -125,6 +123,7 @@ public class SettingsManager extends McuManager {
      */
     public void read(@NotNull String name, @Nullable Integer maxSize,
                      @NotNull McuMgrCallback<McuMgrSettingsReadResponse> callback) {
+        LOG.trace("Reading '{}'", name);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         if (maxSize != null) {
@@ -142,9 +141,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrSettingsReadResponse read(@NotNull String name) throws McuMgrException {
-        HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("name", name);
-        return send(OP_READ, ID_READ_WRITE, payloadMap, SHORT_TIMEOUT, McuMgrSettingsReadResponse.class);
+        return read(name, (Integer) null);
     }
 
     /**
@@ -157,6 +154,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrSettingsReadResponse read(@NotNull String name, @Nullable Integer maxSize) throws McuMgrException {
+        LOG.trace("Reading '{}'", name);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         if (maxSize != null) {
@@ -174,6 +172,7 @@ public class SettingsManager extends McuManager {
      */
     public void write(@NotNull String name, byte @NotNull [] value,
                       @NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Setting '{}' ({} bytes)", name, value.length);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
@@ -189,8 +188,8 @@ public class SettingsManager extends McuManager {
      * @throws McuMgrException Transport error. See cause.
      */
     @NotNull
-    public McuMgrResponse write(@Nullable String name, byte @NotNull [] value)
-            throws McuMgrException {
+    public McuMgrResponse write(@Nullable String name, byte @NotNull [] value) throws McuMgrException {
+        LOG.trace("Setting '{}' ({} bytes)", name, value.length);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("val", value);
@@ -205,6 +204,7 @@ public class SettingsManager extends McuManager {
      */
     public void delete(@NotNull String name,
                        @NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Deleting '{}'", name);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         send(OP_WRITE, ID_DELETE, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class, callback);
@@ -219,6 +219,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse delete(@NotNull String name) throws McuMgrException {
+        LOG.trace("Deleting '{}'", name);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         return send(OP_WRITE, ID_DELETE, payloadMap, SHORT_TIMEOUT, McuMgrResponse.class);
@@ -230,6 +231,7 @@ public class SettingsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void commit(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Committing settings");
         send(OP_WRITE, ID_COMMIT, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
@@ -241,6 +243,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse commit() throws McuMgrException {
+        LOG.trace("Committing settings");
         return send(OP_WRITE, ID_COMMIT, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
@@ -250,6 +253,7 @@ public class SettingsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void load(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Loading settings");
         send(OP_READ, ID_LOAD_SAVE, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
@@ -261,6 +265,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse load() throws McuMgrException {
+        LOG.trace("Loading settings");
         return send(OP_READ, ID_LOAD_SAVE, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
@@ -270,6 +275,7 @@ public class SettingsManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void save(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Saving settings");
         send(OP_WRITE, ID_LOAD_SAVE, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
@@ -281,6 +287,7 @@ public class SettingsManager extends McuManager {
      */
     @NotNull
     public McuMgrResponse save() throws McuMgrException {
+        LOG.trace("Saving settings");
         return send(OP_WRITE, ID_LOAD_SAVE, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 }

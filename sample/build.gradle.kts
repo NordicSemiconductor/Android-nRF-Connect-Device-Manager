@@ -67,8 +67,7 @@ dependencies {
     // Brings the new BluetoothLeScanner API to older platforms
     implementation(nordic.compat.scanner)
 
-    // Timber & SLF4J
-    implementation(libs.slf4j.timber)
+    // Timber, and the sinks forwarding library logs to it
     implementation(nordic.log.timber)
     implementation(nordic.kotlin.log.timber)
 

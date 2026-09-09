@@ -107,6 +107,7 @@ public class MemfaultManager extends McuManager {
 	 * @param callback the asynchronous callback.
 	 */
 	public void info(@NotNull McuMgrCallback<MemfaultDeviceInfoResponse> callback) {
+		LOG.trace("Reading device info");
         send(OP_READ, ID_DEVICE_INFO, null, DEFAULT_TIMEOUT, MemfaultDeviceInfoResponse.class, callback);
 	}
 
@@ -124,6 +125,7 @@ public class MemfaultManager extends McuManager {
 	 */
 	@NotNull
 	public MemfaultDeviceInfoResponse info() throws McuMgrException {
+		LOG.trace("Reading device info");
 		return send(OP_READ, ID_DEVICE_INFO, null, DEFAULT_TIMEOUT, MemfaultDeviceInfoResponse.class);
 	}
 
@@ -133,6 +135,7 @@ public class MemfaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void projectKey(@NotNull McuMgrCallback<MemfaultProjectKeyResponse> callback) {
+        LOG.trace("Reading project key");
         send(OP_READ, ID_PROJECT_KEY, null, DEFAULT_TIMEOUT, MemfaultProjectKeyResponse.class, callback);
     }
 
@@ -144,6 +147,7 @@ public class MemfaultManager extends McuManager {
      */
     @NotNull
     public MemfaultProjectKeyResponse projectKey() throws McuMgrException {
+        LOG.trace("Reading project key");
         return send(OP_READ, ID_PROJECT_KEY, null, DEFAULT_TIMEOUT, MemfaultProjectKeyResponse.class);
     }
 

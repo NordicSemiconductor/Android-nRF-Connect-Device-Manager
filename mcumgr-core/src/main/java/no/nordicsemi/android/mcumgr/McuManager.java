@@ -7,10 +7,9 @@
 
 package no.nordicsemi.android.mcumgr;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -22,16 +21,17 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.Category;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.response.McuMgrResponse;
 import no.nordicsemi.android.mcumgr.util.CBOR;
+import no.nordicsemi.kotlin.log.Log;
 
 /**
  * The base class for managers handling MCU Manager groups.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public abstract class McuManager {
-
-    private final static Logger LOG = LoggerFactory.getLogger(McuManager.class);
 
     // Transport constants
 
@@ -92,10 +92,18 @@ public abstract class McuManager {
     /**
      * The MTU used to send data to the device.
      * <p>
-     * Initially, the MTU is set to highest possible value for the SMP protocol.
+     * Initially, the MTU is set to the highest possible value for the SMP protocol.
      * It can be lowered with {@link #setUploadMtu(int)} by the transport if required.
      */
     protected int mMtu = DEFAULT_MTU;
+
+    /**
+     * The logger of this manager, reporting under {@link Category#COMMAND}.
+     * <p>
+     * Nothing is logged until a sink is assigned using {@link #setLogger(Log.Sink)}.
+     */
+    @NotNull
+    protected final McuMgrLogger LOG = new McuMgrLogger(Category.COMMAND);
 
     /**
      * Construct a McuManager instance.
@@ -106,6 +114,34 @@ public abstract class McuManager {
     protected McuManager(int groupId, @NotNull McuMgrTransport transporter) {
         mGroupId = groupId;
         mTransporter = transporter;
+    }
+
+    /**
+     * Sets the sink receiving the log entries emitted by this manager.
+     * <p>
+     * The entries are reported under {@link Category#COMMAND}. Set to null (the default) to
+     * stop logging.
+     *
+     * @param logger the sink to receive the log entries, or null.
+     * @since 4.0
+     */
+    public void setLogger(@Nullable Log.Sink<Category> logger) {
+        LOG.setSink(logger);
+    }
+
+    /**
+     * Returns the sink assigned to this manager, so that transfers started by it report to
+     * the same place. The transfer reports under its own {@link Category#TRANSFER}.
+     * <p>
+     * This is an implementation detail of the library, not intended to be used by applications.
+     * Use {@link #setLogger(Log.Sink)} to receive the log entries.
+     *
+     * @since 4.0
+     */
+    @ApiStatus.Internal
+    @Nullable
+    public Log.Sink<Category> getLogSink() {
+        return LOG.getSink();
     }
 
     /**
@@ -516,8 +552,7 @@ public abstract class McuManager {
         if (timeZone == null) {
             timeZone = TimeZone.getDefault();
         }
-        SimpleDateFormat mcumgrFormat = new SimpleDateFormat(MCUMGR_DATE_FORMAT,
-                new Locale("US"));
+        SimpleDateFormat mcumgrFormat = new SimpleDateFormat(MCUMGR_DATE_FORMAT, Locale.US);
         mcumgrFormat.setTimeZone(timeZone);
         return mcumgrFormat.format(date);
     }
@@ -533,12 +568,12 @@ public abstract class McuManager {
         if (dateString == null) {
             return null;
         }
-        SimpleDateFormat mcumgrFormat = new SimpleDateFormat(MCUMGR_DATE_FORMAT,
-                new Locale("US"));
+        SimpleDateFormat mcumgrFormat = new SimpleDateFormat(MCUMGR_DATE_FORMAT, Locale.US);
         try {
             return mcumgrFormat.parse(dateString);
         } catch (ParseException e) {
-            LOG.error("Converting string to Date failed", e);
+            // This method is static and has no logger to report to. As documented, an
+            // unparsable date is reported by returning null.
             return null;
         }
     }

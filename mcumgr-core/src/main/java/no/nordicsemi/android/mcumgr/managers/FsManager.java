@@ -9,8 +9,6 @@ package no.nordicsemi.android.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +42,7 @@ import no.nordicsemi.android.mcumgr.transfer.Upload;
 import no.nordicsemi.android.mcumgr.transfer.UploadCallback;
 import no.nordicsemi.android.mcumgr.util.CBOR;
 
-@SuppressWarnings({"WeakerAccess", "unused", "DeprecatedIsStillUsed", "deprecation"})
+@SuppressWarnings({"WeakerAccess", "unused", "DeprecatedIsStillUsed"})
 public class FsManager extends TransferManager {
 
     public enum ReturnCode implements McuMgrGroupReturnCode {
@@ -143,8 +141,6 @@ public class FsManager extends TransferManager {
         }
     }
 
-    private final static Logger LOG = LoggerFactory.getLogger(FsManager.class);
-
     private final static int ID_FILE = 0;
     private final static int ID_STAT = 1;
     private final static int ID_HASH_CHECKSUM = 2;
@@ -191,8 +187,7 @@ public class FsManager extends TransferManager {
      * @see #fileDownload(String, DownloadCallback)
      */
     @NotNull
-    public McuMgrFsDownloadResponse download(@NotNull String name, int offset)
-            throws McuMgrException {
+    public McuMgrFsDownloadResponse download(@NotNull String name, int offset) throws McuMgrException {
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("off", offset);
@@ -343,6 +338,7 @@ public class FsManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void status(@NotNull String name, @NotNull McuMgrCallback<McuMgrFsStatusResponse> callback) {
+        LOG.trace("Getting status of file '{}'", name);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         send(OP_READ, ID_STAT, payloadMap, SHORT_TIMEOUT, McuMgrFsStatusResponse.class, callback);
@@ -355,6 +351,7 @@ public class FsManager extends TransferManager {
      * @param name the file name.
      */
     public McuMgrFsStatusResponse status(@NotNull String name) throws McuMgrException {
+        LOG.trace("Getting status of file '{}'", name);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         return send(OP_READ, ID_STAT, payloadMap, SHORT_TIMEOUT, McuMgrFsStatusResponse.class);
@@ -385,6 +382,11 @@ public class FsManager extends TransferManager {
     public void crc32(@NotNull String name,
                       int offset, int length,
                       @NotNull McuMgrCallback<McuMgrFsCrc32Response> callback) {
+        if (length > 0) {
+            LOG.trace("Requesting CRC32 of file '{}' from offset: {} and length: {}", name, offset, length);
+        } else {
+            LOG.trace("Requesting CRC32 of file '{}' from offset: {}", name, offset);
+        }
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("type", "crc32");
@@ -417,6 +419,11 @@ public class FsManager extends TransferManager {
      *               (optional, full file size if set to 0).
      */
     public McuMgrFsStatusResponse crc32(@NotNull String name, int offset, int length) throws McuMgrException {
+        if (length > 0) {
+            LOG.trace("Requesting CRC32 of file '{}' from offset: {} and length: {}", name, offset, length);
+        } else {
+            LOG.trace("Requesting CRC32 of file '{}' from offset: {}", name, offset);
+        }
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("type", "crc32");
@@ -454,6 +461,11 @@ public class FsManager extends TransferManager {
     public void sha256(@NotNull String name,
                        int offset, int length,
                        @NotNull McuMgrCallback<McuMgrFsSha256Response> callback) {
+        if (length > 0) {
+            LOG.trace("Requesting SHA256 of file '{}' from offset: {} and length: {}", name, offset, length);
+        } else {
+            LOG.trace("Requesting SHA256 of file '{}' from offset: {}", name, offset);
+        }
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("type", "sha256");
@@ -486,6 +498,11 @@ public class FsManager extends TransferManager {
      *               (optional, full file size if set to 0).
      */
     public McuMgrFsSha256Response sha256(@NotNull String name, int offset, int length) throws McuMgrException {
+        if (length > 0) {
+            LOG.trace("Requesting SHA256 of file '{}' from offset: {} and length: {}", name, offset, length);
+        } else {
+            LOG.trace("Requesting SHA256 of file '{}' from offset: {}", name, offset);
+        }
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("name", name);
         payloadMap.put("type", "sha256");
@@ -509,6 +526,7 @@ public class FsManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void closeAll(@NotNull McuMgrCallback<McuMgrResponse> callback) {
+        LOG.trace("Closing all open files");
         send(OP_WRITE, ID_FILE_CLOSE, null, SHORT_TIMEOUT, McuMgrResponse.class, callback);
     }
 
@@ -517,6 +535,7 @@ public class FsManager extends TransferManager {
      * might have stalled or be incomplete (synchronous).
      */
     public McuMgrResponse closeAll() throws McuMgrException {
+        LOG.trace("Closing all open files");
         return send(OP_WRITE, ID_FILE_CLOSE, null, SHORT_TIMEOUT, McuMgrResponse.class);
     }
 
@@ -539,6 +558,7 @@ public class FsManager extends TransferManager {
      */
     @NotNull
     public TransferController fileUpload(@NotNull String name, byte @NotNull [] data, @NotNull UploadCallback callback) {
+        LOG.trace("Initiating file upload '{}' ({} bytes)", name, data.length);
         return startUpload(new FileUpload(name, data, callback));
     }
 
@@ -576,6 +596,7 @@ public class FsManager extends TransferManager {
      */
     @NotNull
     public TransferController fileUpload(@NotNull String name, @NotNull InputStream data, int totalBytes, @NotNull UploadCallback callback) {
+        LOG.trace("Initiating file upload '{}' ({} bytes)", name, totalBytes);
         return startUpload(new FileStreamUpload(name, data, totalBytes, callback));
     }
 
@@ -603,19 +624,20 @@ public class FsManager extends TransferManager {
     //******************************************************************
 
     /**
-     * Start image upload.
+     * Start image download.
      * <p>
-     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
-     * downloads executed from {@link #fileUpload}.
+     * Multiple calls will queue multiple downloads, executed sequentially. This includes file
+     * downloads executed from {@link #fileDownload}.
      * <p>
-     * The upload may be controlled using the {@link TransferController} returned by this method.
+     * The download may be controlled using the {@link TransferController} returned by this method.
      *
-     * @param callback Receives callbacks from the upload.
-     * @return The object used to control this upload.
+     * @param callback Receives callbacks from the download.
+     * @return The object used to control this download.
      * @see TransferController
      */
     @NotNull
     public TransferController fileDownload(@NotNull String name, @NotNull DownloadCallback callback) {
+        LOG.trace("Initiating file download '{}'", name);
         return startDownload(new FileDownload(name, callback));
     }
 
@@ -639,15 +661,15 @@ public class FsManager extends TransferManager {
     }
 
     /**
-     * Start image upload.
+     * Start image download.
      * <p>
-     * Multiple calls will queue multiple uploads, executed sequentially. This includes file
-     * downloads executed from {@link #fileUpload}.
+     * Multiple calls will queue multiple downloads, executed sequentially. This includes file
+     * downloads executed from {@link #fileDownload}.
      * <p>
-     * The upload may be controlled using the {@link TransferController} returned by this method.
+     * The download may be controlled using the {@link TransferController} returned by this method.
      *
-     * @param callback Receives callbacks from the upload.
-     * @return The object used to control this upload.
+     * @param callback Receives callbacks from the download.
+     * @return The object used to control this download.
      * @see TransferController
      */
     @NotNull
@@ -656,6 +678,7 @@ public class FsManager extends TransferManager {
             @NotNull OutputStream dataOutput,
             @NotNull StreamDownloadCallback callback
     ) {
+        LOG.trace("Initiating file download '{}'", name);
         return startDownload(new FileStreamDownload(name, dataOutput, callback));
     }
 

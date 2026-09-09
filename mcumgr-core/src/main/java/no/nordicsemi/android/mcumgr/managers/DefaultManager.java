@@ -34,7 +34,9 @@ import no.nordicsemi.android.mcumgr.response.dflt.McuMgrReadDateTimeResponse;
 import no.nordicsemi.android.mcumgr.response.dflt.McuMgrTaskStatResponse;
 
 /**
- * Default command group manager.
+ * The manager for the OS group.
+ * <p>
+ * See: <a href="https://github.com/nrfconnect/sdk-zephyr/tree/main/subsys/mgmt/mcumgr/grp/os_mgmt">GitHub</a>
  */
 @SuppressWarnings("unused")
 public class DefaultManager extends McuManager {
@@ -127,7 +129,7 @@ public class DefaultManager extends McuManager {
         int BOOTLOADER = BOOT_MODE_TYPE_BOOTLOADER;
     }
     /**
-     * Construct an default manager.
+     * Construct the OS manager.
      *
      * @param transport the transport to use to send commands.
      */
@@ -146,6 +148,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void echo(@Nullable String echo, @NotNull McuMgrCallback<McuMgrEchoResponse> callback) {
+        LOG.trace("Echo: {}", echo);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("d", echo);
         send(OP_WRITE, ID_ECHO, payloadMap, SHORT_TIMEOUT, McuMgrEchoResponse.class, callback);
@@ -160,6 +163,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrEchoResponse echo(@Nullable String echo) throws McuMgrException {
+        LOG.trace("Echo: {}", echo);
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("d", echo);
         return send(OP_WRITE, ID_ECHO, payloadMap, SHORT_TIMEOUT, McuMgrEchoResponse.class);
@@ -172,6 +176,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void consoleEcho(boolean echo, @NotNull McuMgrCallback<McuMgrOsResponse> callback) {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
         send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
@@ -186,6 +191,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrOsResponse consoleEcho(boolean echo) throws McuMgrException {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("echo", echo);
         return send(OP_WRITE, ID_CONS_ECHO_CTRL, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class);
@@ -197,6 +203,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void taskstats(@NotNull McuMgrCallback<McuMgrTaskStatResponse> callback) {
+        LOG.trace("Reading task stats");
         send(OP_READ, ID_TASKSTATS, null, SHORT_TIMEOUT, McuMgrTaskStatResponse.class, callback);
     }
 
@@ -208,6 +215,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrTaskStatResponse taskstats() throws McuMgrException {
+        LOG.trace("Reading task stats");
         return send(OP_READ, ID_TASKSTATS, null, SHORT_TIMEOUT, McuMgrTaskStatResponse.class);
     }
 
@@ -217,6 +225,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void mpstat(@NotNull McuMgrCallback<McuMgrMpStatResponse> callback) {
+        LOG.trace("Reading memory pool stats");
         send(OP_READ, ID_MPSTATS, null, SHORT_TIMEOUT, McuMgrMpStatResponse.class, callback);
     }
 
@@ -228,6 +237,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrMpStatResponse mpstat() throws McuMgrException {
+        LOG.trace("Reading memory pool stats");
         return send(OP_READ, ID_MPSTATS, null, SHORT_TIMEOUT, McuMgrMpStatResponse.class);
     }
 
@@ -237,6 +247,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void readDatetime(@NotNull McuMgrCallback<McuMgrReadDateTimeResponse> callback) {
+        LOG.trace("Reading date and time");
         send(OP_READ, ID_DATETIME_STR, null, SHORT_TIMEOUT, McuMgrReadDateTimeResponse.class, callback);
     }
 
@@ -248,6 +259,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrReadDateTimeResponse readDatetime() throws McuMgrException {
+        LOG.trace("Reading date and time");
         return send(OP_READ, ID_DATETIME_STR, null, SHORT_TIMEOUT, McuMgrReadDateTimeResponse.class);
     }
 
@@ -262,8 +274,10 @@ public class DefaultManager extends McuManager {
      */
     public void writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone,
                               @NotNull McuMgrCallback<McuMgrOsResponse> callback) {
+        String dateAsString = dateToString(date, timeZone);
+        LOG.trace("Writing date and time: {}", dateAsString);
         HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("datetime", dateToString(date, timeZone));
+        payloadMap.put("datetime", dateAsString);
         send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class, callback);
     }
 
@@ -280,8 +294,10 @@ public class DefaultManager extends McuManager {
     @NotNull
     public McuMgrOsResponse writeDatetime(@Nullable Date date, @Nullable TimeZone timeZone)
             throws McuMgrException {
+        String dateAsString = dateToString(date, timeZone);
+        LOG.trace("Writing date and time: {}", dateAsString);
         HashMap<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("datetime", dateToString(date, timeZone));
+        payloadMap.put("datetime", dateAsString);
         return send(OP_WRITE, ID_DATETIME_STR, payloadMap, SHORT_TIMEOUT, McuMgrOsResponse.class);
     }
 
@@ -331,6 +347,7 @@ public class DefaultManager extends McuManager {
      * @see <a href="https://docs.nordicsemi.com/bundle/ncs-latest/page/zephyr/services/device_mgmt/smp_groups/smp_group_0.html#system_reset">Documentation</a>
      */
     public void reset(@BootMode int bootMode, boolean force, @NotNull McuMgrCallback<McuMgrOsResponse> callback) {
+        LOG.trace("Resetting (boot mode: {}, force: {})", bootMode, force);
         HashMap<String, Object> payloadMap = null;
         if (bootMode > BOOT_MODE_TYPE_NORMAL || force) {
             payloadMap = new HashMap<>();
@@ -362,6 +379,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrOsResponse reset(@BootMode int bootMode, boolean force) throws McuMgrException {
+        LOG.trace("Resetting (boot mode: {}, force: {})", bootMode, force);
         HashMap<String, Object> payloadMap = null;
         if (bootMode > BOOT_MODE_TYPE_NORMAL || force) {
             payloadMap = new HashMap<>();
@@ -381,6 +399,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void params(@NotNull McuMgrCallback<McuMgrParamsResponse> callback) {
+        LOG.trace("Reading McuMgr parameters");
         send(OP_READ, ID_MCUMGR_PARAMS, null, SHORT_TIMEOUT, McuMgrParamsResponse.class, callback);
     }
 
@@ -392,6 +411,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrParamsResponse params() throws McuMgrException {
+        LOG.trace("Reading McuMgr parameters");
         return send(OP_READ, ID_MCUMGR_PARAMS, null, SHORT_TIMEOUT, McuMgrParamsResponse.class);
     }
 
@@ -417,6 +437,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void appInfo(@Nullable String format, @NotNull McuMgrCallback<McuMgrAppInfoResponse> callback) {
+        LOG.trace("Reading app info (format: {})", format);
         HashMap<String, Object> payloadMap = null;
         if (format != null) {
             payloadMap = new HashMap<>();
@@ -449,6 +470,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrAppInfoResponse appInfo(@Nullable String format) throws McuMgrException {
+        LOG.trace("Reading app info (format: {})", format);
         HashMap<String, Object> payloadMap = null;
         if (format != null) {
             payloadMap = new HashMap<>();
@@ -488,6 +510,7 @@ public class DefaultManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void bootloaderInfo(@Nullable String query, @NotNull McuMgrCallback<McuMgrBootloaderInfoResponse> callback) {
+        LOG.trace("Reading Bootloader info (query: {})", query);
         HashMap<String, Object> payloadMap = null;
         if (query != null) {
             payloadMap = new HashMap<>();
@@ -511,6 +534,7 @@ public class DefaultManager extends McuManager {
      */
     @NotNull
     public McuMgrBootloaderInfoResponse bootloaderInfo(@Nullable String query) throws McuMgrException {
+        LOG.trace("Reading Bootloader info (query: {})", query);
         HashMap<String, Object> payloadMap = null;
         if (query != null) {
             payloadMap = new HashMap<>();

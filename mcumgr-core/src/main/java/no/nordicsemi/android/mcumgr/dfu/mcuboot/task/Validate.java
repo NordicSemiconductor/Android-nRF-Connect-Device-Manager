@@ -3,8 +3,6 @@ package no.nordicsemi.android.mcumgr.dfu.mcuboot.task;
 import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +18,7 @@ import no.nordicsemi.android.mcumgr.dfu.mcuboot.model.TargetImage;
 import no.nordicsemi.android.mcumgr.dfu.suit.model.CacheImage;
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.image.ImageWithHash;
 import no.nordicsemi.android.mcumgr.image.SUITImage;
 import no.nordicsemi.android.mcumgr.managers.DefaultManager;
@@ -29,8 +28,6 @@ import no.nordicsemi.android.mcumgr.response.img.McuMgrImageStateResponse;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 
 class Validate extends FirmwareUpgradeTask {
-	private final static Logger LOG = LoggerFactory.getLogger(Validate.class);
-
 	@NotNull
 	private final ImageSet images;
 	@NotNull
@@ -65,7 +62,10 @@ class Validate extends FirmwareUpgradeTask {
 
 	@Override
 	public void start(@NotNull final TaskManager<Settings, State> performer) {
+		final McuMgrLogger log = performer.getLog();
+
 		final DefaultManager manager = new DefaultManager(performer.getTransport());
+		manager.setLogger(log.getSink());
 
 		// Starting from NCS 2.5 different bootloader modes allow sending the image in
 		// slightly different ways. For that, we need to read bootloader info.
@@ -73,13 +73,13 @@ class Validate extends FirmwareUpgradeTask {
 		manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_QUERY_BOOTLOADER, new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrBootloaderInfoResponse response) {
-				LOG.info("Bootloader name: {}", response.bootloader);
+				log.info("Bootloader name: {}", response.bootloader);
 
 				if ("MCUboot".equals(response.bootloader)) {
 					manager.bootloaderInfo(DefaultManager.BOOTLOADER_INFO_MCUBOOT_QUERY_MODE, new McuMgrCallback<>() {
 						@Override
 						public void onResponse(@NotNull McuMgrBootloaderInfoResponse response) {
-							LOG.info("Bootloader is in mode: {}, no downgrade: {}", parseMode(response.mode), response.noDowngrade);
+							log.info("Bootloader is in mode: {}, no downgrade: {}", parseMode(response.mode), response.noDowngrade);
 							validate(performer,
 									response.mode ==  McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP ||
 									response.mode == McuMgrBootloaderInfoResponse.MODE_DIRECT_XIP_WITH_REVERT ||
@@ -124,13 +124,16 @@ class Validate extends FirmwareUpgradeTask {
 						  final boolean noSwap,
 						  final boolean allowRevert,
 						  final boolean forcePrimarySlot) {
+		final McuMgrLogger log = performer.getLog();
+
 		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(performer.getTransport());
+		manager.setLogger(log.getSink());
 
 		manager.list(new McuMgrCallback<>() {
 			@Override
 			public void onResponse(@NotNull final McuMgrImageStateResponse response) {
-				LOG.trace("Validation response: {}", response);
+				log.trace("Validation response: {}", response);
 
 				// Check for an error return code.
 				if (!response.isSuccess()) {
@@ -141,7 +144,7 @@ class Validate extends FirmwareUpgradeTask {
 				// Initial validation.
 				McuMgrImageStateResponse.ImageSlot[] slots = response.images;
 				if (slots == null) {
-					LOG.error("Missing images information: {}", response);
+					log.error("Missing images information: {}", response);
 					performer.onTaskFailed(Validate.this, new McuMgrException("Missing images information"));
 					return;
 				}

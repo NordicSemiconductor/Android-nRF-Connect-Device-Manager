@@ -83,7 +83,7 @@ public class BasicManager extends McuManager {
     private final static int ID_ERASE_STORAGE = 0;
 
     /**
-     * Construct an stats manager.
+     * Construct the manager for Zephyr Basic group.
      *
      * @param transport the transport to use to send commands.
      */
@@ -97,6 +97,7 @@ public class BasicManager extends McuManager {
      * @param callback the asynchronous callback.
      */
     public void eraseStorage(@NotNull McuMgrCallback<McuMgrZephyrBasicResponse> callback) {
+        LOG.info("Erasing app storage");
         send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrZephyrBasicResponse.class, callback);
     }
 
@@ -108,6 +109,7 @@ public class BasicManager extends McuManager {
      */
     @NotNull
     public McuMgrZephyrBasicResponse eraseStorage() throws McuMgrException {
+        LOG.info("Erasing app storage");
         return send(OP_WRITE, ID_ERASE_STORAGE, null, DEFAULT_TIMEOUT, McuMgrZephyrBasicResponse.class);
     }
 }

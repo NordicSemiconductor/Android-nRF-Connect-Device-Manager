@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.Settings;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager.State;
 import no.nordicsemi.android.mcumgr.exception.McuMgrException;
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger;
 import no.nordicsemi.android.mcumgr.managers.ImageManager;
 import no.nordicsemi.android.mcumgr.task.TaskManager;
 import no.nordicsemi.android.mcumgr.transfer.ImageUploader;
@@ -38,6 +39,8 @@ class Upload extends FirmwareUpgradeTask {
 
 	@Override
 	public void start(@NotNull final TaskManager<Settings, State> performer) {
+		final McuMgrLogger log = performer.getLog();
+
 		// Should we resume?
 		if (mUploadController != null) {
 			mUploadController.resume();
@@ -68,6 +71,7 @@ class Upload extends FirmwareUpgradeTask {
 
 		final Settings settings = performer.getSettings();
 		final ImageManager manager = new ImageManager(performer.getTransport());
+		manager.setLogger(log.getSink());
 		if (settings.windowCapacity > 1) {
 			mUploadController =	new ImageUploader(
 					manager,

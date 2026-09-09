@@ -11,6 +11,7 @@ import dagger.Provides;
 import no.nordicsemi.android.mcumgr.McuMgrTransport;
 import no.nordicsemi.android.mcumgr.dfu.mcuboot.FirmwareUpgradeManager;
 import no.nordicsemi.android.mcumgr.dfu.suit.SUITUpgradeManager;
+import no.nordicsemi.android.mcumgr.log.Category;
 import no.nordicsemi.android.mcumgr.managers.BasicManager;
 import no.nordicsemi.android.mcumgr.managers.DefaultManager;
 import no.nordicsemi.android.mcumgr.managers.FsManager;
@@ -22,79 +23,116 @@ import no.nordicsemi.android.mcumgr.managers.ShellManager;
 import no.nordicsemi.android.mcumgr.managers.StatsManager;
 import no.nordicsemi.android.mcumgr.sample.di.McuMgrScope;
 import no.nordicsemi.android.ota.mcumgr.MemfaultManager;
+import no.nordicsemi.kotlin.log.Log;
 
 @Module
 public class McuMgrManagerModule {
 
     @Provides
     @McuMgrScope
-    static SettingsManager provideConfigManager(final McuMgrTransport transport) {
-        return new SettingsManager(transport);
+    static SettingsManager provideConfigManager(final McuMgrTransport transport,
+                                                final Log.Sink<Category> logger) {
+        final SettingsManager manager = new SettingsManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static DefaultManager provideDefaultManager(final McuMgrTransport transport) {
-        return new DefaultManager(transport);
+    static DefaultManager provideDefaultManager(final McuMgrTransport transport,
+                                                final Log.Sink<Category> logger) {
+        final DefaultManager manager = new DefaultManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static FsManager provideFsManager(final McuMgrTransport transport) {
-        return new FsManager(transport);
+    static FsManager provideFsManager(final McuMgrTransport transport,
+                                      final Log.Sink<Category> logger) {
+        final FsManager manager = new FsManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static LogManager provideLogManager(final McuMgrTransport transport) {
-        return new LogManager(transport);
+    static LogManager provideLogManager(final McuMgrTransport transport,
+                                        final Log.Sink<Category> logger) {
+        final LogManager manager = new LogManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static ImageManager provideImageManager(final McuMgrTransport transport) {
-        return new ImageManager(transport);
+    static ImageManager provideImageManager(final McuMgrTransport transport,
+                                            final Log.Sink<Category> logger) {
+        final ImageManager manager = new ImageManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static BasicManager provideBasicManager(final McuMgrTransport transport) {
-        return new BasicManager(transport);
+    static BasicManager provideBasicManager(final McuMgrTransport transport,
+                                            final Log.Sink<Category> logger) {
+        final BasicManager manager = new BasicManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static StatsManager provideStatsManager(final McuMgrTransport transport) {
-        return new StatsManager(transport);
+    static StatsManager provideStatsManager(final McuMgrTransport transport,
+                                            final Log.Sink<Category> logger) {
+        final StatsManager manager = new StatsManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static ShellManager provideShellManager(final McuMgrTransport transport) {
-        return new ShellManager(transport);
+    static ShellManager provideShellManager(final McuMgrTransport transport,
+                                            final Log.Sink<Category> logger) {
+        final ShellManager manager = new ShellManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static FirmwareUpgradeManager provideFirmwareUpgradeManager(final McuMgrTransport transport) {
-        return new FirmwareUpgradeManager(transport);
+    static FirmwareUpgradeManager provideFirmwareUpgradeManager(final McuMgrTransport transport,
+                                                                final Log.Sink<Category> logger) {
+        final FirmwareUpgradeManager manager = new FirmwareUpgradeManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static SUITManager provideSUITManager(final McuMgrTransport transport) {
-        return new SUITManager(transport);
+    static SUITManager provideSUITManager(final McuMgrTransport transport,
+                                          final Log.Sink<Category> logger) {
+        final SUITManager manager = new SUITManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static SUITUpgradeManager provideSUITUpgradeManager(final McuMgrTransport transport) {
-        return new SUITUpgradeManager(transport);
+    static SUITUpgradeManager provideSUITUpgradeManager(final McuMgrTransport transport,
+                                                        final Log.Sink<Category> logger) {
+        final SUITUpgradeManager manager = new SUITUpgradeManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 
     @Provides
     @McuMgrScope
-    static MemfaultManager provideMemfaultManager(final McuMgrTransport transport) {
-        return new MemfaultManager(transport);
+    static MemfaultManager provideMemfaultManager(final McuMgrTransport transport,
+                                                  final Log.Sink<Category> logger) {
+        final MemfaultManager manager = new MemfaultManager(transport);
+        manager.setLogger(logger);
+        return manager;
     }
 }

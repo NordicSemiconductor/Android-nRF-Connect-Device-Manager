@@ -9,8 +9,6 @@ package no.nordicsemi.android.mcumgr.managers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -201,8 +199,6 @@ public class ImageManager extends TransferManager {
         }
     }
 
-    private final static Logger LOG = LoggerFactory.getLogger(ImageManager.class);
-
     private final static int IMG_HASH_LEN = 32;
 
     // Image manager command IDs
@@ -231,6 +227,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void list(@NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+        LOG.trace("Reading image list");
         send(OP_READ, ID_STATE, null, MEDIUM_TIMEOUT, McuMgrImageStateResponse.class, callback);
     }
 
@@ -244,6 +241,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageStateResponse list() throws McuMgrException {
+        LOG.trace("Reading image list");
         return send(OP_READ, ID_STATE, null, MEDIUM_TIMEOUT, McuMgrImageStateResponse.class);
     }
 
@@ -368,7 +366,7 @@ public class ImageManager extends TransferManager {
         if (offset == 0) {
             // Only send the length and image of the image in the first packet of the upload
             if (image > 0) {
-                // Image 0 does not need to be sent, as it's default.
+                // Image 0 does not need to be sent, as its default.
                 payloadMap.put("image", image);
             }
             payloadMap.put("len", data.length);
@@ -400,6 +398,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void test(byte @NotNull [] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+        LOG.trace("Testing image");
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
@@ -418,6 +417,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageStateResponse test(byte @NotNull [] hash) throws McuMgrException {
+        LOG.trace("Testing image");
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("hash", hash);
         payloadMap.put("confirm", false);
@@ -435,6 +435,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void confirm(byte @Nullable [] hash, @NotNull McuMgrCallback<McuMgrImageStateResponse> callback) {
+        LOG.trace("Confirming image");
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
         if (hash != null) {
@@ -456,6 +457,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageStateResponse confirm(byte @Nullable [] hash) throws McuMgrException {
+        LOG.trace("Confirming image");
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("confirm", true);
         if (hash != null) {
@@ -480,6 +482,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void erase(int slot, @NotNull McuMgrCallback<McuMgrImageResponse> callback) {
+        LOG.trace("Erasing slot {}", slot);
         HashMap<String, Object> payloadMap = null;
         // By default, the "opposite" slot to the currently running one is erased.
         // See: https://github.com/nrfconnect/sdk-zephyr/blob/f7859899ec7dbb21e0580eef25b229bda727f04a/subsys/mgmt/mcumgr/grp/img_mgmt/src/img_mgmt.c#L450
@@ -510,6 +513,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageResponse erase(int slot) throws McuMgrException {
+        LOG.trace("Erasing slot {}", slot);
         HashMap<String, Object> payloadMap = null;
         // By default, the "opposite" slot to the currently running one is erased.
         // See: https://github.com/nrfconnect/sdk-zephyr/blob/f7859899ec7dbb21e0580eef25b229bda727f04a/subsys/mgmt/mcumgr/grp/img_mgmt/src/img_mgmt.c#L450
@@ -526,6 +530,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void slots(@NotNull McuMgrCallback<McuMgrImageSlotResponse> callback) {
+        LOG.trace("Reading slot info");
         send(OP_READ, ID_SLOT_INFO, null, SHORT_TIMEOUT, McuMgrImageSlotResponse.class, callback);
     }
 
@@ -537,6 +542,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageSlotResponse slots() throws McuMgrException {
+        LOG.trace("Reading slot info");
         return send(OP_READ, ID_SLOT_INFO, null, SHORT_TIMEOUT, McuMgrImageSlotResponse.class);
     }
 
@@ -550,6 +556,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void coreList(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrImageResponse.class, callback);
     }
 
@@ -565,6 +572,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageResponse coreList() throws McuMgrException {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         return send(OP_READ, ID_CORELIST, null, SHORT_TIMEOUT, McuMgrImageResponse.class);
     }
 
@@ -575,6 +583,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void coreLoad(int offset, @NotNull McuMgrCallback<McuMgrCoreLoadResponse> callback) {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
         send(OP_READ, ID_CORELOAD, payloadMap, SHORT_TIMEOUT, McuMgrCoreLoadResponse.class, callback);
@@ -589,6 +598,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrCoreLoadResponse coreLoad(int offset) throws McuMgrException {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         HashMap<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("off", offset);
         return send(OP_READ, ID_CORELOAD, payloadMap, SHORT_TIMEOUT, McuMgrCoreLoadResponse.class);
@@ -600,6 +610,7 @@ public class ImageManager extends TransferManager {
      * @param callback the asynchronous callback.
      */
     public void coreErase(@NotNull McuMgrCallback<McuMgrImageResponse> callback) {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrImageResponse.class, callback);
     }
 
@@ -611,6 +622,7 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public McuMgrImageResponse coreErase() throws McuMgrException {
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         return send(OP_WRITE, ID_CORELOAD, null, DEFAULT_TIMEOUT, McuMgrImageResponse.class);
     }
 
@@ -633,6 +645,8 @@ public class ImageManager extends TransferManager {
      */
     @NotNull
     public TransferController coreDownload(@NotNull DownloadCallback callback) {
+        LOG.trace("Initiating core dump download");
+        // TODO This is not supported on Zephyr and should be removed? The param is most prob invalid.
         return startDownload(new CoreDownload(callback));
     }
 
@@ -690,6 +704,7 @@ public class ImageManager extends TransferManager {
     @NotNull
     public TransferController imageUpload(byte @NotNull [] imageData, int image,
                                           @NotNull UploadCallback callback) {
+        LOG.trace("Initiating image upload (image: {}, {} bytes)", image, imageData.length);
         return startUpload(new ImageUpload(imageData, image, callback));
     }
 
@@ -723,7 +738,6 @@ public class ImageManager extends TransferManager {
     private int mUploadState = STATE_NONE;
     private int mUploadOffset = 0;
     private byte[] mImageData;
-    @SuppressWarnings("deprecation")
     private ImageUploadCallback mUploadCallback;
 
 
@@ -737,7 +751,6 @@ public class ImageManager extends TransferManager {
      * @return True, if the upload has stared, false otherwise.
      * @deprecated Use the new transfer implementation's imageUpload(...) method
      */
-    @SuppressWarnings("deprecation")
     @Deprecated
     public synchronized boolean upload(byte @NotNull [] data, @NotNull ImageUploadCallback callback) {
         if (mUploadState == STATE_NONE) {
@@ -817,11 +830,9 @@ public class ImageManager extends TransferManager {
         if (mUploadCallback != null) {
             mUploadCallback.onUploadFailed(error);
         }
-        //noinspection deprecation
         cancelUpload();
     }
 
-    @SuppressWarnings("deprecation")
     private synchronized void restartUpload() {
         if (mImageData == null || mUploadCallback == null) {
             LOG.error("Could not restart upload: image data or callback is null!");

@@ -24,8 +24,10 @@ import no.nordicsemi.android.mcumgr.exception.InsufficientMtuException
 import no.nordicsemi.android.mcumgr.exception.McuMgrErrorException
 import no.nordicsemi.android.mcumgr.exception.McuMgrException
 import no.nordicsemi.android.mcumgr.exception.McuMgrTimeoutException
+import no.nordicsemi.android.mcumgr.log.Category
+import no.nordicsemi.android.mcumgr.log.McuMgrLogger
 import no.nordicsemi.android.mcumgr.util.CBOR
-import org.slf4j.LoggerFactory
+import no.nordicsemi.kotlin.log.Log
 import java.security.DigestException
 import kotlin.math.min
 
@@ -66,9 +68,14 @@ abstract class Uploader(
     private val windowCapacity: Int,
     private val memoryAlignment: Int,
     internal var mtu: Int,
-    private val protocol: McuMgrScheme
+    private val protocol: McuMgrScheme,
+    /**
+     * The sink assigned to the manager performing the upload, or `null` to log nothing.
+     * Upload entries are reported under [Category.TRANSFER].
+     */
+    logger: Log.Sink<Category>? = null,
 ) {
-    private val log = LoggerFactory.getLogger("Uploader")
+    private val log = McuMgrLogger(Category.TRANSFER).apply { sink = logger }
 
     private val _progress: MutableSharedFlow<UploadProgress> = MutableSharedFlow(
         replay = 2,
@@ -131,7 +138,7 @@ abstract class Uploader(
                         // somehow lost or the device could not accept the
                         // chunk. We need to resend the chunk at the offset
                         // requested by the device.
-                        log.warn("Chunk with offset ${chunk.offset} has been lost (expected offset=${chunk.offset + chunk.data.size}, received=${response.off})")
+                        log.warn { "Chunk with offset ${chunk.offset} has been lost (expected offset=${chunk.offset + chunk.data.size}, received=${response.off})" }
                         val fails = failureDirectoryMutex.withLock {
                             val fails = (failureDirectory[chunk.offset] ?: 0) + 1
                             failureDirectory[chunk.offset] = fails
@@ -180,15 +187,15 @@ abstract class Uploader(
                         // packets may have been sent before the time run out, and those could have
                         // got the ack.
                         if (currentOffset > chunk.offset) {
-                            log.warn("A notification for chunk with offset=${chunk.offset} was lost, but the chunk was ack-ed by later chunk (confirmed offset=$currentOffset)")
+                            log.warn { "A notification for chunk with offset=${chunk.offset} was lost, but the chunk was ack-ed by later chunk (confirmed offset=$currentOffset)" }
                             return@onErrorOrFailure
                         } else {
-                            log.warn("A notification for chunk with offset=${chunk.offset} was lost, current offset: $currentOffset")
+                            log.warn { "A notification for chunk with offset=${chunk.offset} was lost, current offset: $currentOffset" }
                         }
                     }
 
                     // Request failure, resend failed chunk.
-                    log.warn("Uploader write failure for chunk with offset=${chunk.offset}: $failure")
+                    log.warn { "Uploader write failure for chunk with offset=${chunk.offset}: $failure" }
                     // Track the number of times a chunk has failed. If the
                     // chunk has failed more times than the threshold,
                     // throw the exception to fail the upload entirely.
@@ -224,7 +231,7 @@ abstract class Uploader(
         scope: CoroutineScope = GlobalScope,
     ): TransferController {
         val exceptionHandler = CoroutineExceptionHandler { _, t ->
-            log.error("Upload failed: ${t.message}")
+            log.error(t) { "Upload failed: ${t.message}" }
         }
         val job = scope.launch(exceptionHandler) {
             val progress = progress.onEach { progress ->
@@ -239,7 +246,7 @@ abstract class Uploader(
             val start = System.currentTimeMillis()
             uploadCatchMtu()
             val duration = System.currentTimeMillis() - start
-            log.info("Upload completed. $size bytes sent in $duration ms with avg speed: ${size.toFloat() / (duration.toFloat() + 1f)} kBytes/s") // + 1 to prevent division by zero
+            log.info { "Upload completed. $size bytes sent in $duration ms with avg speed: ${size.toFloat() / (duration.toFloat() + 1f)} kBytes/s" } // + 1 to prevent division by zero
             progress.cancel()
         }
 
