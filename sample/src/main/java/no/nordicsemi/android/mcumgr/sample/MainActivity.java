@@ -84,14 +84,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(@Nullable final Bundle savedInstanceState) {
         final BluetoothDevice device = getIntent().getParcelableExtra(EXTRA_DEVICE);
-        // The target must be set before calling super.onCreate(Bundle).
-        // Otherwise, Dagger2 will fail to inflate this Activity.
-        // The target has to be set here, otherwise restoring the state will fail had the
-        // Activity been destroyed and recreated.
-        // It should only be done once, when the Activity is created for the first time.
-        if (savedInstanceState == null) {
-            ((Dagger2Application) getApplication()).setTarget(device);
-        }
+        // The target must be set before calling super.onCreate(Bundle), as that is what triggers
+        // the injection of this Activity: the injector factory for it is contributed by the
+        // Dagger2 subcomponent, which setTarget(...) builds. The call is unconditional and
+        // idempotent - the application keeps the subcomponent it already has for this device.
+        ((Dagger2Application) getApplication()).setTarget(device);
 
         EdgeToEdge.enable(this,
                 SystemBarStyle.dark(Color.TRANSPARENT),
@@ -203,6 +200,9 @@ public class MainActivity extends AppCompatActivity
             mcuMgrTransport.release();
             observabilityManager.disconnect();
             environment.close();
+            // The objects above belong to the Dagger2 subcomponent and are now unusable, so the
+            // next time this device is opened the subcomponent has to be built anew.
+            ((Dagger2Application) getApplication()).clearTarget();
         }
     }
 }
